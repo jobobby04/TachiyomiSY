@@ -11,7 +11,10 @@ import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
 import eu.davidea.flexibleadapter.items.IFilterable
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.LibraryManga
+import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.widget.AutofitRecyclerView
 import kotlinx.android.synthetic.main.source_grid_item.view.card
@@ -23,6 +26,8 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
     AbstractFlexibleItem<LibraryHolder>(), IFilterable<String> {
 
     private val sourceManager: SourceManager = Injekt.get()
+    private val trackManager: TrackManager = Injekt.get()
+    private val db: DatabaseHelper = Injekt.get()
 
     var downloadCount = -1
     var unreadCount = -1
@@ -84,6 +89,7 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
             (manga.author?.contains(constraint, true) ?: false) ||
             (manga.artist?.contains(constraint, true) ?: false) ||
             sourceManager.getOrStub(manga.source).name.contains(constraint, true) ||
+            filterTracks(constraint, db.getTracks(manga).executeAsBlocking()) ||
             if (constraint.contains(" ") || constraint.contains("\"")) {
                 val genres = manga.genre?.split(", ")?.map {
                     // tachiEH tag namespaces
@@ -112,6 +118,17 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
                     it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim()
                 }
             )
+    }
+
+    private fun filterTracks(constraint: String, tracks: List<Track>): Boolean {
+        return tracks.any {
+            val trackService = trackManager.getService(it.sync_id)
+            if (trackService != null) {
+                val status = trackService.getStatus(it.status)
+                return@any status.contains(constraint, true)
+            }
+            return@any false
+        }
     }
 
     private fun containsGenre(tag: String, genres: List<String>?): Boolean {
