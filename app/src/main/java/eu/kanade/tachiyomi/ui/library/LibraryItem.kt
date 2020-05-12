@@ -35,7 +35,10 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
         }
     }
 
-    override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): LibraryHolder {
+    override fun createViewHolder(
+        view: View,
+        adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>
+    ): LibraryHolder {
         val parent = adapter.recyclerView
         return if (parent is AutofitRecyclerView) {
             view.apply {
@@ -83,7 +86,8 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
             sourceManager.getOrStub(manga.source).name.contains(constraint, true) ||
             if (constraint.contains(" ") || constraint.contains("\"")) {
                 val genres = manga.genre?.split(", ")?.map {
-                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim() // tachiEH tag namespaces
+                    // tachiEH tag namespaces
+                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim()
                 }
                 var clean_constraint = ""
                 var ignorespace = false
@@ -104,7 +108,8 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
             } else containsGenre(
                 constraint,
                 manga.genre?.split(", ")?.map {
-                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim() // tachiEH tag namespaces
+                    // tachiEH tag namespaces
+                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim()
                 }
             )
     }
