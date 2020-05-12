@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.View
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.Filter.TriState.Companion.STATE_EXCLUDE
 import eu.kanade.tachiyomi.source.model.Filter.TriState.Companion.STATE_IGNORE
 import eu.kanade.tachiyomi.source.model.Filter.TriState.Companion.STATE_INCLUDE
@@ -70,9 +69,10 @@ class LibrarySettingsSheet(
             private val downloaded = Item.TriStateGroup(R.string.action_filter_downloaded, this)
             private val unread = Item.TriStateGroup(R.string.action_filter_unread, this)
             private val completed = Item.TriStateGroup(R.string.completed, this)
+            private val tracked = Item.TriStateGroup(R.string.tracked, this)
 
             override val header = null
-            override val items = listOf(downloaded, unread, completed)
+            override val items = listOf(downloaded, unread, completed, tracked)
             override val footer = null
 
             override fun initModels() { // j2k changes
@@ -80,6 +80,7 @@ class LibrarySettingsSheet(
                     downloaded.state = preferences.filterDownloaded().get()
                     unread.state = preferences.filterUnread().get()
                     completed.state = preferences.filterCompleted().get()
+                    tracked.state = preferences.filterTracked().get()
                 } catch (e: Exception) {
                     preferences.upgradeFilters()
                 }
@@ -97,6 +98,7 @@ class LibrarySettingsSheet(
                     downloaded -> preferences.filterDownloaded().set(item.state)
                     unread -> preferences.filterUnread().set(item.state)
                     completed -> preferences.filterCompleted().set(item.state)
+                    tracked -> preferences.filterTracked().set(item.state)
                 }
 
                 adapter.notifyItemChanged(item)
@@ -126,7 +128,15 @@ class LibrarySettingsSheet(
 
             override val header = null
             override val items =
-                listOf(alphabetically, lastRead, lastChecked, unread, total, latestChapter, dragAndDrop)
+                listOf(
+                    alphabetically,
+                    lastRead,
+                    lastChecked,
+                    unread,
+                    total,
+                    latestChapter,
+                    dragAndDrop
+                )
             override val footer = null
 
             override fun initModels() {
@@ -148,7 +158,8 @@ class LibrarySettingsSheet(
                 total.state = if (sorting == LibrarySort.TOTAL) order else Item.MultiSort.SORT_NONE
                 latestChapter.state =
                     if (sorting == LibrarySort.LATEST_CHAPTER) order else Item.MultiSort.SORT_NONE
-                dragAndDrop.state = if (sorting == LibrarySort.DRAG_AND_DROP) order else Item.MultiSort.SORT_NONE
+                dragAndDrop.state =
+                    if (sorting == LibrarySort.DRAG_AND_DROP) order else Item.MultiSort.SORT_NONE
             }
 
             override fun onItemClicked(item: Item) {
@@ -228,7 +239,8 @@ class LibrarySettingsSheet(
         }
 
         inner class BadgeGroup : Group {
-            private val downloadBadge = Item.CheckboxGroup(R.string.action_display_download_badge, this)
+            private val downloadBadge =
+                Item.CheckboxGroup(R.string.action_display_download_badge, this)
             private val unreadBadge = Item.CheckboxGroup(R.string.action_display_unread_badge, this)
 
             override val header = null
