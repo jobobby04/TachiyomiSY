@@ -266,10 +266,7 @@ class LibraryPresenter(
      * @return an observable of the categories and its manga.
      */
     private fun getLibraryObservable(): Observable<Library> {
-        return Observable.combineLatest(
-            getCategoriesObservable(),
-            getLibraryMangasObservable()
-        ) { dbCategories, libraryManga ->
+        return Observable.combineLatest(getCategoriesObservable(), getLibraryMangasObservable()) { dbCategories, libraryManga ->
             val categories = if (libraryManga.containsKey(0)) {
                 arrayListOf(Category.createDefault()) + dbCategories
             } else {

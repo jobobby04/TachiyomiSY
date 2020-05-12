@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.Filter.TriState.Companion.STATE_EXCLUDE
 import eu.kanade.tachiyomi.source.model.Filter.TriState.Companion.STATE_IGNORE
 import eu.kanade.tachiyomi.source.model.Filter.TriState.Companion.STATE_INCLUDE
@@ -128,15 +129,7 @@ class LibrarySettingsSheet(
 
             override val header = null
             override val items =
-                listOf(
-                    alphabetically,
-                    lastRead,
-                    lastChecked,
-                    unread,
-                    total,
-                    latestChapter,
-                    dragAndDrop
-                )
+                listOf(alphabetically, lastRead, lastChecked, unread, total, latestChapter, dragAndDrop)
             override val footer = null
 
             override fun initModels() {
@@ -158,8 +151,7 @@ class LibrarySettingsSheet(
                 total.state = if (sorting == LibrarySort.TOTAL) order else Item.MultiSort.SORT_NONE
                 latestChapter.state =
                     if (sorting == LibrarySort.LATEST_CHAPTER) order else Item.MultiSort.SORT_NONE
-                dragAndDrop.state =
-                    if (sorting == LibrarySort.DRAG_AND_DROP) order else Item.MultiSort.SORT_NONE
+                dragAndDrop.state = if (sorting == LibrarySort.DRAG_AND_DROP) order else Item.MultiSort.SORT_NONE
             }
 
             override fun onItemClicked(item: Item) {
@@ -239,8 +231,7 @@ class LibrarySettingsSheet(
         }
 
         inner class BadgeGroup : Group {
-            private val downloadBadge =
-                Item.CheckboxGroup(R.string.action_display_download_badge, this)
+            private val downloadBadge = Item.CheckboxGroup(R.string.action_display_download_badge, this)
             private val unreadBadge = Item.CheckboxGroup(R.string.action_display_unread_badge, this)
 
             override val header = null
