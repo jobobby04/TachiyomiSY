@@ -498,7 +498,6 @@
     <string name="title">Title</string>
     <string name="status">Status</string>
     <string name="track_status">Status</string>
-    <string name="tracked">Tracked</string>
     <string name="track_start_date">Started</string>
     <string name="track_started_reading_date">Started reading date</string>
     <string name="track_finished_reading_date">Finished reading date</string>
