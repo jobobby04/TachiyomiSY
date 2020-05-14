@@ -40,10 +40,7 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
         }
     }
 
-    override fun createViewHolder(
-        view: View,
-        adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>
-    ): LibraryHolder {
+    override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): LibraryHolder {
         val parent = adapter.recyclerView
         return if (parent is AutofitRecyclerView) {
             view.apply {
