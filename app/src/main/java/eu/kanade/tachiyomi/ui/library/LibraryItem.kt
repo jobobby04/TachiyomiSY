@@ -92,8 +92,7 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
             filterTracks(constraint, db.getTracks(manga).executeAsBlocking()) ||
             if (constraint.contains(" ") || constraint.contains("\"")) {
                 val genres = manga.genre?.split(", ")?.map {
-                    // tachiEH tag namespaces
-                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim()
+                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim() // tachiEH tag namespaces
                 }
                 var clean_constraint = ""
                 var ignorespace = false
@@ -114,8 +113,7 @@ class LibraryItem(val manga: LibraryManga, private val libraryAsList: Preference
             } else containsGenre(
                 constraint,
                 manga.genre?.split(", ")?.map {
-                    // tachiEH tag namespaces
-                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim()
+                    it.drop(it.indexOfFirst { it == ':' } + 1).toLowerCase().trim() // tachiEH tag namespaces
                 }
             )
     }
