@@ -53,6 +53,7 @@ import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 open class BrowseSourcePresenter(
     private val sourceId: Long,
     private val searchQuery: String? = null,
+    private val searchManga: Manga? = null,
     private val sourceManager: SourceManager = Injekt.get(),
     private val db: DatabaseHelper = Injekt.get(),
     private val prefs: PreferencesHelper = Injekt.get(),
@@ -155,7 +156,7 @@ open class BrowseSourcePresenter(
 
         // Create a new pager.
         pager = if (recommends) RecommendsPager(
-            searchQuery!!
+            searchManga!!
         ) else createPager(query, filters)
 
         val sourceId = source.id

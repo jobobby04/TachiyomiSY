@@ -7,6 +7,7 @@ import com.github.salomonbrys.kotson.jsonObject
 import com.github.salomonbrys.kotson.obj
 import com.github.salomonbrys.kotson.string
 import com.google.gson.JsonParser
+import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SMangaImpl
@@ -18,7 +19,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import rx.Observable
 import rx.schedulers.Schedulers
 
-open class RecommendsPager(val title: String, val preferredApi: API = API.MYANIMELIST) : Pager() {
+open class RecommendsPager(val manga: Manga, val preferredApi: API = API.MYANIMELIST) : Pager() {
     private val client = OkHttpClient.Builder().build()
 
     private fun myAnimeList(): Observable<List<SMangaImpl>>? {
@@ -29,7 +30,7 @@ open class RecommendsPager(val title: String, val preferredApi: API = API.MYANIM
             val urlBuilder = endpoint.newBuilder()
             urlBuilder.addPathSegment("search")
             urlBuilder.addPathSegment("manga")
-            urlBuilder.addQueryParameter("q", title)
+            urlBuilder.addQueryParameter("q", manga.title)
             val url = urlBuilder.build().toUrl()
 
             val request = Request.Builder()
@@ -96,7 +97,7 @@ open class RecommendsPager(val title: String, val preferredApi: API = API.MYANIM
         val query =
             """
             {
-                Media(search: "$title", type: MANGA) {
+                Media(search: "$manga.title", type: MANGA) {
                     title{
                         romaji
                     }
