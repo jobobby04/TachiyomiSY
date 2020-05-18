@@ -141,7 +141,7 @@ open class BrowseSourceController(bundle: Bundle) :
         return BrowseSourcePresenter(
             args.getLong(SOURCE_ID_KEY),
             args.getString(SEARCH_QUERY_KEY),
-            recommendsConfig?.manga,
+            searchManga = if (mode == Mode.RECOMMENDS) recommendsConfig?.manga else null,
             recommends = (mode == Mode.RECOMMENDS)
         )
     }
