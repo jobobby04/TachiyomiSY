@@ -4,6 +4,7 @@ import android.util.Log
 import com.github.salomonbrys.kotson.array
 import com.github.salomonbrys.kotson.get
 import com.github.salomonbrys.kotson.jsonObject
+import com.github.salomonbrys.kotson.nullString
 import com.github.salomonbrys.kotson.obj
 import com.github.salomonbrys.kotson.string
 import com.google.gson.JsonParser
@@ -105,6 +106,8 @@ open class RecommendsPager(
                 Media(search: "$manga.title", type: MANGA) {
                     title{
                         romaji
+                        english
+                        native
                     }
                     recommendations {
                         edges {
@@ -151,7 +154,9 @@ open class RecommendsPager(
                     val rec = it["node"]["mediaRecommendation"].obj
                     Log.d("ANILIST RECOMMEND", "${rec["title"].obj["romaji"].string}")
                     SMangaImpl().apply {
-                        this.title = rec["title"].obj["romaji"].string
+                        this.title = rec["title"].obj["romaji"].nullString
+                            ?: rec["title"].obj["english"].nullString
+                                ?: rec["title"].obj["native"].string
                         this.thumbnail_url = rec["coverImage"].obj["large"].string
                         this.initialized = true
                         this.url = rec["siteUrl"].string
