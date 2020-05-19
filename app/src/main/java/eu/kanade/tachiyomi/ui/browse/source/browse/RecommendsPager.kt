@@ -4,10 +4,12 @@ import android.util.Log
 import com.github.salomonbrys.kotson.array
 import com.github.salomonbrys.kotson.get
 import com.github.salomonbrys.kotson.jsonObject
+import com.github.salomonbrys.kotson.nullObj
 import com.github.salomonbrys.kotson.nullString
 import com.github.salomonbrys.kotson.obj
 import com.github.salomonbrys.kotson.string
 import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.network.asObservableSuccess
@@ -29,13 +31,6 @@ open class RecommendsPager(
     var preferredApi: API = API.MYANIMELIST
 ) : Pager() {
     private val client = OkHttpClient.Builder().build()
-
-    private fun countOccurrence(array: JsonArray, search: String): Int {
-        return array.count {
-            val synonym = it.string
-            synonym.contains(search, true)
-        }
-    }
 
     private fun myAnimeList(): Observable<List<SMangaImpl>>? {
         fun getId(): Observable<String?> {
@@ -61,19 +56,14 @@ open class RecommendsPager(
                         throw Exception("Null Response")
                     }
                     val response = JsonParser.parseString(responseBody).obj
-                    val result = response["results"].array
-                        .find {
-                            val title = it["title"].string
-                            title.contains(manga.title, true)
-                        }
-                        ?: return@map null
+                    val result = response["results"].array.first().nullObj ?: return@map null
                     result["mal_id"].string
                 }
         }
 
         return getId().map { id ->
             if (id == null) {
-                return@map listOf<SMangaImpl>()
+                return@map null
             }
             val endpoint =
                 myAnimeListEndpoint.toHttpUrlOrNull()
@@ -155,6 +145,17 @@ open class RecommendsPager(
             .post(body)
             .build()
 
+        fun countOccurrence(array: JsonArray, search: String): Int {
+            return array.count {
+                val synonym = it.string
+                synonym.contains(search, true)
+            }
+        }
+
+        fun langaugeContains(it: JsonElement, language: String, search: String): Boolean {
+            return it["title"].obj[language].nullString?.contains(search, true) == true
+        }
+
         return client.newCall(request)
             .asObservableSuccess().subscribeOn(Schedulers.io())
             .map { netResponse ->
@@ -166,23 +167,14 @@ open class RecommendsPager(
                 val data = response["data"]!!.obj
                 val page = data["Page"].obj
                 val media = page["media"].array
-                val result = media.find {
-                    val title = it["title"].obj
-                    if (title["romaji"].nullString?.contains(manga.title, true) == true) {
-                        return@find true
-                    }
-                    if (title["english"].nullString?.contains(manga.title, true) == true) {
-                        return@find true
-                    }
-                    if (title["native"].nullString?.contains(manga.title, true) == true) {
-                        return@find true
-                    }
-                    if (countOccurrence(it["synonyms"].array, manga.title) <= 0) {
-                        return@find true
-                    }
-                    false
-                }
-                    ?: return@map listOf<SMangaImpl>()
+                val result = media.sortedWith(
+                    compareBy(
+                        { langaugeContains(it, "romaji", manga.title) },
+                        { langaugeContains(it, "english", manga.title) },
+                        { langaugeContains(it, "native", manga.title) },
+                        { countOccurrence(it["synonyms"].array, manga.title) > 0 }
+                    )
+                ).last().nullObj ?: return@map null
                 val recommendations = result["recommendations"].obj
                 val edges = recommendations["edges"].array
                 edges.map {
