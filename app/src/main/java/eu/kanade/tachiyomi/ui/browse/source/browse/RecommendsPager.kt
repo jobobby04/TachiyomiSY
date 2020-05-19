@@ -139,7 +139,8 @@ open class RecommendsPager(
             "query" to query,
             "variables" to variables
         )
-        val body = payload.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        val body =
+            payload.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         val request = Request.Builder()
             .url(anilistEndpoint)
             .post(body)
@@ -152,7 +153,7 @@ open class RecommendsPager(
             }
         }
 
-        fun langaugeContains(it: JsonElement, language: String, search: String): Boolean {
+        fun languageContains(it: JsonElement, language: String, search: String): Boolean {
             return it["title"].obj[language].nullString?.contains(search, true) == true
         }
 
@@ -169,9 +170,9 @@ open class RecommendsPager(
                 val media = page["media"].array
                 val result = media.sortedWith(
                     compareBy(
-                        { langaugeContains(it, "romaji", manga.title) },
-                        { langaugeContains(it, "english", manga.title) },
-                        { langaugeContains(it, "native", manga.title) },
+                        { languageContains(it, "romaji", manga.title) },
+                        { languageContains(it, "english", manga.title) },
+                        { languageContains(it, "native", manga.title) },
                         { countOccurrence(it["synonyms"].array, manga.title) > 0 }
                     )
                 ).last().nullObj ?: return@map null
@@ -183,7 +184,7 @@ open class RecommendsPager(
                     SMangaImpl().apply {
                         this.title = rec["title"].obj["romaji"].nullString
                             ?: rec["title"].obj["english"].nullString
-                            ?: rec["title"].obj["native"].string
+                                ?: rec["title"].obj["native"].string
                         this.thumbnail_url = rec["coverImage"].obj["large"].string
                         this.initialized = true
                         this.url = rec["siteUrl"].string
@@ -194,7 +195,8 @@ open class RecommendsPager(
 
     override fun requestNext(): Observable<MangasPage> {
         if (smart) {
-            preferredApi = if (manga.mangaType() != MangaType.TYPE_MANGA) API.ANILIST else preferredApi
+            preferredApi =
+                if (manga.mangaType() != MangaType.TYPE_MANGA) API.ANILIST else preferredApi
             Log.d("SMART RECOMMEND", preferredApi.toString())
         }
 
