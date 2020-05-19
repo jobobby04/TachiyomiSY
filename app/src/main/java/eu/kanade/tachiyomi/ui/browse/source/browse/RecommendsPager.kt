@@ -30,7 +30,7 @@ open class RecommendsPager(
 ) : Pager() {
     private val client = OkHttpClient.Builder().build()
 
-    private fun countOccurance(array: JsonArray, search: String): Int {
+    private fun countOccurrence(array: JsonArray, search: String): Int {
         return array.count {
             val synonym = it.string
             synonym.contains(search, true)
@@ -172,7 +172,7 @@ open class RecommendsPager(
                 val media = page["media"].array
                 val results = media.sortedBy {
                     val synonyms = it["synonyms"].array
-                    countOccurance(synonyms, manga.title)
+                    countOccurrence(synonyms, manga.title)
                 }
                 val result = results.last()
                 val title = result["title"].obj
@@ -181,7 +181,7 @@ open class RecommendsPager(
                     title["romaji"].nullString?.contains("", true) != true &&
                     title["english"].nullString?.contains("", true) != true &&
                     title["native"].nullString?.contains("", true) != true &&
-                    countOccurance(synonyms, manga.title) <= 0
+                    countOccurrence(synonyms, manga.title) <= 0
                 ) {
                     return@map listOf<SMangaImpl>()
                 }
@@ -214,19 +214,24 @@ open class RecommendsPager(
 
         var recommendations: Observable<List<SMangaImpl>>? = null
         for (api in apiList) {
-            recommendations = when (api) {
+            val currentRecommendations = when (api) {
                 API.MYANIMELIST -> myAnimeList()
                 API.ANILIST -> anilist()
             }
-                ?: throw Exception("Could not get recommendations")
 
-            val recommendationsBlocking = recommendations.toBlocking().first()
-            if (recommendationsBlocking.isNotEmpty()) {
+            if (currentRecommendations != null &&
+                currentRecommendations.toBlocking().first().isNotEmpty()
+            ) {
+                recommendations = currentRecommendations
                 break
             }
         }
 
-        return recommendations!!.map {
+        if (recommendations == null) {
+            throw Exception("No recommendations found")
+        }
+
+        return recommendations.map {
             MangasPage(it, false)
         }.doOnNext {
             onPageReceived(it)
