@@ -10,6 +10,7 @@ import com.github.salomonbrys.kotson.obj
 import com.github.salomonbrys.kotson.string
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.network.asObservableSuccess
@@ -153,7 +154,7 @@ open class RecommendsPager(
             }
         }
 
-        fun languageContains(it: JsonElement, language: String, search: String): Boolean {
+        fun languageContains(it: JsonObject, language: String, search: String): Boolean {
             return it["title"].obj[language].nullString?.contains(search, true) == true
         }
 
@@ -170,10 +171,10 @@ open class RecommendsPager(
                 val media = page["media"].array
                 val result = media.sortedWith(
                     compareBy(
-                        { languageContains(it, "romaji", manga.title) },
-                        { languageContains(it, "english", manga.title) },
-                        { languageContains(it, "native", manga.title) },
-                        { countOccurrence(it["synonyms"].array, manga.title) > 0 }
+                        { languageContains(it.obj, "romaji", manga.title) },
+                        { languageContains(it.obj, "english", manga.title) },
+                        { languageContains(it.obj, "native", manga.title) },
+                        { countOccurrence(it.obj["synonyms"].array, manga.title) > 0 }
                     )
                 ).last().nullObj ?: return@map null
                 val recommendations = result["recommendations"].obj
