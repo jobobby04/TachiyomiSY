@@ -54,8 +54,12 @@ open class RecommendsPager(
                     }
                     val response = JsonParser.parseString(responseBody).obj
                     val results = response["results"].array
-                    val firstResult = results[0].obj
-                    val id = firstResult["mal_id"].string
+                        .sortedBy {
+                            val title = it["title"].string
+                            title.contains(manga.title, true)
+                        }
+                    val result = results.last()
+                    val id = result["mal_id"].string
                     if (id.isEmpty()) {
                         throw Exception("Not found")
                     }
