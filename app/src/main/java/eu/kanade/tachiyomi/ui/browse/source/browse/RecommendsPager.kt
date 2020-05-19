@@ -104,22 +104,22 @@ open class RecommendsPager(
         val query =
             """
             {
-                Media(search: "$manga.title", type: MANGA) {
-                    title{
-                        romaji
-                        english
-                        native
-                    }
-                    recommendations {
-                        edges {
-                            node {
-                                mediaRecommendation {
-                                    siteUrl
-                                    title {
-                                        romaji
-                                    }
-                                    coverImage {
-                                        large
+                Page {
+                    media(search: "${manga.title}", type: MANGA) {
+                        synonyms
+                        recommendations {
+                            edges {
+                                node {
+                                    mediaRecommendation {
+                                        siteUrl
+                                        title {
+                                            romaji
+                                            english
+                                            native
+                                        }
+                                        coverImage {
+                                            large
+                                        }
                                     }
                                 }
                             }
@@ -148,8 +148,18 @@ open class RecommendsPager(
                 }
                 val response = JsonParser.parseString(responseBody).obj
                 val data = response["data"]!!.obj
-                val media = data["Media"].obj
-                val recommendations = media["recommendations"].obj
+                val page = data["Page"].obj
+                val media = page["media"].array
+                val results = media.sortedBy {
+                    val synonyms = it["synonyms"].array
+                    val count = synonyms.count { _synonym ->
+                        val synonym = _synonym.string
+                        synonym.contains(manga.title, true)
+                    }
+                    count
+                }
+                val result = results.last()
+                val recommendations = result["recommendations"].obj
                 val edges = recommendations["edges"].array
                 edges.map {
                     val rec = it["node"]["mediaRecommendation"].obj
@@ -157,7 +167,7 @@ open class RecommendsPager(
                     SMangaImpl().apply {
                         this.title = rec["title"].obj["romaji"].nullString
                             ?: rec["title"].obj["english"].nullString
-                            ?: rec["title"].obj["native"].string
+                                ?: rec["title"].obj["native"].string
                         this.thumbnail_url = rec["coverImage"].obj["large"].string
                         this.initialized = true
                         this.url = rec["siteUrl"].string
