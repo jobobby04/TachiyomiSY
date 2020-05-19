@@ -9,7 +9,6 @@ import com.github.salomonbrys.kotson.nullString
 import com.github.salomonbrys.kotson.obj
 import com.github.salomonbrys.kotson.string
 import com.google.gson.JsonArray
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import eu.kanade.tachiyomi.data.database.models.Manga
