@@ -12,18 +12,20 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.network.asObservableSuccess
+import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SMangaImpl
-import exh.util.MangaType
-import exh.util.mangaType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import rx.Observable
-import rx.schedulers.Schedulers
 
 open class RecommendsPager(
     val manga: Manga,
@@ -31,82 +33,103 @@ open class RecommendsPager(
     var preferredApi: API = API.MYANIMELIST
 ) : Pager() {
     private val client = OkHttpClient.Builder().build()
+    private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
-    private fun myAnimeList(): Observable<List<SMangaImpl>>? {
-        fun getId(): Observable<String?> {
-            val endpoint =
-                myAnimeListEndpoint.toHttpUrlOrNull()
-                    ?: throw Exception("Could not convert endpoint url")
-            val urlBuilder = endpoint.newBuilder()
-            urlBuilder.addPathSegment("search")
-            urlBuilder.addPathSegment("manga")
-            urlBuilder.addQueryParameter("q", manga.title)
-            val url = urlBuilder.build().toUrl()
+    private var recs: List<SMangaImpl>? = null
 
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+    private fun getMyAnimeListRecsById(id: String) {
+        val endpoint =
+            myAnimeListEndpoint.toHttpUrlOrNull()
+                ?: throw Exception("Could not convert endpoint url")
+        val urlBuilder = endpoint.newBuilder()
+        urlBuilder.addPathSegment("manga")
+        urlBuilder.addPathSegment(id)
+        urlBuilder.addPathSegment("recommendations")
+        val url = urlBuilder.build().toUrl()
 
-            return client.newCall(request)
-                .asObservableSuccess().subscribeOn(Schedulers.io())
-                .map { netResponse ->
-                    val responseBody = netResponse.body?.string().orEmpty()
-                    if (responseBody.isEmpty()) {
-                        throw Exception("Null Response")
-                    }
-                    val response = JsonParser.parseString(responseBody).obj
-                    val result = response["results"].array.first().nullObj ?: return@map null
-                    result["mal_id"].string
-                }
-        }
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
 
-        return getId().map { id ->
-            if (id == null) {
-                return@map null
+        scope.launch(Dispatchers.IO) {
+            val response = client.newCall(request).await()
+            val body = response.body?.string().orEmpty()
+            if (body.isEmpty()) {
+                throw Exception("Null Response")
             }
-            val endpoint =
-                myAnimeListEndpoint.toHttpUrlOrNull()
-                    ?: throw Exception("Could not convert endpoint url")
-            val urlBuilder = endpoint.newBuilder()
-            urlBuilder.addPathSegment("manga")
-            urlBuilder.addPathSegment(id)
-            urlBuilder.addPathSegment("recommendations")
-            val url = urlBuilder.build().toUrl()
-
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
-
-            client.newCall(request)
-                .asObservableSuccess().subscribeOn(Schedulers.io())
-                .map { netResponse ->
-                    val responseBody = netResponse.body?.string().orEmpty()
-                    if (responseBody.isEmpty()) {
-                        throw Exception("Null Response")
+            val data = JsonParser.parseString(body).obj
+            val recommendations = data["recommendations"].array
+            withContext(Dispatchers.Main) {
+                recs = recommendations.map { rec ->
+                    Log.d("MYANIMELIST RECOMMEND", "${rec["title"].string}")
+                    SMangaImpl().apply {
+                        this.title = rec["title"].string
+                        this.thumbnail_url = rec["image_url"].string
+                        this.initialized = true
+                        this.url = rec["url"].string
                     }
-                    val response = JsonParser.parseString(responseBody).obj
-                    val recommendations = response["recommendations"].array
-                    recommendations.map { rec ->
-                        Log.d("MYANIMELIST RECOMMEND", "${rec["title"].string}")
-                        SMangaImpl().apply {
-                            this.title = rec["title"].string
-                            this.thumbnail_url = rec["image_url"].string
-                            this.initialized = true
-                            this.url = rec["url"].string
-                        }
-                    }
-                }.toBlocking().first()
+                }
+            }
         }
     }
 
-    private fun anilist(): Observable<List<SMangaImpl>>? {
+    private fun getMyAnimeListRecsBySearch(search: String) {
+        val endpoint =
+            myAnimeListEndpoint.toHttpUrlOrNull()
+                ?: throw Exception("Could not convert endpoint url")
+        val urlBuilder = endpoint.newBuilder()
+        urlBuilder.addPathSegment("search")
+        urlBuilder.addPathSegment("manga")
+        urlBuilder.addQueryParameter("q", search)
+        val url = urlBuilder.build().toUrl()
+
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+
+        scope.launch(Dispatchers.IO) {
+            val response = client.newCall(request).await()
+            val body = response.body?.string().orEmpty()
+            if (body.isEmpty()) {
+                throw Exception("Null Response")
+            }
+            val data = JsonParser.parseString(body).obj
+            val result = data["results"].array.first().nullObj
+            val id = result?.get("mal_id")?.string
+            withContext(Dispatchers.Main) {
+                if (id == null) {
+                    throw Exception("Couldn't find id for $search")
+                }
+                getMyAnimeListRecsById(id)
+            }
+        }
+    }
+
+    private fun getAnilistRecsBySearch(search: String) {
+        fun countOccurrence(arr: JsonArray, search: String): Int {
+            return arr.count {
+                val synonym = it.string
+                synonym.contains(search, true)
+            }
+        }
+
+        fun languageContains(obj: JsonObject, language: String, search: String): Boolean {
+            return obj["title"].obj[language].nullString?.contains(search, true) == true
+        }
+
+        fun getTitle(obj: JsonObject): String {
+            return obj["title"].obj["romaji"].nullString
+                ?: obj["title"].obj["english"].nullString
+                ?: obj["title"].obj["native"].string
+        }
+
         val query =
             """
             {
                 Page {
-                    media(search: "${manga.title}", type: MANGA) {
+                    media(search: "$search", type: MANGA) {
                         title {
                             romaji
                             english
@@ -146,54 +169,44 @@ open class RecommendsPager(
             .post(body)
             .build()
 
-        fun countOccurrence(array: JsonArray, search: String): Int {
-            return array.count {
-                val synonym = it.string
-                synonym.contains(search, true)
+        scope.launch(Dispatchers.IO) {
+            val response = client.newCall(request).await()
+            val body = response.body?.string().orEmpty()
+            if (body.isEmpty()) {
+                throw Exception("Null Response")
             }
-        }
-
-        fun languageContains(it: JsonObject, language: String, search: String): Boolean {
-            return it["title"].obj[language].nullString?.contains(search, true) == true
-        }
-
-        return client.newCall(request)
-            .asObservableSuccess().subscribeOn(Schedulers.io())
-            .map { netResponse ->
-                val responseBody = netResponse.body?.string().orEmpty()
-                if (responseBody.isEmpty()) {
-                    throw Exception("Null Response")
-                }
-                val response = JsonParser.parseString(responseBody).obj
-                val data = response["data"]!!.obj
-                val page = data["Page"].obj
-                val media = page["media"].array
-                val result = media.sortedWith(
-                    compareBy(
-                        { languageContains(it.obj, "romaji", manga.title) },
-                        { languageContains(it.obj, "english", manga.title) },
-                        { languageContains(it.obj, "native", manga.title) },
-                        { countOccurrence(it.obj["synonyms"].array, manga.title) > 0 }
-                    )
-                ).last().nullObj ?: return@map null
-                val recommendations = result["recommendations"].obj
-                val edges = recommendations["edges"].array
-                edges.map {
+            val data = JsonParser.parseString(body).obj["data"].obj
+            val page = data["Page"].obj
+            val media = page["media"].array
+            val result = media.sortedWith(
+                compareBy(
+                    { languageContains(it.obj, "romaji", manga.title) },
+                    { languageContains(it.obj, "english", manga.title) },
+                    { languageContains(it.obj, "native", manga.title) },
+                    { countOccurrence(it.obj["synonyms"].array, manga.title) > 0 }
+                )
+            ).last().nullObj
+            val recommendations =
+                result?.get("recommendations")?.obj?.get("edges")?.array ?: JsonArray()
+            withContext(Dispatchers.Main) {
+                recs = recommendations.map {
                     val rec = it["node"]["mediaRecommendation"].obj
                     Log.d("ANILIST RECOMMEND", "${rec["title"].obj["romaji"].string}")
                     SMangaImpl().apply {
-                        this.title = rec["title"].obj["romaji"].nullString
-                            ?: rec["title"].obj["english"].nullString
-                            ?: rec["title"].obj["native"].string
+                        this.title = getTitle(rec)
                         this.thumbnail_url = rec["coverImage"].obj["large"].string
                         this.initialized = true
                         this.url = rec["siteUrl"].string
                     }
                 }
             }
+        }
     }
 
     override fun requestNext(): Observable<MangasPage> {
+        getMyAnimeListRecsBySearch(manga.title)
+
+        /*
         if (smart) {
             preferredApi =
                 if (manga.mangaType() != MangaType.TYPE_MANGA) API.ANILIST else preferredApi
@@ -204,27 +217,32 @@ open class RecommendsPager(
         apiList.removeAt(apiList.indexOf(preferredApi))
         apiList.add(0, preferredApi)
 
-        var recommendations: Observable<List<SMangaImpl>>? = null
         for (api in apiList) {
-            val currentRecommendations = when (api) {
-                API.MYANIMELIST -> myAnimeList()
-                API.ANILIST -> anilist()
+            // TODO await this
+            when (api) {
+                API.MYANIMELIST -> getMyAnimeListRecsBySearch(manga.title)
+                API.ANILIST -> getAnilistRecsBySearch(manga.title)
             }
+            // !TODO await this
 
-            if (currentRecommendations != null &&
-                currentRecommendations.toBlocking().first().isNotEmpty()
-            ) {
-                recommendations = currentRecommendations
-                break
+            if (recs != null) { // this clause is only here because await isn't implemented yet. recs should never be null here
+                if (recs!!.isNotEmpty()) {
+                    break
+                }
             }
         }
+        */
 
-        if (recommendations == null) {
+        if (recs == null) { // this clause is only here because await isn't implemented yet. recs should never be null here
+            throw Exception("Press 'RETRY' for recs lmao (´･ω･`)")
+        }
+
+        if (recs!!.isEmpty()) {
             throw Exception("No recommendations found")
         }
 
-        return recommendations.map {
-            MangasPage(it, false)
+        return Observable.just(recs)!!.map {
+            MangasPage(it!!, false)
         }.doOnNext {
             onPageReceived(it)
         }
