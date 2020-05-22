@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.ui.browse.source.browse
 
-import android.util.Log
 import com.github.salomonbrys.kotson.array
 import com.github.salomonbrys.kotson.get
 import com.github.salomonbrys.kotson.jsonObject
@@ -30,8 +29,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import rx.Observable
 import timber.log.Timber
-
-// TODO api classes
 
 abstract class API(_endpoint: String) {
     var endpoint: String = _endpoint
@@ -80,7 +77,8 @@ class MyAnimeList() : API("https://api.jikan.moe/v3/") {
             val recommendations = data["recommendations"].nullArray
                 ?: throw Exception("Unexpected response")
             val recs = recommendations.map { rec ->
-                Log.d("MYANIMELIST RECOMMEND", "${rec["title"].string}")
+                Timber.tag("RECOMMENDATIONS")
+                    .d("MYANIMELIST > FOUND RECOMMENDATION > %s", rec["title"].string)
                 SMangaImpl().apply {
                     this.title = rec["title"].string
                     this.thumbnail_url = rec["image_url"].string
@@ -129,6 +127,8 @@ class MyAnimeList() : API("https://api.jikan.moe/v3/") {
                 throw Exception("'$search' not found")
             }
             val result = results.first().obj
+            Timber.tag("RECOMMENDATIONS")
+                .d("MYANIMELIST > FOUND TITLE > %s", result["title"].string)
             val id = result["mal_id"].string
             getRecsById(id, callback)
         }
@@ -226,10 +226,13 @@ class Anilist() : API("https://graphql.anilist.co/") {
                     { countOccurrence(it.obj["synonyms"].array, search) > 0 }
                 )
             ).last().obj
+            Timber.tag("RECOMMENDATIONS")
+                .d("ANILIST > FOUND TITLE > %s", getTitle(result))
             val recommendations = result["recommendations"].obj["edges"].array
             val recs = recommendations.map {
                 val rec = it["node"]["mediaRecommendation"].obj
-                Log.d("ANILIST RECOMMEND", "${rec["title"].obj["romaji"].string}")
+                Timber.tag("RECOMMENDATIONS")
+                    .d("ANILIST: FOUND RECOMMENDATION: %s", getTitle(rec))
                 SMangaImpl().apply {
                     this.title = getTitle(rec)
                     this.thumbnail_url = rec["coverImage"].obj["large"].string
@@ -252,6 +255,7 @@ open class RecommendsPager(
 
     private fun handleSuccess(recs: List<SMangaImpl>) {
         if (recs.isEmpty()) {
+            Timber.tag("RECOMMENDATIONS").e("%s > Couldn't find any", currentApi.toString())
             apiList.remove(currentApi)
             val list = apiList.toList()
             currentApi = if (list.isEmpty()) {
@@ -263,7 +267,7 @@ open class RecommendsPager(
             if (currentApi != null) {
                 getRecs(currentApi!!)
             } else {
-                Timber.e("Couldn't find recommendations")
+                Timber.tag("RECOMMENDATIONS").e("Couldn't find any")
                 onPageReceived(MangasPage(recs, false))
             }
         } else {
@@ -272,12 +276,12 @@ open class RecommendsPager(
     }
 
     private fun handleError(error: Throwable) {
-        Timber.e(error)
+        Timber.tag("RECOMMENDATIONS").e(error)
         handleSuccess(listOf()) // tmp workaround until errors can be displayed in app
     }
 
     private fun getRecs(api: API) {
-        Log.d("USED RECOMMEND", api.toString())
+        Timber.tag("RECOMMENDATIONS").d("USING > %s", api.toString())
         apiList[api]?.getRecsBySearch(manga.title) { recs, error ->
             if (error != null) {
                 handleError(error)
@@ -292,7 +296,7 @@ open class RecommendsPager(
         if (smart) {
             preferredApi =
                 if (manga.mangaType() != MangaType.TYPE_MANGA) API.ANILIST else preferredApi
-            Log.d("SMART RECOMMEND", preferredApi.toString())
+            Timber.tag("RECOMMENDATIONS").d("SMART > %s", preferredApi.toString())
         }
         currentApi = preferredApi
 
