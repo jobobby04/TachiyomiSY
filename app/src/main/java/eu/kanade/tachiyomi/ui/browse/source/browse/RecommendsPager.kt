@@ -31,58 +31,31 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import rx.Observable
 import timber.log.Timber
 
-//TODO api classes
+// TODO api classes
 
-open class RecommendsPager(
-    val manga: Manga,
-    val smart: Boolean = true,
-    var preferredApi: API = API.MYANIMELIST
-) : Pager() {
-    private val client = OkHttpClient.Builder().build()
-    private val myAnimeListScope = CoroutineScope(Job() + Dispatchers.Default)
-    private val anilistScope = CoroutineScope(Job() + Dispatchers.Default)
+abstract class API(_endpoint: String) {
+    var endpoint: String = _endpoint
+    val client = OkHttpClient.Builder().build()
+    val scope = CoroutineScope(Job() + Dispatchers.Default)
 
-    private val apiList = API.values().toMutableList()
-    private var currentApi: API? = null
+    abstract fun getRecsBySearch(
+        search: String,
+        callback: (onResolve: List<SMangaImpl>?, onReject: Throwable?) -> Unit
+    )
+}
 
-    private var recs = listOf<SMangaImpl>()
-
-    private fun getRecs(api: API) {
-        Log.d("USED RECOMMEND", api.toString())
-        when (api) {
-            API.MYANIMELIST -> getMyAnimeListRecsBySearch(manga.title)
-            API.ANILIST -> getAnilistRecsBySearch(manga.title)
+class MyAnimeList() : API("https://api.jikan.moe/v3/") {
+    fun getRecsById(
+        id: String,
+        callback: (resolve: List<SMangaImpl>?, reject: Throwable?) -> Unit
+    ) {
+        val httpUrl =
+            endpoint.toHttpUrlOrNull()
+        if (httpUrl == null) {
+            callback.invoke(null, Exception("Could not convert endpoint url"))
+            return
         }
-    }
-
-    private fun next(nextRecs: List<SMangaImpl> = recs) {
-        recs = nextRecs
-
-        if (recs.isEmpty()) {
-            apiList.removeAt(apiList.indexOf(currentApi))
-            currentApi = apiList.first()
-
-            if (currentApi != null) {
-                getRecs(currentApi!!)
-            } else {
-                Timber.e("Couldn't find recs")
-                onPageReceived(MangasPage(recs, false))
-            }
-        } else {
-            onPageReceived(MangasPage(recs, false))
-        }
-    }
-
-    private fun handleError(exception: Throwable) {
-        Timber.e(exception)
-        next()
-    }
-
-    private fun getMyAnimeListRecsById(id: String) {
-        val endpoint =
-            myAnimeListEndpoint.toHttpUrlOrNull()
-                ?: throw Exception("Could not convert endpoint url")
-        val urlBuilder = endpoint.newBuilder()
+        val urlBuilder = httpUrl.newBuilder()
         urlBuilder.addPathSegment("manga")
         urlBuilder.addPathSegment(id)
         urlBuilder.addPathSegment("recommendations")
@@ -94,10 +67,10 @@ open class RecommendsPager(
             .build()
 
         val handler = CoroutineExceptionHandler { _, exception ->
-            handleError(exception)
+            callback.invoke(null, exception)
         }
 
-        myAnimeListScope.launch(handler) {
+        scope.launch(handler) {
             val response = client.newCall(request).await()
             val body = response.body?.string().orEmpty()
             if (body.isEmpty()) {
@@ -105,8 +78,8 @@ open class RecommendsPager(
             }
             val data = JsonParser.parseString(body).obj
             val recommendations = data["recommendations"].nullArray
-                ?: throw Exception("Couldn't find any recommendations")
-            val nextRecs = recommendations.map { rec ->
+                ?: throw Exception("Unexpected response")
+            val recs = recommendations.map { rec ->
                 Log.d("MYANIMELIST RECOMMEND", "${rec["title"].string}")
                 SMangaImpl().apply {
                     this.title = rec["title"].string
@@ -115,15 +88,21 @@ open class RecommendsPager(
                     this.url = rec["url"].string
                 }
             }
-            next(nextRecs)
+            callback.invoke(recs, null)
         }
     }
 
-    private fun getMyAnimeListRecsBySearch(search: String) {
-        val endpoint =
-            myAnimeListEndpoint.toHttpUrlOrNull()
-                ?: throw Exception("Could not convert endpoint url")
-        val urlBuilder = endpoint.newBuilder()
+    override fun getRecsBySearch(
+        search: String,
+        callback: (recs: List<SMangaImpl>?, error: Throwable?) -> Unit
+    ) {
+        val httpUrl =
+            endpoint.toHttpUrlOrNull()
+        if (httpUrl == null) {
+            callback.invoke(null, Exception("Could not convert endpoint url"))
+            return
+        }
+        val urlBuilder = httpUrl.newBuilder()
         urlBuilder.addPathSegment("search")
         urlBuilder.addPathSegment("manga")
         urlBuilder.addQueryParameter("q", search)
@@ -135,41 +114,49 @@ open class RecommendsPager(
             .build()
 
         val handler = CoroutineExceptionHandler { _, exception ->
-            handleError(exception)
+            callback.invoke(null, exception)
         }
 
-        myAnimeListScope.launch(handler) {
+        scope.launch(handler) {
             val response = client.newCall(request).await()
             val body = response.body?.string().orEmpty()
             if (body.isEmpty()) {
                 throw Exception("Null Response")
             }
             val data = JsonParser.parseString(body).obj
-            val results = data["results"].nullArray
-            val result = results?.first().nullObj
-            val id = result?.get("mal_id").nullString ?: throw Exception("'$search' not found")
-            getMyAnimeListRecsById(id)
+            val results = data["results"].nullArray ?: throw Exception("Unexpected response")
+            if (results.size() <= 0) {
+                throw Exception("'$search' not found")
+            }
+            val result = results.first().obj
+            val id = result["mal_id"].string
+            getRecsById(id, callback)
+        }
+    }
+}
+
+class Anilist() : API("https://graphql.anilist.co/") {
+    private fun countOccurrence(arr: JsonArray, search: String): Int {
+        return arr.count {
+            val synonym = it.string
+            synonym.contains(search, true)
         }
     }
 
-    private fun getAnilistRecsBySearch(search: String) {
-        fun countOccurrence(arr: JsonArray, search: String): Int {
-            return arr.count {
-                val synonym = it.string
-                synonym.contains(search, true)
-            }
-        }
+    private fun languageContains(obj: JsonObject, language: String, search: String): Boolean {
+        return obj["title"].obj[language].nullString?.contains(search, true) == true
+    }
 
-        fun languageContains(obj: JsonObject, language: String, search: String): Boolean {
-            return obj["title"].obj[language].nullString?.contains(search, true) == true
-        }
+    private fun getTitle(obj: JsonObject): String {
+        return obj["title"].obj["romaji"].nullString
+            ?: obj["title"].obj["english"].nullString
+            ?: obj["title"].obj["native"].string
+    }
 
-        fun getTitle(obj: JsonObject): String {
-            return obj["title"].obj["romaji"].nullString
-                ?: obj["title"].obj["english"].nullString
-                ?: obj["title"].obj["native"].string
-        }
-
+    override fun getRecsBySearch(
+        search: String,
+        callback: (onResolve: List<SMangaImpl>?, onReject: Throwable?) -> Unit
+    ) {
         val query =
             """
             {
@@ -210,46 +197,93 @@ open class RecommendsPager(
         val payloadBody =
             payload.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         val request = Request.Builder()
-            .url(anilistEndpoint)
+            .url(endpoint)
             .post(payloadBody)
             .build()
 
         val handler = CoroutineExceptionHandler { _, exception ->
-            handleError(exception)
+            callback.invoke(null, exception)
         }
 
-        anilistScope.launch(handler) {
+        scope.launch(handler) {
             val response = client.newCall(request).await()
             val body = response.body?.string().orEmpty()
             if (body.isEmpty()) {
                 throw Exception("Null Response")
             }
             val data = JsonParser.parseString(body).obj["data"].nullObj
-            val page = data?.get("Page").nullObj
+                ?: throw Exception("Unexpected response")
+            val page = data["Page"].nullObj
             val media = page?.get("media").nullArray
             val result = media?.sortedWith(
                 compareBy(
-                    { languageContains(it.obj, "romaji", manga.title) },
-                    { languageContains(it.obj, "english", manga.title) },
-                    { languageContains(it.obj, "native", manga.title) },
-                    { countOccurrence(it.obj["synonyms"].array, manga.title) > 0 }
+                    { languageContains(it.obj, "romaji", search) },
+                    { languageContains(it.obj, "english", search) },
+                    { languageContains(it.obj, "native", search) },
+                    { countOccurrence(it.obj["synonyms"].array, search) > 0 }
                 )
             )?.last().nullObj
             val recommendations =
                 result?.get("recommendations")?.obj?.get("edges").nullArray
                     ?: throw Exception("Couldn't find any recommendations")
-            next(
-                recommendations.map {
-                    val rec = it["node"]["mediaRecommendation"].obj
-                    Log.d("ANILIST RECOMMEND", "${rec["title"].obj["romaji"].string}")
-                    SMangaImpl().apply {
-                        this.title = getTitle(rec)
-                        this.thumbnail_url = rec["coverImage"].obj["large"].string
-                        this.initialized = true
-                        this.url = rec["siteUrl"].string
-                    }
+            val recs = recommendations.map {
+                val rec = it["node"]["mediaRecommendation"].obj
+                Log.d("ANILIST RECOMMEND", "${rec["title"].obj["romaji"].string}")
+                SMangaImpl().apply {
+                    this.title = getTitle(rec)
+                    this.thumbnail_url = rec["coverImage"].obj["large"].string
+                    this.initialized = true
+                    this.url = rec["siteUrl"].string
                 }
-            )
+            }
+            callback.invoke(recs, null)
+        }
+    }
+}
+
+open class RecommendsPager(
+    val manga: Manga,
+    val smart: Boolean = true,
+    var preferredApi: API = API.MYANIMELIST
+) : Pager() {
+    private val apiList = API_MAP.toMutableMap()
+    private var currentApi: API? = null
+
+    private fun handleSuccess(recs: List<SMangaImpl>) {
+        if (recs.isEmpty()) {
+            apiList.remove(currentApi)
+            val list = apiList.toList()
+            currentApi = if (list.isEmpty()) {
+                null
+            } else {
+                apiList.toList().first().first
+            }
+
+            if (currentApi != null) {
+                getRecs(currentApi!!)
+            } else {
+                Timber.e("Couldn't find recommendations")
+                onPageReceived(MangasPage(recs, false))
+            }
+        } else {
+            onPageReceived(MangasPage(recs, false))
+        }
+    }
+
+    private fun handleError(error: Throwable) {
+        Timber.e(error)
+        handleSuccess(listOf()) // tmp workaround until errors can be displayed in app
+    }
+
+    private fun getRecs(api: API) {
+        Log.d("USED RECOMMEND", api.toString())
+        apiList[api]?.getRecsBySearch(manga.title) { recs, error ->
+            if (error != null) {
+                handleError(error)
+            }
+            if (recs != null) {
+                handleSuccess(recs)
+            }
         }
     }
 
@@ -263,12 +297,14 @@ open class RecommendsPager(
 
         getRecs(currentApi!!)
 
-        return Observable.just(MangasPage(recs, false))
+        return Observable.just(MangasPage(listOf(), false))
     }
 
     companion object {
-        private const val myAnimeListEndpoint = "https://api.jikan.moe/v3/"
-        private const val anilistEndpoint = "https://graphql.anilist.co/"
+        val API_MAP = mapOf(
+            API.MYANIMELIST to MyAnimeList(),
+            API.ANILIST to Anilist()
+        )
 
         enum class API { MYANIMELIST, ANILIST }
     }
