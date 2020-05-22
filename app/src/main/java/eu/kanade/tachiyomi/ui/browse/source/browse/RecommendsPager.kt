@@ -159,37 +159,37 @@ class Anilist() : API("https://graphql.anilist.co/") {
     ) {
         val query =
             """
-            {
-                Page {
-                    media(search: "$search", type: MANGA) {
-                        title {
-                            romaji
-                            english
-                            native
-                        }
-                        synonyms
-                        recommendations {
-                            edges {
-                                node {
-                                    mediaRecommendation {
-                                        siteUrl
-                                        title {
-                                            romaji
-                                            english
-                                            native
-                                        }
-                                        coverImage {
-                                            large
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            """.trimIndent()
-        val variables = jsonObject()
+            |query Recommendations(${'$'}search: String!) {
+                |Page {
+                    |media(search: ${'$'}search, type: MANGA) {
+                        |title {
+                            |romaji
+                            |english
+                            |native
+                        |}
+                        |synonyms
+                        |recommendations {
+                            |edges {
+                                |node {
+                                    |mediaRecommendation {
+                                        |siteUrl
+                                        |title {
+                                            |romaji
+                                            |english
+                                            |native
+                                        |}
+                                        |coverImage {
+                                            |large
+                                        |}
+                                    |}
+                                |}
+                            |}
+                        |}
+                    |}
+                |}
+            |}
+            |""".trimMargin()
+        val variables = jsonObject("search" to search)
         val payload = jsonObject(
             "query" to query,
             "variables" to variables
@@ -213,19 +213,20 @@ class Anilist() : API("https://graphql.anilist.co/") {
             }
             val data = JsonParser.parseString(body).obj["data"].nullObj
                 ?: throw Exception("Unexpected response")
-            val page = data["Page"].nullObj
-            val media = page?.get("media").nullArray
-            val result = media?.sortedWith(
+            val page = data["Page"].obj
+            val media = page["media"].array
+            if (media.size() <= 0) {
+                throw Exception("'$search' not found")
+            }
+            val result = media.sortedWith(
                 compareBy(
                     { languageContains(it.obj, "romaji", search) },
                     { languageContains(it.obj, "english", search) },
                     { languageContains(it.obj, "native", search) },
                     { countOccurrence(it.obj["synonyms"].array, search) > 0 }
                 )
-            )?.last().nullObj
-            val recommendations =
-                result?.get("recommendations")?.obj?.get("edges").nullArray
-                    ?: throw Exception("Couldn't find any recommendations")
+            ).last().obj
+            val recommendations = result["recommendations"].obj["edges"].array
             val recs = recommendations.map {
                 val rec = it["node"]["mediaRecommendation"].obj
                 Log.d("ANILIST RECOMMEND", "${rec["title"].obj["romaji"].string}")
