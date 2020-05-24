@@ -27,7 +27,7 @@ fun Manga.mangaType(context: Context): String {
  */
 fun Manga.mangaType(): MangaType {
     val sourceName = Injekt.get<SourceManager>().getOrStub(source).name
-    val currentTags = getGenres() ?: emptyList()
+    val currentTags = getGenres()?.map { it.toLowerCase(Locale.ROOT) } ?: emptyList()
     Log.d("MangaType", currentTags.joinToString(separator = "\n"))
     return if (currentTags.any { tag -> isMangaTag(tag) }) {
         Log.d("MangaType", "isManga")
