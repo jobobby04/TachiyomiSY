@@ -27,22 +27,21 @@ fun Manga.mangaType(context: Context): String {
  */
 fun Manga.mangaType(): MangaType {
     val sourceName = Injekt.get<SourceManager>().getOrStub(source).name
-    val currentTags =
-        genre?.split(",")?.map { it.trim().toLowerCase(Locale.US) } ?: emptyList()
+    val currentTags = getGenres() ?: emptyList()
     Log.d("MangaType", currentTags.joinToString(separator = "\n"))
-    return if (currentTags.any { tag -> tag.contains("japanese", ignoreCase = true) || isMangaTag(tag) }) {
+    return if (currentTags.any { tag -> isMangaTag(tag) }) {
         Log.d("MangaType", "isManga")
         MangaType.TYPE_MANGA
     } else if (currentTags.any { tag -> isWebtoonTag(tag) } || isWebtoonSource(sourceName)) {
         Log.d("MangaType", "isWebtoon")
         MangaType.TYPE_WEBTOON
-    } else if (currentTags.any { tag -> tag.contains("english", ignoreCase = true) || isComicTag(tag) } || isComicSource(sourceName)) {
+    } else if (currentTags.any { tag -> isComicTag(tag) } || isComicSource(sourceName)) {
         Log.d("MangaType", "isComic")
         MangaType.TYPE_COMIC
-    } else if (currentTags.any { tag -> tag.contains("chinese", ignoreCase = true) || isManhuaTag(tag) } || isManhuaSource(sourceName)) {
+    } else if (currentTags.any { tag -> isManhuaTag(tag) } || isManhuaSource(sourceName)) {
         Log.d("MangaType", "isManhua")
         MangaType.TYPE_MANHUA
-    } else if (currentTags.any { tag -> tag.contains("korean", ignoreCase = true) || isManhwaTag(tag) } || isManhwaSource(sourceName)) {
+    } else if (currentTags.any { tag -> isManhwaTag(tag) } || isManhwaSource(sourceName)) {
         Log.d("MangaType", "isManhwa")
         MangaType.TYPE_MANHWA
     } else {
