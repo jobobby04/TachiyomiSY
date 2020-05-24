@@ -65,28 +65,28 @@ fun Manga.defaultReaderType(): Int? {
 }
 
 private fun isMangaTag(tag: String): Boolean {
-    return tag.contains("manga") ||
-        tag.contains("манга")
+    return tag.contains("manga", true) ||
+            tag.contains("манга", true)
 }
 
 private fun isManhuaTag(tag: String): Boolean {
-    return tag.contains("manhua") ||
-        tag.contains("маньхуа")
+    return tag.contains("manhua", true) ||
+            tag.contains("маньхуа", true)
 }
 
 private fun isManhwaTag(tag: String): Boolean {
-    return tag.contains("manhwa") ||
-        tag.contains("манхва")
+    return tag.contains("manhwa", true) ||
+            tag.contains("манхва", true)
 }
 
 private fun isComicTag(tag: String): Boolean {
-    return tag.contains("comic") ||
-        tag.contains("комикс")
+    return tag.contains("comic", true) ||
+            tag.contains("комикс", true)
 }
 
 private fun isWebtoonTag(tag: String): Boolean {
-    return tag.contains("long strip") ||
-        tag.contains("webtoon")
+    return tag.contains("long strip", true) ||
+            tag.contains("webtoon", true)
 }
 
 /*private fun isMangaSource(sourceName: String): Boolean {
