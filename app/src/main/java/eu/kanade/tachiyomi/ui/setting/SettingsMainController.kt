@@ -93,6 +93,13 @@ class SettingsMainController : SettingsController() {
             titleRes = R.string.pref_category_advanced
             onClick { navigateTo(SettingsAdvancedController()) }
         }
+
+        preference {
+            iconRes = R.drawable.ic_code_24dp
+            iconTint = tintColor
+            title = "Experimental Features"
+            onClick { navigateTo(SettingsExperimentController()) }
+        }
     }
 
     private fun navigateTo(controller: SettingsController) {
