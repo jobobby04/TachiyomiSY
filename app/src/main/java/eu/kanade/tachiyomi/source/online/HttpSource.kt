@@ -25,6 +25,7 @@ import okhttp3.Response
 import rx.Observable
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.injectLazy
 
 /**
  * A simple implementation for sources from a website.
@@ -116,6 +117,8 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the page number to retrieve.
      */
+    private val prefs: PreferencesHelper by injectLazy()
+
     override fun fetchPopularManga(page: Int): Observable<MangasPage> {
         return client.newCall(popularMangaRequest(page))
             .asObservableSuccess()
@@ -339,7 +342,26 @@ abstract class HttpSource : CatalogueSource {
      * @param page the chapter whose page list has to be fetched
      */
     protected open fun imageRequest(page: Page): Request {
-        return GET(page.imageUrl!!, headers)
+        val url = page.imageUrl ?: ""
+        var imageUrl = page.imageUrl
+        var replace = false
+        if (prefs.enableCompression().get()) {
+            replace = true
+            if (prefs.filterJpeg().get()) {
+                if (url.contains("jpeg", true) || url.contains("jpg", true)) {
+                    replace = false
+                }
+            }
+            if (prefs.filterWebp().get()) {
+                if (url.contains("webp", true)) {
+                    replace = false
+                }
+            }
+        }
+        if (replace) {
+            imageUrl = prefs.compressionHost().get() + page.imageUrl
+        }
+        return GET(imageUrl!!, headers)
     }
 
     /**

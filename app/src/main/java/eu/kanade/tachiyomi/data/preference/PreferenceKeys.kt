@@ -268,4 +268,12 @@ object PreferenceKeys {
     const val sources_tab_source_categories = "sources_tab_source_categories"
 
     const val sourcesSort = "sources_sort"
+
+    const val enableCompression = "pref_enable_compression"
+
+    const val filterJpeg = "pref_filter_jpeg"
+
+    const val filterWebp = "pref_filter_webp"
+
+    const val compressionHost = "pref_compression_host"
 }

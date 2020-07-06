@@ -368,4 +368,12 @@ class PreferencesHelper(val context: Context) {
     fun sourcesTabSourcesInCategories() = flowPrefs.getStringSet(Keys.sources_tab_source_categories, mutableSetOf())
 
     fun sourceSorting() = flowPrefs.getInt(Keys.sourcesSort, 0)
+
+    fun enableCompression() = flowPrefs.getBoolean(Keys.enableCompression, false)
+
+    fun filterJpeg() = flowPrefs.getBoolean(Keys.filterJpeg, false)
+
+    fun filterWebp() = flowPrefs.getBoolean(Keys.filterWebp, false)
+
+    fun compressionHost() = flowPrefs.getString(Keys.compressionHost, "")
 }
