@@ -376,4 +376,8 @@ class PreferencesHelper(val context: Context) {
     fun filterWebp() = flowPrefs.getBoolean(Keys.filterWebp, false)
 
     fun compressionHost() = flowPrefs.getString(Keys.compressionHost, "")
+
+    fun saveASZip() = flowPrefs.getBoolean(Keys.saveASZip, false)
+
+    fun zipLevel() = flowPrefs.getInt(Keys.zipLevel, 0)
 }

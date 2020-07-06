@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.download.model.DownloadQueue
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
@@ -31,6 +32,10 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
+import java.io.BufferedOutputStream
+import java.util.zip.CRC32
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 /**
  * This class is the one in charge of downloading chapters.
@@ -88,6 +93,8 @@ class Downloader(
     /**
      * Whether the downloader is running.
      */
+    private val preferencesHelper: PreferencesHelper by injectLazy()
+
     @Volatile
     var isRunning: Boolean = false
         private set
@@ -459,7 +466,39 @@ class Downloader(
 
         // Only rename the directory if it's downloaded.
         if (download.status == Download.DOWNLOADED) {
-            tmpDir.renameTo(dirname)
+            mangaDir.findFile(dirname + ".tmp")?.delete()
+            if (preferencesHelper.saveASZip().get()) {
+                val zip = mangaDir.createFile(dirname + ".tmp")
+                val zipOut = ZipOutputStream(BufferedOutputStream(zip.openOutputStream()))
+
+                zipOut.setLevel(preferencesHelper.zipLevel().get())
+
+                if (preferencesHelper.zipLevel().get() == 0) {
+                    zipOut.setMethod(ZipEntry.STORED)
+                }
+
+                tmpDir.listFiles()?.forEach { img ->
+                    val input = img.openInputStream()
+                    val data = input.readBytes()
+                    val entry = ZipEntry(img.name)
+                    if (preferencesHelper.zipLevel().get() == 0) {
+                        val crc = CRC32()
+                        val size = img.length()
+                        crc.update(data)
+                        entry.crc = crc.value
+                        entry.compressedSize = size
+                        entry.size = size
+                    }
+                    zipOut.putNextEntry(entry)
+                    zipOut.write(data)
+                    input.close()
+                }
+                zipOut.close()
+                zip.renameTo(dirname + ".cbz")
+                tmpDir.delete()
+            } else {
+                tmpDir.renameTo(dirname)
+            }
             cache.addChapter(dirname, mangaDir, download.manga)
 
             DiskUtil.createNoMediaFile(tmpDir, context)

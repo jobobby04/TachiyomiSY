@@ -276,4 +276,8 @@ object PreferenceKeys {
     const val filterWebp = "pref_filter_webp"
 
     const val compressionHost = "pref_compression_host"
+
+    const val zipLevel = "pref_zip_level"
+
+    const val saveASZip = "pref_save_as_zip"
 }

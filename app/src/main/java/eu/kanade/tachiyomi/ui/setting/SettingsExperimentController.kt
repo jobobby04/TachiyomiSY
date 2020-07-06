@@ -11,28 +11,34 @@ class SettingsExperimentController : SettingsController() {
         title = "Experimental Features"
 
         switchPreference {
-            key = PreferenceKeys.enableCompression
-            title = "Enable Compression"
+            key = PreferenceKeys.saveASZip
+            title = "Save Chapter As CBZ(Zip)"
             defaultValue = false
-        }
 
-        switchPreference {
-            key = PreferenceKeys.filterWebp
-            title = "Filter WEBp"
-            defaultValue = false
-        }
-        switchPreference {
-            key = PreferenceKeys.filterJpeg
-            title = "Filter JPEG"
-            defaultValue = false
-        }
+            switchPreference {
+                key = PreferenceKeys.enableCompression
+                title = "Enable Compression"
+                defaultValue = false
+            }
 
-        editTextPreference {
-            key = PreferenceKeys.compressionHost
-            title = "Compression Host"
-            summary = preferences.compressionHost().get()
-            defaultValue = ""
-        }
+            switchPreference {
+                key = PreferenceKeys.filterWebp
+                title = "Filter WEBp"
+                defaultValue = false
+            }
+            switchPreference {
+                key = PreferenceKeys.filterJpeg
+                title = "Filter JPEG"
+                defaultValue = false
+            }
 
+            editTextPreference {
+                key = PreferenceKeys.compressionHost
+                title = "Compression Host"
+                summary = preferences.compressionHost().get()
+                defaultValue = ""
+            }
+
+        }
     }
 }
