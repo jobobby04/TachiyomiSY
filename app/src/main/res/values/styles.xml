@@ -51,11 +51,6 @@
         <item name="colorAccent">@color/colorAccentDark</item>
     </style>
 
-
-    <style name="Theme.Widget.NavigationView.Red" parent="Theme.Widget.NavigationView.Amoled">
-        <item name="colorOnSurface">@color/red</item>
-    </style>
-
     <!--===============-->
     <!--Text Appearance-->
     <!--===============-->
