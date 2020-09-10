@@ -6,6 +6,6 @@ install:
   - 7z x sdk-tools-windows-3859397.zip -oC:\android-sdk-windows > nul
   - yes | C:\android-sdk-windows\tools\bin\sdkmanager.bat --licenses
 build_script:
-  - gradlew.bat assemble
+  - gradlew.bat assembleDebug
 artifacts:
   - path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
