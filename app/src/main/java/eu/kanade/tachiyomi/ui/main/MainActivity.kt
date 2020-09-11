@@ -2,6 +2,9 @@ package eu.kanade.tachiyomi.ui.main
 
 import android.app.SearchManager
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.ComponentName
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Looper
 import android.view.View
@@ -21,6 +24,7 @@ import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.preference.asImmediateFlow
+import eu.kanade.tachiyomi.data.preference.PreferenceValues
 import eu.kanade.tachiyomi.databinding.MainActivityBinding
 import eu.kanade.tachiyomi.extension.api.ExtensionGithubApi
 import eu.kanade.tachiyomi.ui.base.activity.BaseViewBindingActivity
@@ -54,7 +58,7 @@ import java.util.Date
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 
-class MainActivity : BaseViewBindingActivity<MainActivityBinding>() {
+open class MainActivity : BaseViewBindingActivity<MainActivityBinding>() {
 
     private lateinit var router: Router
 
@@ -105,6 +109,36 @@ class MainActivity : BaseViewBindingActivity<MainActivityBinding>() {
 
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+
+        val pm = getPackageManager()
+        var normal = PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        var red = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        val packageName = getPackageName()
+
+        if ((preferences.themeMode().get() == PreferenceValues.ThemeMode.dark || (preferences.themeMode().get() == PreferenceValues.ThemeMode.system && resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES)) && preferences.themeDark().get() == PreferenceValues.DarkThemeVariant.red) {
+            normal = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            red = PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        }
+         
+        pm.setComponentEnabledSetting(
+            ComponentName(
+                packageName,
+                "eu.kanade.tachiyomi.ui.main.normal"
+            ),
+            normal,
+            PackageManager.DONT_KILL_APP
+        )
+
+        pm.setComponentEnabledSetting(
+            ComponentName(
+                packageName,
+                "eu.kanade.tachiyomi.ui.main.red"
+            ),
+            red,
+            PackageManager.DONT_KILL_APP
+        )
+
+
 
         tabAnimator = ViewHeightAnimator(binding.tabs, 0L)
         bottomNavAnimator = ViewHeightAnimator(binding.bottomNav)
@@ -500,3 +534,5 @@ class MainActivity : BaseViewBindingActivity<MainActivityBinding>() {
         const val INTENT_SEARCH_FILTER = "filter"
     }
 }
+
+class Red : MainActivity() {}

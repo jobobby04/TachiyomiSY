@@ -32,13 +32,46 @@
             android:theme="@style/Theme.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.main.Red"
+            android:theme="@style/Theme.Splash.Red"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity-alias
+            android:name=".ui.main.normal"
+            android:targetActivity=".ui.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <!--suppress AndroidDomInspection -->
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
-        </activity>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.main.red"
+            android:icon="@mipmap/ic_launcher_red"
+            android:enabled="false"
+            android:targetActivity=".ui.main.Red">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!--suppress AndroidDomInspection -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts_red" />
+        </activity-alias>
+
         <activity
             android:name=".ui.main.DeepLinkActivity"
             android:launchMode="singleTask"

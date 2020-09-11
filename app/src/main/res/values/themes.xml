@@ -25,6 +25,11 @@
         <item name="colorOnSurface">@color/textColorPrimaryLight</item>
         <item name="colorOnBackground">@color/textColorPrimaryLight</item>
         <item name="colorAccent">@color/colorAccentLight</item>
+        <item name="downloadBadgeColor">@color/green</item>
+        <item name="fastScroller">@color/fast_scroller_handle_idle</item>
+        <item name="tachiBadgeTextColor">@color/md_white_1000</item>
+        <item name="unreadBadgeColor">@color/colorAccentDark</item>
+        <item name="unreadBadgeListColor">@color/colorAccentLight</item>
 
         <!-- Base background/text colors -->
         <item name="android:colorBackground">@color/backgroundLight</item>
@@ -70,7 +75,7 @@
 
         <!-- Material Dialogs -->
         <item name="md_background_color">?attr/colorSurface</item>
-        <item name="md_color_title">?attr/colorOnSurface</item>
+        <item name="md_color_title">@color/md_white_1000</item>
         <item name="md_color_content">?attr/colorOnSurface</item>
         <item name="md_color_button_text">?attr/colorAccent</item>
         <item name="md_button_casing">literal</item>
@@ -120,6 +125,11 @@
         <item name="colorOnSurface">@color/textColorPrimaryDark</item>
         <item name="colorOnBackground">@color/textColorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccentDark</item>
+        <item name="downloadBadgeColor">@color/green</item>
+        <item name="fastScroller">@color/fast_scroller_handle_idle</item>
+        <item name="tachiBadgeTextColor">@color/md_white_1000</item>
+        <item name="unreadBadgeColor">@color/colorAccentDark</item>
+        <item name="unreadBadgeListColor">@color/colorAccentLight</item>
 
         <!-- Handles RTL text -->
         <item name="android:textAlignment">gravity</item>
@@ -166,7 +176,7 @@
 
         <!-- Material Dialogs -->
         <item name="md_background_color">?attr/colorSurface</item>
-        <item name="md_color_title">?attr/colorOnSurface</item>
+        <item name="md_color_title">@color/md_white_1000</item>
         <item name="md_color_content">?attr/colorOnSurface</item>
         <item name="md_color_button_text">?attr/colorAccent</item>
         <item name="md_button_casing">literal</item>
@@ -204,17 +214,25 @@
 
     <style name="Theme.Tachiyomi.Red" parent="Theme.Tachiyomi.Amoled">
         <item name="actionBarTheme">@style/Theme.Toolbar.Red</item>
+        <item name="colorControlActivated">@color/red</item>
+        <item name="colorControlHighlight">@color/dark_red</item>
+        <item name="colorSwitchThumbNormal">@color/dark_red</item>
         <item name="colorPrimary">@color/md_black_1000</item>
         <item name="colorPrimaryVariant">@color/red</item>
         <item name="colorSecondary">@color/dark_red</item>
         <item name="colorOnSurface">@color/red</item>
         <item name="colorAccent">@color/dark_red</item>
         <item name="colorOnPrimary">@color/red</item>
+        <item name="md_color_title">@color/red</item>
+        <item name="downloadBadgeColor">@color/green</item>
+        <item name="fastScroller">@color/dark_red</item>
+        <item name="tachiBadgeTextColor">@color/red</item>
+        <item name="unreadBadgeColor">@color/md_black_1000</item>
+        <item name="unreadBadgeListColor">@color/md_black_1000</item>
         <item name="android:textColor">@color/red</item>
         <item name="android:textColorPrimary">@color/red</item>
         <item name="android:textColorSecondary">@color/dark_red</item>
         <item name="android:textColorHint">@color/dark_red</item>
-        <item name="md_color_title">@color/red</item>
     </style>
 
     <!--==============-->
@@ -268,6 +286,11 @@
         <item name="android:windowBackground">@drawable/splash_background</item>
         <item name="android:statusBarColor">?attr/colorBackgroundSplash</item>
         <item name="android:navigationBarColor">?attr/colorBackgroundSplash</item>
+    </style>
+
+    <style name="Theme.Splash.Red" parent="Theme.Splash">
+        <item name="colorBackgroundSplash">@color/md_black_1000</item>
+        <item name="android:windowBackground">@drawable/splash_background_red</item>
     </style>
 
 </resources>

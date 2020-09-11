@@ -16,5 +16,9 @@
     <attr name="colorFilterActive" format="reference|integer"/>
     <attr name="colorBackgroundSplash" format="reference|integer"/>
     <attr name="colorAccentOnPrimary" format="reference|integer"/>
-
+    <attr name="downloadBadgeColor" format="reference|integer"/>
+    <attr name="fastScroller" format="reference|integer"/>
+    <attr name="tachiBadgeTextColor" format="reference|integer"/>
+    <attr name="unreadBadgeColor" format="reference|integer"/>
+    <attr name="unreadBadgeListColor" format="reference|integer"/>
 </resources>

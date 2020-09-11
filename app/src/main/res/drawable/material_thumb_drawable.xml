@@ -10,7 +10,7 @@
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="8dp" />
-            <solid android:color="@color/fast_scroller_handle_idle" />
+            <solid android:color="?attr/fastScroller" />
             <size android:width="6dp" android:height="54dp" />
         </shape>
     </item>
