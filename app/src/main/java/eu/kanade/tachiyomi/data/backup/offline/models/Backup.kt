@@ -12,6 +12,6 @@ import kotlinx.serialization.protobuf.ProtoNumber
 data class Backup(
     @ProtoNumber(0) val backupManga: List<BackupManga>,
     @ProtoNumber(1) var backupCategories: List<BackupCategory>? = null,
-    @ProtoNumber(3) var backupExtensions: List<BackupSource> = emptyList(),
-    @ProtoNumber(4) var backupSavedSearches: List<BackupSavedSearch>? = null
+    @ProtoNumber(2) var backupExtensions: List<BackupSource> = emptyList(),
+    @ProtoNumber(3) var backupSavedSearches: List<BackupSavedSearch>? = null
 )
