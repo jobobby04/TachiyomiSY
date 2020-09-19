@@ -293,7 +293,7 @@ class BackupManager(val context: Context, version: Int = CURRENT_VERSION) : Abst
 
         // Check if user wants history information in backup
         if (options and BACKUP_HISTORY_MASK == BACKUP_HISTORY) {
-            val historyForManga: MutableList<History> = databaseHelper.getHistoryByMangaId(manga.id!!).executeAsBlocking()
+            val historyForManga = databaseHelper.getHistoryByMangaId(manga.id!!).executeAsBlocking()
             if (historyForManga.isNotEmpty()) {
                 val historyData = historyForManga.mapNotNull { history ->
                     val url = databaseHelper.getChapter(history.chapter_id).executeAsBlocking()?.url
