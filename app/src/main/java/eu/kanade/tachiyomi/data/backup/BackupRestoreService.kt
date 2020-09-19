@@ -14,6 +14,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.backup.full.FullBackupRestoreService
 import eu.kanade.tachiyomi.data.backup.models.Backup.CATEGORIES
 import eu.kanade.tachiyomi.data.backup.models.Backup.CHAPTERS
 import eu.kanade.tachiyomi.data.backup.models.Backup.HISTORY
@@ -24,7 +25,6 @@ import eu.kanade.tachiyomi.data.backup.models.Backup.SAVEDSEARCHES
 import eu.kanade.tachiyomi.data.backup.models.Backup.TRACK
 import eu.kanade.tachiyomi.data.backup.models.Backup.VERSION
 import eu.kanade.tachiyomi.data.backup.models.DHistory
-import eu.kanade.tachiyomi.data.backup.offline.OfflineBackupRestoreService
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.ChapterImpl
@@ -66,7 +66,7 @@ class BackupRestoreService : Service() {
          * @return true if the service is running, false otherwise.
          */
         fun isRunning(context: Context): Boolean =
-            context.isServiceRunning(BackupRestoreService::class.java) /* SY --> */ || context.isServiceRunning(OfflineBackupRestoreService::class.java) /* SY <-- */
+            context.isServiceRunning(BackupRestoreService::class.java) /* SY --> */ || context.isServiceRunning(FullBackupRestoreService::class.java) /* SY <-- */
 
         // SY -->
         fun isItRunning(context: Context): Boolean =

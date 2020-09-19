@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup.offline
+package eu.kanade.tachiyomi.data.backup.full
 
 import android.content.Context
 import androidx.core.net.toUri
@@ -13,12 +13,12 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.concurrent.TimeUnit
 
-class OfflineBackupCreatorJob(private val context: Context, workerParams: WorkerParameters) :
+class FullBackupCreatorJob(private val context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
 
     override fun doWork(): Result {
         val preferences = Injekt.get<PreferencesHelper>()
-        val backupManager = OfflineBackupManager(context)
+        val backupManager = FullBackupManager(context)
         val uri = preferences.backupsDirectory().get().toUri()
         val flags = BackupCreateService.BACKUP_ALL
         return try {
@@ -36,7 +36,7 @@ class OfflineBackupCreatorJob(private val context: Context, workerParams: Worker
             val preferences = Injekt.get<PreferencesHelper>()
             val interval = prefInterval ?: preferences.backupInterval().get()
             if (interval > 0) {
-                val request = PeriodicWorkRequestBuilder<OfflineBackupCreatorJob>(
+                val request = PeriodicWorkRequestBuilder<FullBackupCreatorJob>(
                     interval.toLong(),
                     TimeUnit.HOURS,
                     10,

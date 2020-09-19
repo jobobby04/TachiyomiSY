@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup.offline.models
+package eu.kanade.tachiyomi.data.backup.full.models
 
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.database.models.TrackImpl
@@ -9,17 +9,24 @@ import kotlinx.serialization.protobuf.ProtoNumber
 @ExperimentalSerializationApi
 @Serializable
 data class BackupTracking(
-    @ProtoNumber(0) var syncId: Int = 0,
-    @ProtoNumber(1) var mediaId: Int = 0,
-    @ProtoNumber(2) var libraryId: Long? = null,
-    @ProtoNumber(3) var title: String = "",
-    @ProtoNumber(4) var lastChapterRead: Int = 0,
-    @ProtoNumber(5) var totalChapters: Int = 0,
-    @ProtoNumber(6) var score: Float = 0F,
-    @ProtoNumber(7) var status: Int = 0,
-    @ProtoNumber(8) var startedReadingDate: Long = 0,
-    @ProtoNumber(9) var finishedReadingDate: Long = 0,
-    @ProtoNumber(10) var trackingUrl: String
+    // in 1.x some of these values have different values, they are listed here
+    // syncId is called siteId
+    // trackingUrl is called mediaUrl
+    // lastChapterRead is called last read, and it has been changed to a float
+    // startedReadingDate is called startReadTime
+    // finishedReadingDate is called endReadTime
+    @ProtoNumber(0) var syncId: Int,
+    @ProtoNumber(2) var libraryId: Long,
+    @ProtoNumber(3) var mediaId: Int = 0,
+    @ProtoNumber(4) var trackingUrl: String = "",
+    @ProtoNumber(5) var title: String = "",
+    @ProtoNumber(6) var lastChapterRead: Float = 0F,
+    @ProtoNumber(7) var totalChapters: Int = 0,
+    @ProtoNumber(8) var score: Float = 0F,
+    @ProtoNumber(9) var status: Int = 0,
+    @ProtoNumber(10) var startedReadingDate: Long = 0,
+    @ProtoNumber(11) var finishedReadingDate: Long = 0,
+
 ) {
     fun getTrackingImpl(): TrackImpl {
         return TrackImpl().apply {
@@ -27,7 +34,7 @@ data class BackupTracking(
             media_id = this@BackupTracking.mediaId
             library_id = this@BackupTracking.libraryId
             title = this@BackupTracking.title
-            last_chapter_read = this@BackupTracking.lastChapterRead
+            last_chapter_read = this@BackupTracking.lastChapterRead.toInt()
             total_chapters = this@BackupTracking.totalChapters
             score = this@BackupTracking.score
             status = this@BackupTracking.status
@@ -42,9 +49,10 @@ data class BackupTracking(
             return BackupTracking(
                 syncId = track.sync_id,
                 mediaId = track.media_id,
-                libraryId = track.library_id,
+                // forced not null so its compatible with 1.x backup system
+                libraryId = track.library_id!!,
                 title = track.title,
-                lastChapterRead = track.last_chapter_read,
+                lastChapterRead = track.last_chapter_read.toFloat(),
                 totalChapters = track.total_chapters,
                 score = track.score,
                 status = track.status,

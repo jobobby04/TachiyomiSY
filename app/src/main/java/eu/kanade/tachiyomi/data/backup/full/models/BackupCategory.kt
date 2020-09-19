@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup.offline.models
+package eu.kanade.tachiyomi.data.backup.full.models
 
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.CategoryImpl
@@ -9,10 +9,12 @@ import kotlinx.serialization.protobuf.ProtoNumber
 @ExperimentalSerializationApi
 @Serializable
 class BackupCategory(
-    @ProtoNumber(0) var name: String,
-    @ProtoNumber(1) var order: Int,
-    @ProtoNumber(2) var flags: Int,
-    @ProtoNumber(3) var mangaOrder: List<Long> = emptyList()
+    @ProtoNumber(1) var name: String,
+    @ProtoNumber(2) var order: Int = 0,
+    // Proto number 3 is skipped because its a 1.x value that is not used in 0.x
+    @ProtoNumber(4) var flags: Int = 0,
+    // SY specific values
+    @ProtoNumber(60) var mangaOrder: List<Long> = emptyList()
 ) {
     fun getCategoryImpl(): CategoryImpl {
         return CategoryImpl().apply {

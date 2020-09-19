@@ -24,6 +24,6 @@ object Backup {
 
     fun getDefaultFilename(full: Boolean = false): String {
         val date = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
-        return "tachiyomi_${(if (full) "full_" else "") + date}.json"
+        return "tachiyomi_${(if (full) "full_" else "") + date}.${if (full) "proto.gz" else "json"}"
     }
 }

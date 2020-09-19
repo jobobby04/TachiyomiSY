@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup.offline
+package eu.kanade.tachiyomi.data.backup.full
 
 import android.content.Context
 import android.net.Uri
@@ -16,17 +16,17 @@ import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_HIST
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_HISTORY_MASK
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_TRACK
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_TRACK_MASK
+import eu.kanade.tachiyomi.data.backup.full.models.Backup
+import eu.kanade.tachiyomi.data.backup.full.models.BackupCategory
+import eu.kanade.tachiyomi.data.backup.full.models.BackupChapter
+import eu.kanade.tachiyomi.data.backup.full.models.BackupHistory
+import eu.kanade.tachiyomi.data.backup.full.models.BackupManga
+import eu.kanade.tachiyomi.data.backup.full.models.BackupMergedMangaReference
+import eu.kanade.tachiyomi.data.backup.full.models.BackupSavedSearch
+import eu.kanade.tachiyomi.data.backup.full.models.BackupSerializer
+import eu.kanade.tachiyomi.data.backup.full.models.BackupSource
+import eu.kanade.tachiyomi.data.backup.full.models.BackupTracking
 import eu.kanade.tachiyomi.data.backup.models.AbstractBackupManager
-import eu.kanade.tachiyomi.data.backup.offline.models.Backup
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupCategory
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupChapter
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupHistory
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupManga
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupMergedMangaReference
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupSavedSearch
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupSerializer
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupSource
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupTracking
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.History
@@ -52,6 +52,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
+import okio.buffer
+import okio.gzip
+import okio.sink
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
@@ -60,7 +63,7 @@ import kotlin.math.max
 import eu.kanade.tachiyomi.data.backup.models.Backup as BackupInfo
 
 @OptIn(ExperimentalSerializationApi::class)
-class OfflineBackupManager(val context: Context) : AbstractBackupManager() {
+class FullBackupManager(val context: Context) : AbstractBackupManager() {
 
     internal val databaseHelper: DatabaseHelper by injectLazy()
     internal val sourceManager: SourceManager by injectLazy()
@@ -118,14 +121,14 @@ class OfflineBackupManager(val context: Context) : AbstractBackupManager() {
                     ?: throw Exception("Couldn't create backup file")
 
                 val byteArray = parser.encodeToByteArray(BackupSerializer, backup!!)
-                newFile.openOutputStream().write(byteArray)
+                newFile.openOutputStream().sink().gzip().buffer().use { it.write(byteArray) }
 
                 return newFile.uri.toString()
             } else {
                 val file = UniFile.fromUri(context, uri)
                     ?: throw Exception("Couldn't create backup file")
                 val byteArray = parser.encodeToByteArray(BackupSerializer, backup!!)
-                file.openOutputStream().write(byteArray)
+                file.openOutputStream().sink().gzip().buffer().use { it.write(byteArray) }
 
                 return file.uri.toString()
             }
@@ -210,7 +213,7 @@ class OfflineBackupManager(val context: Context) : AbstractBackupManager() {
             // Backup categories for this manga
             val categoriesForManga = databaseHelper.getCategoriesForManga(manga).executeAsBlocking()
             if (categoriesForManga.isNotEmpty()) {
-                mangaObject.categories = categoriesForManga.map { it.name }
+                mangaObject.categories = categoriesForManga.mapNotNull { it.order }
             }
         }
 
@@ -351,13 +354,15 @@ class OfflineBackupManager(val context: Context) : AbstractBackupManager() {
      * @param manga the manga whose categories have to be restored.
      * @param categories the categories to restore.
      */
-    internal fun restoreCategoriesForManga(manga: Manga, categories: List<String>) {
+    internal fun restoreCategoriesForManga(manga: Manga, categories: List<Int>, backupCategories: List<BackupCategory>) {
         val dbCategories = databaseHelper.getCategories().executeAsBlocking()
         val mangaCategoriesToUpdate = mutableListOf<MangaCategory>()
         for (backupCategoryStr in categories) {
-            for (dbCategory in dbCategories) {
-                if (backupCategoryStr == dbCategory.name) {
-                    mangaCategoriesToUpdate.add(MangaCategory.create(manga, dbCategory))
+            for (backupCategory in backupCategories) {
+                if (backupCategoryStr == backupCategory.order) {
+                    dbCategories.firstOrNull { it.name == backupCategory.name }?.let { dbCategory ->
+                        mangaCategoriesToUpdate.add(MangaCategory.create(manga, dbCategory))
+                    }
                     break
                 }
             }

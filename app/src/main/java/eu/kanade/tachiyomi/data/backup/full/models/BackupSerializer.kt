@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup.offline.models
+package eu.kanade.tachiyomi.data.backup.full.models
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializer

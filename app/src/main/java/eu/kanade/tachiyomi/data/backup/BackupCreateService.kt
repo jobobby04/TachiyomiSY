@@ -9,8 +9,8 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
+import eu.kanade.tachiyomi.data.backup.full.FullBackupManager
 import eu.kanade.tachiyomi.data.backup.models.AbstractBackupManager
-import eu.kanade.tachiyomi.data.backup.offline.OfflineBackupManager
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.system.acquireWakeLock
 import eu.kanade.tachiyomi.util.system.isServiceRunning
@@ -112,7 +112,7 @@ class BackupCreateService : Service() {
             val uri = intent.getParcelableExtra<Uri>(BackupConst.EXTRA_URI)
             val backupFlags = intent.getIntExtra(BackupConst.EXTRA_FLAGS, 0)
             val backupType = intent.getIntExtra(BackupConst.EXTRA_TYPE, BACKUP_TYPE_ONLINE)
-            backupManager = if (backupType == BACKUP_TYPE_OFFLINE) OfflineBackupManager(this) else BackupManager(this)
+            backupManager = if (backupType == BACKUP_TYPE_OFFLINE) FullBackupManager(this) else BackupManager(this)
 
             val backupFileUri = backupManager.createBackup(uri, backupFlags, false)?.toUri()
             val unifile = UniFile.fromUri(this, backupFileUri)

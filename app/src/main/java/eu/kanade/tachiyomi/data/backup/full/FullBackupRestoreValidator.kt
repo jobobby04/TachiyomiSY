@@ -1,16 +1,20 @@
-package eu.kanade.tachiyomi.data.backup.offline
+package eu.kanade.tachiyomi.data.backup.full
 
 import android.content.Context
 import android.net.Uri
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.backup.offline.models.BackupSerializer
+import eu.kanade.tachiyomi.data.backup.BackupRestoreValidator
+import eu.kanade.tachiyomi.data.backup.full.models.BackupSerializer
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.SourceManager
 import kotlinx.serialization.ExperimentalSerializationApi
+import okio.buffer
+import okio.gzip
+import okio.source
 import uy.kohesive.injekt.injectLazy
 
 @OptIn(ExperimentalSerializationApi::class)
-object OfflineBackupRestoreValidator {
+object FullBackupRestoreValidator {
 
     private val sourceManager: SourceManager by injectLazy()
     private val trackManager: TrackManager by injectLazy()
@@ -21,10 +25,10 @@ object OfflineBackupRestoreValidator {
      * @throws Exception if version or manga cannot be found.
      * @return List of missing sources or missing trackers.
      */
-    fun validate(context: Context, uri: Uri): Results {
-        val backupManager = OfflineBackupManager(context)
+    fun validate(context: Context, uri: Uri): BackupRestoreValidator.Results {
+        val backupManager = FullBackupManager(context)
 
-        val backupString = context.contentResolver.openInputStream(uri)!!.readBytes()
+        val backupString = context.contentResolver.openInputStream(uri)!!.source().gzip().buffer().use { it.readByteArray() }
         val backup = backupManager.parser.decodeFromByteArray(BackupSerializer, backupString)
 
         if (backup.backupManga.isEmpty()) {
@@ -38,8 +42,7 @@ object OfflineBackupRestoreValidator {
             .sorted()
 
         val trackers = backup.backupManga
-            .filter { it.tracking != null }
-            .flatMap { it.tracking!! }
+            .flatMap { it.tracking }
             .map { it.syncId }
             .distinct()
         val missingTrackers = trackers
@@ -48,8 +51,6 @@ object OfflineBackupRestoreValidator {
             .map { it.name }
             .sorted()
 
-        return Results(missingSources, missingTrackers)
+        return BackupRestoreValidator.Results(missingSources, missingTrackers)
     }
-
-    data class Results(val missingSources: List<String>, val missingTrackers: List<String>)
 }

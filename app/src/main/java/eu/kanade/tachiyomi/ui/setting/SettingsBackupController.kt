@@ -18,8 +18,9 @@ import eu.kanade.tachiyomi.data.backup.BackupCreateService
 import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
 import eu.kanade.tachiyomi.data.backup.BackupRestoreService
 import eu.kanade.tachiyomi.data.backup.BackupRestoreValidator
+import eu.kanade.tachiyomi.data.backup.full.FullBackupRestoreService
+import eu.kanade.tachiyomi.data.backup.full.FullBackupRestoreValidator
 import eu.kanade.tachiyomi.data.backup.models.Backup
-import eu.kanade.tachiyomi.data.backup.offline.OfflineBackupRestoreService
 import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.base.controller.requestPermissionsSafe
@@ -272,7 +273,7 @@ class SettingsBackupController : SettingsController() {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("application/*")
-                .putExtra(Intent.EXTRA_TITLE, Backup.getDefaultFilename())
+                .putExtra(Intent.EXTRA_TITLE, Backup.getDefaultFilename(type == TYPE_OFFLINE))
 
             startActivityForResult(intent, /* SY --> */ if (type == TYPE_ONLINE) CODE_BACKUP_CREATE else CODE_FULL_BACKUP_CREATE /* SY <-- */)
         } catch (e: ActivityNotFoundException) {
@@ -355,7 +356,7 @@ class SettingsBackupController : SettingsController() {
             return try {
                 var message = activity.getString(R.string.backup_restore_content)
 
-                val results = BackupRestoreValidator.validate(activity, uri)
+                val results = if (type == TYPE_ONLINE) BackupRestoreValidator.validate(activity, uri) else FullBackupRestoreValidator.validate(activity, uri)
                 if (results.missingSources.isNotEmpty()) {
                     message += "\n\n${activity.getString(R.string.backup_restore_missing_sources)}\n${results.missingSources.joinToString("\n") { "- $it" }}"
                 }
@@ -371,7 +372,7 @@ class SettingsBackupController : SettingsController() {
                         if (type == TYPE_ONLINE) {
                             BackupRestoreService.start(activity, uri)
                         } else if (type == TYPE_OFFLINE) {
-                            OfflineBackupRestoreService.start(activity, uri)
+                            FullBackupRestoreService.start(activity, uri)
                         }
                         // SY <--
                     }

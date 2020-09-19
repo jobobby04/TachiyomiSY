@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup.offline.models
+package eu.kanade.tachiyomi.data.backup.full.models
 
 import exh.merged.sql.models.MergedMangaReference
 import kotlinx.serialization.ExperimentalSerializationApi
