@@ -457,7 +457,7 @@
     <string name="invalid_backup_file_missing_data">ファイルは必要なデータを含んでいません。</string>
     <string name="invalid_backup_file">バックアップファイルは無効です</string>
     <string name="tracker_not_logged_in">%1$sにログインしていません</string>
-    <string name="source_not_found_name">ソース%1$sが見つかりません %1$s</string>
+    <string name="source_not_found_name">ソース%1$sが見つかりません</string>
     <string name="pref_search_pinned_sources_only">ピン留め済みのソースのみで検索</string>
     <string name="pref_enable_automatic_extension_updates">拡張機能の更新を確認</string>
     <string name="tracking_info">一方同期の追跡サービスにある章の読書進捗を更新します。個別のマンガの「同期」ボタンで追跡サービスを設定してください。</string>
