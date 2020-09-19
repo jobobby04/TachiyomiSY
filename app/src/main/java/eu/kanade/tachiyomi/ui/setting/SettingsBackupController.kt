@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
 import eu.kanade.tachiyomi.data.backup.BackupRestoreService
 import eu.kanade.tachiyomi.data.backup.BackupRestoreValidator
 import eu.kanade.tachiyomi.data.backup.models.Backup
+import eu.kanade.tachiyomi.data.backup.offline.OfflineBackupRestoreService
 import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.base.controller.requestPermissionsSafe
@@ -52,39 +53,82 @@ class SettingsBackupController : SettingsController() {
     override fun setupPreferenceScreen(screen: PreferenceScreen) = screen.apply {
         titleRes = R.string.backup
 
-        preference {
-            key = "pref_create_backup"
-            titleRes = R.string.pref_create_backup
-            summaryRes = R.string.pref_create_backup_summ
+        preferenceCategory {
+            titleRes = R.string.backup
 
-            onClick {
-                if (!BackupCreateService.isRunning(context)) {
-                    val ctrl = CreateBackupDialog()
-                    ctrl.targetController = this@SettingsBackupController
-                    ctrl.showDialog(router)
-                } else {
-                    context.toast(R.string.backup_in_progress)
+            preference {
+                key = "pref_create_backup"
+                titleRes = R.string.pref_create_backup
+                summaryRes = R.string.pref_create_backup_summ
+
+                onClick {
+                    if (!BackupCreateService.isRunning(context)) {
+                        val ctrl = CreateBackupDialog(TYPE_ONLINE)
+                        ctrl.targetController = this@SettingsBackupController
+                        ctrl.showDialog(router)
+                    } else {
+                        context.toast(R.string.backup_in_progress)
+                    }
+                }
+            }
+            preference {
+                key = "pref_restore_backup"
+                titleRes = R.string.pref_restore_backup
+                summaryRes = R.string.pref_restore_backup_summ
+
+                onClick {
+                    if (!BackupRestoreService.isRunning(context)) {
+                        val intent = Intent(Intent.ACTION_GET_CONTENT)
+                        intent.addCategory(Intent.CATEGORY_OPENABLE)
+                        intent.type = "application/*"
+                        val title = resources?.getString(R.string.file_select_backup)
+                        val chooser = Intent.createChooser(intent, title)
+                        startActivityForResult(chooser, CODE_BACKUP_RESTORE)
+                    } else {
+                        context.toast(R.string.restore_in_progress)
+                    }
                 }
             }
         }
-        preference {
-            key = "pref_restore_backup"
-            titleRes = R.string.pref_restore_backup
-            summaryRes = R.string.pref_restore_backup_summ
+        // SY -->
+        preferenceCategory {
+            titleRes = R.string.backup_full
 
-            onClick {
-                if (!BackupRestoreService.isRunning(context)) {
-                    val intent = Intent(Intent.ACTION_GET_CONTENT)
-                    intent.addCategory(Intent.CATEGORY_OPENABLE)
-                    intent.type = "application/*"
-                    val title = resources?.getString(R.string.file_select_backup)
-                    val chooser = Intent.createChooser(intent, title)
-                    startActivityForResult(chooser, CODE_BACKUP_RESTORE)
-                } else {
-                    context.toast(R.string.restore_in_progress)
+            preference {
+                key = "pref_create_full_backup"
+                titleRes = R.string.pref_create_full_backup
+                summaryRes = R.string.pref_create_full_backup_summ
+
+                onClick {
+                    if (!BackupCreateService.isRunning(context)) {
+                        val ctrl = CreateBackupDialog(TYPE_OFFLINE)
+                        ctrl.targetController = this@SettingsBackupController
+                        ctrl.showDialog(router)
+                    } else {
+                        context.toast(R.string.backup_in_progress)
+                    }
+                }
+            }
+            preference {
+                key = "pref_restore_full_backup"
+                titleRes = R.string.pref_restore_full_backup
+                summaryRes = R.string.pref_restore_full_backup_summ
+
+                onClick {
+                    if (!BackupRestoreService.isRunning(context)) {
+                        val intent = Intent(Intent.ACTION_GET_CONTENT)
+                        intent.addCategory(Intent.CATEGORY_OPENABLE)
+                        intent.type = "application/*"
+                        val title = resources?.getString(R.string.file_select_backup)
+                        val chooser = Intent.createChooser(intent, title)
+                        startActivityForResult(chooser, CODE_FULL_BACKUP_RESTORE)
+                    } else {
+                        context.toast(R.string.restore_in_progress)
+                    }
                 }
             }
         }
+        // SY <--
         preferenceCategory {
             titleRes = R.string.pref_backup_service_category
 
@@ -181,18 +225,43 @@ class SettingsBackupController : SettingsController() {
 
                 activity.toast(R.string.creating_backup)
 
-                BackupCreateService.start(activity, file.uri, backupFlags)
+                BackupCreateService.start(activity, file.uri, backupFlags, BackupCreateService.BACKUP_TYPE_ONLINE)
             }
             CODE_BACKUP_RESTORE -> if (data != null && resultCode == Activity.RESULT_OK) {
                 val uri = data.data
                 if (uri != null) {
-                    RestoreBackupDialog(uri).showDialog(router)
+                    RestoreBackupDialog(uri /* SY --> */, TYPE_ONLINE /* SY <-- */).showDialog(router)
                 }
             }
+            // SY -->
+            CODE_FULL_BACKUP_CREATE -> if (data != null && resultCode == Activity.RESULT_OK) {
+                val activity = activity ?: return
+
+                val uri = data.data
+                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                if (uri != null) {
+                    activity.contentResolver.takePersistableUriPermission(uri, flags)
+                }
+
+                val file = UniFile.fromUri(activity, uri)
+
+                activity.toast(R.string.creating_backup)
+
+                BackupCreateService.start(activity, file.uri, backupFlags, BackupCreateService.BACKUP_TYPE_OFFLINE)
+            }
+            CODE_FULL_BACKUP_RESTORE -> if (data != null && resultCode == Activity.RESULT_OK) {
+                val uri = data.data
+                if (uri != null) {
+                    RestoreBackupDialog(uri, TYPE_OFFLINE).showDialog(router)
+                }
+            }
+            // SY <--
         }
     }
 
-    fun createBackup(flags: Int) {
+    fun createBackup(flags: Int, type: Int) {
         backupFlags = flags
 
         // Get dirs
@@ -205,15 +274,26 @@ class SettingsBackupController : SettingsController() {
                 .setType("application/*")
                 .putExtra(Intent.EXTRA_TITLE, Backup.getDefaultFilename())
 
-            startActivityForResult(intent, CODE_BACKUP_CREATE)
+            startActivityForResult(intent, /* SY --> */ if (type == TYPE_ONLINE) CODE_BACKUP_CREATE else CODE_FULL_BACKUP_CREATE /* SY <-- */)
         } catch (e: ActivityNotFoundException) {
             // Handle errors where the android ROM doesn't support the built in picker
-            startActivityForResult(preferences.context.getFilePicker(currentDir), CODE_BACKUP_CREATE)
+            startActivityForResult(preferences.context.getFilePicker(currentDir), /* SY --> */ if (type == TYPE_ONLINE) CODE_BACKUP_CREATE else CODE_FULL_BACKUP_CREATE /* SY <-- */)
         }
     }
 
-    class CreateBackupDialog : DialogController() {
+    class CreateBackupDialog(/* SY --> */ bundle: Bundle? = null /* SY <-- */) : DialogController(/* SY --> */ bundle /* SY <-- */) {
+        // SY -->
+        constructor(type: Int) : this(
+            Bundle().apply {
+                putInt(KEY_TYPE, type)
+            }
+        )
+        // SY <--
+
         override fun onCreateDialog(savedViewState: Bundle?): Dialog {
+            // SY -->
+            val type = args.getInt(KEY_TYPE)
+            // SY <--
             val activity = activity!!
             val options = arrayOf(
                 R.string.manga,
@@ -242,23 +322,35 @@ class SettingsBackupController : SettingsController() {
                         }
                     }
 
-                    (targetController as? SettingsBackupController)?.createBackup(flags)
+                    (targetController as? SettingsBackupController)?.createBackup(flags /* SY --> */, type /* SY <-- */)
                 }
                 .positiveButton(R.string.action_create)
                 .negativeButton(android.R.string.cancel)
         }
+
+        // SY -->
+        private companion object {
+            const val KEY_TYPE = "CreateBackupDialog.type"
+        }
+        // SY <--
     }
 
     class RestoreBackupDialog(bundle: Bundle? = null) : DialogController(bundle) {
-        constructor(uri: Uri) : this(
+        constructor(uri: Uri /* SY --> */, type: Int /* SY <-- */) : this(
             Bundle().apply {
                 putParcelable(KEY_URI, uri)
+                // SY -->
+                putInt(KEY_TYPE, type)
+                // SY <--
             }
         )
 
         override fun onCreateDialog(savedViewState: Bundle?): Dialog {
             val activity = activity!!
             val uri: Uri = args.getParcelable(KEY_URI)!!
+            // SY -->
+            val type: Int = args.getInt(KEY_TYPE)
+            // SY <--
 
             return try {
                 var message = activity.getString(R.string.backup_restore_content)
@@ -275,7 +367,13 @@ class SettingsBackupController : SettingsController() {
                     .title(R.string.pref_restore_backup)
                     .message(text = message)
                     .positiveButton(R.string.action_restore) {
-                        BackupRestoreService.start(activity, uri)
+                        // SY -->
+                        if (type == TYPE_ONLINE) {
+                            BackupRestoreService.start(activity, uri)
+                        } else if (type == TYPE_OFFLINE) {
+                            OfflineBackupRestoreService.start(activity, uri)
+                        }
+                        // SY <--
                     }
             } catch (e: Exception) {
                 MaterialDialog(activity)
@@ -287,6 +385,7 @@ class SettingsBackupController : SettingsController() {
 
         private companion object {
             const val KEY_URI = "RestoreBackupDialog.uri"
+            const val KEY_TYPE = "RestoreBackupDialog.type"
         }
     }
 
@@ -294,5 +393,11 @@ class SettingsBackupController : SettingsController() {
         const val CODE_BACKUP_CREATE = 501
         const val CODE_BACKUP_RESTORE = 502
         const val CODE_BACKUP_DIR = 503
+        // SY -->
+        const val CODE_FULL_BACKUP_CREATE = 504
+        const val CODE_FULL_BACKUP_RESTORE = 505
+        const val TYPE_ONLINE = 1
+        const val TYPE_OFFLINE = 2
+        // SY <--
     }
 }

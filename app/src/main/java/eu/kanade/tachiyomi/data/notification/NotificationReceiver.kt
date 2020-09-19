@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.backup.BackupRestoreService
+import eu.kanade.tachiyomi.data.backup.offline.OfflineBackupRestoreService
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
@@ -197,7 +198,13 @@ class NotificationReceiver : BroadcastReceiver() {
      * @param notificationId id of notification
      */
     private fun cancelRestore(context: Context, notificationId: Int) {
-        BackupRestoreService.stop(context)
+        // SY -->
+        if (BackupRestoreService.isItRunning(context)) {
+            BackupRestoreService.stop(context)
+        } else if (OfflineBackupRestoreService.isItRunning(context)) {
+            OfflineBackupRestoreService.stop(context)
+        }
+        // SY <--
         Handler().post { dismissNotification(context, notificationId) }
     }
 

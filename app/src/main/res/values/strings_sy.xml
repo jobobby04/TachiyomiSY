@@ -204,6 +204,13 @@
     <string name="biometric_lock_time_deleted_snack">Biometric lock time completed</string>
     <string name="biometric_lock_invalid_time_selected">Invalid time selected</string>
 
+    <!-- Backup settings -->
+    <string name="backup_full">Full Backup</string>
+    <string name="pref_create_full_backup">Create full backup</string>
+    <string name="pref_create_full_backup_summ">Can be used to restore current library, currently this type of backup is only supported in SY, use the other one for other Tachiyomi versions. The main feature is offline backup, which lets you restore even when you dont have the source</string>
+    <string name="pref_restore_full_backup">Restore full backup</string>
+    <string name="pref_restore_full_backup_summ">Restore library from backup file, only use this if your backup is a full type backup, this can be restored offline as well as online</string>
+
     <!-- Reader Settings -->
     <string name="download_threads">Download threads</string>
     <string name="download_threads_summary">Higher values can speed up image downloading significantly, but can also trigger bans. Recommended value is 2 or 3. Current value is: %s</string>
@@ -544,7 +551,7 @@
     <!-- MangaDex -->
     <string name="md_follows_unfollowed">Unfollowed</string>
     <string name="mangadex_specific_settings">MangaDex settings</string>
-    <string name="mangadex_sync_follows_to_library">Sync Mangadex manga into your library</string>
+    <string name="mangadex_sync_follows_to_library">Sync Mangadex manga to the library</string>
     <string name="mangadex_sync_follows_to_library_summary">Pulls reading/rereading manga from Mangadex into your library</string>
     <string name="mangadex_low_quality_covers">Use low quality thumbnails</string>
     <string name="mangadex_use_latest_cover">Use latest uploaded cover</string>

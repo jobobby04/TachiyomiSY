@@ -7,4 +7,7 @@ object BackupConst {
     private const val NAME = "BackupRestoreServices"
     const val EXTRA_URI = "$ID.$NAME.EXTRA_URI"
     const val EXTRA_FLAGS = "$ID.$NAME.EXTRA_FLAGS"
+    // SY -->
+    const val EXTRA_TYPE = "$ID.$NAME.EXTRA_TYPE"
+    // SY <--
 }

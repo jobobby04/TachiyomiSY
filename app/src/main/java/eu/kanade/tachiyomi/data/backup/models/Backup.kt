@@ -22,8 +22,8 @@ object Backup {
     const val MERGEDMANGAREFERENCES = "mergedmangareferences"
     // SY <--
 
-    fun getDefaultFilename(): String {
+    fun getDefaultFilename(full: Boolean = false): String {
         val date = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
-        return "tachiyomi_$date.json"
+        return "tachiyomi_${(if (full) "full_" else "") + date}.json"
     }
 }
