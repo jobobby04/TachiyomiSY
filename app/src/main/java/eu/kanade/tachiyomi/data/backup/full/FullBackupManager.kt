@@ -42,16 +42,12 @@ import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
 import exh.MERGED_SOURCE_ID
 import exh.eh.EHentaiThrottleManager
-import exh.util.asFlow
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import okio.buffer
 import okio.gzip
 import okio.sink
+import rx.Observable
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 import kotlin.math.max
@@ -245,15 +241,15 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     }
 
     /**
-     * [Flow] that fetches manga information
+     * [Observable] that fetches manga information
      *
      * @param source source of manga
      * @param manga manga that needs updating
-     * @return [Flow] that contains manga
+     * @return [Observable] that contains manga
      */
-    fun restoreMangaFetchFlow(source: Source?, manga: Manga, online: Boolean): Flow<Manga> {
+    fun restoreMangaFetchFlow(source: Source?, manga: Manga, online: Boolean): Observable<Manga> {
         return if (online && source != null && source !is MergedSource) {
-            source.fetchMangaDetails(manga).asFlow()
+            source.fetchMangaDetails(manga)
                 .map { networkManga ->
                     manga.copyFrom(networkManga)
                     manga.favorite = manga.favorite
@@ -262,7 +258,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
                     manga
                 }
         } else {
-            flow { emit(manga) }
+            Observable.just(manga)
                 .map {
                     it.initialized = it.description != null
                     it.id = insertManga(it)
@@ -272,27 +268,27 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     }
 
     /**
-     * [Flow] that fetches chapter information
+     * [Observable] that fetches chapter information
      *
      * @param source source of manga
      * @param manga manga that needs updating
      * @param chapters list of chapters in the backup
      * @param throttleManager e-hentai throttle so it doesnt get banned
-     * @return [Flow] that contains manga
+     * @return [Observable] that contains manga
      */
-    fun restoreChapterFetchFlow(source: Source, manga: Manga, chapters: List<Chapter>, throttleManager: EHentaiThrottleManager): Flow<Pair<List<Chapter>, List<Chapter>>> {
+    fun restoreChapterFetchObservable(source: Source, manga: Manga, chapters: List<Chapter>, throttleManager: EHentaiThrottleManager): Observable<Pair<List<Chapter>, List<Chapter>>> {
         // SY -->
         return (
             if (source is EHentai) {
-                source.fetchChapterList(manga, throttleManager::throttle).asFlow()
+                source.fetchChapterList(manga, throttleManager::throttle)
             } else {
-                source.fetchChapterList(manga).asFlow()
+                source.fetchChapterList(manga)
             }
             ).map {
             syncChaptersWithSource(databaseHelper, it, manga, source)
         }
             // SY <--
-            .onEach { pair ->
+            .doOnNext { pair ->
                 if (pair.first.isNotEmpty()) {
                     chapters.forEach { it.manga_id = manga.id }
                     updateChapters(chapters)
@@ -566,8 +562,15 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     private fun getFavoriteManga(): List<Manga> =
         databaseHelper.getFavoriteMangas().executeAsBlocking()
 
+    // SY -->
+    /**
+     * Returns list containing merged manga that are possibly not in the library
+     *
+     * @return merged [Manga] that are possibly not in the library
+     */
     private fun getMergedManga(): List<Manga> =
         databaseHelper.getMergedMangas().executeAsBlocking()
+    // SY <--
 
     /**
      * Inserts manga and returns id

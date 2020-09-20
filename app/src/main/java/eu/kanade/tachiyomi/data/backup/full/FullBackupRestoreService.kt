@@ -31,19 +31,10 @@ import eu.kanade.tachiyomi.util.system.isServiceRunning
 import exh.EXHMigrations
 import exh.MERGED_SOURCE_ID
 import exh.eh.EHentaiThrottleManager
-import exh.util.asFlow
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import okio.buffer
 import okio.gzip
@@ -322,16 +313,14 @@ class FullBackupRestoreService : Service() {
         val dbManga = fullBackupManager.getMangaFromDatabase(manga)
 
         db.inTransaction {
-            runBlocking {
-                if (dbManga == null) {
-                    // Manga not in database
-                    restoreMangaFetch(source, manga, chapters, categories, history, tracks, backupCategories, mergedMangaReferences, online)
-                } else { // Manga in database
-                    // Copy information from manga already in database
-                    fullBackupManager.restoreMangaNoFetch(manga, dbManga)
-                    // Fetch rest of manga information
-                    restoreMangaNoFetch(source, manga, chapters, categories, history, tracks, backupCategories, mergedMangaReferences, online)
-                }
+            if (dbManga == null) {
+                // Manga not in database
+                restoreMangaFetch(source, manga, chapters, categories, history, tracks, backupCategories, mergedMangaReferences, online)
+            } else { // Manga in database
+                // Copy information from manga already in database
+                fullBackupManager.restoreMangaNoFetch(manga, dbManga)
+                // Fetch rest of manga information
+                restoreMangaNoFetch(source, manga, chapters, categories, history, tracks, backupCategories, mergedMangaReferences, online)
             }
         }
     }
@@ -343,7 +332,7 @@ class FullBackupRestoreService : Service() {
      * @param chapters chapters of manga that needs updating
      * @param categories categories that need updating
      */
-    private suspend fun restoreMangaFetch(
+    private fun restoreMangaFetch(
         source: Source?,
         manga: Manga,
         chapters: List<Chapter>,
@@ -355,28 +344,34 @@ class FullBackupRestoreService : Service() {
         online: Boolean
     ) {
         fullBackupManager.restoreMangaFetchFlow(source, manga, online)
-            .catch {
+            .doOnError {
                 errors.add(Date() to "${manga.title} - ${it.message}")
             }
             .filter { it.id != null }
-            .onEach {
+            .flatMap {
                 if (online && source != null) {
                     if (source !is MergedSource) {
-                        chapterFetchFlow(source, it, chapters)
+                        chapterFetchObservable(source, it, chapters)
                             // Convert to the manga that contains new chapters.
-                            .collect()
+                            .map { manga }
+                    } else {
+                        Observable.just(manga)
                     }
                 } else {
                     fullBackupManager.restoreChaptersForMangaOffline(it, chapters)
+                    Observable.just(manga)
                 }
-
-                restoreExtraForManga(it, categories, history, tracks, backupCategories, mergedMangaReferences)
-                trackingFetchFlow(it, tracks).collect()
             }
-            .collect()
+            .doOnNext {
+                restoreExtraForManga(it, categories, history, tracks, backupCategories, mergedMangaReferences)
+            }
+            .flatMap {
+                trackingFetchObservable(it, tracks)
+            }
+            .subscribe()
     }
 
-    private suspend fun restoreMangaNoFetch(
+    private fun restoreMangaNoFetch(
         source: Source?,
         backupManga: Manga,
         chapters: List<Chapter>,
@@ -387,19 +382,27 @@ class FullBackupRestoreService : Service() {
         mergedMangaReferences: List<BackupMergedMangaReference>,
         online: Boolean
     ) {
-        flow { emit(backupManga) }
-            .onEach {
+        Observable.just(backupManga)
+            .flatMap { manga ->
                 if (online && source != null) {
-                    if (source !is MergedSource && !fullBackupManager.restoreChaptersForManga(it, chapters)) {
-                        chapterFetchFlow(source, it, chapters).collect()
+                    if (source !is MergedSource && !fullBackupManager.restoreChaptersForManga(manga, chapters)) {
+                        chapterFetchObservable(source, manga, chapters)
+                            .map { manga }
+                    } else {
+                        Observable.just(manga)
                     }
                 } else {
-                    fullBackupManager.restoreChaptersForMangaOffline(it, chapters)
+                    fullBackupManager.restoreChaptersForMangaOffline(manga, chapters)
+                    Observable.just(manga)
                 }
-                restoreExtraForManga(it, categories, history, tracks, backupCategories, mergedMangaReferences)
-                trackingFetchFlow(it, tracks).collect()
             }
-            .collect()
+            .doOnNext {
+                restoreExtraForManga(it, categories, history, tracks, backupCategories, mergedMangaReferences)
+            }
+            .flatMap { manga ->
+                trackingFetchObservable(manga, tracks)
+            }
+            .subscribe()
     }
 
     private fun restoreExtraForManga(manga: Manga, categories: List<Int>, history: List<BackupHistory>, tracks: List<Track>, backupCategories: List<BackupCategory>, mergedMangaReferences: List<BackupMergedMangaReference>) {
@@ -423,17 +426,17 @@ class FullBackupRestoreService : Service() {
      * @param manga manga that needs updating
      * @return [Observable] that contains manga
      */
-    private fun chapterFetchFlow(source: Source, manga: Manga, chapters: List<Chapter>): Flow<Pair<List<Chapter>, List<Chapter>>> {
-        return fullBackupManager.restoreChapterFetchFlow(source, manga, chapters /* SY --> */, throttleManager /* SY <-- */)
+    private fun chapterFetchObservable(source: Source, manga: Manga, chapters: List<Chapter>): Observable<Pair<List<Chapter>, List<Chapter>>> {
+        return fullBackupManager.restoreChapterFetchObservable(source, manga, chapters /* SY --> */, throttleManager /* SY <-- */)
             // If there's any error, return empty update and continue.
-            .catch {
+            .onErrorReturn {
                 val errorMessage = if (it is NoChaptersException) {
                     getString(R.string.no_chapters_error)
                 } else {
                     it.message
                 }
                 errors.add(Date() to "${manga.title} - $errorMessage")
-                Pair(emptyList<Chapter>(), emptyList<Chapter>())
+                Pair(emptyList(), emptyList())
             }
     }
 
@@ -443,18 +446,20 @@ class FullBackupRestoreService : Service() {
      * @param tracks list containing tracks from restore file.
      * @return [Observable] that contains updated track item
      */
-    private fun trackingFetchFlow(manga: Manga, tracks: List<Track>): Flow<Track> {
-        return tracks.asFlow()
-            .onEach { track ->
+    private fun trackingFetchObservable(manga: Manga, tracks: List<Track>): Observable<Track> {
+        return Observable.from(tracks)
+            .flatMap { track ->
                 val service = trackManager.getService(track.sync_id)
                 if (service != null && service.isLogged) {
-                    service.refresh(track).asFlow()
-                        .onEach { db.insertTrack(it).executeAsBlocking() }
-                        .catch {
+                    service.refresh(track)
+                        .doOnNext { db.insertTrack(it).executeAsBlocking() }
+                        .onErrorReturn {
                             errors.add(Date() to "${manga.title} - ${it.message}")
-                        }.collect()
+                            track
+                        }
                 } else {
                     errors.add(Date() to "${manga.title} - ${getString(R.string.tracker_not_logged_in, service?.name)}")
+                    Observable.empty()
                 }
             }
     }
