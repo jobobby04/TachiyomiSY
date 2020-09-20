@@ -9,7 +9,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 @ExperimentalSerializationApi
 @Serializable
 data class BackupTracking(
-    // in 1.x some of these values have different values, they are listed here
+    // in 1.x some of these values have different types or names, they are listed here
     // syncId is called siteId
     // trackingUrl is called mediaUrl
     // lastChapterRead is called last read, and it has been changed to a float
@@ -34,6 +34,7 @@ data class BackupTracking(
             media_id = this@BackupTracking.mediaId
             library_id = this@BackupTracking.libraryId
             title = this@BackupTracking.title
+            // convert from float to int because of 1.x types
             last_chapter_read = this@BackupTracking.lastChapterRead.toInt()
             total_chapters = this@BackupTracking.totalChapters
             score = this@BackupTracking.score
@@ -52,6 +53,7 @@ data class BackupTracking(
                 // forced not null so its compatible with 1.x backup system
                 libraryId = track.library_id!!,
                 title = track.title,
+                // convert to float for 1.x
                 lastChapterRead = track.last_chapter_read.toFloat(),
                 totalChapters = track.total_chapters,
                 score = track.score,

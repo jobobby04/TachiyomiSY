@@ -22,7 +22,7 @@ object FullBackupRestoreValidator {
     /**
      * Checks for critical backup file data.
      *
-     * @throws Exception if version or manga cannot be found.
+     * @throws Exception if manga cannot be found.
      * @return List of missing sources or missing trackers.
      */
     fun validate(context: Context, uri: Uri): BackupRestoreValidator.Results {
