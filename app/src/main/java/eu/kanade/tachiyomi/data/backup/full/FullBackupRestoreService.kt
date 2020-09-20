@@ -24,6 +24,7 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.util.chapter.NoChaptersException
 import eu.kanade.tachiyomi.util.system.acquireWakeLock
 import eu.kanade.tachiyomi.util.system.isServiceRunning
@@ -72,10 +73,11 @@ class FullBackupRestoreService : Service() {
          * @param context context of application
          * @param uri path of Uri
          */
-        fun start(context: Context, uri: Uri) {
+        fun start(context: Context, uri: Uri, online: Boolean) {
             if (!BackupRestoreService.isRunning(context)) {
                 val intent = Intent(context, FullBackupRestoreService::class.java).apply {
                     putExtra(BackupConst.EXTRA_URI, uri)
+                    putExtra(BackupConst.EXTRA_TYPE, online)
                 }
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                     context.startService(intent)
@@ -176,6 +178,7 @@ class FullBackupRestoreService : Service() {
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val uri = intent?.getParcelableExtra<Uri>(BackupConst.EXTRA_URI) ?: return START_NOT_STICKY
+        val online = intent.getBooleanExtra(BackupConst.EXTRA_TYPE, true)
 
         // SY -->
         throttleManager.resetThrottle()
@@ -192,7 +195,7 @@ class FullBackupRestoreService : Service() {
             stopSelf(startId)
         }
         job = GlobalScope.launch(handler) {
-            if (!restoreBackup(uri)) {
+            if (!restoreBackup(uri, online)) {
                 notifier.showRestoreError(getString(R.string.restoring_backup_canceled))
             }
         }
@@ -208,7 +211,7 @@ class FullBackupRestoreService : Service() {
      *
      * @param uri backup file to restore
      */
-    private fun restoreBackup(uri: Uri): Boolean {
+    private fun restoreBackup(uri: Uri, online: Boolean): Boolean {
         val startTime = System.currentTimeMillis()
 
         // Initialize manager
@@ -217,6 +220,7 @@ class FullBackupRestoreService : Service() {
         val backupString = contentResolver.openInputStream(uri)!!.source().gzip().buffer().use { it.readByteArray() }
         val backup = fullBackupManager.parser.decodeFromByteArray(BackupSerializer, backupString)
 
+        restoreAmount = backup.backupManga.size + 1 + 1 // +1 for categories, +1 for saved searches
         restoreProgress = 0
         errors.clear()
 
@@ -233,12 +237,12 @@ class FullBackupRestoreService : Service() {
         sourceMapping = backup.backupExtensions.map { it.sourceId to it.name }.toMap()
 
         // Restore individual manga, sort by merged source so that merged source manga go last and merged references get the proper ids
-        backup.backupManga.sortedByDescending { it.source == MERGED_SOURCE_ID }.forEach {
+        backup.backupManga.sortedBy { it.source == MERGED_SOURCE_ID }.forEach {
             if (job?.isActive != true) {
                 return false
             }
 
-            restoreManga(it, backup.backupCategories)
+            restoreManga(it, backup.backupCategories, online)
         }
 
         val endTime = System.currentTimeMillis()
@@ -268,7 +272,7 @@ class FullBackupRestoreService : Service() {
     }
     // SY <--
 
-    private fun restoreManga(backupManga: BackupManga, backupCategories: List<BackupCategory>) {
+    private fun restoreManga(backupManga: BackupManga, backupCategories: List<BackupCategory>, online: Boolean) {
         var manga = backupManga.getMangaImpl()
         val chapters = backupManga.getChaptersImpl()
         val categories = backupManga.categories
@@ -280,8 +284,8 @@ class FullBackupRestoreService : Service() {
 
         try {
             val source = fullBackupManager.sourceManager.get(manga.source)
-            if (source != null) {
-                restoreMangaData(manga, source, chapters, categories, history, tracks, backupCategories, mergedMangaReferences)
+            if (source != null || !online) {
+                restoreMangaData(manga, source, chapters, categories, history, tracks, backupCategories, mergedMangaReferences, online)
             } else {
                 val sourceName = sourceMapping[manga.source] ?: manga.source.toString()
                 errors.add(Date() to "${manga.title} - ${getString(R.string.source_not_found_name, sourceName)}")
@@ -306,19 +310,19 @@ class FullBackupRestoreService : Service() {
      */
     private fun restoreMangaData(
         manga: Manga,
-        source: Source,
+        source: Source?,
         chapters: List<Chapter>,
         categories: List<Int>,
         history: List<BackupHistory>,
         tracks: List<Track>,
         backupCategories: List<BackupCategory>,
-        mergedMangaReferences: List<BackupMergedMangaReference>
+        mergedMangaReferences: List<BackupMergedMangaReference>,
+        online: Boolean
     ) {
         val dbManga = fullBackupManager.getMangaFromDatabase(manga)
 
         db.inTransaction {
             runBlocking {
-                val online = false
                 if (dbManga == null) {
                     // Manga not in database
                     restoreMangaFetch(source, manga, chapters, categories, history, tracks, backupCategories, mergedMangaReferences, online)
@@ -340,7 +344,7 @@ class FullBackupRestoreService : Service() {
      * @param categories categories that need updating
      */
     private suspend fun restoreMangaFetch(
-        source: Source,
+        source: Source?,
         manga: Manga,
         chapters: List<Chapter>,
         categories: List<Int>,
@@ -356,10 +360,12 @@ class FullBackupRestoreService : Service() {
             }
             .filter { it.id != null }
             .onEach {
-                if (online) {
-                    chapterFetchFlow(source, it, chapters)
-                        // Convert to the manga that contains new chapters.
-                        .collect()
+                if (online && source != null) {
+                    if (source !is MergedSource) {
+                        chapterFetchFlow(source, it, chapters)
+                            // Convert to the manga that contains new chapters.
+                            .collect()
+                    }
                 } else {
                     fullBackupManager.restoreChaptersForMangaOffline(it, chapters)
                 }
@@ -371,7 +377,7 @@ class FullBackupRestoreService : Service() {
     }
 
     private suspend fun restoreMangaNoFetch(
-        source: Source,
+        source: Source?,
         backupManga: Manga,
         chapters: List<Chapter>,
         categories: List<Int>,
@@ -383,8 +389,8 @@ class FullBackupRestoreService : Service() {
     ) {
         flow { emit(backupManga) }
             .onEach {
-                if (online) {
-                    if (!fullBackupManager.restoreChaptersForManga(it, chapters)) {
+                if (online && source != null) {
+                    if (source !is MergedSource && !fullBackupManager.restoreChaptersForManga(it, chapters)) {
                         chapterFetchFlow(source, it, chapters).collect()
                     }
                 } else {

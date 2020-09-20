@@ -35,13 +35,11 @@ import eu.kanade.tachiyomi.data.database.models.MangaCategory
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackManager
-import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.all.EHentai
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
-import exh.EXHSavedSearch
 import exh.MERGED_SOURCE_ID
 import exh.eh.EHentaiThrottleManager
 import exh.util.asFlow
@@ -49,7 +47,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import okio.buffer
@@ -57,8 +54,6 @@ import okio.gzip
 import okio.sink
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
-import xyz.nulldev.ts.api.http.serializer.FilterSerializer
-import java.lang.RuntimeException
 import kotlin.math.max
 import eu.kanade.tachiyomi.data.backup.models.Backup as BackupInfo
 
@@ -254,10 +249,10 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
      *
      * @param source source of manga
      * @param manga manga that needs updating
-     * @return [Observable] that contains manga
+     * @return [Flow] that contains manga
      */
-    fun restoreMangaFetchFlow(source: Source, manga: Manga, online: Boolean): Flow<Manga> {
-        return if (online) {
+    fun restoreMangaFetchFlow(source: Source?, manga: Manga, online: Boolean): Flow<Manga> {
+        return if (online && source != null && source !is MergedSource) {
             source.fetchMangaDetails(manga).asFlow()
                 .map { networkManga ->
                     manga.copyFrom(networkManga)
@@ -287,32 +282,22 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
      */
     fun restoreChapterFetchFlow(source: Source, manga: Manga, chapters: List<Chapter>, throttleManager: EHentaiThrottleManager): Flow<Pair<List<Chapter>, List<Chapter>>> {
         // SY -->
-        if (source is MergedSource) {
-            val syncedChapters = runBlocking { source.fetchChaptersAndSync(manga, false) }
-            return syncedChapters.onEach { pair ->
+        return (
+            if (source is EHentai) {
+                source.fetchChapterList(manga, throttleManager::throttle).asFlow()
+            } else {
+                source.fetchChapterList(manga).asFlow()
+            }
+            ).map {
+            syncChaptersWithSource(databaseHelper, it, manga, source)
+        }
+            // SY <--
+            .onEach { pair ->
                 if (pair.first.isNotEmpty()) {
                     chapters.forEach { it.manga_id = manga.id }
                     updateChapters(chapters)
                 }
             }
-        } else {
-            return (
-                if (source is EHentai) {
-                    source.fetchChapterList(manga, throttleManager::throttle).asFlow()
-                } else {
-                    source.fetchChapterList(manga).asFlow()
-                }
-                ).map {
-                syncChaptersWithSource(databaseHelper, it, manga, source)
-            }
-                // SY <--
-                .onEach { pair ->
-                    if (pair.first.isNotEmpty()) {
-                        chapters.forEach { it.manga_id = manga.id }
-                        updateChapters(chapters)
-                    }
-                }
-        }
     }
 
     /**
@@ -513,17 +498,19 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
             )
         }
 
-
         preferences.eh_savedSearches()
-            .set((backupSavedSearches.filter { backupSavedSearch -> currentSavedSearches.all { it.name != backupSavedSearch.name } }
-                .map {
-                    "${it.source}:" + jsonObject(
-                        "name" to it.name,
-                        "query" to it.query,
-                        "filters" to it.filterList
-                    ).toString()
-                } + preferences.eh_savedSearches().get())
-                .toSet()
+            .set(
+                (
+                    backupSavedSearches.filter { backupSavedSearch -> currentSavedSearches.all { it.name != backupSavedSearch.name } }
+                        .map {
+                            "${it.source}:" + jsonObject(
+                                "name" to it.name,
+                                "query" to it.query,
+                                "filters" to it.filterList
+                            ).toString()
+                        } + preferences.eh_savedSearches().get()
+                    )
+                    .toSet()
             )
     }
 
