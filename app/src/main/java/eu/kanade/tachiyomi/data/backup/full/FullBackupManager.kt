@@ -501,7 +501,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
         preferences.eh_savedSearches()
             .set(
                 (
-                    backupSavedSearches.filter { backupSavedSearch -> currentSavedSearches.all { it.name != backupSavedSearch.name } }
+                    backupSavedSearches.filter { backupSavedSearch -> currentSavedSearches.all { it.name != backupSavedSearch.name || it.source != backupSavedSearch.source } }
                         .map {
                             "${it.source}:" + jsonObject(
                                 "name" to it.name,
