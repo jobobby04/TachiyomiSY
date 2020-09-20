@@ -269,9 +269,9 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
         } else {
             flow { emit(manga) }
                 .map {
-                    manga.initialized = manga.description != null
-                    manga.id = insertManga(it)
-                    manga
+                    it.initialized = it.description != null
+                    it.id = insertManga(it)
+                    it
                 }
         }
     }
@@ -292,7 +292,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
             return syncedChapters.onEach { pair ->
                 if (pair.first.isNotEmpty()) {
                     chapters.forEach { it.manga_id = manga.id }
-                    insertChapters(chapters)
+                    updateChapters(chapters)
                 }
             }
         } else {
@@ -309,7 +309,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
                 .onEach { pair ->
                     if (pair.first.isNotEmpty()) {
                         chapters.forEach { it.manga_id = manga.id }
-                        insertChapters(chapters)
+                        updateChapters(chapters)
                     }
                 }
         }
@@ -478,7 +478,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
         chapters.filter { it.id != null }
         chapters.map { it.manga_id = manga.id }
 
-        insertChapters(chapters)
+        updateChapters(chapters)
         return true
     }
 
@@ -494,85 +494,37 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
                 break
             }
         }
-        // Filter the chapters that couldn't be found.
-        chapters.filter { it.id != null }
         chapters.map { it.manga_id = manga.id }
 
-        insertChapters(chapters)
+        updateChapters(chapters.filter { it.id != null })
+        insertChapters(chapters.filter { it.id == null })
     }
 
     // SY -->
     internal fun restoreSavedSearches(backupSavedSearches: List<BackupSavedSearch>) {
-        val filterSerializer = FilterSerializer()
-
-        val newSavedSearches = backupSavedSearches.mapNotNull {
-            try {
-                val source = sourceManager.getOrStub(it.source)
-                if (source !is CatalogueSource) return@mapNotNull null
-
-                val originalFilters = source.getFilterList()
-                filterSerializer.deserialize(originalFilters, JsonParser.parseString(it.filterList).array)
-                Pair(
-                    it.source,
-                    EXHSavedSearch(
-                        it.name,
-                        it.query,
-                        originalFilters
-                    )
-                )
-            } catch (t: RuntimeException) {
-                // Load failed
-                Timber.e(t, "Failed to load saved search!")
-                t.printStackTrace()
-                null
-            }
-        }.toMutableList()
-
-        val currentSources = newSavedSearches.map { it.first }.toSet()
-
-        newSavedSearches += preferences.eh_savedSearches().get().mapNotNull {
-            try {
-                val id = it.substringBefore(':').toLong()
-                val content = JsonParser.parseString(it.substringAfter(':')).obj
-                if (id !in currentSources) return@mapNotNull null
-                val source = sourceManager.getOrStub(id)
-                if (source !is CatalogueSource) return@mapNotNull null
-
-                val originalFilters = source.getFilterList()
-                filterSerializer.deserialize(originalFilters, content["filters"].array)
-                Pair(
-                    id,
-                    EXHSavedSearch(
-                        content["name"].string,
-                        content["query"].string,
-                        originalFilters
-                    )
-                )
-            } catch (t: RuntimeException) {
-                // Load failed
-                Timber.e(t, "Failed to load saved search!")
-                t.printStackTrace()
-                null
-            }
-        }.toMutableList()
-
-        val otherSerialized = preferences.eh_savedSearches().get().mapNotNull {
-            val sourceId = it.split(":")[0].toLongOrNull() ?: return@mapNotNull null
-            if (sourceId in currentSources) return@mapNotNull null
-            it
+        val currentSavedSearches = preferences.eh_savedSearches().get().map {
+            val sourceId = it.substringBefore(':').toLong()
+            val content = JsonParser.parseString(it.substringAfter(':')).obj
+            BackupSavedSearch(
+                content["name"].string,
+                content["query"].string,
+                content["filters"].array.toString(),
+                sourceId
+            )
         }
 
-        /*.filter {
-            !it.startsWith("${newSource.id}:")
-        }*/
-        val newSerialized = newSavedSearches.map {
-            "${it.first}:" + jsonObject(
-                "name" to it.second.name,
-                "query" to it.second.query,
-                "filters" to filterSerializer.serialize(it.second.filterList)
-            ).toString()
-        }
-        preferences.eh_savedSearches().set((otherSerialized + newSerialized).toSet())
+
+        preferences.eh_savedSearches()
+            .set((backupSavedSearches.filter { backupSavedSearch -> currentSavedSearches.all { it.name != backupSavedSearch.name } }
+                .map {
+                    "${it.source}:" + jsonObject(
+                        "name" to it.name,
+                        "query" to it.query,
+                        "filters" to it.filterList
+                    ).toString()
+                } + preferences.eh_savedSearches().get())
+                .toSet()
+            )
     }
 
     /**
@@ -642,6 +594,13 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
      * Inserts list of chapters
      */
     private fun insertChapters(chapters: List<Chapter>) {
+        databaseHelper.insertChapters(chapters).executeAsBlocking()
+    }
+
+    /**
+     * Updates a list of chapters
+     */
+    private fun updateChapters(chapters: List<Chapter>) {
         databaseHelper.updateChaptersBackup(chapters).executeAsBlocking()
     }
 
