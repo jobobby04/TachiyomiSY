@@ -33,6 +33,7 @@ import eu.kanade.tachiyomi.util.preference.onClick
 import eu.kanade.tachiyomi.util.preference.preference
 import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.summaryRes
+import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.getFilePicker
 import eu.kanade.tachiyomi.util.system.toast
@@ -191,6 +192,17 @@ class SettingsBackupController : SettingsController() {
                 preferences.backupInterval().asImmediateFlow { isVisible = it > 0 }
                     .launchIn(scope)
             }
+            // SY -->
+            switchPreference {
+                key = Keys.isFullBackup
+                titleRes = R.string.pref_backup_type
+                summaryRes = R.string.pref_backup_type_summary
+                defaultValue = false
+
+                preferences.backupInterval().asImmediateFlow { isVisible = it > 0 }
+                    .launchIn(scope)
+            }
+            // SY <--
         }
     }
 

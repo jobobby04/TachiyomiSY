@@ -213,6 +213,8 @@
     <string name="full_restore_mode">Network Mode</string>
     <string name="full_restore_online">Restore online, slower but gives you more updated info and chapters</string>
     <string name="full_restore_offline">Restore offline, finishes quickly but contains only what you backup has</string>
+    <string name="pref_backup_type">Use full backup mode</string>
+    <string name="pref_backup_type_summary">Uses the full type backup for auto backup</string>
 
     <!-- Reader Settings -->
     <string name="download_threads">Download threads</string>
