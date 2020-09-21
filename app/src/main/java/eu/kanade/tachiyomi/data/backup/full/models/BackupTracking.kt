@@ -15,7 +15,7 @@ data class BackupTracking(
     // lastChapterRead is called last read, and it has been changed to a float
     // startedReadingDate is called startReadTime
     // finishedReadingDate is called endReadTime
-    @ProtoNumber(0) var syncId: Int,
+    @ProtoNumber(1) var syncId: Int,
     @ProtoNumber(2) var libraryId: Long,
     @ProtoNumber(3) var mediaId: Int = 0,
     @ProtoNumber(4) var trackingUrl: String = "",
