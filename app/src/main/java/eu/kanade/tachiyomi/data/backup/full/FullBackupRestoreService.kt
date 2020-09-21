@@ -211,7 +211,7 @@ class FullBackupRestoreService : Service() {
         val backupString = contentResolver.openInputStream(uri)!!.source().gzip().buffer().use { it.readByteArray() }
         val backup = fullBackupManager.parser.decodeFromByteArray(BackupSerializer, backupString)
 
-        restoreAmount = backup.backupManga.size + 1 + 1 // +1 for categories, +1 for saved searches
+        restoreAmount = backup.backupManga.size + 1 /* SY --> */ + 1 /* SY <-- */ // +1 for categories, +1 for saved searches
         restoreProgress = 0
         errors.clear()
 
@@ -220,15 +220,17 @@ class FullBackupRestoreService : Service() {
             restoreCategories(backup.backupCategories)
         }
 
+        // SY -->
         if (backup.backupSavedSearches.isNotEmpty()) {
             restoreSavedSearches(backup.backupSavedSearches)
         }
+        // SY <--
 
         // Store source mapping for error messages
         sourceMapping = backup.backupExtensions.map { it.sourceId to it.name }.toMap()
 
         // Restore individual manga, sort by merged source so that merged source manga go last and merged references get the proper ids
-        backup.backupManga.sortedBy { it.source == MERGED_SOURCE_ID }.forEach {
+        backup.backupManga /* SY --> */.sortedBy { it.source == MERGED_SOURCE_ID } /* SY <-- */.forEach {
             if (job?.isActive != true) {
                 return false
             }
@@ -269,9 +271,13 @@ class FullBackupRestoreService : Service() {
         val categories = backupManga.categories
         val history = backupManga.history
         val tracks = backupManga.getTrackingImpl()
+        // SY -->
         val mergedMangaReferences = backupManga.mergedMangaReferences
+        // SY <--
 
+        // SY -->
         manga = EXHMigrations.migrateBackupEntry(manga)
+        // SY <--
 
         try {
             val source = fullBackupManager.sourceManager.get(manga.source)
@@ -343,13 +349,14 @@ class FullBackupRestoreService : Service() {
         mergedMangaReferences: List<BackupMergedMangaReference>,
         online: Boolean
     ) {
-        fullBackupManager.restoreMangaFetchFlow(source, manga, online)
+        fullBackupManager.restoreMangaFetchObservable(source, manga, online)
             .doOnError {
                 errors.add(Date() to "${manga.title} - ${it.message}")
             }
             .filter { it.id != null }
             .flatMap {
                 if (online && source != null) {
+                    // SY -->
                     if (source !is MergedSource) {
                         chapterFetchObservable(source, it, chapters)
                             // Convert to the manga that contains new chapters.
@@ -357,6 +364,7 @@ class FullBackupRestoreService : Service() {
                     } else {
                         Observable.just(manga)
                     }
+                    // SY <--
                 } else {
                     fullBackupManager.restoreChaptersForMangaOffline(it, chapters)
                     Observable.just(manga)
@@ -385,7 +393,7 @@ class FullBackupRestoreService : Service() {
         Observable.just(backupManga)
             .flatMap { manga ->
                 if (online && source != null) {
-                    if (source !is MergedSource && !fullBackupManager.restoreChaptersForManga(manga, chapters)) {
+                    if (/* SY --> */ source !is MergedSource && /* SY <-- */ !fullBackupManager.restoreChaptersForManga(manga, chapters)) {
                         chapterFetchObservable(source, manga, chapters)
                             .map { manga }
                     } else {
@@ -415,8 +423,10 @@ class FullBackupRestoreService : Service() {
         // Restore tracking
         fullBackupManager.restoreTrackForManga(manga, tracks)
 
+        // SY -->
         // Restore merged manga references if its a merged manga
         fullBackupManager.restoreMergedMangaReferencesForManga(manga, mergedMangaReferences)
+        // SY <--
     }
 
     /**

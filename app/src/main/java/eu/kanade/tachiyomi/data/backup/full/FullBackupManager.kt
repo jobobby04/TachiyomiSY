@@ -158,6 +158,12 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
             .map { BackupCategory.copyFrom(it) }
     }
 
+    // SY -->
+    /**
+     * Backup the saved searches from sources
+     *
+     * @return list of [BackupSavedSearch] to be backed up
+     */
     private fun backupSavedSearches(): List<BackupSavedSearch> {
         return preferences.eh_savedSearches().get().map {
             val sourceId = it.substringBefore(':').toLong()
@@ -170,6 +176,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
             )
         }
     }
+    // SY <--
 
     /**
      * Convert a manga to Json
@@ -182,6 +189,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
         // Entry for this manga
         val mangaObject = BackupManga.copyFrom(manga)
 
+        // SY -->
         if (manga.source == MERGED_SOURCE_ID) {
             manga.id?.let { mangaId ->
                 mangaObject.mergedMangaReferences = databaseHelper.getMergedMangaReferences(mangaId)
@@ -189,6 +197,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
                     .map { BackupMergedMangaReference.copyFrom(it) }
             }
         }
+        // SY <--
 
         // Check if user wants chapter information in backup
         if (options and BACKUP_CHAPTER_MASK == BACKUP_CHAPTER) {
@@ -236,7 +245,6 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     fun restoreMangaNoFetch(manga: Manga, dbManga: Manga) {
         manga.id = dbManga.id
         manga.copyFrom(dbManga)
-        manga.favorite = true
         insertManga(manga)
     }
 
@@ -247,8 +255,8 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
      * @param manga manga that needs updating
      * @return [Observable] that contains manga
      */
-    fun restoreMangaFetchFlow(source: Source?, manga: Manga, online: Boolean): Observable<Manga> {
-        return if (online && source != null && source !is MergedSource) {
+    fun restoreMangaFetchObservable(source: Source?, manga: Manga, online: Boolean): Observable<Manga> {
+        return if (online && source != null /* SY --> */ && source !is MergedSource /* SY <-- */) {
             source.fetchMangaDetails(manga)
                 .map { networkManga ->
                     manga.copyFrom(networkManga)
@@ -276,7 +284,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
      * @param throttleManager e-hentai throttle so it doesnt get banned
      * @return [Observable] that contains manga
      */
-    fun restoreChapterFetchObservable(source: Source, manga: Manga, chapters: List<Chapter>, throttleManager: EHentaiThrottleManager): Observable<Pair<List<Chapter>, List<Chapter>>> {
+    fun restoreChapterFetchObservable(source: Source, manga: Manga, chapters: List<Chapter> /* SY --> */, throttleManager: EHentaiThrottleManager /* SY <-- */): Observable<Pair<List<Chapter>, List<Chapter>>> {
         // SY -->
         return (
             if (source is EHentai) {
