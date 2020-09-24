@@ -11,6 +11,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 data class BackupTracking(
     // in 1.x some of these values have different types or names, they are listed here
     // syncId is called siteId
+    // LibraryId is not null
     // trackingUrl is called mediaUrl
     // lastChapterRead is called last read, and it has been changed to a float
     // startedReadingDate is called startReadTime

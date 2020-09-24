@@ -14,7 +14,7 @@ class BackupCategory(
     // Proto number 3 is skipped because its a 1.x value that is not used in 0.x
     @ProtoNumber(4) var flags: Int = 0,
     // SY specific values
-    @ProtoNumber(60) var mangaOrder: List<Long> = emptyList()
+    @ProtoNumber(600) var mangaOrder: List<Long> = emptyList()
 ) {
     fun getCategoryImpl(): CategoryImpl {
         return CategoryImpl().apply {
