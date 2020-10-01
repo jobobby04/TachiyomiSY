@@ -197,9 +197,7 @@ class NotificationReceiver : BroadcastReceiver() {
      * @param notificationId id of notification
      */
     private fun cancelRestore(context: Context, notificationId: Int) {
-        if (BackupRestoreService.isRunning(context)) {
-            BackupRestoreService.stop(context)
-        }
+        BackupRestoreService.stop(context)
         Handler().post { dismissNotification(context, notificationId) }
     }
 
