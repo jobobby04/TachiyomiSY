@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup.models
+package eu.kanade.tachiyomi.data.backup.legacy.models
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -22,8 +22,8 @@ object Backup {
     const val MERGEDMANGAREFERENCES = "mergedmangareferences"
     // SY <--
 
-    fun getDefaultFilename(full: Boolean = false): String {
+    fun getDefaultFilename(): String {
         val date = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
-        return "tachiyomi_${(if (full) "full_" else "") + date}.${if (full) "proto.gz" else "json"}"
+        return "tachiyomi_$date.json"
     }
 }

@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_TRAC
 import eu.kanade.tachiyomi.data.backup.full.models.Backup
 import eu.kanade.tachiyomi.data.backup.full.models.BackupCategory
 import eu.kanade.tachiyomi.data.backup.full.models.BackupChapter
+import eu.kanade.tachiyomi.data.backup.full.models.BackupFull
 import eu.kanade.tachiyomi.data.backup.full.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.full.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.full.models.BackupMergedMangaReference
@@ -51,7 +52,6 @@ import rx.Observable
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 import kotlin.math.max
-import eu.kanade.tachiyomi.data.backup.models.Backup as BackupInfo
 
 @OptIn(ExperimentalSerializationApi::class)
 class FullBackupManager(val context: Context) : AbstractBackupManager() {
@@ -108,7 +108,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
                     .forEach { it.delete() }
 
                 // Create new file to place backup
-                val newFile = dir.createFile(BackupInfo.getDefaultFilename(full = true))
+                val newFile = dir.createFile(BackupFull.getDefaultFilename())
                     ?: throw Exception("Couldn't create backup file")
 
                 val byteArray = parser.encodeToByteArray(BackupSerializer, backup!!)

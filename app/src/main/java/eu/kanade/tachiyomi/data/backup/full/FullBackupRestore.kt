@@ -1,214 +1,50 @@
 package eu.kanade.tachiyomi.data.backup.full
 
-import android.app.Service
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import android.os.IBinder
-import android.os.PowerManager
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.backup.BackupConst
 import eu.kanade.tachiyomi.data.backup.BackupNotifier
-import eu.kanade.tachiyomi.data.backup.BackupRestoreService
 import eu.kanade.tachiyomi.data.backup.full.models.BackupCategory
 import eu.kanade.tachiyomi.data.backup.full.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.full.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.full.models.BackupMergedMangaReference
 import eu.kanade.tachiyomi.data.backup.full.models.BackupSavedSearch
 import eu.kanade.tachiyomi.data.backup.full.models.BackupSerializer
-import eu.kanade.tachiyomi.data.database.DatabaseHelper
+import eu.kanade.tachiyomi.data.backup.models.AbstractBackupRestore
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.util.chapter.NoChaptersException
-import eu.kanade.tachiyomi.util.system.acquireWakeLock
-import eu.kanade.tachiyomi.util.system.isServiceRunning
 import exh.EXHMigrations
 import exh.MERGED_SOURCE_ID
-import exh.eh.EHentaiThrottleManager
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import okio.buffer
 import okio.gzip
 import okio.source
 import rx.Observable
-import timber.log.Timber
-import uy.kohesive.injekt.injectLazy
-import java.io.File
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
-/**
- * Restores backup from a JSON file.
- */
 @OptIn(ExperimentalSerializationApi::class)
-class FullBackupRestoreService : Service() {
-
-    companion object {
-
-        fun isItRunning(context: Context): Boolean =
-            context.isServiceRunning(FullBackupRestoreService::class.java)
-
-        /**
-         * Starts a service to restore a backup from Json
-         *
-         * @param context context of application
-         * @param uri path of Uri
-         */
-        fun start(context: Context, uri: Uri, online: Boolean) {
-            if (!BackupRestoreService.isRunning(context)) {
-                val intent = Intent(context, FullBackupRestoreService::class.java).apply {
-                    putExtra(BackupConst.EXTRA_URI, uri)
-                    putExtra(BackupConst.EXTRA_TYPE, online)
-                }
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                    context.startService(intent)
-                } else {
-                    context.startForegroundService(intent)
-                }
-            }
-        }
-
-        /**
-         * Stops the service.
-         *
-         * @param context the application context.
-         */
-        fun stop(context: Context) {
-            context.stopService(Intent(context, FullBackupRestoreService::class.java))
-
-            BackupNotifier(context).showRestoreError(context.getString(R.string.restoring_backup_canceled))
-        }
-    }
-
-    /**
-     * Wake lock that will be held until the service is destroyed.
-     */
-    private lateinit var wakeLock: PowerManager.WakeLock
-
-    private var job: Job? = null
-
-    // SY -->
-    private val throttleManager = EHentaiThrottleManager()
-    // SY <--
-
-    /**
-     * The progress of a backup restore
-     */
-    private var restoreProgress = 0
-
-    /**
-     * Amount of manga in Json file (needed for restore)
-     */
-    private var restoreAmount = 0
-
-    /**
-     * Mapping of source ID to source name from backup data
-     */
-    private var sourceMapping: Map<Long, String> = emptyMap()
-
-    /**
-     * List containing errors
-     */
-    private val errors = mutableListOf<Pair<Date, String>>()
-
+class FullBackupRestore(context: Context, notifier: BackupNotifier, private val online: Boolean) : AbstractBackupRestore(context, notifier) {
     private lateinit var fullBackupManager: FullBackupManager
-    private lateinit var notifier: BackupNotifier
-
-    private val db: DatabaseHelper by injectLazy()
-
-    private val trackManager: TrackManager by injectLazy()
-
-    override fun onCreate() {
-        super.onCreate()
-
-        notifier = BackupNotifier(this)
-        wakeLock = acquireWakeLock(javaClass.name)
-
-        startForeground(Notifications.ID_RESTORE_PROGRESS, notifier.showRestoreProgress().build())
-    }
-
-    override fun stopService(name: Intent?): Boolean {
-        destroyJob()
-        return super.stopService(name)
-    }
-
-    override fun onDestroy() {
-        destroyJob()
-        super.onDestroy()
-    }
-
-    private fun destroyJob() {
-        job?.cancel()
-        if (wakeLock.isHeld) {
-            wakeLock.release()
-        }
-    }
-
-    /**
-     * This method needs to be implemented, but it's not used/needed.
-     */
-    override fun onBind(intent: Intent): IBinder? = null
-
-    /**
-     * Method called when the service receives an intent.
-     *
-     * @param intent the start intent from.
-     * @param flags the flags of the command.
-     * @param startId the start id of this command.
-     * @return the start value of the command.
-     */
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val uri = intent?.getParcelableExtra<Uri>(BackupConst.EXTRA_URI) ?: return START_NOT_STICKY
-        val online = intent.getBooleanExtra(BackupConst.EXTRA_TYPE, true)
-
-        // SY -->
-        throttleManager.resetThrottle()
-        // SY <--
-
-        // Cancel any previous job if needed.
-        job?.cancel()
-        val handler = CoroutineExceptionHandler { _, exception ->
-            Timber.e(exception)
-            writeErrorLog()
-
-            notifier.showRestoreError(exception.message)
-
-            stopSelf(startId)
-        }
-        job = GlobalScope.launch(handler) {
-            if (!restoreBackup(uri, online)) {
-                notifier.showRestoreError(getString(R.string.restoring_backup_canceled))
-            }
-        }
-        job?.invokeOnCompletion {
-            stopSelf(startId)
-        }
-
-        return START_NOT_STICKY
-    }
 
     /**
      * Restores data from backup file.
      *
      * @param uri backup file to restore
      */
-    private fun restoreBackup(uri: Uri, online: Boolean): Boolean {
+    override fun restoreBackup(uri: Uri): Boolean {
+        // SY -->
+        throttleManager.resetThrottle()
+        // SY <--
         val startTime = System.currentTimeMillis()
 
         // Initialize manager
-        fullBackupManager = FullBackupManager(this)
+        fullBackupManager = FullBackupManager(context)
 
-        val backupString = contentResolver.openInputStream(uri)!!.source().gzip().buffer().use { it.readByteArray() }
+        val backupString = context.contentResolver.openInputStream(uri)!!.source().gzip().buffer().use { it.readByteArray() }
         val backup = fullBackupManager.parser.decodeFromByteArray(BackupSerializer, backupString)
 
         restoreAmount = backup.backupManga.size + 1 /* SY --> */ + 1 /* SY <-- */ // +1 for categories, +1 for saved searches
@@ -227,7 +63,7 @@ class FullBackupRestoreService : Service() {
         // SY <--
 
         // Store source mapping for error messages
-        sourceMapping = backup.backupExtensions.map { it.sourceId to it.name }.toMap()
+        sourceMapping = backup.backupSources.map { it.sourceId to it.name }.toMap()
 
         // Restore individual manga, sort by merged source so that merged source manga go last and merged references get the proper ids
         backup.backupManga /* SY --> */.sortedBy { it.source == MERGED_SOURCE_ID } /* SY <-- */.forEach {
@@ -253,7 +89,7 @@ class FullBackupRestoreService : Service() {
         }
 
         restoreProgress += 1
-        showRestoreProgress(restoreProgress, restoreAmount, getString(R.string.categories))
+        showRestoreProgress(restoreProgress, restoreAmount, context.getString(R.string.categories))
     }
 
     // SY -->
@@ -261,7 +97,7 @@ class FullBackupRestoreService : Service() {
         fullBackupManager.restoreSavedSearches(backupSavedSearches)
 
         restoreProgress += 1
-        showRestoreProgress(restoreProgress, restoreAmount, getString(R.string.saved_searches))
+        showRestoreProgress(restoreProgress, restoreAmount, context.getString(R.string.saved_searches))
     }
     // SY <--
 
@@ -285,7 +121,7 @@ class FullBackupRestoreService : Service() {
                 restoreMangaData(manga, source, chapters, categories, history, tracks, backupCategories, mergedMangaReferences, online)
             } else {
                 val sourceName = sourceMapping[manga.source] ?: manga.source.toString()
-                errors.add(Date() to "${manga.title} - ${getString(R.string.source_not_found_name, sourceName)}")
+                errors.add(Date() to "${manga.title} - ${context.getString(R.string.source_not_found_name, sourceName)}")
             }
         } catch (e: Exception) {
             errors.add(Date() to "${manga.title} - ${e.message}")
@@ -441,7 +277,7 @@ class FullBackupRestoreService : Service() {
             // If there's any error, return empty update and continue.
             .onErrorReturn {
                 val errorMessage = if (it is NoChaptersException) {
-                    getString(R.string.no_chapters_error)
+                    context.getString(R.string.no_chapters_error)
                 } else {
                     it.message
                 }
@@ -468,7 +304,7 @@ class FullBackupRestoreService : Service() {
                             track
                         }
                 } else {
-                    errors.add(Date() to "${manga.title} - ${getString(R.string.tracker_not_logged_in, service?.name)}")
+                    errors.add(Date() to "${manga.title} - ${context.getString(R.string.tracker_not_logged_in, service?.name)}")
                     Observable.empty()
                 }
             }
@@ -487,27 +323,5 @@ class FullBackupRestoreService : Service() {
         title: String
     ) {
         notifier.showRestoreProgress(title, progress, amount)
-    }
-
-    /**
-     * Write errors to error log
-     */
-    private fun writeErrorLog(): File {
-        try {
-            if (errors.isNotEmpty()) {
-                val destFile = File(externalCacheDir, "tachiyomi_restore.txt")
-                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-
-                destFile.bufferedWriter().use { out ->
-                    errors.forEach { (date, message) ->
-                        out.write("[${sdf.format(date)}] $message\n")
-                    }
-                }
-                return destFile
-            }
-        } catch (e: Exception) {
-            // Empty
-        }
-        return File("")
     }
 }

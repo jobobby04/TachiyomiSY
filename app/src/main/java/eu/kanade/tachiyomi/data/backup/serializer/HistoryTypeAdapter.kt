@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.data.backup.serializer
 
 import com.github.salomonbrys.kotson.typeAdapter
 import com.google.gson.TypeAdapter
-import eu.kanade.tachiyomi.data.backup.models.DHistory
+import eu.kanade.tachiyomi.data.backup.legacy.models.DHistory
 
 /**
  * JSON Serializer used to write / read [DHistory] to / from json

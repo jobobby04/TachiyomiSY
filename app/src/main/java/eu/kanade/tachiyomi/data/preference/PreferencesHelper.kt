@@ -457,5 +457,5 @@ class PreferencesHelper(val context: Context) {
 
     fun sortTagsForLibrary() = flowPrefs.getStringSet(Keys.sortTagsForLibrary, mutableSetOf())
 
-    fun isFullBackup() = flowPrefs.getBoolean(Keys.isFullBackup, false)
+    fun createLegacyBackup() = flowPrefs.getBoolean(Keys.createLegacyBackup, false)
 }

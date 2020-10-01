@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.data.backup
+package eu.kanade.tachiyomi.data.backup.legacy
 
 import android.content.Context
 import android.net.Uri
@@ -22,18 +22,18 @@ import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_HIST
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_HISTORY_MASK
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_TRACK
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_TRACK_MASK
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.CATEGORIES
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.CHAPTERS
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.CURRENT_VERSION
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.EXTENSIONS
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.HISTORY
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.MANGA
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.MERGEDMANGAREFERENCES
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.SAVEDSEARCHES
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.TRACK
+import eu.kanade.tachiyomi.data.backup.legacy.models.DHistory
 import eu.kanade.tachiyomi.data.backup.models.AbstractBackupManager
-import eu.kanade.tachiyomi.data.backup.models.Backup
-import eu.kanade.tachiyomi.data.backup.models.Backup.CATEGORIES
-import eu.kanade.tachiyomi.data.backup.models.Backup.CHAPTERS
-import eu.kanade.tachiyomi.data.backup.models.Backup.CURRENT_VERSION
-import eu.kanade.tachiyomi.data.backup.models.Backup.EXTENSIONS
-import eu.kanade.tachiyomi.data.backup.models.Backup.HISTORY
-import eu.kanade.tachiyomi.data.backup.models.Backup.MANGA
-import eu.kanade.tachiyomi.data.backup.models.Backup.MERGEDMANGAREFERENCES
-import eu.kanade.tachiyomi.data.backup.models.Backup.SAVEDSEARCHES
-import eu.kanade.tachiyomi.data.backup.models.Backup.TRACK
-import eu.kanade.tachiyomi.data.backup.models.DHistory
 import eu.kanade.tachiyomi.data.backup.serializer.CategoryTypeAdapter
 import eu.kanade.tachiyomi.data.backup.serializer.ChapterTypeAdapter
 import eu.kanade.tachiyomi.data.backup.serializer.HistoryTypeAdapter
@@ -78,7 +78,7 @@ import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 import java.lang.RuntimeException
 import kotlin.math.max
 
-class BackupManager(val context: Context, version: Int = CURRENT_VERSION) : AbstractBackupManager() {
+class LegacyBackupManager(val context: Context, version: Int = CURRENT_VERSION) : AbstractBackupManager() {
 
     internal val databaseHelper: DatabaseHelper by injectLazy()
     internal val sourceManager: SourceManager by injectLazy()

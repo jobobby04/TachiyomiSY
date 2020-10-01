@@ -204,17 +204,6 @@
     <string name="biometric_lock_time_deleted_snack">Biometric lock time completed</string>
     <string name="biometric_lock_invalid_time_selected">Invalid time selected</string>
 
-    <!-- Backup settings -->
-    <string name="backup_full">Full Backup</string>
-    <string name="pref_create_full_backup">Create full backup</string>
-    <string name="pref_create_full_backup_summ">Can be used to restore current library, currently this type of backup is only supported in SY, use the other one for other Tachiyomi versions. The main feature is offline backup, which lets you restore even when you dont have the source</string>
-    <string name="pref_restore_full_backup">Restore full backup</string>
-    <string name="pref_restore_full_backup_summ">Restore library from backup file, only use this if your backup is a full type backup, this can be restored offline as well as online</string>
-    <string name="full_restore_mode">Network Mode</string>
-    <string name="full_restore_online">Restore online, slower but gives you more updated info and chapters</string>
-    <string name="full_restore_offline">Restore offline, finishes quickly but contains only what you backup has</string>
-    <string name="pref_backup_type">Use full backup mode</string>
-    <string name="pref_backup_type_summary">Uses the full type backup for auto backup</string>
 
     <!-- Reader Settings -->
     <string name="download_threads">Download threads</string>
