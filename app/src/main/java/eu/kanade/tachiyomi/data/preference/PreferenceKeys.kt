@@ -275,6 +275,8 @@ object PreferenceKeys {
 
     const val eh_enable_hah = "eh_enable_hah"
 
+    const val latest_tab_visibility = "latest_tab_visibility"
+
     const val latest_tab_sources = "latest_tab_sources"
 
     const val latest_tab_position = "latest_tab_position"
