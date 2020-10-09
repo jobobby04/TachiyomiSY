@@ -161,6 +161,16 @@
             android:focusable="true">
 
             <ImageButton
+                android:id="@+id/left_chapter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_previous_chapter"
+                android:padding="@dimen/material_layout_keylines_screen_edge_margin"
+                app:srcCompat="@drawable/ic_skip_previous_24dp"
+                app:tint="?attr/colorOnPrimary" />
+
+            <ImageButton
                 android:id="@+id/chapters_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -186,6 +196,15 @@
                 android:textColor="?attr/colorOnPrimary"
                 android:textSize="15sp"
                 tools:text="100 / 105" />
+            <ImageButton
+                android:id="@+id/right_chapter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_next_chapter"
+                android:padding="@dimen/material_layout_keylines_screen_edge_margin"
+                app:srcCompat="@drawable/ic_skip_next_24dp"
+                app:tint="?attr/colorOnPrimary" />
         </LinearLayout>
 
     </FrameLayout>

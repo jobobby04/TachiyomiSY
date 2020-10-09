@@ -392,7 +392,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             }
         )
 
-        /* SY --> binding.leftChapter.setOnClickListener {
+         binding.leftChapter.setOnClickListener {
             if (viewer != null) {
                 if (viewer is R2LPagerViewer) {
                     loadNextChapter()
@@ -409,7 +409,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                     loadNextChapter()
                 }
             }
-        } SY <-- */
+        }
 
         // --> EH
         binding.expandEhButton.clicks()
