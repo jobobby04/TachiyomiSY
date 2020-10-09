@@ -392,7 +392,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             }
         )
 
-         binding.leftChapter.setOnClickListener {
+        binding.leftChapter.setOnClickListener {
             if (viewer != null) {
                 if (viewer is R2LPagerViewer) {
                     loadNextChapter()
