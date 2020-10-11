@@ -65,9 +65,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
      * Parser
      */
 
-    val parser = ProtoBuf {
-        encodeDefaults = false
-    }
+    val parser = ProtoBuf
 
     /**
      * Create backup Json file from database
