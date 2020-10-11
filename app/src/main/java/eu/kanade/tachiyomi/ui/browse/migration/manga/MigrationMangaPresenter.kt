@@ -110,6 +110,7 @@ class MigrationMangaPresenter(
                 manga.displayMode = prevManga.displayMode
                 manga.sorting = prevManga.sorting
             }
+
             // Update favorite status
             if (replace) {
                 prevManga.favorite = false
