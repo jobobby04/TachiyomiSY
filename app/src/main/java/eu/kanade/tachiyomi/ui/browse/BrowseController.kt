@@ -120,7 +120,6 @@ class BrowseController :
                     R.string.label_sources,
                     R.string.label_extensions,
                     R.string.label_migration
-
                 )
             } else {
                 if (preferences.latestTabInFront().get()) {
@@ -129,7 +128,6 @@ class BrowseController :
                         R.string.label_sources,
                         R.string.label_extensions,
                         R.string.label_migration
-
                     )
                 } else {
                     listOf(
@@ -150,8 +148,8 @@ class BrowseController :
 
         override fun configureRouter(router: Router, position: Int) {
             if (!router.hasRootController()) {
-                if (!preferences.latestTabVisibility().get()) {
-                    val controller: Controller = when (position) {
+                val controller: Controller = if (!preferences.latestTabVisibility().get()) {
+                    when (position) {
                         // SY -->
                         SOURCES_CONTROLLER -> if (preferences.latestTabInFront().get()) LatestController() else SourceController()
                         LATEST_CONTROLLER -> if (!preferences.latestTabInFront().get()) LatestController() else SourceController()
@@ -161,9 +159,8 @@ class BrowseController :
                         MIGRATION_CONTROLLER -> MigrationSourcesController()
                         else -> error("Wrong position $position")
                     }
-                    router.setRoot(RouterTransaction.with(controller))
                 } else {
-                    val controller: Controller = when (position) {
+                    when (position) {
                         // SY -->
                         SOURCES_CONTROLLER -> SourceController()
 
@@ -172,8 +169,8 @@ class BrowseController :
                         EXTENSIONS_CONTROLLER -> MigrationSourcesController()
                         else -> error("Wrong position $position")
                     }
-                    router.setRoot(RouterTransaction.with(controller))
                 }
+                router.setRoot(RouterTransaction.with(controller))
             }
         }
 
