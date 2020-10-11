@@ -2,11 +2,6 @@ package eu.kanade.tachiyomi.data.backup.full
 
 import android.content.Context
 import android.net.Uri
-import com.github.salomonbrys.kotson.array
-import com.github.salomonbrys.kotson.jsonObject
-import com.github.salomonbrys.kotson.obj
-import com.github.salomonbrys.kotson.string
-import com.google.gson.JsonParser
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_CATEGORY
 import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_CATEGORY_MASK
@@ -44,6 +39,15 @@ import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
 import exh.MERGED_SOURCE_ID
 import exh.eh.EHentaiThrottleManager
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import okio.buffer
 import okio.gzip
@@ -127,7 +131,7 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
         }
     }
 
-    private fun getDatabaseManga() = getFavoriteManga() + getMergedManga().filterNot { it.source == MERGED_SOURCE_ID }
+    private fun getDatabaseManga() = getFavoriteManga() /* SY --> */ + getMergedManga().filterNot { it.source == MERGED_SOURCE_ID } /* SY <-- */
 
     private fun backupManga(mangas: List<Manga>, flags: Int): List<BackupManga> {
         return mangas.map {
@@ -165,11 +169,11 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     private fun backupSavedSearches(): List<BackupSavedSearch> {
         return preferences.eh_savedSearches().get().map {
             val sourceId = it.substringBefore(':').toLong()
-            val content = JsonParser.parseString(it.substringAfter(':')).obj
+            val content = Json.decodeFromString<JsonObject>(it.substringAfter(':'))
             BackupSavedSearch(
-                content["name"].string,
-                content["query"].string,
-                content["filters"].array.toString(),
+                content["name"]!!.jsonPrimitive.content,
+                content["query"]!!.jsonPrimitive.content,
+                content["filters"]!!.jsonArray.toString(),
                 sourceId
             )
         }
@@ -491,11 +495,11 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     internal fun restoreSavedSearches(backupSavedSearches: List<BackupSavedSearch>) {
         val currentSavedSearches = preferences.eh_savedSearches().get().map {
             val sourceId = it.substringBefore(':').toLong()
-            val content = JsonParser.parseString(it.substringAfter(':')).obj
+            val content = Json.decodeFromString<JsonObject>(it.substringAfter(':'))
             BackupSavedSearch(
-                content["name"].string,
-                content["query"].string,
-                content["filters"].array.toString(),
+                content["name"]!!.jsonPrimitive.content,
+                content["query"]!!.jsonPrimitive.content,
+                content["filters"]!!.jsonArray.toString(),
                 sourceId
             )
         }
@@ -505,11 +509,13 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
                 (
                     backupSavedSearches.filter { backupSavedSearch -> currentSavedSearches.all { it.name != backupSavedSearch.name || it.source != backupSavedSearch.source } }
                         .map {
-                            "${it.source}:" + jsonObject(
-                                "name" to it.name,
-                                "query" to it.query,
-                                "filters" to it.filterList
-                            ).toString()
+                            "${it.source}:" + buildJsonObject {
+                                put("name", JsonPrimitive(it.name))
+                                put("query", JsonPrimitive(it.query))
+                                putJsonArray("filters") {
+                                    Json.decodeFromString<JsonArray>(it.filterList)
+                                }
+                            }.toString()
                         } + preferences.eh_savedSearches().get()
                     )
                     .toSet()
