@@ -38,16 +38,13 @@ import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
 import exh.MERGED_SOURCE_ID
 import exh.eh.EHentaiThrottleManager
+import exh.savedsearches.JsonSavedSearch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import okio.buffer
 import okio.gzip
@@ -169,11 +166,11 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     private fun backupSavedSearches(): List<BackupSavedSearch> {
         return preferences.eh_savedSearches().get().map {
             val sourceId = it.substringBefore(':').toLong()
-            val content = Json.decodeFromString<JsonObject>(it.substringAfter(':'))
+            val content = Json.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
             BackupSavedSearch(
-                content["name"]!!.jsonPrimitive.content,
-                content["query"]!!.jsonPrimitive.content,
-                content["filters"]!!.jsonArray.toString(),
+                content.name,
+                content.query,
+                content.filters,
                 sourceId
             )
         }
@@ -495,11 +492,11 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
     internal fun restoreSavedSearches(backupSavedSearches: List<BackupSavedSearch>) {
         val currentSavedSearches = preferences.eh_savedSearches().get().map {
             val sourceId = it.substringBefore(':').toLong()
-            val content = Json.decodeFromString<JsonObject>(it.substringAfter(':'))
+            val content = Json.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
             BackupSavedSearch(
-                content["name"]!!.jsonPrimitive.content,
-                content["query"]!!.jsonPrimitive.content,
-                content["filters"]!!.jsonArray.toString(),
+                content.name,
+                content.query,
+                content.filters,
                 sourceId
             )
         }
@@ -509,13 +506,13 @@ class FullBackupManager(val context: Context) : AbstractBackupManager() {
                 (
                     backupSavedSearches.filter { backupSavedSearch -> currentSavedSearches.all { it.name != backupSavedSearch.name || it.source != backupSavedSearch.source } }
                         .map {
-                            "${it.source}:" + buildJsonObject {
-                                put("name", JsonPrimitive(it.name))
-                                put("query", JsonPrimitive(it.query))
-                                putJsonArray("filters") {
-                                    Json.decodeFromString<JsonArray>(it.filterList)
-                                }
-                            }.toString()
+                            "${it.source}:" + Json.encodeToString(
+                                JsonSavedSearch(
+                                    it.name,
+                                    it.query,
+                                    it.filterList
+                                )
+                            )
                         } + preferences.eh_savedSearches().get()
                     )
                     .toSet()
