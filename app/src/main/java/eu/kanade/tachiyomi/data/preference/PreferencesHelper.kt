@@ -458,4 +458,8 @@ class PreferencesHelper(val context: Context) {
     fun biometricTimeRanges() = flowPrefs.getStringSet(Keys.biometricTimeRanges, mutableSetOf())
 
     fun sortTagsForLibrary() = flowPrefs.getStringSet(Keys.sortTagsForLibrary, mutableSetOf())
+
+    fun createLegacyBackup() = flowPrefs.getBoolean(Keys.createLegacyBackup, false)
+
+    fun dontDeleteFromCategories() = flowPrefs.getStringSet(Keys.dontDeleteFromCategories, emptySet())
 }

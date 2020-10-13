@@ -47,6 +47,7 @@ import exh.metadata.metadata.base.getFlatMetadataForManga
 import exh.source.EnhancedHttpSource.Companion.getMainSource
 import exh.util.asObservable
 import exh.util.await
+import exh.util.shouldDeleteChapters
 import exh.util.trimOrNull
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -294,7 +295,7 @@ class MangaPresenter(
             db.updateMangaInfo(manga).executeAsBlocking()
         } else {
             val genre = if (!tags.isNullOrEmpty() && tags.joinToString() != manga.genre) {
-                tags.toTypedArray()
+                tags
             } else {
                 null
             }
@@ -807,7 +808,7 @@ class MangaPresenter(
         launchIO {
             db.updateChaptersProgress(chapters).executeAsBlocking()
 
-            if (preferences.removeAfterMarkedAsRead()) {
+            if (preferences.removeAfterMarkedAsRead() /* SY --> */ && manga.shouldDeleteChapters(db, preferences) /* SY <-- */) {
                 deleteChapters(chapters)
             }
         }

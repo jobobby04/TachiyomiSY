@@ -1,20 +1,23 @@
 package xyz.nulldev.ts.api.http.serializer
 
-import com.github.salomonbrys.kotson.bool
-import com.github.salomonbrys.kotson.int
-import com.github.salomonbrys.kotson.nullArray
-import com.github.salomonbrys.kotson.nullObj
-import com.github.salomonbrys.kotson.set
-import com.github.salomonbrys.kotson.string
-import com.google.gson.JsonArray
-import com.google.gson.JsonNull
-import com.google.gson.JsonObject
 import eu.kanade.tachiyomi.source.model.Filter
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 interface Serializer<in T : Filter<out Any?>> {
-    fun serialize(json: JsonObject, filter: T) {}
+    fun JsonObjectBuilder.serialize(filter: T) {}
     fun deserialize(json: JsonObject, filter: T) {}
 
     /**
@@ -26,25 +29,6 @@ interface Serializer<in T : Filter<out Any?>> {
     val type: String
     val clazz: KClass<in T>
 }
-
-// EXH -->
-class HelpDialogSerializer(override val serializer: FilterSerializer) : Serializer<Filter.HelpDialog> {
-    override val type = "HELP_DIALOG"
-    override val clazz = Filter.HelpDialog::class
-
-    override fun mappings() = listOf(
-        Pair(NAME, Filter.HelpDialog::name),
-        Pair(DIALOG_TITLE, Filter.HelpDialog::dialogTitle),
-        Pair(MARKDOWN, Filter.HelpDialog::markdown)
-    )
-
-    companion object {
-        const val NAME = "name"
-        const val DIALOG_TITLE = "dialogTitle"
-        const val MARKDOWN = "markdown"
-    }
-}
-// EXH <--
 
 class HeaderSerializer(override val serializer: FilterSerializer) : Serializer<Filter.Header> {
     override val type = "HEADER"
@@ -76,9 +60,9 @@ class SelectSerializer(override val serializer: FilterSerializer) : Serializer<F
     override val type = "SELECT"
     override val clazz = Filter.Select::class
 
-    override fun serialize(json: JsonObject, filter: Filter.Select<Any>) {
+    override fun JsonObjectBuilder.serialize(filter: Filter.Select<Any>) {
         // Serialize values to JSON
-        json[VALUES] = JsonArray().apply {
+        putJsonArray(VALUES) {
             filter.values.map {
                 it.toString()
             }.forEach { add(it) }
@@ -146,15 +130,15 @@ class GroupSerializer(override val serializer: FilterSerializer) : Serializer<Fi
     override val type = "GROUP"
     override val clazz = Filter.Group::class
 
-    override fun serialize(json: JsonObject, filter: Filter.Group<Any?>) {
-        json[STATE] = JsonArray().apply {
+    override fun JsonObjectBuilder.serialize(filter: Filter.Group<Any?>) {
+        putJsonArray(STATE) {
             filter.state.forEach {
                 add(
                     if (it is Filter<*>) {
                         @Suppress("UNCHECKED_CAST")
                         serializer.serialize(it as Filter<Any?>)
                     } else {
-                        JsonNull.INSTANCE
+                        JsonNull
                     }
                 )
             }
@@ -162,10 +146,10 @@ class GroupSerializer(override val serializer: FilterSerializer) : Serializer<Fi
     }
 
     override fun deserialize(json: JsonObject, filter: Filter.Group<Any?>) {
-        json[STATE].asJsonArray.forEachIndexed { index, jsonElement ->
-            if (!jsonElement.isJsonNull) {
+        json[STATE]!!.jsonArray.forEachIndexed { index, jsonElement ->
+            if (jsonElement !is JsonNull) {
                 @Suppress("UNCHECKED_CAST")
-                serializer.deserialize(filter.state[index] as Filter<Any?>, jsonElement.asJsonObject)
+                serializer.deserialize(filter.state[index] as Filter<Any?>, jsonElement.jsonObject)
             }
         }
     }
@@ -184,27 +168,29 @@ class SortSerializer(override val serializer: FilterSerializer) : Serializer<Fil
     override val type = "SORT"
     override val clazz = Filter.Sort::class
 
-    override fun serialize(json: JsonObject, filter: Filter.Sort) {
+    override fun JsonObjectBuilder.serialize(filter: Filter.Sort) {
         // Serialize values
-        json[VALUES] = JsonArray().apply {
+        putJsonArray(VALUES) {
             filter.values.forEach { add(it) }
         }
-
         // Serialize state
-        json[STATE] = filter.state?.let { (index, ascending) ->
-            JsonObject().apply {
-                this[STATE_INDEX] = index
-                this[STATE_ASCENDING] = ascending
-            }
-        } ?: JsonNull.INSTANCE
+        put(
+            STATE,
+            filter.state?.let { (index, ascending) ->
+                buildJsonObject {
+                    put(STATE_INDEX, index)
+                    put(STATE_ASCENDING, ascending)
+                }
+            } ?: JsonNull
+        )
     }
 
     override fun deserialize(json: JsonObject, filter: Filter.Sort) {
         // Deserialize state
-        filter.state = json[STATE].nullObj?.let {
+        filter.state = (json[STATE] as? JsonObject)?.let {
             Filter.Sort.Selection(
-                it[STATE_INDEX].int,
-                it[STATE_ASCENDING].bool
+                it[STATE_INDEX]!!.jsonPrimitive.int,
+                it[STATE_ASCENDING]!!.jsonPrimitive.boolean
             )
         }
     }
@@ -227,19 +213,17 @@ class AutoCompleteSerializer(override val serializer: FilterSerializer) : Serial
     override val type = "AUTOCOMPLETE"
     override val clazz = Filter.AutoComplete::class
 
-    override fun serialize(json: JsonObject, filter: Filter.AutoComplete) {
+    override fun JsonObjectBuilder.serialize(filter: Filter.AutoComplete) {
         // Serialize values to JSON
-        json[STATE] = JsonArray().apply {
+        putJsonArray(STATE) {
             filter.state.forEach { add(it) }
         }
     }
 
     override fun deserialize(json: JsonObject, filter: Filter.AutoComplete) {
         // Deserialize state
-        json[STATE].nullArray?.let { array ->
-            filter.state = array.map {
-                it.string
-            }
+        filter.state = json[STATE]!!.jsonArray.map {
+            it.jsonPrimitive.content
         }
     }
 
