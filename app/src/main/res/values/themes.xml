@@ -26,7 +26,6 @@
         <item name="colorOnBackground">@color/textColorPrimaryLight</item>
         <item name="colorAccent">@color/colorAccentLight</item>
 
-
         <!-- Base background/text colors -->
         <item name="android:colorBackground">@color/backgroundLight</item>
         <item name="android:textColorPrimary">@color/textColorPrimaryLight</item>
