@@ -133,7 +133,7 @@ class SettingsGeneralController : SettingsController() {
                     R.string.theme_dark_default,
                     R.string.theme_dark_blue,
                     R.string.theme_dark_amoled,
-                    R.string.theme_dark_amoled,
+                    R.string.theme_dark_red,
                     R.string.theme_dark_midnightdusk,
                 )
                 entryValues = arrayOf(
