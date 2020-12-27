@@ -16,7 +16,7 @@
     <color name="textColorPrimaryLight">@color/md_black_1000_87</color>
     <color name="textColorSecondaryLight">@color/md_black_1000_54</color>
     <color name="textColorHintLight">@color/md_black_1000_38</color>
-    <color name="dividerLight">@color/md_black_1000_12</color>
+    <color name="dividerLight">#12ffffff</color>
     <color name="rippleColorLight">@color/md_black_1000_12</color>
     <color name="backgroundLight">@color/md_grey_50</color>
     <color name="dialogLight">@color/md_white_1000</color>
@@ -27,12 +27,12 @@
     <color name="textColorPrimaryDark">@color/md_white_1000</color>
     <color name="textColorSecondaryDark">@color/md_white_1000_70</color>
     <color name="textColorHintDark">@color/md_white_1000_50</color>
-    <color name="dividerDark">@android:color/transparent</color>
+    <color name="dividerDark">#12ffffff</color>
     <color name="rippleColorDark">@color/md_white_1000_20</color>
     <color name="backgroundDark">@color/colorDarkPrimaryDark</color>
     <color name="dialogDark">@color/colorDarkPrimary</color>
     <color name="selectorColorDark">@color/md_blue_A200_50</color>
-    
+
     <color name="red">#FF0000</color>
     <color name="dark_red">#880000</color>
 

@@ -11,13 +11,14 @@
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true"
+        app:elevation="0dp" >
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="?attr/background"
             android:theme="?attr/actionBarTheme"
             app:layout_scrollFlags="scroll|enterAlways|snap" />
 
@@ -25,7 +26,8 @@
             android:id="@+id/tabs"
             style="@style/Theme.Widget.Tabs"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="?attr/background" />
 
         <FrameLayout
             android:id="@+id/downloaded_only"

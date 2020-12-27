@@ -16,7 +16,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginBottom="?attr/actionBarSize"
-            android:alpha="0.2"
+            android:alpha="0.0"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -35,8 +35,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingTop="64dp"
+            android:paddingStart="24dp"
+            android:paddingTop="8dp"
             android:paddingEnd="16dp"
             android:paddingBottom="8dp"
             app:layout_constraintTop_toTopOf="parent">
@@ -132,6 +132,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="16dp"
