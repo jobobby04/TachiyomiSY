@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Application Colors -->
-    <color name="colorAccentFlat">@color/md_blue_A400</color>
-    <color name="colorPrimary">@color/md_blue_A400</color>
-    <color name="colorPrimaryDark">@color/md_blue_A400</color>
-    <color name="backgroundLightFlat">@color/md_grey_50</color>
-    <color name="backgroundDarkFlat">@color/colorDarkPrimaryDark</color>
-    <color name="borderLightFlat">#151619</color>
-    <color name="borderDarkFlat">#151619</color>
-    <color name="lowlightLightFlat">#E3E3E3</color>
-    <color name="lowlightDarkFlat">#28282C</color>
-    <color name="transparent">#00ffffff</color>
+    <color name="colorPrimary">#54759E</color>
+    <color name="colorPrimaryDark">#435E7E</color>
 
     <!-- Dark Application Colors -->
     <color name="colorDarkPrimary">#242529</color>
     <color name="colorDarkPrimaryDark">#202125</color>
     <color name="colorAmoledPrimary">@color/md_black_1000</color>
-    <color name="borderAmoled">#151619</color>
-    <color name="lowlightAmoled">#0AFFFFFF</color>
 
     <color name="splashBackgroundColor">@color/colorPrimary</color>
 
@@ -31,8 +21,6 @@
     <color name="backgroundLight">@color/md_grey_50</color>
     <color name="dialogLight">@color/md_white_1000</color>
     <color name="selectorColorLight">@color/md_blue_A400_38</color>
-    <color name="borderLight">#DDDDDD</color>
-    <color name="lowlightLight">#0A000000</color>
 
     <!-- Dark Theme -->
     <color name="colorAccentDark">#3399FF</color>
@@ -44,27 +32,12 @@
     <color name="backgroundDark">@color/colorDarkPrimaryDark</color>
     <color name="dialogDark">@color/colorDarkPrimary</color>
     <color name="selectorColorDark">@color/md_blue_A200_50</color>
-    <color name="borderDark">#313237</color>
-    <color name="lowlightDark">#0AFFFFFF</color>
 
     <color name="red">#FF0000</color>
     <color name="dark_red">#880000</color>
 
-    <!-- Flat Lime Theme -->
-    <color name="colorAccentLime">#4AF88A</color>
-    <color name="textColorPrimaryLime">@color/md_white_1000</color>
-    <color name="textColorSecondaryLime">@color/md_white_1000_70</color>
-    <color name="textColorHintLime">@color/md_white_1000_50</color>
-    <color name="dividerLime">#12ffffff</color>
-    <color name="rippleColorLime">@color/md_white_1000_20</color>
-    <color name="backgroundLime">@color/colorDarkPrimaryDark</color>
-    <color name="dialogLime">@color/colorDarkPrimary</color>
-    <color name="selectorColorLime">#804AF88A</color>
-    <color name="borderLime">@color/borderDark</color>
-    <color name="lowlightLime">@color/borderDark</color>
-
     <!-- Midnight Dusk Theme -->
-    <color name="colorAccentDusk">#F02475</color>
+    <color name="colorAccentDusk">#E21063</color>
     <color name="textColorPrimaryDusk">@color/md_white_1000</color>
     <color name="textColorSecondaryDusk">@color/md_white_1000_70</color>
     <color name="textColorHintDusk">@color/md_white_1000_50</color>
@@ -72,18 +45,12 @@
     <color name="rippleColorDusk">@color/md_white_1000_20</color>
     <color name="backgroundDusk">#16151D</color>
     <color name="dialogDusk">#201F27</color>
-    <color name="selectorColorDusk">#80F02475</color>
-    <color name="borderDusk">#29292E</color>
-    <color name="lowlightDusk">#0AFFFFFF</color>
+    <color name="selectorColorDusk">#80FEF936</color>
 
     <!-- Reader Theme -->
     <color name="readerColorDarkPrimary">@color/colorDarkPrimary</color>
     <color name="pageNumberBackgroundLight">@color/md_grey_50_75</color>
     <color name="pageNumberBackgroundDark">@color/md_grey_900_75</color>
-
-    <color name="readerMenuBackgroundLight">@color/readerColorDarkPrimary</color>
-    <color name="readerMenuBackgroundGray">#800C0C0E</color>
-    <color name="readerMenuBackgroundDark">@color/readerColorDarkPrimary</color>
 
     <color name="filterColorLight">#FFC107</color>
     <color name="filterColorDark">#FFEB3B</color>
@@ -123,6 +90,6 @@
 
     <color name="green">#47a84a</color>
 
-    <color name="ic_launcher_background">#fffff80b</color>
+    <color name="ic_launcher_background">#232B30</color>
 
 </resources>
