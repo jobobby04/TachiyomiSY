@@ -44,7 +44,7 @@
         <item name="android:textDirection">locale</item>
 
         <!-- Themes -->
-        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:statusBarColor">?attr/background</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
         <item name="windowActionModeOverlay">true</item>
@@ -88,7 +88,7 @@
     <!-- Main Theme-->
     <!--===========-->
     <style name="Theme.Tachiyomi.Light" parent="Theme.Base">
-        <item name="android:statusBarColor">@color/md_black_1000_54</item>
+        <item name="android:statusBarColor">?attr/background</item>
         <item name="android:navigationBarColor">@color/md_black_1000_54</item>
         <item name="background">@color/dialogLight</item>
 
@@ -144,7 +144,7 @@
         <item name="android:listDivider">@drawable/line_divider</item>
 
         <!-- Themes -->
-        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:statusBarColor">?attr/background</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
         <item name="windowActionModeOverlay">true</item>
