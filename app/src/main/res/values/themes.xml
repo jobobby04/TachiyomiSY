@@ -88,9 +88,10 @@
     <!-- Main Theme-->
     <!--===========-->
     <style name="Theme.Tachiyomi.Light" parent="Theme.Base">
-        <item name="android:statusBarColor">?attr/background</item>
+        <item name="android:statusBarColor">@color/backgroundLight</item>
         <item name="android:navigationBarColor">@color/md_black_1000_54</item>
-        <item name="background">@color/dialogLight</item>
+        <item name="background">@color/backgroundLight</item>
+        <item name="border">@color/borderLight</item>
 
         <item name="colorFilterActive">@color/filterColorLight</item>
     </style>
@@ -101,6 +102,7 @@
         <item name="colorAccentOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
         <item name="background">@color/colorPrimary</item>
+        <item name="border">@color/borderLight</item>
 
         <item name="actionBarTheme">@style/Theme.Toolbar.Light</item>
     </style>
@@ -125,6 +127,7 @@
         <item name="colorOnBackground">@color/textColorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccentDark</item>
         <item name="background">@color/colorDarkPrimaryDark</item>
+        <item name="border">@color/borderDark</item>
 
         <!-- Handles RTL text -->
         <item name="android:textAlignment">gravity</item>
@@ -192,7 +195,8 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccentOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/colorPrimary</item>
-        <item name="background">@color/colorPrimary</item>
+        <item name="background">@color/backgroundDark</item>
+        <item name="border">@color/borderDark</item>
     </style>
 
     <style name="Theme.Tachiyomi.Amoled" parent="Theme.Base.Dark">
@@ -200,6 +204,7 @@
         <item name="colorPrimaryVariant">@color/colorAmoledPrimary</item>
         <item name="colorSurface">@color/colorAmoledPrimary</item>
         <item name="background">@color/colorAmoledPrimary</item>
+        <item name="border">@color/colorAmoledPrimary</item>
 
         <item name="android:colorBackground">@color/colorAmoledPrimary</item>
 
@@ -224,6 +229,7 @@
         <item name="android:textColorSecondary">@color/dark_red</item>
         <item name="android:textColorHint">@color/dark_red</item>
         <item name="md_color_title">@color/red</item>
+        <item name="border">@color/red</item>
     </style>
 
     <!--==============-->

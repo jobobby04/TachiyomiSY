@@ -16,5 +16,6 @@
     <attr name="colorFilterActive" format="reference|integer"/>
     <attr name="colorBackgroundSplash" format="reference|integer"/>
     <attr name="colorAccentOnPrimary" format="reference|integer"/>
+    <attr name="border" format="reference|integer"/>
 
 </resources>

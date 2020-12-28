@@ -27,7 +27,6 @@
             android:layout_width="match_parent"
             android:layout_height="88dp"
             android:layout_marginBottom="?attr/actionBarSize"
-            android:background="@drawable/manga_info_gradient"
             app:layout_constraintBottom_toBottomOf="parent" />
 
         <LinearLayout
