@@ -88,23 +88,19 @@
     <!-- Main Theme-->
     <!--===========-->
     <style name="Theme.Tachiyomi.Light" parent="Theme.Base">
-        <item name="android:statusBarColor">@color/backgroundLight</item>
+        <item name="android:statusBarColor">?attr/background</item>
         <item name="android:navigationBarColor">@color/md_black_1000_54</item>
-        <item name="background">@color/backgroundLight</item>
-        <item name="border">@color/borderLight</item>
-        <item name="lowlight">@color/lowlightLight</item>
+        <item name="background">@color/dialogLight</item>
 
         <item name="colorFilterActive">@color/filterColorLight</item>
     </style>
 
-    <style name="Theme.Tachiyomi.LightFlat" parent="Theme.Base">
-        <item name="colorPrimary">@color/backgroundLight</item>
+    <style name="Theme.Tachiyomi.LightBlue" parent="Theme.Base">
+        <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/textColorPrimaryDark</item>
-        <item name="colorAccentOnPrimary">@color/colorPrimary</item>
+        <item name="colorAccentOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
-        <item name="background">@color/backgroundLightFlat</item>
-        <item name="border">@color/lowlightLightFlat</item>
-        <item name="lowlight">@color/lowlightLightFlat</item>
+        <item name="background">@color/colorPrimary</item>
 
         <item name="actionBarTheme">@style/Theme.Toolbar.Light</item>
     </style>
@@ -129,8 +125,6 @@
         <item name="colorOnBackground">@color/textColorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccentDark</item>
         <item name="background">@color/colorDarkPrimaryDark</item>
-        <item name="border">@color/borderDark</item>
-        <item name="lowlight">@color/lowlightDark</item>
 
         <!-- Handles RTL text -->
         <item name="android:textAlignment">gravity</item>
@@ -194,13 +188,11 @@
     <style name="Theme.Tachiyomi.Dark" parent="Theme.Base.Dark">
     </style>
 
-    <style name="Theme.Tachiyomi.DarkFlat" parent="Theme.Base.Dark">
-        <item name="colorPrimary">@color/backgroundDarkFlat</item>
-        <item name="colorAccentOnPrimary">@color/colorPrimary</item>
+    <style name="Theme.Tachiyomi.DarkBlue" parent="Theme.Base.Dark">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccentOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/colorPrimary</item>
-        <item name="background">@color/backgroundDark</item>
-        <item name="border">@color/lowlightDarkFlat</item>
-        <item name="lowlight">@color/lowlightDarkFlat</item>
+        <item name="background">@color/colorPrimary</item>
     </style>
 
     <style name="Theme.Tachiyomi.Amoled" parent="Theme.Base.Dark">
@@ -208,7 +200,6 @@
         <item name="colorPrimaryVariant">@color/colorAmoledPrimary</item>
         <item name="colorSurface">@color/colorAmoledPrimary</item>
         <item name="background">@color/colorAmoledPrimary</item>
-        <item name="border">@color/borderAmoled</item>
 
         <item name="android:colorBackground">@color/colorAmoledPrimary</item>
 
@@ -233,7 +224,6 @@
         <item name="android:textColorSecondary">@color/dark_red</item>
         <item name="android:textColorHint">@color/dark_red</item>
         <item name="md_color_title">@color/red</item>
-        <item name="border">@color/red</item>
     </style>
 
     <!--==============-->
@@ -244,11 +234,10 @@
         <item name="colorOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/readerColorDarkPrimary</item>
         <item name="colorSurface">@color/md_black_1000</item>
-        <item name="readerMenu">@color/readerMenuBackgroundDark</item>
 
         <item name="android:colorBackground">@color/md_black_1000</item>
-        <item name="android:statusBarColor">?attr/readerMenu</item>
-        <item name="android:navigationBarColor">?attr/readerMenu</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
 
         <item name="actionBarTheme">@style/ThemeOverlay.MaterialComponents.Dark.ActionBar</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialComponents</item>
@@ -260,11 +249,10 @@
         <item name="colorOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/readerColorDarkPrimary</item>
         <item name="colorSurface">@color/md_white_1000</item>
-        <item name="readerMenu">@color/readerMenuBackgroundLight</item>
 
         <item name="android:colorBackground">@color/md_white_1000</item>
-        <item name="android:statusBarColor">?attr/readerMenu</item>
-        <item name="android:navigationBarColor">?attr/readerMenu</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
 
         <item name="actionBarTheme">@style/ThemeOverlay.MaterialComponents.Dark.ActionBar</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialComponents</item>
@@ -275,7 +263,6 @@
 
     <style name="Theme.Reader.Dark.Grey" parent="Theme.Base.Reader.Dark">
         <item name="android:colorBackground">@color/backgroundDark</item>
-        <item name="readerMenu">@color/readerMenuBackgroundGray</item>
     </style>
 
     <style name="Theme.Reader.Light" parent="Theme.Base.Reader.Light" />
@@ -284,8 +271,8 @@
     <!--===============-->
     <!-- Launch Screen -->
     <!--===============-->
-    <style name="Theme.Splash" parent="Theme.Tachiyomi.LightFlat">
-        <item name="colorBackgroundSplash">@color/backgroundDark</item>
+    <style name="Theme.Splash" parent="Theme.Tachiyomi.LightBlue">
+        <item name="colorBackgroundSplash">@color/ic_launcher_background</item>
 
         <item name="android:windowBackground">@drawable/splash_background</item>
         <item name="android:statusBarColor">?attr/colorBackgroundSplash</item>
