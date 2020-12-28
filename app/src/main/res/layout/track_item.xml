@@ -9,22 +9,27 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/background"
+        android:foreground="@drawable/accent_stroke"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="8dp">
 
             <LinearLayout
                 android:id="@+id/logo_container"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
+                android:foreground="@drawable/rounded_rectangle_stoke"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:padding="4dp"
+
                 tools:background="#2E51A2">
 
                 <ImageView
@@ -70,14 +75,16 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/track_details"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingBottom="4dp"
+            android:background="#0AFFFFFF">
 
             <View
                 android:id="@+id/top_divider"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
-                android:alpha="0.25"
-                android:background="?android:attr/textColorHint"
+                android:alpha="0"
+                android:background="?attr/background"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -87,7 +94,6 @@
                 style="@style/TextAppearance.Regular.Body1.Secondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:background="@drawable/list_item_selector"
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
@@ -103,8 +109,7 @@
                 android:layout_height="0dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:alpha="0.25"
-                android:background="?android:attr/textColorHint"
+                android:background="?attr/border"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/track_chapters"
                 app:layout_constraintStart_toEndOf="@+id/track_status"
@@ -115,7 +120,6 @@
                 style="@style/TextAppearance.Regular.Body1.Secondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:background="@drawable/list_item_selector"
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
@@ -131,8 +135,7 @@
                 android:layout_height="0dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:alpha="0.25"
-                android:background="?android:attr/textColorHint"
+                android:background="?attr/border"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/track_score"
                 app:layout_constraintStart_toEndOf="@+id/track_chapters"
@@ -143,7 +146,6 @@
                 style="@style/TextAppearance.Regular.Body1.Secondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:background="@drawable/list_item_selector"
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
