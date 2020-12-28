@@ -3,8 +3,10 @@
 | [![stable release](https://img.shields.io/github/release/jobobby04/tachiyomisy.svg?maxAge=3600&label=download)](https://github.com/crepetf/tachiyomisy/releases/latest) | [![Discord](https://img.shields.io/discord/349436576037732353.svg)](https://discord.gg/tachiyomi) |
 
 
-# ![app icon](./.github/readme-images/app-icon.png)SY Comics
-Tachiyomi is a free and open source manga reader for Android 5.0 and above. This version of Tachiyomi, SY Comics was based off Tachiyomi SY, which was based off TachiyomiAZ, which was based off TachiyomiEH, which was based off Tachiyomi. This version is meant to push forward in the ways of usability and features. TachiyomiSY tries to push forward where it can, but staying in a place where it can easily grab updates and features from the main app, it tries to make new features, or take features from other forks like J2K and Neko.
+SY Comics
+Tachiyomi is a free and open source manga reader for Android 5.0 and above.
+This version of Tachiyomi, SY Comics was based off Tachiyomi SY, which was based off TachiyomiAZ, which was based off TachiyomiEH, which was based off Tachiyomi.
+This version is meant to have the full feature-set of TachiyomiSY and an improved UI in specific areas.
 
 ![screenshots of app](./.github/readme-images/screens.png)
 
