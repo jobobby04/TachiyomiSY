@@ -16,6 +16,7 @@
         <item name="colorOnBackground">@color/textColorPrimaryDusk</item>
         <item name="colorAccent">@color/colorAccentDusk</item>
         <item name="background">@color/backgroundDusk</item>
+        <item name="border">@color/borderDusk</item>
 
         <item name="android:colorBackground">@color/backgroundDusk</item>
 

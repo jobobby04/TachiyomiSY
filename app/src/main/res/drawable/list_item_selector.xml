@@ -12,7 +12,7 @@
             </item>
 
             <item>
-                <color android:color="?attr/colorSurface" />
+                <color android:color="?attr/background" />
             </item>
         </selector>
     </item>
