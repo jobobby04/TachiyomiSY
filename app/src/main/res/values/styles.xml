@@ -172,7 +172,7 @@
         </item>
         <item name="cardBackgroundColor">?attr/colorSurface</item>
         <item name="cardCornerRadius">@dimen/card_radius</item>
-        <item name="cardElevation">2dp</item>
+        <item name="cardElevation">0dp</item>
     </style>
 
     <style name="Theme.Widget.CardView.Item">

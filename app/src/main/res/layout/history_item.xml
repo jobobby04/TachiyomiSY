@@ -4,11 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/holder"
     style="@style/Theme.Widget.CardView.Item"
-    android:padding="0dp">
+    android:padding="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="90dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:background="?attr/background"
         android:orientation="horizontal">
 
         <ImageView
@@ -16,9 +21,11 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:contentDescription="@string/description_cover"
+            android:foreground="@drawable/rounded_rectangle_stoke"
             android:scaleType="centerCrop"
+            android:padding="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintDimensionRatio="h,3:2"
+            app:layout_constraintDimensionRatio="h,3:2.1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:src="@mipmap/ic_launcher" />
