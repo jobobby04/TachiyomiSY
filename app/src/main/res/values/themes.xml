@@ -272,7 +272,7 @@
     <!-- Launch Screen -->
     <!--===============-->
     <style name="Theme.Splash" parent="Theme.Tachiyomi.LightBlue">
-        <item name="colorBackgroundSplash">@color/colorPrimary</item>
+        <item name="colorBackgroundSplash">@color/ic_launcher_background</item>
 
         <item name="android:windowBackground">@drawable/splash_background</item>
         <item name="android:statusBarColor">?attr/colorBackgroundSplash</item>
