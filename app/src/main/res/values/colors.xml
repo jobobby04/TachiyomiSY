@@ -21,6 +21,7 @@
     <color name="backgroundLight">@color/md_grey_50</color>
     <color name="dialogLight">@color/md_white_1000</color>
     <color name="selectorColorLight">@color/md_blue_A400_38</color>
+    <color name="borderLight">#E8E8E8</color>
 
     <!-- Dark Theme -->
     <color name="colorAccentDark">#3399FF</color>
@@ -32,12 +33,13 @@
     <color name="backgroundDark">@color/colorDarkPrimaryDark</color>
     <color name="dialogDark">@color/colorDarkPrimary</color>
     <color name="selectorColorDark">@color/md_blue_A200_50</color>
+    <color name="borderDark">#2A2B2F</color>
 
     <color name="red">#FF0000</color>
     <color name="dark_red">#880000</color>
 
     <!-- Midnight Dusk Theme -->
-    <color name="colorAccentDusk">#E21063</color>
+    <color name="colorAccentDusk">#F02475</color>
     <color name="textColorPrimaryDusk">@color/md_white_1000</color>
     <color name="textColorSecondaryDusk">@color/md_white_1000_70</color>
     <color name="textColorHintDusk">@color/md_white_1000_50</color>
@@ -46,6 +48,7 @@
     <color name="backgroundDusk">#16151D</color>
     <color name="dialogDusk">#201F27</color>
     <color name="selectorColorDusk">#80FEF936</color>
+    <color name="borderDusk">#29292E</color>
 
     <!-- Reader Theme -->
     <color name="readerColorDarkPrimary">@color/colorDarkPrimary</color>
