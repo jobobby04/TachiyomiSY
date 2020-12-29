@@ -52,7 +52,7 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
+                android:layout_gravity="top"
                 android:layout_marginStart="16dp"
                 android:layout_marginBottom="16dp"
                 android:orientation="vertical">
@@ -182,7 +182,7 @@
             android:layout_height="wrap_content"
             android:text="@string/merge"
             android:visibility="gone"
-            app:icon="@drawable/eh_ic_find_replace_white_24dp"
+            app:icon="@drawable/ic_merge_type"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/btn_webview"
             app:layout_constraintTop_toTopOf="parent"
