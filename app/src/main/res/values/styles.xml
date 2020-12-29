@@ -277,7 +277,7 @@
     </style>
 
     <style name="Theme.Widget.Button.FilledAccent" parent="Widget.MaterialComponents.Button">
-        <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="android:textColor">?attr/background</item>
         <item name="backgroundTint">?attr/colorAccent</item>
         <item name="rippleColor">?attr/colorAccent</item>
         <item name="android:textAllCaps">false</item>
