@@ -41,6 +41,7 @@
         <item name="colorAccent">@color/colorAccentLime</item>
         <item name="background">@color/backgroundLime</item>
         <item name="border">@color/borderLime</item>
+        <item name="lowlight">@color/borderLime</item>
 
         <item name="android:colorBackground">@color/backgroundLime</item>
 
