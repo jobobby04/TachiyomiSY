@@ -17,5 +17,6 @@
     <attr name="colorBackgroundSplash" format="reference|integer"/>
     <attr name="colorAccentOnPrimary" format="reference|integer"/>
     <attr name="border" format="reference|integer"/>
+    <attr name="lowlight" format="reference|integer"/>
 
 </resources>

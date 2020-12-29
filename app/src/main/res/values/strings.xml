@@ -146,12 +146,13 @@
     <string name="theme_dark">On</string>
     <string name="pref_theme_light">Light theme</string>
     <string name="theme_light_default">Default</string>
-    <string name="theme_light_blue">Light blue</string>
+    <string name="theme_light_flat">Light Flat</string>
     <string name="pref_theme_dark">Dark theme</string>
     <string name="theme_dark_default">Default</string>
-    <string name="theme_dark_blue">Dark blue</string>
-    <string name="theme_dark_amoled">AMOLED black</string>
+    <string name="theme_dark_flat">Dark Flat</string>
+    <string name="theme_dark_amoled">AMOLED Black</string>
     <string name="theme_dark_red">Black-Red</string>
+    <string name="theme_dark_lime">Flat Lime</string>
     <string name="theme_dark_midnightdusk">Midnight Dusk</string>
     <string name="pref_start_screen">Start screen</string>
     <string name="pref_language">Language</string>
