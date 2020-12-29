@@ -21,7 +21,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:contentDescription="@string/description_cover"
-            android:foreground="@drawable/rounded_rectangle_stoke"
+            android:foreground="@drawable/rounded_rectangle_stroke"
             android:scaleType="centerCrop"
             android:padding="2dp"
             app:layout_constraintBottom_toBottomOf="parent"

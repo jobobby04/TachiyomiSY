@@ -92,17 +92,19 @@
         <item name="android:navigationBarColor">@color/md_black_1000_54</item>
         <item name="background">@color/backgroundLight</item>
         <item name="border">@color/borderLight</item>
+        <item name="lowlight">@color/lowlightLight</item>
 
         <item name="colorFilterActive">@color/filterColorLight</item>
     </style>
 
-    <style name="Theme.Tachiyomi.LightBlue" parent="Theme.Base">
-        <item name="colorPrimary">@color/colorPrimary</item>
+    <style name="Theme.Tachiyomi.LightFlat" parent="Theme.Base">
+        <item name="colorPrimary">@color/backgroundLight</item>
         <item name="colorOnPrimary">@color/textColorPrimaryDark</item>
-        <item name="colorAccentOnPrimary">@color/textColorPrimaryDark</item>
+        <item name="colorAccentOnPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
-        <item name="background">@color/colorPrimary</item>
-        <item name="border">@color/borderLight</item>
+        <item name="background">@color/backgroundLightFlat</item>
+        <item name="border">@color/lowlightLightFlat</item>
+        <item name="lowlight">@color/lowlightLightFlat</item>
 
         <item name="actionBarTheme">@style/Theme.Toolbar.Light</item>
     </style>
@@ -128,6 +130,7 @@
         <item name="colorAccent">@color/colorAccentDark</item>
         <item name="background">@color/colorDarkPrimaryDark</item>
         <item name="border">@color/borderDark</item>
+        <item name="lowlight">@color/lowlightDark</item>
 
         <!-- Handles RTL text -->
         <item name="android:textAlignment">gravity</item>
@@ -191,12 +194,13 @@
     <style name="Theme.Tachiyomi.Dark" parent="Theme.Base.Dark">
     </style>
 
-    <style name="Theme.Tachiyomi.DarkBlue" parent="Theme.Base.Dark">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorAccentOnPrimary">@color/textColorPrimaryDark</item>
+    <style name="Theme.Tachiyomi.DarkFlat" parent="Theme.Base.Dark">
+        <item name="colorPrimary">@color/backgroundDarkFlat</item>
+        <item name="colorAccentOnPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryVariant">@color/colorPrimary</item>
         <item name="background">@color/backgroundDark</item>
-        <item name="border">@color/borderDark</item>
+        <item name="border">@color/lowlightDarkFlat</item>
+        <item name="lowlight">@color/lowlightDarkFlat</item>
     </style>
 
     <style name="Theme.Tachiyomi.Amoled" parent="Theme.Base.Dark">
@@ -204,7 +208,7 @@
         <item name="colorPrimaryVariant">@color/colorAmoledPrimary</item>
         <item name="colorSurface">@color/colorAmoledPrimary</item>
         <item name="background">@color/colorAmoledPrimary</item>
-        <item name="border">@color/colorAmoledPrimary</item>
+        <item name="border">@color/borderAmoled</item>
 
         <item name="android:colorBackground">@color/colorAmoledPrimary</item>
 
@@ -277,7 +281,7 @@
     <!--===============-->
     <!-- Launch Screen -->
     <!--===============-->
-    <style name="Theme.Splash" parent="Theme.Tachiyomi.LightBlue">
+    <style name="Theme.Splash" parent="Theme.Tachiyomi.LightFlat">
         <item name="colorBackgroundSplash">@color/ic_launcher_background</item>
 
         <item name="android:windowBackground">@drawable/splash_background</item>
