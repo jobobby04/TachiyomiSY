@@ -740,6 +740,6 @@
     <string name="spen_next_page">Next page</string>
 
     <!-- Android OS text selection menu action -->
-    <string name="process_text_action_name">Search in TachiyomiSY</string>
+    <string name="process_text_action_name">Search in SY Comics</string>
 
 </resources>
