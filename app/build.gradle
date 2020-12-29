@@ -9,6 +9,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'kotlinx-serialization'
 apply plugin: 'com.github.zellius.shortcut-helper'
+apply plugin: 'com.google.gms.google-services'
 // Realm (EH)
 apply plugin: 'realm-android'
 
@@ -134,6 +135,12 @@ android {
 }
 
 dependencies {
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:26.2.0')
+
+    // Add the dependency for the Firebase SDK for Google Analytics
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation 'com.google.firebase:firebase-analytics-ktx'
 
     // Source models and interfaces from Tachiyomi 1.x
     implementation 'tachiyomi.sourceapi:source-api:1.1'
