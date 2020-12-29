@@ -15,15 +15,16 @@ object PreferenceValues {
     // Keys are lowercase to match legacy string values
     enum class LightThemeVariant {
         default,
-        blue,
+        flat,
     }
 
     // Keys are lowercase to match legacy string values
     enum class DarkThemeVariant {
         default,
-        blue,
+        flat,
         amoled,
         red,
+        lime,
         midnightdusk,
     }
 

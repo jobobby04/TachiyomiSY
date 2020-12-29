@@ -23,7 +23,7 @@
                 android:id="@+id/logo_container"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
-                android:foreground="@drawable/rounded_rectangle_stoke"
+                android:foreground="@drawable/rounded_rectangle_stroke"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
@@ -77,7 +77,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="4dp"
-            android:background="#0AFFFFFF">
+            android:background="?attr/lowlight">
 
             <View
                 android:id="@+id/top_divider"
