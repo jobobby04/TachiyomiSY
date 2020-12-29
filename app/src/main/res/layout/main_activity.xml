@@ -77,6 +77,9 @@
         android:id="@+id/root_fab"
         style="@style/Theme.Widget.FAB"
         android:visibility="gone"
+        android:textColor="?attr/colorAccent"
+        app:backgroundTint="?attr/colorPrimary"
+        app:iconTint="?attr/colorAccent"
         tools:icon="@drawable/ic_add_24dp"
         tools:text="Action"
         tools:visibility="visible" />
