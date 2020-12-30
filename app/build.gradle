@@ -45,7 +45,7 @@ android {
         targetSdkVersion AndroidConfig.targetSdk
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode 12
-        versionName "r319.7"
+        versionName "r319.8"
 
         buildConfigField "String", "COMMIT_COUNT", "\"${getCommitCount()}\""
         buildConfigField "String", "COMMIT_SHA", "\"${getGitSha()}\""
