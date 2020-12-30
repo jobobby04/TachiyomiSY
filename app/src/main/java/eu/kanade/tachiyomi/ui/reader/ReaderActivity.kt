@@ -315,8 +315,8 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 presenter.bookmarkCurrentChapter(false)
                 invalidateOptionsMenu()
             }*/
-            R.id.action_settings -> ReaderSettingsSheet(this).show()
-            R.id.action_custom_filter -> {
+            // R.id.action_settings -> ReaderSettingsSheet(this).show()
+            /*R.id.action_custom_filter -> {
                 val sheet = ReaderColorFilterSheet(this)
                     // Remove dimmed backdrop so changes can be previewed
                     .apply { window?.setDimAmount(0f) }
@@ -326,7 +326,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 setMenuVisibility(false)
 
                 sheet.show()
-            }
+            }*/
         }
         return super.onOptionsItemSelected(item)
     }
@@ -403,7 +403,33 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             }
         )
 
-        /* SY --> binding.leftChapter.setOnClickListener {
+        // readerNav Animation
+        val readerNavEnter = AnimationUtils.loadAnimation(this, R.anim.enter_from_bottom)
+        val readerNavExit = AnimationUtils.loadAnimation(this, R.anim.exit_to_bottom)
+        binding.readerNav.startAnimation(readerNavEnter)
+        // readerNav Animation
+
+        // Extra menu buttons
+        binding.filterButton.clicks()
+            .onEach {
+                ReaderColorFilterSheet(this).show()
+            }
+            .launchIn(scope)
+
+        binding.actionSettings.clicks()
+            .onEach {
+                ReaderSettingsSheet(this).show()
+            }
+            .launchIn(scope)
+
+        binding.webviewButton.clicks()
+            .onEach {
+                openMangaInBrowser()
+            }
+            .launchIn(scope)
+        // Extra menu buttons
+
+        binding.leftChapter.setOnClickListener {
             if (viewer != null) {
                 if (viewer is R2LPagerViewer) {
                     loadNextChapter()
@@ -420,7 +446,10 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                     loadNextChapter()
                 }
             }
-        } SY <-- */
+
+            // Set initial visibility
+            setMenuVisibility(menuVisible)
+        }
 
         // --> EH
         binding.expandEhButton.clicks()
@@ -830,8 +859,16 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
 
         // Set bottom page number
         binding.pageNumber.text = "${page.number}/${pages.size}"
-        binding.pageText.text = "${page.number}/${pages.size}"
-        // Set seekbar progress
+        // binding.pageText.text = "${page.number}/${pages.size}"
+
+        // Set seekbar page number
+        if (viewer !is R2LPagerViewer) {
+            binding.leftPageText.text = "${page.number}"
+            binding.rightPageText.text = "${pages.size}"
+        } else {
+            binding.rightPageText.text = "${page.number}"
+            binding.leftPageText.text = "${pages.size}"
+        }
 
         binding.pageSeekbar.max = pages.lastIndex
         binding.pageSeekbar.progress = page.index
