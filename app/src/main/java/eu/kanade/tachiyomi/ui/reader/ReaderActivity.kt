@@ -403,11 +403,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             }
         )
 
-        // readerNav Animation
-        val readerNavEnter = AnimationUtils.loadAnimation(this, R.anim.enter_from_bottom)
-        val readerNavExit = AnimationUtils.loadAnimation(this, R.anim.exit_to_bottom)
-        // readerNav Animation
-
         // Extra menu buttons
         binding.filterButton.clicks()
             .onEach {
@@ -660,9 +655,11 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 binding.header.startAnimation(toolbarAnimation)
                 // EXH <--
 
+                val readerNav = AnimationUtils.loadAnimation(this, R.anim.readernav_enter)
+                binding.readerNav.startAnimation(readerNav)
+
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.enter_from_bottom)
                 binding.readerMenuBottom.startAnimation(bottomAnimation)
-                binding.readerNav.startAnimation(bottomAnimation)
             }
 
             if (preferences.showPageNumber().get()) {
@@ -688,8 +685,11 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 binding.header.startAnimation(toolbarAnimation)
                 // EXH <--
 
+                val readerNav = AnimationUtils.loadAnimation(this, R.anim.readernav_exit)
+                binding.readerNav.startAnimation(readerNav)
+
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.exit_to_bottom)
-                binding.readerNav.startAnimation(bottomAnimation)
+                binding.readerMenuBottom.startAnimation(bottomAnimation)
             }
 
             if (preferences.showPageNumber().get()) {

@@ -63,17 +63,16 @@
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize">
+                android:layout_height="wrap_content"
+                android:paddingBottom="5dp">
 
                 <ImageButton
                     android:id="@+id/expand_eh_button"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="end"
-                    android:background="@color/transparent"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:padding="0dp"
+                    android:background="?selectableItemBackgroundBorderless"
+                    android:padding="10dp"
                     app:srcCompat="@drawable/ic_keyboard_arrow_down_white_32dp"
                     app:layout_constraintEnd_toEndOf="@id/reader_menu"/>
 
@@ -163,25 +162,26 @@
             android:id="@+id/reader_nav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20sp"
-            android:layout_marginEnd="20sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             android:layout_marginBottom="82dp"
             android:layout_gravity="bottom"
             android:gravity="center"
             android:orientation="horizontal"
-            android:clickable="true">
+            android:clickable="true"
+            android:focusable="true">
 
             <ImageButton
                 android:id="@+id/left_chapter"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginLeft="55dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="50dp"
                 android:layout_gravity="center"
                 android:background="@drawable/chapter_nav"
                 android:contentDescription="@string/action_previous_chapter"
                 android:padding="@dimen/material_layout_keylines_screen_edge_margin"
-                app:srcCompat="@drawable/ic_arrow_back_24dp"
+                app:srcCompat="@drawable/ic_chevron_left_black_24dp"
                 android:tint="?attr/colorOnPrimary" />
 
             <LinearLayout
@@ -224,13 +224,13 @@
                 android:id="@+id/right_chapter"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginRight="55dp"
-                android:layout_marginLeft="10dp"
+                android:layout_marginEnd="50dp"
+                android:layout_marginStart="8dp"
                 android:layout_gravity="center"
                 android:background="@drawable/chapter_nav"
                 android:contentDescription="@string/action_next_chapter"
                 android:padding="@dimen/material_layout_keylines_screen_edge_margin"
-                app:srcCompat="@drawable/ic_arrow_forward_24dp"
+                app:srcCompat="@drawable/ic_chevron_right_black_24dp"
                 android:tint="?attr/colorOnPrimary" />
 
         </LinearLayout>
