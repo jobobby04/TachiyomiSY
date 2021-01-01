@@ -3,9 +3,9 @@
     android:shape="rectangle">
 
     <corners
-        android:topLeftRadius="8dp"
-        android:topRightRadius="8dp" />
+        android:topLeftRadius="10dp"
+        android:topRightRadius="10dp" />
 
-    <solid android:color="?attr/colorPrimary" />
+    <solid android:color="?attr/readerMenu" />
 
 </shape>
