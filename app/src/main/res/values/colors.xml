@@ -10,6 +10,7 @@
     <color name="borderDarkFlat">#151619</color>
     <color name="lowlightLightFlat">#E3E3E3</color>
     <color name="lowlightDarkFlat">#28282C</color>
+    <color name="transparent">#00ffffff</color>
 
     <!-- Dark Application Colors -->
     <color name="colorDarkPrimary">#242529</color>
