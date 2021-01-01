@@ -181,7 +181,7 @@
                 android:background="@drawable/chapter_nav"
                 android:contentDescription="@string/action_previous_chapter"
                 android:padding="@dimen/material_layout_keylines_screen_edge_margin"
-                app:srcCompat="@drawable/ic_arrow_back_24dp"
+                app:srcCompat="@drawable/ic_chevron_left_black_24dp"
                 android:tint="?attr/colorOnPrimary" />
 
             <LinearLayout
@@ -230,7 +230,7 @@
                 android:background="@drawable/chapter_nav"
                 android:contentDescription="@string/action_next_chapter"
                 android:padding="@dimen/material_layout_keylines_screen_edge_margin"
-                app:srcCompat="@drawable/ic_arrow_forward_24dp"
+                app:srcCompat="@drawable/ic_chevron_right_black_24dp"
                 android:tint="?attr/colorOnPrimary" />
 
         </LinearLayout>
