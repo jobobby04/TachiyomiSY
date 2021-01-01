@@ -57,13 +57,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
-            android:background="?attr/colorPrimary"
+            android:background="?attr/readerMenu"
             app:elevation="0dp">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize" />
+                android:layout_height="?attr/actionBarSize">
+
+                <ImageButton
+                    android:id="@+id/expand_eh_button"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:padding="0dp"
+                    app:srcCompat="@drawable/ic_keyboard_arrow_down_white_32dp"
+                    app:layout_constraintEnd_toEndOf="@id/reader_menu"/>
+
+            </com.google.android.material.appbar.MaterialToolbar>
 
             <LinearLayout
                 android:id="@+id/eh_utils"
@@ -143,13 +155,6 @@
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/expand_eh_button"
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="0dp"
-                app:srcCompat="@drawable/ic_keyboard_arrow_down_white_32dp" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <LinearLayout
@@ -183,7 +188,7 @@
                 android:layout_height="match_parent"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
-                android:background="@drawable/pill">
+                android:background="@drawable/chapter_nav">
 
                 <TextView
                     android:id="@+id/left_page_text"
@@ -191,6 +196,7 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:textSize="15sp"
+                    android:textColor="?attr/colorOnPrimary"
                     tools:text="1" />
 
                 <eu.kanade.tachiyomi.ui.reader.ReaderSeekBar
@@ -207,6 +213,7 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:textSize="15sp"
+                    android:textColor="?attr/colorOnPrimary"
                     tools:text="15" />
 
             </LinearLayout>

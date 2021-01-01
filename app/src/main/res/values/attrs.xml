@@ -18,6 +18,6 @@
     <attr name="colorAccentOnPrimary" format="reference|integer"/>
     <attr name="border" format="reference|integer"/>
     <attr name="lowlight" format="reference|integer"/>
-    <attr name="readerbuttons" format="reference|integer"/>
+    <attr name="readerMenu" format="reference|integer"/>
 
 </resources>

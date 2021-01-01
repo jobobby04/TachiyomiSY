@@ -406,7 +406,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
         // readerNav Animation
         val readerNavEnter = AnimationUtils.loadAnimation(this, R.anim.enter_from_bottom)
         val readerNavExit = AnimationUtils.loadAnimation(this, R.anim.exit_to_bottom)
-        binding.readerNav.startAnimation(readerNavEnter)
         // readerNav Animation
 
         // Extra menu buttons
@@ -446,9 +445,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                     loadNextChapter()
                 }
             }
-
-            // Set initial visibility
-            setMenuVisibility(menuVisible)
         }
 
         // --> EH
@@ -666,6 +662,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
 
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.enter_from_bottom)
                 binding.readerMenuBottom.startAnimation(bottomAnimation)
+                binding.readerNav.startAnimation(bottomAnimation)
             }
 
             if (preferences.showPageNumber().get()) {
@@ -692,7 +689,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 // EXH <--
 
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.exit_to_bottom)
-                binding.readerMenuBottom.startAnimation(bottomAnimation)
+                binding.readerNav.startAnimation(bottomAnimation)
             }
 
             if (preferences.showPageNumber().get()) {
