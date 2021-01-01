@@ -244,10 +244,11 @@
         <item name="colorOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/readerColorDarkPrimary</item>
         <item name="colorSurface">@color/md_black_1000</item>
+        <item name="readerMenu">@color/readerMenuBackgroundDark</item>
 
         <item name="android:colorBackground">@color/md_black_1000</item>
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/readerMenu</item>
+        <item name="android:navigationBarColor">?attr/readerMenu</item>
 
         <item name="actionBarTheme">@style/ThemeOverlay.MaterialComponents.Dark.ActionBar</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialComponents</item>
@@ -259,10 +260,11 @@
         <item name="colorOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/readerColorDarkPrimary</item>
         <item name="colorSurface">@color/md_white_1000</item>
+        <item name="readerMenu">@color/readerMenuBackgroundLight</item>
 
         <item name="android:colorBackground">@color/md_white_1000</item>
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/readerMenu</item>
+        <item name="android:navigationBarColor">?attr/readerMenu</item>
 
         <item name="actionBarTheme">@style/ThemeOverlay.MaterialComponents.Dark.ActionBar</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialComponents</item>
@@ -273,6 +275,7 @@
 
     <style name="Theme.Reader.Dark.Grey" parent="Theme.Base.Reader.Dark">
         <item name="android:colorBackground">@color/backgroundDark</item>
+        <item name="readerMenu">@color/readerMenuBackgroundGray</item>
     </style>
 
     <style name="Theme.Reader.Light" parent="Theme.Base.Reader.Light" />
@@ -282,7 +285,7 @@
     <!-- Launch Screen -->
     <!--===============-->
     <style name="Theme.Splash" parent="Theme.Tachiyomi.LightFlat">
-        <item name="colorBackgroundSplash">@color/ic_launcher_background</item>
+        <item name="colorBackgroundSplash">@color/backgroundDark</item>
 
         <item name="android:windowBackground">@drawable/splash_background</item>
         <item name="android:statusBarColor">?attr/colorBackgroundSplash</item>
