@@ -17,6 +17,8 @@
         <item name="colorAccent">@color/colorAccentDusk</item>
         <item name="background">@color/backgroundDusk</item>
         <item name="border">@color/borderDusk</item>
+        <item name="downloadedIcon">@color/downloadedIconDusk</item>
+        <item name="downloadIcon">@color/downloadIconDark</item>
 
         <item name="android:colorBackground">@color/backgroundDusk</item>
 
@@ -42,6 +44,8 @@
         <item name="background">@color/backgroundLime</item>
         <item name="border">@color/borderLime</item>
         <item name="lowlight">@color/borderLime</item>
+        <item name="downloadedIcon">@color/downloadedIconLime</item>
+        <item name="downloadIcon">@color/downloadIconDark</item>
 
         <item name="android:colorBackground">@color/backgroundLime</item>
 

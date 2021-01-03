@@ -11,6 +11,10 @@
     <color name="lowlightLightFlat">#E3E3E3</color>
     <color name="lowlightDarkFlat">#28282C</color>
     <color name="transparent">#00ffffff</color>
+    <color name="rippleColor">#40FFFFFF</color>
+    <color name="downloadIconLight">#85A3A3A3</color>
+    <color name="downloadIconDark">#85505050</color>
+    <color name="downloadedIcon">#4AA97D</color>
 
     <!-- Dark Application Colors -->
     <color name="colorDarkPrimary">#242529</color>
@@ -49,6 +53,7 @@
 
     <color name="red">#FF0000</color>
     <color name="dark_red">#880000</color>
+    <color name="downloadedIconRed">#99FF0000</color>
 
     <!-- Flat Lime Theme -->
     <color name="colorAccentLime">#4AF88A</color>
@@ -58,10 +63,11 @@
     <color name="dividerLime">#12ffffff</color>
     <color name="rippleColorLime">@color/md_white_1000_20</color>
     <color name="backgroundLime">@color/colorDarkPrimaryDark</color>
-    <color name="dialogLime">@color/colorDarkPrimary</color>
+    <color name="dialogLime">#282A2E</color>
     <color name="selectorColorLime">#804AF88A</color>
     <color name="borderLime">@color/borderDark</color>
     <color name="lowlightLime">@color/borderDark</color>
+    <color name="downloadedIconLime">#E64AA97D</color>
 
     <!-- Midnight Dusk Theme -->
     <color name="colorAccentDusk">#F02475</color>
@@ -75,6 +81,7 @@
     <color name="selectorColorDusk">#80F02475</color>
     <color name="borderDusk">#29292E</color>
     <color name="lowlightDusk">#0AFFFFFF</color>
+    <color name="downloadedIconDusk">#CCF02475</color>
 
     <!-- Reader Theme -->
     <color name="readerColorDarkPrimary">@color/colorDarkPrimary</color>
