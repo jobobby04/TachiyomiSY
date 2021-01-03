@@ -15,7 +15,6 @@
             android:id="@+id/backdrop"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginBottom="?attr/actionBarSize"
             android:alpha="0.0"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -24,9 +23,11 @@
             tools:background="@mipmap/ic_launcher" />
 
         <View
+            android:id="@+id/backdrop_overlay"
             android:layout_width="match_parent"
-            android:layout_height="88dp"
-            android:layout_marginBottom="?attr/actionBarSize"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@drawable/manga_info_gradient"
+            android:backgroundTint="?android:attr/colorBackground"
             app:layout_constraintBottom_toBottomOf="parent" />
 
         <LinearLayout

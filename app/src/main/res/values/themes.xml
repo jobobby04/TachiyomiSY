@@ -93,18 +93,25 @@
         <item name="background">@color/backgroundLight</item>
         <item name="border">@color/borderLight</item>
         <item name="lowlight">@color/lowlightLight</item>
+        <item name="downloadedIcon">@color/downloadedIcon</item>
+        <item name="downloadIcon">@color/downloadIconLight</item>
 
         <item name="colorFilterActive">@color/filterColorLight</item>
     </style>
 
     <style name="Theme.Tachiyomi.LightFlat" parent="Theme.Base">
-        <item name="colorPrimary">@color/backgroundLight</item>
-        <item name="colorOnPrimary">@color/textColorPrimaryDark</item>
+        <item name="colorPrimary">@color/backgroundLightFlat</item>
+        <item name="colorOnPrimary">@color/textColorPrimaryLight</item>
         <item name="colorAccentOnPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
+        <item name="colorOnSurface">@color/textColorPrimaryLight</item>
+        <item name="colorOnBackground">@color/textColorPrimaryLight</item>
+        <item name="colorOnSecondary">@color/textColorPrimaryLight</item>
         <item name="background">@color/backgroundLightFlat</item>
         <item name="border">@color/lowlightLightFlat</item>
         <item name="lowlight">@color/lowlightLightFlat</item>
+        <item name="downloadedIcon">@color/downloadedIcon</item>
+        <item name="downloadIcon">@color/downloadIconLight</item>
 
         <item name="actionBarTheme">@style/Theme.Toolbar.Light</item>
     </style>
@@ -131,6 +138,8 @@
         <item name="background">@color/colorDarkPrimaryDark</item>
         <item name="border">@color/borderDark</item>
         <item name="lowlight">@color/lowlightDark</item>
+        <item name="downloadedIcon">@color/downloadedIcon</item>
+        <item name="downloadIcon">@color/downloadIconDark</item>
 
         <!-- Handles RTL text -->
         <item name="android:textAlignment">gravity</item>
@@ -201,6 +210,8 @@
         <item name="background">@color/backgroundDark</item>
         <item name="border">@color/lowlightDarkFlat</item>
         <item name="lowlight">@color/lowlightDarkFlat</item>
+        <item name="downloadedIcon">@color/downloadedIcon</item>
+        <item name="downloadIcon">@color/downloadIconDark</item>
     </style>
 
     <style name="Theme.Tachiyomi.Amoled" parent="Theme.Base.Dark">
@@ -209,6 +220,8 @@
         <item name="colorSurface">@color/colorAmoledPrimary</item>
         <item name="background">@color/colorAmoledPrimary</item>
         <item name="border">@color/borderAmoled</item>
+        <item name="downloadedIcon">@color/downloadedIcon</item>
+        <item name="downloadIcon">@color/downloadIconDark</item>
 
         <item name="android:colorBackground">@color/colorAmoledPrimary</item>
 
@@ -234,6 +247,9 @@
         <item name="android:textColorHint">@color/dark_red</item>
         <item name="md_color_title">@color/red</item>
         <item name="border">@color/red</item>
+        <item name="downloadedIcon">@color/downloadedIconRed</item>
+        <item name="downloadIcon">@color/downloadIconDark</item>
+
     </style>
 
     <!--==============-->
