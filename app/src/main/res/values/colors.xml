@@ -17,7 +17,7 @@
     <color name="downloadedIcon">#4AA97D</color>
 
     <!-- Dark Application Colors -->
-    <color name="colorDarkPrimary">#242529</color>
+    <color name="colorDarkPrimary">#2C2D32</color>
     <color name="colorDarkPrimaryDark">#202125</color>
     <color name="colorAmoledPrimary">@color/md_black_1000</color>
     <color name="borderAmoled">#151619</color>
