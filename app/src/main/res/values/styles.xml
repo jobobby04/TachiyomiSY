@@ -215,7 +215,7 @@
     <style name="Theme.Widget.Chip" parent="Widget.MaterialComponents.Chip.Action">
         <item name="chipStrokeWidth">1dp</item>
         <item name="chipStrokeColor">?attr/colorAccent</item>
-        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="chipBackgroundColor">?attr/background</item>
         <item name="android:textColor">?attr/colorAccent</item>
 
         <!-- Smaller text/height -->
