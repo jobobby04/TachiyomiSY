@@ -63,7 +63,20 @@
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize" />
+                android:layout_height="wrap_content"
+                android:paddingBottom="5dp">
+
+                <ImageButton
+                    android:id="@+id/expand_eh_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:background="?selectableItemBackgroundBorderless"
+                    android:padding="10dp"
+                    app:srcCompat="@drawable/ic_keyboard_arrow_down_white_32dp"
+                    app:layout_constraintEnd_toEndOf="@id/reader_menu"/>
+
+            </com.google.android.material.appbar.MaterialToolbar>
 
             <LinearLayout
                 android:id="@+id/eh_utils"
@@ -143,13 +156,6 @@
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/expand_eh_button"
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="0dp"
-                app:srcCompat="@drawable/ic_keyboard_arrow_down_white_32dp" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <LinearLayout
@@ -256,7 +262,7 @@
                     app:layout_constraintEnd_toStartOf="@id/filter_button"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_format_list_numbered_24dp" />
+                    app:srcCompat="@drawable/ic_list_24dp" />
 
                 <ImageButton
                     android:id="@+id/filter_button"

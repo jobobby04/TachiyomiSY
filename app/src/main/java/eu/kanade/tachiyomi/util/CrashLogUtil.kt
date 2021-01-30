@@ -15,7 +15,7 @@ import java.io.IOException
 class CrashLogUtil(private val context: Context) {
 
     private val notificationBuilder = context.notificationBuilder(Notifications.CHANNEL_CRASH_LOGS) {
-        setSmallIcon(R.drawable.ic_tachi)
+        setSmallIcon(R.drawable.ic_launcher_foreground)
     }
 
     fun dumpLogs() {

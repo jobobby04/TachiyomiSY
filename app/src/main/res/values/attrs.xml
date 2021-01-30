@@ -16,5 +16,10 @@
     <attr name="colorFilterActive" format="reference|integer"/>
     <attr name="colorBackgroundSplash" format="reference|integer"/>
     <attr name="colorAccentOnPrimary" format="reference|integer"/>
+    <attr name="border" format="reference|integer"/>
+    <attr name="lowlight" format="reference|integer"/>
+    <attr name="readerMenu" format="reference|integer"/>
+    <attr name="downloadedIcon" format="reference|integer"/>
+    <attr name="downloadIcon" format="reference|integer"/>
 
 </resources>
