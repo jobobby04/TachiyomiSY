@@ -185,6 +185,7 @@ class SettingsGeneralController : SettingsController() {
                     "cv",
                     "de",
                     "el",
+                    "eo",
                     "es",
                     "es-419",
                     "en-US",
