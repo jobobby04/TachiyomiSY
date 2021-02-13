@@ -17,9 +17,9 @@ class GithubUpdateChecker {
     private val repo: String by lazy {
         // Sy -->
         if (syDebugVersion != "0") {
-            "CrepeTF/SY-Comics/releases"
+            "jobobby04/TachiyomiSYPreview"
         } else {
-            "CrepeTF/SY-Comics"
+            "jobobby04/tachiyomiSY"
         }
         // SY <--
     }
