@@ -7,12 +7,11 @@
     android:background="@android:color/transparent"
     android:orientation="vertical">
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:paddingTop="16dp"
         android:background="@drawable/dialog_rounded_background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -154,23 +153,44 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:text="@string/skip_this_step_next_time"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/migrate_btn"
             app:layout_constraintEnd_toEndOf="@+id/extra_search_param"
             app:layout_constraintStart_toStartOf="@+id/extra_search_param"
             app:layout_constraintTop_toBottomOf="@+id/extra_search_param_text" />
+
+        <Button
+            android:id="@+id/migrate_btn"
+            style="@style/Theme.Widget.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="12dp"
+            android:layout_weight="1"
+            android:text="@string/action_migrate"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="4dp"
+            app:rippleColor="@color/rippleColor"
+            app:strokeColor="@color/md_white_1000_20"
+            app:strokeWidth="1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/extra_search_param"
+            app:layout_constraintStart_toStartOf="@+id/extra_search_param"
+            app:layout_constraintTop_toBottomOf="@+id/skip_step"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fab"
-        style="@style/Theme.Widget.FAB"
+    <ImageView
+        android:id="@+id/pill"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:text="@string/action_migrate"
-        app:icon="@drawable/ic_arrow_forward_24dp"
-        app:layout_anchor="@id/constraintLayout"
-        app:layout_anchorGravity="bottom|end"
+        android:alpha="0.5"
+        android:contentDescription="@string/action_sort_drag_and_drop"
+        android:src="@drawable/ic_drag_pill_24dp"
+        android:tint="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

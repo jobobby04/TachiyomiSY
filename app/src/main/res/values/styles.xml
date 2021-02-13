@@ -23,7 +23,7 @@
     </style>
 
     <style name="Theme.ActionMode" parent="Base.Widget.AppCompat.ActionMode">
-        <item name="background">?attr/colorPrimary</item>
+        <item name="background">?attr/background</item>
     </style>
 
     <style name="Theme.ActionMode.CloseButton" parent="Base.Widget.AppCompat.ActionButton.CloseMode">
@@ -185,7 +185,7 @@
         </item>
         <item name="cardBackgroundColor">?attr/colorSurface</item>
         <item name="cardCornerRadius">@dimen/card_radius</item>
-        <item name="cardElevation">2dp</item>
+        <item name="cardElevation">0dp</item>
     </style>
 
     <style name="Theme.Widget.CardView.Item">
@@ -228,7 +228,7 @@
     <style name="Theme.Widget.Chip" parent="Widget.MaterialComponents.Chip.Action">
         <item name="chipStrokeWidth">1dp</item>
         <item name="chipStrokeColor">?attr/colorAccent</item>
-        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="chipBackgroundColor">?attr/background</item>
         <item name="android:textColor">?attr/colorAccent</item>
 
         <!-- Smaller text/height -->
@@ -290,9 +290,9 @@
     </style>
 
     <style name="Theme.Widget.Button.FilledAccent" parent="Widget.MaterialComponents.Button">
-        <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="android:textColor">?attr/background</item>
         <item name="backgroundTint">?attr/colorAccent</item>
-        <item name="rippleColor">?attr/colorAccent</item>
+        <item name="rippleColor">@color/rippleColor</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
@@ -366,7 +366,7 @@
         <!--<item name="android:windowCloseOnTouchOutside">false</item>-->
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:colorBackground">     @android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.3</item>
         <item name="android:windowFrame">@null</item>

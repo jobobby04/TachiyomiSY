@@ -24,7 +24,7 @@ abstract class BaseThemedActivity : AppCompatActivity() {
 
     private val lightTheme: Int by lazy {
         when (preferences.themeLight().get()) {
-            Values.LightThemeVariant.blue -> R.style.Theme_Tachiyomi_LightBlue
+            Values.LightThemeVariant.flat -> R.style.Theme_Tachiyomi_LightFlat
             else -> {
                 when {
                     // Light status + navigation bar
@@ -46,9 +46,10 @@ abstract class BaseThemedActivity : AppCompatActivity() {
 
     private val darkTheme: Int by lazy {
         when (preferences.themeDark().get()) {
-            Values.DarkThemeVariant.blue -> R.style.Theme_Tachiyomi_DarkBlue
+            Values.DarkThemeVariant.flat -> R.style.Theme_Tachiyomi_DarkFlat
             Values.DarkThemeVariant.amoled -> R.style.Theme_Tachiyomi_Amoled
             Values.DarkThemeVariant.red -> R.style.Theme_Tachiyomi_Red
+            Values.DarkThemeVariant.lime -> R.style.Theme_Tachiyomi_Lime
             Values.DarkThemeVariant.midnightdusk -> R.style.Theme_Tachiyomi_MidnightDusk
             else -> R.style.Theme_Tachiyomi_Dark
         }

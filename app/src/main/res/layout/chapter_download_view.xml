@@ -2,8 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="42dp"
-    android:layout_height="42dp"
+    android:layout_width="44dp"
+    android:layout_height="44dp"
     android:padding="8dp"
     android:background="?selectableItemBackgroundBorderless">
 
@@ -11,20 +11,20 @@
         android:id="@+id/download_icon_border"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="2dp"
+        android:padding="1.5dp"
         android:scaleType="fitXY"
-        app:srcCompat="@drawable/border_circle"
-        app:tint="?android:attr/textColorHint"
+        app:srcCompat="@drawable/ic_download_border_circle_black_18dp"
+        app:tint="?attr/downloadIcon"
         tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/download_icon"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="4dp"
+        android:padding="7.6dp"
         android:scaleType="fitXY"
-        app:srcCompat="@drawable/ic_arrow_downward_24dp"
-        app:tint="?android:attr/textColorHint"
+        app:srcCompat="@drawable/ic_download_arrow_black_18dp"
+        app:tint="?attr/downloadIcon"
         tools:ignore="ContentDescription" />
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -42,13 +42,14 @@
         android:id="@+id/download_queued"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:indeterminate="true"
-        android:padding="1dp"
+        android:padding="3dp"
         android:visibility="gone"
-        app:indicatorColor="?android:attr/textColorHint"
+        app:indicatorColor="?attr/downloadedIcon"
         app:indicatorInset="0dp"
-        app:indicatorSize="24dp"
-        app:trackThickness="2dp" />
+        app:indicatorSize="26dp"
+        app:trackThickness="2.7dp" />
 
     <ImageView
         android:id="@+id/downloaded_icon"
@@ -56,8 +57,8 @@
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:visibility="gone"
-        app:srcCompat="@drawable/ic_check_circle_24dp"
-        app:tint="?android:attr/textColorPrimary"
+        app:srcCompat="@drawable/ic_download_filled_18dp"
+        app:tint="?attr/downloadedIcon"
         tools:ignore="ContentDescription" />
 
     <ImageView

@@ -40,7 +40,7 @@ class MigrationBottomSheetDialog(activity: Activity, private val listener: Start
 
         initPreferences()
 
-        binding.fab.setOnClickListener {
+        binding.migrateBtn.setOnClickListener {
             preferences.skipPreMigration().set(binding.skipStep.isChecked)
             listener.startMigration(
                 if (binding.useSmartSearch.isChecked && binding.extraSearchParamText.text.isNotBlank()) {
