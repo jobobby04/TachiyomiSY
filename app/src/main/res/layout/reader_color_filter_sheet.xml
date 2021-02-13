@@ -3,10 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="0dp"
-    android:paddingStart="16dp"
-    android:paddingBottom="16dp"
-    android:paddingEnd="16dp">
+    android:padding="16dp">
 
     <android.widget.Space
         android:id="@+id/spinner_end"
@@ -16,23 +13,10 @@
 
     <!-- Color filter -->
 
-    <ImageView
-        android:id="@+id/pill"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:alpha="0.5"
-        android:contentDescription="@string/action_sort_drag_and_drop"
-        android:src="@drawable/ic_drag_pill_24dp"
-        android:tint="?attr/colorOnSurface"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/switch_color_filter"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingTop="16dp"
         android:text="@string/pref_custom_color_filter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

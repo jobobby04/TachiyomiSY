@@ -30,7 +30,7 @@ android {
     ndkVersion = AndroidConfig.ndk
 
     defaultConfig {
-        applicationId = "eu.kanade.tachiyomi.crepe"
+        applicationId = "eu.kanade.tachiyomi.sy.crepe"
         minSdkVersion(AndroidConfig.minSdk)
         targetSdkVersion(AndroidConfig.targetSdk)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -148,9 +148,9 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.5.0")
 
     // UI library
-    implementation("com.google.android.material:material:1.3.0-rc01")
+    implementation("com.google.android.material:material:1.3.0")
 
-    "standardImplementation"("com.google.firebase:firebase-core:18.0.1")
+    "standardImplementation"("com.google.firebase:firebase-core:18.0.2")
 
     // ReactiveX
     implementation("io.reactivex:rxandroid:1.2.1")
@@ -209,6 +209,8 @@ dependencies {
     implementation("com.github.bumptech.glide:okhttp3-integration:$glideVersion")
     kapt("com.github.bumptech.glide:compiler:$glideVersion")
 
+    // implementation("com.github.tachiyomiorg:subsampling-scale-image-view:6caf219")
+    // TODO: switch to new decoder for stable releases
     implementation("com.github.tachiyomiorg:subsampling-scale-image-view:ca26317")
 
     // Logging
@@ -303,6 +305,8 @@ dependencies {
     implementation("com.squareup.moshi:moshi:1.11.0")
 
     implementation("androidx.gridlayout:gridlayout:1.0.0")
+
+    implementation("com.mikepenz:fastadapter:5.3.4")
     // SY -->
 }
 
@@ -340,11 +344,6 @@ buildscript {
     dependencies {
         classpath(kotlin("gradle-plugin", version = BuildPluginsVersion.KOTLIN))
     }
-}
-
-repositories {
-    mavenCentral()
-    jcenter()
 }
 
 

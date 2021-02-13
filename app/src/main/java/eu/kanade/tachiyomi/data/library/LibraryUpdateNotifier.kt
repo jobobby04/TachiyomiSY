@@ -104,7 +104,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                         }
                     )
                 )
-                setSmallIcon(R.drawable.ic_launcher_foreground)
+                setSmallIcon(R.drawable.ic_tachi)
 
                 val errorLogIntent = NotificationReceiver.openErrorLogPendingActivity(context, uri)
 
@@ -151,7 +151,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                         }
                     }
 
-                    setSmallIcon(R.drawable.ic_launcher_foreground)
+                    setSmallIcon(R.drawable.ic_tachi)
                     setLargeIcon(notificationBitmap)
 
                     setGroup(Notifications.GROUP_NEW_CHAPTERS)
@@ -181,7 +181,7 @@ class LibraryUpdateNotifier(private val context: Context) {
             setContentText(description)
             setStyle(NotificationCompat.BigTextStyle().bigText(description))
 
-            setSmallIcon(R.drawable.ic_launcher_foreground)
+            setSmallIcon(R.drawable.ic_tachi)
 
             val icon = getMangaIcon(manga)
             if (icon != null) {

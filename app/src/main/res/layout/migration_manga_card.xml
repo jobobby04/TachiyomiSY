@@ -32,8 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:background="@drawable/gradient_shape"
-            android:foreground="@drawable/rounded_rectangle_stroke"/>
+            android:background="@drawable/gradient_shape" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/loading_group"
@@ -49,7 +48,6 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="4dp"
             android:background="@drawable/rounded_rectangle"
-            android:backgroundTint="?attr/colorAccent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -58,12 +56,13 @@
                 style="@style/TextAppearance.Regular.Caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@color/colorAccentDark"
                 android:paddingStart="3dp"
                 android:paddingTop="1dp"
                 android:paddingEnd="3dp"
                 android:paddingBottom="1dp"
                 android:text="101"
-                android:textColor="?attr/background"
+                android:textColor="@color/md_white_1000"
                 android:visibility="gone"
                 tools:visibility="visible" />
         </LinearLayout>

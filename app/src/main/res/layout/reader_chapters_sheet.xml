@@ -19,7 +19,6 @@
             android:id="@+id/pill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0.5"
             android:layout_marginTop="5dp"
             android:contentDescription="@string/action_sort_drag_and_drop"
             android:src="@drawable/ic_drag_pill_24dp"

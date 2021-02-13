@@ -107,11 +107,11 @@ class SettingsGeneralController : SettingsController() {
                 titleRes = R.string.pref_theme_light
                 entriesRes = arrayOf(
                     R.string.theme_light_default,
-                    R.string.theme_light_flat
+                    R.string.theme_light_blue
                 )
                 entryValues = arrayOf(
                     Values.LightThemeVariant.default.name,
-                    Values.LightThemeVariant.flat.name
+                    Values.LightThemeVariant.blue.name
                 )
                 defaultValue = Values.LightThemeVariant.default.name
                 summary = "%s"
@@ -131,18 +131,16 @@ class SettingsGeneralController : SettingsController() {
                 titleRes = R.string.pref_theme_dark
                 entriesRes = arrayOf(
                     R.string.theme_dark_default,
-                    R.string.theme_dark_flat,
+                    R.string.theme_dark_blue,
                     R.string.theme_dark_amoled,
                     R.string.theme_dark_red,
-                    R.string.theme_dark_lime,
                     R.string.theme_dark_midnightdusk,
                 )
                 entryValues = arrayOf(
                     Values.DarkThemeVariant.default.name,
-                    Values.DarkThemeVariant.flat.name,
+                    Values.DarkThemeVariant.blue.name,
                     Values.DarkThemeVariant.amoled.name,
                     Values.DarkThemeVariant.red.name,
-                    Values.DarkThemeVariant.lime.name,
                     Values.DarkThemeVariant.midnightdusk.name,
                 )
                 defaultValue = Values.DarkThemeVariant.default.name

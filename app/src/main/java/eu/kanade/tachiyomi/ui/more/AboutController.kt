@@ -101,7 +101,7 @@ class AboutController : SettingsController() {
                 key = "pref_about_github"
                 title = "GitHub"
                 // SY -->
-                val url = "https://github.com/CrepeTF/SY-Comics"
+                val url = "https://github.com/jobobby04/TachiyomiSY"
                 // SY <--
                 summary = url
                 onClick {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SY Comics</string>
+    <string name="app_name" translatable="false">TachiyomiSY</string>
 
     <!--Models-->
     <string name="name">Name</string>
@@ -153,13 +153,12 @@
     <string name="theme_dark">On</string>
     <string name="pref_theme_light">Light theme</string>
     <string name="theme_light_default">Default</string>
-    <string name="theme_light_flat">Light Flat</string>
+    <string name="theme_light_blue">Light blue</string>
     <string name="pref_theme_dark">Dark theme</string>
     <string name="theme_dark_default">Default</string>
-    <string name="theme_dark_flat">Dark Flat</string>
-    <string name="theme_dark_amoled">AMOLED Black</string>
+    <string name="theme_dark_blue">Dark blue</string>
+    <string name="theme_dark_amoled">AMOLED black</string>
     <string name="theme_dark_red">Black-Red</string>
-    <string name="theme_dark_lime">Flat Lime</string>
     <string name="theme_dark_midnightdusk">Midnight Dusk</string>
     <string name="pref_start_screen">Start screen</string>
     <string name="pref_language">Language</string>
@@ -650,7 +649,7 @@
     <string name="updating_library">Updating library</string>
 
     <!-- History fragment -->
-    <string name="recent_manga_time">Chapter %1$s • %2$s</string>
+    <string name="recent_manga_time">Ch. %1$s - %2$s</string>
 
     <!-- Source migration screen -->
     <string name="migration_help_guide">Source migration guide</string>
