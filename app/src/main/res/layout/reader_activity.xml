@@ -44,12 +44,12 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/reader_menu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:theme="?attr/actionBarTheme"
         android:visibility="invisible"
+        android:theme="?attr/actionBarTheme"
         tools:visibility="visible">
 
         <com.google.android.material.appbar.AppBarLayout
@@ -58,7 +58,10 @@
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
             android:background="?attr/readerMenu"
-            app:elevation="0dp">
+            app:elevation="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
@@ -158,25 +161,135 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+        <RelativeLayout
+            android:id="@+id/seekbar_vert_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@id/reader_menu_bottom"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header"
+            tools:ignore="NotSibling">
+
+            <LinearLayout
+                android:id="@+id/reader_nav_vert"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <ImageButton
+                    android:id="@+id/above_chapter"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="80dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/chapter_nav"
+                    android:contentDescription="@string/action_previous_chapter"
+                    android:padding="@dimen/material_layout_keylines_screen_edge_margin"
+                    android:rotation="90"
+                    app:srcCompat="@drawable/ic_skip_previous_24dp"
+                    android:tint="?attr/colorOnPrimary" />
+
+                <LinearLayout
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/chapter_nav"
+                    android:orientation="vertical">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <TextView
+                            android:id="@+id/above_page_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center"
+                            android:textColor="?attr/colorOnPrimary"
+                            android:textSize="15sp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            tools:text="1" />
+
+                        <eu.kanade.tachiyomi.ui.reader.ReaderSeekBar
+                            android:id="@+id/page_seekbar_vert"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginTop="27dp"
+                            android:layout_marginBottom="27dp"
+                            android:layout_gravity="center|top"
+                            android:rotation="90"
+                            android:progress="30"
+                            app:layout_constraintDimensionRatio="1:1"
+                            app:layout_constraintBottom_toTopOf="@id/below_page_text"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/above_page_text" />
+
+                        <TextView
+                            android:id="@+id/below_page_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:gravity="center"
+                            android:textColor="?attr/colorOnPrimary"
+                            android:textSize="15sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            tools:text="15" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/below_chapter"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="80dp"
+                    android:background="@drawable/chapter_nav"
+                    android:contentDescription="@string/action_next_chapter"
+                    android:padding="@dimen/material_layout_keylines_screen_edge_margin"
+                    android:rotation="90"
+                    app:srcCompat="@drawable/ic_skip_next_24dp"
+                    android:tint="?attr/colorOnPrimary"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
         <LinearLayout
             android:id="@+id/reader_menu_bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
             android:orientation="vertical"
-            android:layout_gravity="bottom">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <LinearLayout
-                android:id="@+id/reader_nav"
+                android:id="@+id/reader_nav_horz"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="5dp"
                 android:layout_marginBottom="16dp"
-                android:layout_gravity="bottom"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:clickable="true"
-                android:focusable="true">
+                android:visibility="visible">
 
                 <ImageButton
                     android:id="@+id/left_chapter"
@@ -246,10 +359,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:layout_gravity="bottom"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
                 android:background="@drawable/reader_menu_bottom"
-                android:clickable="true">
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
 
                 <ImageButton
                     android:id="@+id/chapters_button"
@@ -262,7 +376,7 @@
                     app:layout_constraintEnd_toStartOf="@id/filter_button"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_list_24dp" />
+                    app:srcCompat="@drawable/ic_format_list_numbered_24dp" />
 
                 <ImageButton
                     android:id="@+id/filter_button"
@@ -275,7 +389,7 @@
                     app:layout_constraintEnd_toStartOf="@id/webview_button"
                     app:layout_constraintStart_toEndOf="@id/chapters_button"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_brightness_4_24dp"/>
+                    app:srcCompat="@drawable/ic_brightness_4_24dp" />
 
                 <ImageButton
                     android:id="@+id/webview_button"
@@ -288,7 +402,7 @@
                     app:layout_constraintEnd_toStartOf="@id/action_settings"
                     app:layout_constraintStart_toEndOf="@id/filter_button"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_public_24dp"/>
+                    app:srcCompat="@drawable/ic_public_24dp" />
 
                 <ImageButton
                     android:id="@+id/action_settings"
@@ -301,13 +415,13 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/webview_button"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_settings_24dp"/>
+                    app:srcCompat="@drawable/ic_settings_24dp" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
 
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
         android:id="@+id/brightness_overlay"

@@ -387,16 +387,20 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             insets
         }
 
+        // SY -->
         // Init listeners on bottom menu
-        binding.pageSeekbar.setOnSeekBarChangeListener(
-            object : SimpleSeekBarListener() {
-                override fun onProgressChanged(seekBar: SeekBar, value: Int, fromUser: Boolean) {
-                    if (viewer != null && fromUser) {
-                        moveToPageIndex(value)
-                    }
+        val listener = object : SimpleSeekBarListener() {
+            override fun onProgressChanged(seekBar: SeekBar, value: Int, fromUser: Boolean) {
+                if (viewer != null && fromUser) {
+                    moveToPageIndex(value)
                 }
             }
-        )
+        }
+        listOf(binding.pageSeekbar, binding.pageSeekbarVert)
+            .forEach {
+                it.setOnSeekBarChangeListener(listener)
+            }
+        // SY <--
 
         // Extra menu buttons
         binding.filterButton.clicks()
@@ -418,24 +422,34 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             .launchIn(lifecycleScope)
         // Extra menu buttons
 
-        binding.leftChapter.setOnClickListener {
-            if (viewer != null) {
-                if (viewer is R2LPagerViewer) {
-                    loadNextChapter()
-                } else {
-                    loadPreviousChapter()
+        // SY -->
+        listOf(binding.leftChapter, binding.aboveChapter).forEach {
+            it.clicks()
+                .onEach {
+                    if (viewer != null) {
+                        if (viewer is R2LPagerViewer) {
+                            loadNextChapter()
+                        } else {
+                            loadPreviousChapter()
+                        }
+                    }
                 }
-            }
+                .launchIn(lifecycleScope)
         }
-        binding.rightChapter.setOnClickListener {
-            if (viewer != null) {
-                if (viewer is R2LPagerViewer) {
-                    loadPreviousChapter()
-                } else {
-                    loadNextChapter()
+        listOf(binding.rightChapter, binding.belowChapter).forEach {
+            it.clicks()
+                .onEach {
+                    if (viewer != null) {
+                        if (viewer is R2LPagerViewer) {
+                            loadPreviousChapter()
+                        } else {
+                            loadNextChapter()
+                        }
+                    }
                 }
-            }
+                .launchIn(lifecycleScope)
         }
+        // SY <--
 
         // --> EH
         binding.expandEhButton.clicks()
@@ -659,6 +673,9 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 binding.header.startAnimation(toolbarAnimation)
                 // EXH <--
 
+                val vertAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in_side)
+                binding.seekbarVertContainer.startAnimation(vertAnimation)
+
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.enter_from_bottom)
                 binding.readerMenuBottom.startAnimation(bottomAnimation)
             }
@@ -685,6 +702,9 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 // EXH -->
                 binding.header.startAnimation(toolbarAnimation)
                 // EXH <--
+
+                val vertAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_out_side)
+                binding.seekbarVertContainer.startAnimation(vertAnimation)
 
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.exit_to_bottom)
                 binding.readerMenuBottom.startAnimation(bottomAnimation)
@@ -757,6 +777,22 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             // SY <--
             showReadingModeSnackbar(presenter.getMangaViewer())
         }
+
+        // SY -->
+
+        // <-- Vertical seekbar hide on landscape
+
+        if (((resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && preferences.landscapeVerticalSeekbar().get()) || resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) && (viewer is WebtoonViewer || viewer is VerticalPagerViewer)) {
+            binding.readerNavVert.isVisible = true
+            binding.readerNavHorz.isVisible = false
+        } else {
+            binding.readerNavVert.isVisible = false
+            binding.readerNavHorz.isVisible = true
+        }
+
+        // --> Vertical seekbar hide on landscape
+
+        // SY <--
 
         binding.toolbar.title = manga.title
 
@@ -865,8 +901,18 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             binding.leftPageText.text = "${pages.size}"
         }
 
+        // SY -->
+        binding.abovePageText.text = "${page.number}"
+        binding.belowPageText.text = "${pages.size}"
+        // SY <--
+
         binding.pageSeekbar.max = pages.lastIndex
         binding.pageSeekbar.progress = page.index
+
+        // SY -->
+        binding.pageSeekbarVert.max = pages.lastIndex
+        binding.pageSeekbarVert.progress = page.index
+        // SY <--
     }
 
     /**
