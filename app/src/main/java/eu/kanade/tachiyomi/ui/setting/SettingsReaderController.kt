@@ -57,6 +57,12 @@ class SettingsReaderController : SettingsController() {
             defaultValue = false
         }
         switchPreference {
+            key = Keys.leftVerticalSeekbar
+            titleRes = R.string.pref_left_handed_vertical_seekbar
+            summaryRes = R.string.pref_left_handed_vertical_seekbar_summary
+            defaultValue = false
+        }
+        switchPreference {
             key = Keys.dualPageSplit
             titleRes = R.string.pref_dual_page_split
             defaultValue = false

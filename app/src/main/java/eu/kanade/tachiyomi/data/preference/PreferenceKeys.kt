@@ -25,6 +25,8 @@ object PreferenceKeys {
 
     const val landscapeVerticalSeekbar = "pref_show_vert_seekbar_landscape"
 
+    const val leftVerticalSeekbar = "pref_left_handed_vertical_seekbar"
+
     const val dualPageSplit = "pref_dual_page_split"
 
     const val showReadingMode = "pref_show_reading_mode"

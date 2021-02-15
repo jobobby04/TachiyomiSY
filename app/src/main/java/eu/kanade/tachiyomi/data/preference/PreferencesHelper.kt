@@ -458,4 +458,6 @@ class PreferencesHelper(val context: Context) {
     fun cropBordersContinuesVertical() = flowPrefs.getBoolean(Keys.cropBordersContinuesVertical, false)
 
     fun landscapeVerticalSeekbar() = flowPrefs.getBoolean(Keys.landscapeVerticalSeekbar, false)
+
+    fun leftVerticalSeekbar() = flowPrefs.getBoolean(Keys.leftVerticalSeekbar, false)
 }

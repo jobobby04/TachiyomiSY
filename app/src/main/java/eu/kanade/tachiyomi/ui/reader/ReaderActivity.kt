@@ -19,6 +19,7 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.RelativeLayout
 import android.widget.SeekBar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -674,7 +675,12 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 // EXH <--
 
                 val vertAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in_side)
-                binding.seekbarVertContainer.startAnimation(vertAnimation)
+                val vertAnimationLeft = AnimationUtils.loadAnimation(this, R.anim.fade_in_side_left)
+                if (preferences.leftVerticalSeekbar().get() && binding.readerNavVert.isVisible) {
+                    binding.seekbarVertContainer.startAnimation(vertAnimationLeft)
+                } else {
+                    binding.seekbarVertContainer.startAnimation(vertAnimation)
+                }
 
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.enter_from_bottom)
                 binding.readerMenuBottom.startAnimation(bottomAnimation)
@@ -704,7 +710,12 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 // EXH <--
 
                 val vertAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_out_side)
-                binding.seekbarVertContainer.startAnimation(vertAnimation)
+                val vertAnimationLeft = AnimationUtils.loadAnimation(this, R.anim.fade_out_side_left)
+                if (preferences.leftVerticalSeekbar().get() && binding.readerNavVert.isVisible) {
+                    binding.seekbarVertContainer.startAnimation(vertAnimationLeft)
+                } else {
+                    binding.seekbarVertContainer.startAnimation(vertAnimation)
+                }
 
                 val bottomAnimation = AnimationUtils.loadAnimation(this, R.anim.exit_to_bottom)
                 binding.readerMenuBottom.startAnimation(bottomAnimation)
@@ -780,7 +791,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
 
         // SY -->
 
-        // <-- Vertical seekbar hide on landscape
+        // --> Vertical seekbar hide on landscape
 
         if (((resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && preferences.landscapeVerticalSeekbar().get()) || resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) && (viewer is WebtoonViewer || viewer is VerticalPagerViewer)) {
             binding.readerNavVert.isVisible = true
@@ -790,7 +801,17 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             binding.readerNavHorz.isVisible = true
         }
 
-        // --> Vertical seekbar hide on landscape
+        // <-- Vertical seekbar hide on landscape
+
+        // --> Left-handed vertical seekbar
+
+        val params = binding.readerNavVert.getLayoutParams() as RelativeLayout.LayoutParams
+        if (preferences.leftVerticalSeekbar().get() && binding.readerNavVert.isVisible) {
+            params.removeRule(RelativeLayout.ALIGN_PARENT_END)
+            binding.readerNavVert.setLayoutParams(params)
+        }
+
+        // <-- Left-handed vertical seekbar
 
         // SY <--
 

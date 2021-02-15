@@ -161,15 +161,23 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/above_guideline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.3"
+            app:layout_constraintTop_toBottomOf="@id/header"/>
+
         <RelativeLayout
             android:id="@+id/seekbar_vert_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="horizontal"
-            app:layout_constraintBottom_toTopOf="@id/reader_menu_bottom"
+            app:layout_constraintBottom_toTopOf="@id/below_guideline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/header"
+            app:layout_constraintTop_toBottomOf="@id/above_guideline"
             tools:ignore="NotSibling">
 
             <LinearLayout
@@ -178,6 +186,7 @@
                 android:layout_height="match_parent"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
+                android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
                 android:orientation="vertical"
                 android:gravity="center">
@@ -266,6 +275,14 @@
             </LinearLayout>
 
         </RelativeLayout>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/below_guideline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.9"
+            app:layout_constraintBottom_toTopOf="@id/reader_menu_bottom"/>
 
         <LinearLayout
             android:id="@+id/reader_menu_bottom"
