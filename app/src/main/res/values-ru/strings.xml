@@ -165,6 +165,7 @@
     <string name="pref_category_tracking">Отслеживание</string>
     <string name="pref_clear_chapter_cache">Очистить кэш глав</string>
     <string name="pref_clear_cookies">Очистить куки</string>
+    <string name="pref_dns_over_https" translatable="false">DNS через HTTPS (Cloudflare)</string>
     <string name="pref_clear_database">Очистить базу данных</string>
     <string name="pref_clear_database_summary">Удалить историю для манги, которая не находится в вашей библиотеке</string>
     <string name="pref_custom_brightness">Пользовательская яркость</string>
@@ -175,6 +176,7 @@
     <string name="pref_enable_acra">Отсылать отчеты о падениях</string>
     <string name="pref_page_transitions">Анимированные переходы страниц</string>
     <string name="pref_fullscreen">Полноэкранный режим</string>
+    <string name="pref_dual_page_split">Двойное разделение страниц (ALPHA)</string>
     <string name="pref_image_decoder">Декодер изображений</string>
     <string name="pref_image_scale_type">Масштабирование</string>
     <string name="pref_keep_screen_on">Держать экран включенным</string>
@@ -311,7 +313,7 @@
     <string name="other_source">Другие</string>
     <string name="action_global_search_hint">Глобальный поиск…</string>
     <string name="latest">Последняя</string>
-    <string name="browse">Поиск</string>
+    <string name="browse">Каталог</string>
     <string name="channel_common">Общий</string>
     <string name="channel_library">Библиотека</string>
     <string name="information_empty_category">У вас нет категорий. Нажмите кнопку + чтобы создать категорию для организации вашей библиотеки.</string>
@@ -369,6 +371,7 @@
     <string name="transition_pages_error">Не удалось загрузить страницы: %1$s</string>
     <string name="pref_read_with_long_tap">Диалог при долгом нажатии</string>
     <string name="action_open_in_web_view">Открыть в WebView</string>
+    <string name="action_web_view" translatable="false">WebView</string>
     <string name="pref_skip_read_chapters">Пропускать прочитанные главы</string>
     <string name="pref_true_color">32-битный цвет</string>
     <string name="pref_color_filter_mode">Режим наложения светофильтра</string>
@@ -410,6 +413,8 @@
     <string name="theme_dark_default">По умолчанию</string>
     <string name="theme_dark_blue">Темно-синяя</string>
     <string name="theme_dark_amoled">AMOLED черная</string>
+    <string name="theme_dark_red">Чёрный-Красный</string>
+    <string name="theme_dark_midnightdusk">Полуночные Сумерки</string>
     <string name="pref_manage_notifications">Управлять уведомлениями</string>
     <string name="pref_category_security">Безопасность</string>
     <string name="lock_with_biometrics">Блокировать отпечатком</string>
@@ -680,4 +685,11 @@
     <string name="action_filter_tracked">Отслеживается</string>
     <string name="action_display_show_number_of_items">Показать число объектов</string>
     <string name="right_and_left_nav">Справа и слева</string>
+
+    <!-- Tracking Screen -->
+    <string name="tracker_anilist" translatable="false">AniList</string>
+    <string name="tracker_myanimelist" translatable="false">MyAnimeList</string>
+    <string name="tracker_kitsu" translatable="false">Kitsu</string>
+    <string name="tracker_bangumi" translatable="false">Bangumi</string>
+    <string name="tracker_shikimori" translatable="false">Shikimori</string>
 </resources>
