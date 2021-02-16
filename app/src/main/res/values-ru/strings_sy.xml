@@ -132,7 +132,7 @@
     <string name="clean_up_downloaded_chapters">Очистка загруженных глав</string>
     <string name="delete_unused_chapters">Удаляет несуществующие, частично скачанные и прочитанные главы</string>
     <string name="no_folders_to_cleanup">Нет папок для удаления</string>
-    <string name="clean_orphaned_downloads">Clean orphaned</string>
+    <string name="clean_orphaned_downloads">Очистить потерянные</string>
     <string name="clean_read_downloads">Очистить прочитанные</string>
     <string name="clean_read_manga_not_in_library">Очистить отсутствующие в библиотеке</string>
     <plurals name="cleanup_done">
@@ -151,7 +151,7 @@
     <string name="data_saver_image_format_summary_on">Размер файла Jpeg значительно меньше, чем Webp(это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ настоящее время сжимается в Jpeg</string>
     <string name="data_saver_image_format_summary_off">Размер файла Jpeg значительно меньше, чем Webp(это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ настоящее время сжимается в Webp</string>
     <string name="data_saver_color_bw">Преобразование в Черно - Белое</string>
-    <string name="data_saver_server">Арокси-сервер Bandwidth Hero</string>
+    <string name="data_saver_server">Прокси-сервер Bandwidth Hero</string>
     <string name="data_saver_server_summary">Поместите URL-адрес прокси-сервера Bandwidth Hero здесь</string>
     <string name="update_monthly">Ежемесячно</string>
 
