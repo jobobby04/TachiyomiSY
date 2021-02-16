@@ -202,8 +202,8 @@
     <string name="biometric_lock_times_empty">У вас есть время биометрической блокировки. Нажмите кнопку "плюс", чтобы создать его.</string>
     <string name="biometric_lock_time_conflicts">Время блокировки конфликтует с тем, которое уже существует!</string>
     <plurals name="num_lock_times">
-        <item quantity="one">%d lock time</item>
-        <item quantity="other">%d lock times</item>
+        <item quantity="one">%d таймер блокировки </item>
+        <item quantity="other">%d таймеров блокировки</item>
     </plurals>
     <string name="biometric_lock_start_time">Введите время начала</string>
     <string name="biometric_lock_end_time">Введите время окончания</string>
@@ -310,7 +310,7 @@
     </plurals>
     <string name="pref_tag_sorting_desc">Список сортировки тегов</string>
     <string name="action_add_tags">Добавить тег</string>
-    <string name="action_add_tags_message">Read this! Tags must be exact, there are no partial matches, you cannot do netorare to filter out female:netorare or similar!\nThe style for namespace tags is\n\"female: sole female\"\nwithout quotes!\nAdding multiple variants of the same tag is supported, so feel free to do \"tag: netorare\" for NHentai and \"female: netorare\" for E-Hentai!</string>
+    <string name="action_add_tags_message">Прочитайте это! Теги должны быть точными, частичных совпадений нет, вы не можете делать netorare, чтобы отфильтровать женский: netorare или подобное! \nСтиль тегов пространства имен: \n\"female: sole female\"\nбез кавычек!\nПоддерживается добавление нескольких вариантов одного и того же тега, так что не стесняйтесь делать  \"tag: netorare\" для NHentai и  \"female: netorare\" для E-Hentai!</string>
     <string name="action_edit_tags">Редактирование тегов</string>
     <string name="information_empty_tags">У вас нет тегов. Нажмите кнопку плюс, чтобы создать ее для сортировки вашей библиотеки по тегам</string>
     <string name="error_tag_exists">Этот тег существует!</string>
@@ -326,8 +326,8 @@
     <string name="action_add_repo_message">Добавьте дополнительные репозиторий в Tachiyomi, формат  \'username/repo\' , с username, являющимся владельцем репозитория, а repo - именем репозитория </string>
     <string name="action_edit_repos">Редактировать репозитории</string>
     <plurals name="num_repos">
-        <item quantity="one">%d additional repo</item>
-        <item quantity="other">%d additional repos</item>
+        <item quantity="one">%d дополнительный репозиторий</item>
+        <item quantity="other">%d дополнительные репозитории</item>
     </plurals>
     <string name="error_repo_exists">Это репозиторий уже существует !</string>
     <string name="snack_repo_deleted">Репозиторий удалён</string>
@@ -642,34 +642,34 @@
 
     <!-- Humanize time -->
     <plurals name="humanize_year">
-        <item quantity="one">%1$d year ago</item>
-        <item quantity="other">%1$d years ago</item>
+        <item quantity="one">%1$d год назад</item>
+        <item quantity="other">%1$d года назад</item>
     </plurals>
     <plurals name="humanize_month">
-        <item quantity="one">%1$d month ago</item>
-        <item quantity="other">%1$d months ago</item>
+        <item quantity="one">%1$d месяц назад</item>
+        <item quantity="other">%1$d месяца назад</item>
     </plurals>
     <plurals name="humanize_week">
-        <item quantity="one">%1$d week ago</item>
-        <item quantity="other">%1$d weeks ago</item>
+        <item quantity="one">%1$d неделю назад</item>
+        <item quantity="other">%1$d недель назад</item>
     </plurals>
     <plurals name="humanize_day">
-        <item quantity="one">%1$d day ago</item>
-        <item quantity="other">%1$d days ago</item>
+        <item quantity="one">%1$d день назад</item>
+        <item quantity="other">%1$d дней назад</item>
     </plurals>
     <plurals name="humanize_hour">
-        <item quantity="one">%1$d hour ago</item>
-        <item quantity="other">%1$d hours ago</item>
+        <item quantity="one">%1$d час назад</item>
+        <item quantity="other">%1$d часов назад</item>
     </plurals>
     <plurals name="humanize_minute">
-        <item quantity="one">%1$d minute ago</item>
-        <item quantity="other">%1$d minutes ago</item>
+        <item quantity="one">%1$d минуту назад</item>
+        <item quantity="other">%1$d минут назад</item>
     </plurals>
     <plurals name="humanize_second">
-        <item quantity="one">%1$d second ago</item>
-        <item quantity="other">%1$d second ago</item>
+        <item quantity="one">%1$d секунду назад</item>
+        <item quantity="other">%1$d секунд назад</item>
     </plurals>
-    <string name="humanize_fallback">moments ago</string>
+    <string name="humanize_fallback">момент назад</string>
 
 
 </resources>
