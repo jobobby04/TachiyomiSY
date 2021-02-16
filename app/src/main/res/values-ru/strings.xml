@@ -165,7 +165,6 @@
     <string name="pref_category_tracking">Отслеживание</string>
     <string name="pref_clear_chapter_cache">Очистить кэш глав</string>
     <string name="pref_clear_cookies">Очистить куки</string>
-    <string name="pref_dns_over_https" translatable="false">DNS через HTTPS (Cloudflare)</string>
     <string name="pref_clear_database">Очистить базу данных</string>
     <string name="pref_clear_database_summary">Удалить историю для манги, которая не находится в вашей библиотеке</string>
     <string name="pref_custom_brightness">Пользовательская яркость</string>
@@ -371,7 +370,6 @@
     <string name="transition_pages_error">Не удалось загрузить страницы: %1$s</string>
     <string name="pref_read_with_long_tap">Диалог при долгом нажатии</string>
     <string name="action_open_in_web_view">Открыть в WebView</string>
-    <string name="action_web_view" translatable="false">WebView</string>
     <string name="pref_skip_read_chapters">Пропускать прочитанные главы</string>
     <string name="pref_true_color">32-битный цвет</string>
     <string name="pref_color_filter_mode">Режим наложения светофильтра</string>
@@ -685,11 +683,4 @@
     <string name="action_filter_tracked">Отслеживается</string>
     <string name="action_display_show_number_of_items">Показать число объектов</string>
     <string name="right_and_left_nav">Справа и слева</string>
-
-    <!-- Tracking Screen -->
-    <string name="tracker_anilist" translatable="false">AniList</string>
-    <string name="tracker_myanimelist" translatable="false">MyAnimeList</string>
-    <string name="tracker_kitsu" translatable="false">Kitsu</string>
-    <string name="tracker_bangumi" translatable="false">Bangumi</string>
-    <string name="tracker_shikimori" translatable="false">Shikimori</string>
 </resources>
