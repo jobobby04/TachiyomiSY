@@ -185,9 +185,9 @@
     <string name="pref_latest_position_summery">Вы хотите, чтобы последняя вкладка была первой вкладкой в каталоге? Это сделает его вкладкой по умолчанию при открытии каталога, не рекомендуется, если вы находитесь на дозированной сети</string>
     <string name="pref_source_source_filtering">Фильтровать источники по категориям</string>
     <string name="pref_source_source_filtering_summery">Фильтруйте источники, которые находятся в категориях, чтобы источники не попадали под категорию языка, если они находятся в категории</string>
-    <string name="pref_source_navigation">Заменить последнюю кнопку</string>
-    <string name="pref_source_navigation_summery">Заменить кнопку Последняя в каталоге на выбор, который включает в себя как последний и обзор</string>
-    <string name="pref_local_source_hidden_folders">Локальные исходные скрытые папки</string>
+    <string name="pref_source_navigation">Заменить кнопку \'Последняя\'</string>
+    <string name="pref_source_navigation_summery">Заменить кнопку \'Последняя\' в поисковике на выбор, который включает разделы последние и обзор</string>
+    <string name="pref_local_source_hidden_folders">Скрытые папки в локальном источнике</string>
     <string name="pref_local_source_hidden_folders_summery">Разрешить локальному источнику читать скрытые папки</string>
 
     <!-- Download settings -->
@@ -295,10 +295,10 @@
     <string name="invalid_category_name">Недопустимое имя категории</string>
 
     <!-- Latest Tab -->
-    <string name="watch">В последнии</string>
-    <string name="unwatch">Из последних</string>
-    <string name="too_many_watched">Слишком много просматриваемых источников, нельзя добавить больше 5 </string>
-    <string name="latest_tab_empty">У вас нет просматриваемых источников, перейдите на вкладку источников и нажмите и удерживайте источник, чтобы посмотреть его. </string>
+    <string name="watch">Отслеживать</string>
+    <string name="unwatch">Не отслеживать</string>
+    <string name="too_many_watched">Слишком много отслеживаемых источников, нельзя добавить больше 5 </string>
+    <string name="latest_tab_empty">У вас нет отслеживаемых источников, перейдите на вкладку источников и удерживайте источник, чтобы отслеживать его. </string>
 
     <!-- Sort by tags -->
     <string name="pref_tag_sorting">Теги сортировка тегов</string>
