@@ -176,13 +176,13 @@
     <string name="library_settings_sheet">Лист настроек библиотеки</string>
     <string name="library_settings_sheet_summary">Дополнительные настройки отображения библиотеки</string>
     <string name="library_group_updates">Динамическе обновление категорий библиотеки</string>
-    <string name="library_group_updates_global">Всегда запускайте глобальные обновления</string>
-    <string name="library_group_updates_all_but_ungrouped">Запуск глобальных обновлений только для негруппированных, обновления категорий для других</string>
-    <string name="library_group_updates_all">Запускайте обновления категорий все время</string>
+    <string name="library_group_updates_global">Всегда запускайть глобальные обновления</string>
+    <string name="library_group_updates_all_but_ungrouped">Запускайть глобальных обновлений только для негруппированных, обновления категорий для других</string>
+    <string name="library_group_updates_all">Запускайть обновления категорий постоянно</string>
 
     <!-- Browse settings -->
     <string name="pref_latest_position">Последняя позиция</string>
-    <string name="pref_latest_position_summery">Вы хотите, чтобы последняя вкладка была первой вкладкой в каталоге? Это сделает его вкладкой по умолчанию при открытии каталога, не рекомендуется, если вы находитесь на дозированной сети</string>
+    <string name="pref_latest_position_summery">Вы хотите, чтобы вкладка \'Последняя\' была первой вкладкой в поисковика? Это сделает его вкладкой по умолчанию при открытии поисковика, не рекомендуется, если вы находитесь на дозированной сети</string>
     <string name="pref_source_source_filtering">Фильтровать источники по категориям</string>
     <string name="pref_source_source_filtering_summery">Фильтруйте источники, которые находятся в категориях, чтобы источники не попадали под категорию языка, если они находятся в категории</string>
     <string name="pref_source_navigation">Заменить кнопку \'Последняя\'</string>
@@ -203,6 +203,8 @@
     <string name="biometric_lock_time_conflicts">Время блокировки конфликтует с тем, которое уже существует!</string>
     <plurals name="num_lock_times">
         <item quantity="one">%d таймер блокировки </item>
+        <item quantity="few">%d таймера блокировки</item>
+        <item quantity="many">%d таймеров блокировки</item>
         <item quantity="other">%d таймеров блокировки</item>
     </plurals>
     <string name="biometric_lock_start_time">Введите время начала</string>
@@ -327,7 +329,7 @@
     <string name="action_edit_repos">Редактировать репозитории</string>
     <plurals name="num_repos">
         <item quantity="one">%d дополнительный репозиторий</item>
-        <item quantity="other">%d дополнительные репозитории</item>
+        <item quantity="other">%d дополнительных репозиториев</item>
     </plurals>
     <string name="error_repo_exists">Это репозиторий уже существует !</string>
     <string name="snack_repo_deleted">Репозиторий удалён</string>
@@ -541,7 +543,7 @@
 
     <!-- Extra gallery info -->
     <plurals name="num_pages">
-        <item quantity="one">%1$d страница </item>
+        <item quantity="one">%1$d страница</item>
         <item quantity="few">%1$d страницы</item>
         <item quantity="many">%1$d страниц</item>
         <item quantity="other">%1$d страниц</item>
@@ -643,33 +645,47 @@
     <!-- Humanize time -->
     <plurals name="humanize_year">
         <item quantity="one">%1$d год назад</item>
-        <item quantity="other">%1$d года назад</item>
+        <item quantity="few">%1$d года назад</item>
+        <item quantity="many">%1$d лет назад</item>
+        <item quantity="other">%1$d лет назад</item>
     </plurals>
     <plurals name="humanize_month">
         <item quantity="one">%1$d месяц назад</item>
-        <item quantity="other">%1$d месяца назад</item>
+        <item quantity="few">%1$d месяца назад</item>
+        <item quantity="many">%1$d месяцев назад</item>
+        <item quantity="other">%1$d месяцев назад</item>
     </plurals>
     <plurals name="humanize_week">
         <item quantity="one">%1$d неделю назад</item>
+        <item quantity="few">%1$d недели назад</item>
+        <item quantity="many">%1$d недель назад</item>
         <item quantity="other">%1$d недель назад</item>
     </plurals>
     <plurals name="humanize_day">
         <item quantity="one">%1$d день назад</item>
+        <item quantity="few">%1$d дня назад</item>
+        <item quantity="many">%1$d дней назад</item>
         <item quantity="other">%1$d дней назад</item>
     </plurals>
     <plurals name="humanize_hour">
         <item quantity="one">%1$d час назад</item>
+        <item quantity="few">%1$d часа назад</item>
+        <item quantity="many">%1$d часов назад</item>
         <item quantity="other">%1$d часов назад</item>
     </plurals>
     <plurals name="humanize_minute">
         <item quantity="one">%1$d минуту назад</item>
+        <item quantity="few">%1$d минуты назад</item>
+        <item quantity="many">%1$d минут назад</item>
         <item quantity="other">%1$d минут назад</item>
     </plurals>
     <plurals name="humanize_second">
         <item quantity="one">%1$d секунду назад</item>
+        <item quantity="few">%1$d секунды назад</item>
+        <item quantity="many">%1$d секунд назад</item>
         <item quantity="other">%1$d секунд назад</item>
     </plurals>
-    <string name="humanize_fallback">момент назад</string>
+    <string name="humanize_fallback">мгновение назад</string>
 
 
 </resources>
