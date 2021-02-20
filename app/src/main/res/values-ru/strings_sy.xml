@@ -176,9 +176,9 @@
     <string name="library_settings_sheet">Лист настроек библиотеки</string>
     <string name="library_settings_sheet_summary">Дополнительные настройки отображения библиотеки</string>
     <string name="library_group_updates">Динамическе обновление категорий библиотеки</string>
-    <string name="library_group_updates_global">Всегда запускайть глобальные обновления</string>
-    <string name="library_group_updates_all_but_ungrouped">Запускайть глобальных обновлений только для негруппированных, обновления категорий для других</string>
-    <string name="library_group_updates_all">Запускайть обновления категорий постоянно</string>
+    <string name="library_group_updates_global">Всегда запускать глобальные обновления</string>
+    <string name="library_group_updates_all_but_ungrouped">Запускать глобальные обновления только для негруппированных, обновления категорий для других</string>
+    <string name="library_group_updates_all">Запускать обновления категорий постоянно</string>
 
     <!-- Browse settings -->
     <string name="pref_latest_position">Последняя позиция</string>
