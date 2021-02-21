@@ -175,7 +175,6 @@
     <string name="pref_enable_acra">Отсылать отчеты о падениях</string>
     <string name="pref_page_transitions">Анимированные переходы страниц</string>
     <string name="pref_fullscreen">Полноэкранный режим</string>
-    <string name="pref_dual_page_split">Двойное разделение страниц (ALPHA)</string>
     <string name="pref_image_decoder">Декодер изображений</string>
     <string name="pref_image_scale_type">Масштабирование</string>
     <string name="pref_keep_screen_on">Держать экран включенным</string>
@@ -312,7 +311,7 @@
     <string name="other_source">Другие</string>
     <string name="action_global_search_hint">Глобальный поиск…</string>
     <string name="latest">Последняя</string>
-    <string name="browse">Каталог</string>
+    <string name="browse">Поиск</string>
     <string name="channel_common">Общий</string>
     <string name="channel_library">Библиотека</string>
     <string name="information_empty_category">У вас нет категорий. Нажмите кнопку + чтобы создать категорию для организации вашей библиотеки.</string>
@@ -411,8 +410,6 @@
     <string name="theme_dark_default">По умолчанию</string>
     <string name="theme_dark_blue">Темно-синяя</string>
     <string name="theme_dark_amoled">AMOLED черная</string>
-    <string name="theme_dark_red">Чёрный-Красный</string>
-    <string name="theme_dark_midnightdusk">Полуночные Сумерки</string>
     <string name="pref_manage_notifications">Управлять уведомлениями</string>
     <string name="pref_category_security">Безопасность</string>
     <string name="lock_with_biometrics">Блокировать отпечатком</string>
