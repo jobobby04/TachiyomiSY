@@ -156,7 +156,7 @@ class SettingsMangaDexController :
 
             preference {
                 key = "similar_credits"
-                title = "Credits"
+                titleRes = R.string.similar_credit
                 val url = "https://github.com/goldbattle/MangadexRecomendations"
                 summary = context.getString(R.string.similar_credit_message, url)
                 onClick {
