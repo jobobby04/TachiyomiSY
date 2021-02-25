@@ -100,7 +100,6 @@ class SettingsMangaDexController :
 
             preference {
                 key = "pref_similar_screen"
-                titleRes = R.string.similar_screen
                 summaryRes = R.string.similar_screen_summary_message
                 isIconSpaceReserved = true
             }
