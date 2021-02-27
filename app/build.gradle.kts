@@ -211,7 +211,7 @@ dependencies {
 
     // implementation("com.github.tachiyomiorg:subsampling-scale-image-view:6caf219")
     // TODO: switch to new decoder for stable releases
-    implementation("com.github.tachiyomiorg:subsampling-scale-image-view:ca26317")
+    implementation("com.github.tachiyomiorg:subsampling-scale-image-view:93d74f0")
 
     // Logging
     implementation("com.jakewharton.timber:timber:4.7.1")
@@ -285,8 +285,8 @@ dependencies {
     implementation ("info.debatty:java-string-similarity:2.0.0")
 
     // Firebase (EH)
-    implementation("com.google.firebase:firebase-analytics-ktx:18.0.0")
-    implementation("com.google.firebase:firebase-crashlytics-ktx:17.3.0")
+    implementation("com.google.firebase:firebase-analytics-ktx:18.0.2")
+    implementation("com.google.firebase:firebase-crashlytics-ktx:17.3.1")
 
     // Better logging (EH)
     implementation("com.elvishew:xlog:1.7.1")
