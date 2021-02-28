@@ -280,6 +280,24 @@ class SettingsReaderController : SettingsController() {
             }
         }
 
+        // SY -->
+        preferenceCategory {
+            titleRes = R.string.vertical_plus_viewer
+
+            switchPreference {
+                key = Keys.continuousVerticalTappingByPage
+                titleRes = R.string.tap_scroll_page
+                summaryRes = R.string.tap_scroll_page_summary
+                defaultValue = false
+            }
+            switchPreference {
+                key = Keys.cropBordersContinuesVertical
+                titleRes = R.string.pref_crop_borders
+                defaultValue = false
+            }
+        }
+        // SY <--
+
         preferenceCategory {
             titleRes = R.string.pref_reader_navigation
 
@@ -306,24 +324,6 @@ class SettingsReaderController : SettingsController() {
                 preferences.readWithVolumeKeys().asImmediateFlow { isVisible = it }.launchIn(viewScope)
             }
         }
-
-        // SY -->
-        preferenceCategory {
-            titleRes = R.string.vertical_plus_viewer
-
-            switchPreference {
-                key = Keys.continuousVerticalTappingByPage
-                titleRes = R.string.tap_scroll_page
-                summaryRes = R.string.tap_scroll_page_summary
-                defaultValue = false
-            }
-            switchPreference {
-                key = Keys.cropBordersContinuesVertical
-                titleRes = R.string.pref_crop_borders
-                defaultValue = false
-            }
-        }
-        // SY <--
 
         // EXH -->
         preferenceCategory {
