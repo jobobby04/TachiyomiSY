@@ -88,9 +88,9 @@
     <color name="pageNumberBackgroundLight">@color/md_grey_50_75</color>
     <color name="pageNumberBackgroundDark">@color/md_grey_900_75</color>
 
-    <color name="readerMenuBackgroundLight">@color/readerColorDarkPrimary</color>
-    <color name="readerMenuBackgroundGray">#800C0C0E</color>
-    <color name="readerMenuBackgroundDark">@color/readerColorDarkPrimary</color>
+    <color name="readerMenuBackgroundLight">#80000000</color>
+    <color name="readerMenuBackgroundGray">#80000000</color>
+    <color name="readerMenuBackgroundDark">#80000000</color>
 
     <color name="filterColorLight">#FFC107</color>
     <color name="filterColorDark">#FFEB3B</color>

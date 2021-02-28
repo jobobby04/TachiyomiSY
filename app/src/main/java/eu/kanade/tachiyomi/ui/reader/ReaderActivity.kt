@@ -390,6 +390,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             }
         }
 
+        // SY -->
         // Init listeners on bottom menu
         val listener = object : SimpleSeekBarListener() {
             override fun onProgressChanged(seekBar: SeekBar, value: Int, fromUser: Boolean) {
@@ -402,7 +403,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             .forEach {
                 it.setOnSeekBarChangeListener(listener)
             }
-        )
+        // SY <--
 
         // Extra menu buttons
 
@@ -813,16 +814,15 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
 
         // --> Left-handed vertical seekbar
 
-        val params = binding.readerNavVert.getLayoutParams() as RelativeLayout.LayoutParams
+        val params = binding.readerNavVert.layoutParams as RelativeLayout.LayoutParams
         if (preferences.leftVerticalSeekbar().get() && binding.readerNavVert.isVisible) {
             params.removeRule(RelativeLayout.ALIGN_PARENT_END)
-            binding.readerNavVert.setLayoutParams(params)
+            binding.readerNavVert.layoutParams = params
         }
 
         // <-- Left-handed vertical seekbar
 
         // SY <--
-
         binding.toolbar.title = manga.title
 
         binding.pageSeekbar.isRTL = newViewer is R2LPagerViewer
@@ -1058,16 +1058,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
     }
 
     /**
-     * Forces the user preferred [orientation] on the activity.
-     */
-    private fun setOrientation(orientation: Int) {
-        val newOrientation = OrientationType.fromPreference(orientation, resources)
-        if (newOrientation.flag != requestedOrientation) {
-            requestedOrientation = newOrientation.flag
-        }
-    }
-
-    /**
      * Class that handles the user preferences of the reader.
      */
     private inner class ReaderConfig {
@@ -1118,6 +1108,33 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             preferences.colorFilterMode().asFlow()
                 .onEach { setColorFilter(preferences.colorFilter().get()) }
                 .launchIn(lifecycleScope)
+        }
+
+        /**
+         * Forces the user preferred [orientation] on the activity.
+         */
+        private fun setOrientation(orientation: Int) {
+            val newOrientation = when (orientation) {
+                // Lock in current orientation
+                2 -> {
+                    val currentOrientation = resources.configuration.orientation
+                    if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) {
+                        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                    } else {
+                        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                    }
+                }
+                // Lock in portrait
+                3 -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                // Lock in landscape
+                4 -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                // Rotation free
+                else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+
+            if (newOrientation != requestedOrientation) {
+                requestedOrientation = newOrientation
+            }
         }
 
         /**

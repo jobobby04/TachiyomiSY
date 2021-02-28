@@ -4,7 +4,7 @@
 
     <gradient
         android:angle="90"
-        android:startColor="?attr/readerMenu"
-        android:endColor="#00ffffff" />
+        android:startColor="#00ffffff"
+        android:endColor="?attr/readerMenu" />
 
 </shape>
