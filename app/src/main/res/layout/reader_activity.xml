@@ -301,8 +301,8 @@
 
                 <ImageButton
                     android:id="@+id/left_chapter"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginEnd="8dp"
                     android:background="@drawable/reader_seekbar_button"
                     android:contentDescription="@string/action_previous_chapter"
@@ -366,7 +366,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
+                android:layout_height="?attr/actionBarSize"
                 android:layout_gravity="bottom"
                 android:background="?attr/colorPrimary">
 

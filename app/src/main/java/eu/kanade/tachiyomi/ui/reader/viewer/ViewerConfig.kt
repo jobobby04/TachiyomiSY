@@ -18,13 +18,13 @@ abstract class ViewerConfig(preferences: PreferencesHelper, private val scope: C
     var tappingEnabled = true
     var tappingInverted = TappingInvertMode.NONE
     var longTapEnabled = true
-    var usePageTransitions = false
     var doubleTapAnimDuration = 500
     var volumeKeysEnabled = false
     var volumeKeysInverted = false
     var trueColor = false
     var alwaysShowChapterTransition = true
     var dualPageSplit = false
+    var dualPageInvert = false
     var navigationMode = 0
         protected set
 
@@ -37,9 +37,6 @@ abstract class ViewerConfig(preferences: PreferencesHelper, private val scope: C
 
         preferences.readWithLongTap()
             .register({ longTapEnabled = it })
-
-        preferences.pageTransitions()
-            .register({ usePageTransitions = it })
 
         preferences.doubleTapAnimSpeed()
             .register({ doubleTapAnimDuration = it })
@@ -58,6 +55,9 @@ abstract class ViewerConfig(preferences: PreferencesHelper, private val scope: C
 
         preferences.dualPageSplit()
             .register({ dualPageSplit = it }, { imagePropertyChangedListener?.invoke() })
+
+        preferences.dualPageInvert()
+            .register({ dualPageInvert = it }, { imagePropertyChangedListener?.invoke() })
     }
 
     protected abstract fun defaultNavigation(): ViewerNavigation

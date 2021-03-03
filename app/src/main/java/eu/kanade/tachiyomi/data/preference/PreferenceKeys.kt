@@ -17,7 +17,9 @@ object PreferenceKeys {
 
     const val rotation = "pref_rotation_type_key"
 
-    const val enableTransitions = "pref_enable_transitions_key"
+    const val enableTransitionsPager = "pref_enable_transitions_pager_key"
+
+    const val enableTransitionsWebtoon = "pref_enable_transitions_webtoon_key"
 
     const val doubleTapAnimationSpeed = "pref_double_tap_anim_speed"
 
@@ -28,6 +30,8 @@ object PreferenceKeys {
     const val leftVerticalSeekbar = "pref_left_handed_vertical_seekbar"
 
     const val dualPageSplit = "pref_dual_page_split"
+
+    const val dualPageInvert = "pref_dual_page_invert"
 
     const val showReadingMode = "pref_show_reading_mode"
 

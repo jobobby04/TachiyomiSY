@@ -6,8 +6,6 @@ import android.app.ProgressDialog
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
@@ -385,6 +383,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                         action = MainActivity.SHORTCUT_MANGA
                         putExtra(MangaController.MANGA_EXTRA, id)
                         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                      
                     }
                 )
             }
@@ -435,6 +434,37 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 .launchIn(lifecycleScope)
         }
         // SY <--
+
+        /*binding.actionRotation.setOnClickListener {
+            val newOrientation = OrientationType.getNextOrientation(preferences.rotation().get(), resources)
+
+            preferences.rotation().set(newOrientation.prefValue)
+            setOrientation(newOrientation.flag)
+
+            rotationToast?.cancel()
+            rotationToast = toast(newOrientation.stringRes)
+        }
+        preferences.rotation().asImmediateFlow { updateRotationShortcut(it) }
+            .onEach {
+                updateRotationShortcut(it)
+            }
+            .launchIn(lifecycleScope)
+         */
+
+        binding.actionCustomFilter.setOnClickListener {
+            val sheet = ReaderColorFilterSheet(this)
+                // Remove dimmed backdrop so changes can be previewed
+                .apply { window?.setDimAmount(0f) }
+
+            // Hide toolbars while sheet is open for better preview
+            sheet.setOnDismissListener { setMenuVisibility(true) }
+            setMenuVisibility(false)
+
+            sheet.show()
+        }
+        binding.actionSettings.setOnClickListener {
+            ReaderSettingsSheet(this).show()
+        }
 
         /*binding.actionRotation.setOnClickListener {
             val newOrientation = OrientationType.getNextOrientation(preferences.rotation().get(), resources)
@@ -1058,6 +1088,16 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
     }
 
     /**
+     * Forces the user preferred [orientation] on the activity.
+     */
+    private fun setOrientation(orientation: Int) {
+        val newOrientation = OrientationType.fromPreference(orientation, resources)
+        if (newOrientation.flag != requestedOrientation) {
+            requestedOrientation = newOrientation.flag
+        }
+    }
+
+    /**
      * Class that handles the user preferences of the reader.
      */
     private inner class ReaderConfig {
@@ -1108,33 +1148,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             preferences.colorFilterMode().asFlow()
                 .onEach { setColorFilter(preferences.colorFilter().get()) }
                 .launchIn(lifecycleScope)
-        }
-
-        /**
-         * Forces the user preferred [orientation] on the activity.
-         */
-        private fun setOrientation(orientation: Int) {
-            val newOrientation = when (orientation) {
-                // Lock in current orientation
-                2 -> {
-                    val currentOrientation = resources.configuration.orientation
-                    if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) {
-                        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                    } else {
-                        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                    }
-                }
-                // Lock in portrait
-                3 -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                // Lock in landscape
-                4 -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                // Rotation free
-                else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            }
-
-            if (newOrientation != requestedOrientation) {
-                requestedOrientation = newOrientation
-            }
         }
 
         /**
