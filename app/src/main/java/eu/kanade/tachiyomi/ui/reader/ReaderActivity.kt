@@ -21,6 +21,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.RelativeLayout
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -143,6 +144,8 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
      */
     @Suppress("DEPRECATION")
     private var progressDialog: ProgressDialog? = null
+
+    private var rotationToast: Toast? = null
 
     companion object {
         @Suppress("unused")
@@ -311,18 +314,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 presenter.bookmarkCurrentChapter(false)
                 invalidateOptionsMenu()
             }
-            R.id.action_settings -> ReaderSettingsSheet(this).show()
-            R.id.action_custom_filter -> {
-                val sheet = ReaderColorFilterSheet(this)
-                    // Remove dimmed backdrop so changes can be previewed
-                    .apply { window?.setDimAmount(0f) }
-
-                // Hide toolbars while sheet is open for better preview
-                sheet.setOnDismissListener { setMenuVisibility(true) }
-                setMenuVisibility(false)
-
-                sheet.show()
-            }
         }
         return super.onOptionsItemSelected(item)
     }*/
@@ -368,7 +359,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
      * Initializes the reader menu. It sets up click listeners and the initial visibility.
      */
     private fun initializeMenu() {
-        // Set toolbar
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener {
@@ -388,6 +378,18 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             insets
         }
 
+        binding.toolbar.setOnClickListener {
+            presenter.manga?.id?.let { id ->
+                startActivity(
+                    Intent(this, MainActivity::class.java).apply {
+                        action = MainActivity.SHORTCUT_MANGA
+                        putExtra(MangaController.MANGA_EXTRA, id)
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    }
+                )
+            }
+        }
+
         // SY -->
         // Init listeners on bottom menu
         val listener = object : SimpleSeekBarListener() {
@@ -403,24 +405,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             }
         // SY <--
 
-        // Extra menu buttons
-        binding.filterButton.clicks()
-            .onEach {
-                ReaderColorFilterSheet(this).show()
-            }
-            .launchIn(lifecycleScope)
-
-        binding.actionSettings.clicks()
-            .onEach {
-                ReaderSettingsSheet(this).show()
-            }
-            .launchIn(lifecycleScope)
-
-        binding.webviewButton.clicks()
-            .onEach {
-                openMangaInBrowser()
-            }
-            .launchIn(lifecycleScope)
         // Extra menu buttons
 
         // SY -->
@@ -452,7 +436,45 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
         }
         // SY <--
 
+        /*binding.actionRotation.setOnClickListener {
+            val newOrientation = OrientationType.getNextOrientation(preferences.rotation().get(), resources)
+
+            preferences.rotation().set(newOrientation.prefValue)
+            setOrientation(newOrientation.flag)
+
+            rotationToast?.cancel()
+            rotationToast = toast(newOrientation.stringRes)
+        }
+        preferences.rotation().asImmediateFlow { updateRotationShortcut(it) }
+            .onEach {
+                updateRotationShortcut(it)
+            }
+            .launchIn(lifecycleScope)
+         */
+
+        binding.actionCustomFilter.setOnClickListener {
+            val sheet = ReaderColorFilterSheet(this)
+                // Remove dimmed backdrop so changes can be previewed
+                .apply { window?.setDimAmount(0f) }
+
+            // Hide toolbars while sheet is open for better preview
+            sheet.setOnDismissListener { setMenuVisibility(true) }
+            setMenuVisibility(false)
+
+            sheet.show()
+        }
+        binding.actionSettings.setOnClickListener {
+            ReaderSettingsSheet(this).show()
+        }
+
         // --> EH
+        binding.actionWebView.setOnClickListener {
+            openMangaInBrowser()
+        }
+        binding.actionChapterList.setOnClickListener {
+            chapterBottomSheet.show()
+        }
+
         binding.expandEhButton.clicks()
             .onEach {
                 ehUtilsVisible = !ehUtilsVisible
@@ -601,26 +623,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             }
             .launchIn(lifecycleScope)
 
-        chapterBottomSheet = ReaderChapterSheet(this)
-        binding.chaptersButton.clicks()
-            .onEach {
-                chapterBottomSheet.show()
-            }
-            .launchIn(lifecycleScope)
-
-        binding.toolbar.clicks()
-            .onEach {
-                presenter.manga?.id?.let { id ->
-                    startActivity(
-                        Intent(this, MainActivity::class.java)
-                            .setAction(MainActivity.SHORTCUT_MANGA)
-                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                            .putExtra(MangaController.MANGA_EXTRA, id)
-                    )
-                }
-            }
-            .launchIn(lifecycleScope)
-
         autoScrollFlow
             .onEach {
                 viewer.let { v ->
@@ -629,6 +631,8 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 }
             }
             .launchIn(lifecycleScope)
+
+        chapterBottomSheet = ReaderChapterSheet(this)
         // <-- EH
 
         // Set initial visibility
@@ -645,6 +649,11 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
         return currentPage?.let { presenter.viewerChaptersRelay.value.currChapter.pages?.getOrNull(it) }
     }
     // EXH <--
+
+    /*private fun updateRotationShortcut(preference: Int) {
+        val orientation = OrientationType.fromPreference(preference, resources)
+        binding.actionRotation.setImageResource(orientation.iconRes)
+    }*/
 
     /**
      * Sets the visibility of the menu according to [visible] and with an optional parameter to
@@ -665,7 +674,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 toolbarAnimation.setAnimationListener(
                     object : SimpleAnimationListener() {
                         override fun onAnimationStart(animation: Animation) {
-// Fix status bar being translucent the first time it's opened.
+                            // Fix status bar being translucent the first time it's opened.
                             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
                         }
                     }
@@ -805,16 +814,15 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
 
         // --> Left-handed vertical seekbar
 
-        val params = binding.readerNavVert.getLayoutParams() as RelativeLayout.LayoutParams
+        val params = binding.readerNavVert.layoutParams as RelativeLayout.LayoutParams
         if (preferences.leftVerticalSeekbar().get() && binding.readerNavVert.isVisible) {
             params.removeRule(RelativeLayout.ALIGN_PARENT_END)
-            binding.readerNavVert.setLayoutParams(params)
+            binding.readerNavVert.layoutParams = params
         }
 
         // <-- Left-handed vertical seekbar
 
         // SY <--
-
         binding.toolbar.title = manga.title
 
         binding.pageSeekbar.isRTL = newViewer is R2LPagerViewer
