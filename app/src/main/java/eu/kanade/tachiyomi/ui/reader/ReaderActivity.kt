@@ -6,6 +6,7 @@ import android.app.ProgressDialog
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
@@ -383,7 +384,6 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                         action = MainActivity.SHORTCUT_MANGA
                         putExtra(MangaController.MANGA_EXTRA, id)
                         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                      
                     }
                 )
             }
