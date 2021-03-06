@@ -21,5 +21,6 @@
     <attr name="readerMenu" format="reference|integer"/>
     <attr name="downloadedIcon" format="reference|integer"/>
     <attr name="downloadIcon" format="reference|integer"/>
+    <attr name="tabSelectorColor" format="reference|integer"/>
 
 </resources>

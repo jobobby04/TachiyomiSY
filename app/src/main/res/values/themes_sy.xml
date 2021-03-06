@@ -19,6 +19,7 @@
         <item name="border">@color/borderDusk</item>
         <item name="downloadedIcon">@color/downloadedIconDusk</item>
         <item name="downloadIcon">@color/downloadIconDark</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorDusk</item>
 
         <item name="android:colorBackground">@color/backgroundDusk</item>
 
@@ -46,6 +47,7 @@
         <item name="lowlight">@color/borderLime</item>
         <item name="downloadedIcon">@color/downloadedIconLime</item>
         <item name="downloadIcon">@color/downloadIconDark</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorLime</item>
 
         <item name="android:colorBackground">@color/backgroundLime</item>
 

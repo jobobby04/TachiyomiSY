@@ -28,7 +28,11 @@
             style="@style/Theme.Widget.Tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/background" />
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:clipToPadding="false"
+            android:background="?attr/background"
+            app:tabTextColor="@color/tab_text_color"/>
 
         <LinearLayout
             android:layout_width="wrap_content"

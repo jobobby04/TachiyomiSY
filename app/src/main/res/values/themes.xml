@@ -95,6 +95,7 @@
         <item name="lowlight">@color/lowlightLight</item>
         <item name="downloadedIcon">@color/downloadedIcon</item>
         <item name="downloadIcon">@color/downloadIconLight</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorLight</item>
 
         <item name="colorFilterActive">@color/filterColorLight</item>
     </style>
@@ -112,6 +113,7 @@
         <item name="lowlight">@color/lowlightLightFlat</item>
         <item name="downloadedIcon">@color/downloadedIcon</item>
         <item name="downloadIcon">@color/downloadIconLight</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorLight</item>
 
         <item name="colorLibrarySelectionActive">@color/selectorColorLight</item>
 
@@ -142,6 +144,7 @@
         <item name="lowlight">@color/lowlightDark</item>
         <item name="downloadedIcon">@color/downloadedIcon</item>
         <item name="downloadIcon">@color/downloadIconDark</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorDark</item>
 
         <!-- Handles RTL text -->
         <item name="android:textAlignment">gravity</item>
@@ -214,6 +217,7 @@
         <item name="lowlight">@color/lowlightDarkFlat</item>
         <item name="downloadedIcon">@color/downloadedIcon</item>
         <item name="downloadIcon">@color/downloadIconDark</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorDark</item>
 
         <item name="colorLibrarySelectionActive">@color/selectorColorLight</item>
     </style>
@@ -226,6 +230,7 @@
         <item name="border">@color/borderAmoled</item>
         <item name="downloadedIcon">@color/downloadedIcon</item>
         <item name="downloadIcon">@color/downloadIconDark</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorDark</item>
 
         <item name="android:colorBackground">@color/colorAmoledPrimary</item>
 
@@ -253,6 +258,7 @@
         <item name="border">@color/red</item>
         <item name="downloadedIcon">@color/downloadedIconRed</item>
         <item name="downloadIcon">@color/downloadIconDark</item>
+        <item name="tabSelectorColor">@color/tabSelectorColorRed</item>
 
     </style>
 

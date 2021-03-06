@@ -31,12 +31,13 @@
         android:id="@+id/download_progress"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="1dp"
+        android:layout_gravity="center"
+        android:padding="3dp"
         android:visibility="gone"
-        app:indicatorColor="?android:attr/textColorHint"
+        app:indicatorColor="?attr/downloadedIcon"
         app:indicatorInset="0dp"
-        app:indicatorSize="24dp"
-        app:trackThickness="2dp" />
+        app:indicatorSize="26dp"
+        app:trackThickness="2.7dp" />
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/download_queued"

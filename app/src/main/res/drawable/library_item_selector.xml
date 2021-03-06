@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="?attr/colorLibrarySelection">
+    android:color="?attr/colorPrimary">
     <item>
-        <selector>
-            <item android:state_selected="true">
-                <color android:color="?attr/colorLibrarySelectionActive" />
-            </item>
 
-            <item android:state_activated="true">
-                <color android:color="?attr/colorLibrarySelectionActive" />
-            </item>
+        <selector>
+
+            <item android:state_selected="true"
+                android:drawable="@drawable/library_rounded_rectangle" />
+
+            <item android:state_activated="true"
+                android:drawable="@drawable/library_rounded_rectangle" />
 
             <item>
                 <color android:color="?android:attr/colorBackground" />
             </item>
+
         </selector>
+
     </item>
+
 </ripple>

@@ -19,26 +19,33 @@
             android:orientation="horizontal"
             android:padding="8dp">
 
-            <LinearLayout
-                android:id="@+id/logo_container"
+            <androidx.cardview.widget.CardView
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
-                android:foreground="@drawable/rounded_rectangle_stroke"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal"
                 android:padding="4dp"
+                app:cardCornerRadius="5dp"
+                app:cardElevation="0dp">
 
-                tools:background="#2E51A2">
-
-                <ImageView
-                    android:id="@+id/track_logo"
+                <LinearLayout
+                    android:id="@+id/logo_container"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    tools:src="@drawable/ic_tracker_mal" />
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
 
-            </LinearLayout>
+                    tools:background="#2E51A2">
+
+                    <ImageView
+                        android:id="@+id/track_logo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        tools:src="@drawable/ic_tracker_mal" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
             <LinearLayout
                 android:layout_width="match_parent"
