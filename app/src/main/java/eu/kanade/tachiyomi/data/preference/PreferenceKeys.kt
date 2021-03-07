@@ -125,6 +125,8 @@ object PreferenceKeys {
 
     const val libraryUpdatePrioritization = "library_update_prioritization"
 
+    const val labels = "pref_hide_labels"
+
     const val downloadedOnly = "pref_downloaded_only"
 
     const val filterDownloaded = "pref_filter_library_downloaded"

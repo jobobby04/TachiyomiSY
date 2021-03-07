@@ -464,4 +464,6 @@ class PreferencesHelper(val context: Context) {
     fun landscapeVerticalSeekbar() = flowPrefs.getBoolean(Keys.landscapeVerticalSeekbar, false)
 
     fun leftVerticalSeekbar() = flowPrefs.getBoolean(Keys.leftVerticalSeekbar, false)
+
+    fun labels() = flowPrefs.getBoolean(Keys.labels, false)
 }

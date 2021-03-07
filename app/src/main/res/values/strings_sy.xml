@@ -187,6 +187,8 @@
     <string name="pref_source_navigation_summery">Replace latest button with a custom browse view that includes both latest and browse</string>
     <string name="pref_local_source_hidden_folders">Local source hidden folders</string>
     <string name="pref_local_source_hidden_folders_summery">Allow local source to read hidden folders</string>
+    <string name="pref_hide_labels">Hide pill labels</string>
+    <string name="pref_hide_labels_summary">Hide downloaded only and incognito indicator pill labels</string>
 
     <!-- Download settings -->
     <string name="save_chapter_as_cbz">Save Chapters as CBZ</string>

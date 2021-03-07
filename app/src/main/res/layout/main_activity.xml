@@ -31,16 +31,18 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:clipToPadding="false"
-            android:background="?attr/background"
-            />
+            android:background="?attr/background" />
 
         <LinearLayout
+            android:id="@+id/labels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_gravity="start"
             android:background="@color/transparent"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="visible"
+            tools:visibility="visible">
 
             <FrameLayout
                 android:id="@+id/downloaded_only"

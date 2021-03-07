@@ -273,6 +273,13 @@ class SettingsGeneralController : SettingsController() {
             titleRes = R.string.pref_category_fork
 
             switchPreference {
+                key = Keys.labels
+                titleRes = R.string.pref_hide_labels
+                summaryRes = R.string.pref_hide_labels_summary
+                defaultValue = false
+            }
+
+            switchPreference {
                 key = Keys.eh_expandFilters
                 titleRes = R.string.toggle_expand_search_filters
                 defaultValue = false
