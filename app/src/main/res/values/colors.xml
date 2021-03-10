@@ -52,9 +52,8 @@
     <color name="textColorPrimaryPink">@color/md_white_1000</color>
     <color name="textColorSecondaryPink">@color/md_white_1000_70</color>
     <color name="textColorHintPink">@color/md_white_1000_50</color>
-    <color name="dividerPink">#12ffffff</color>
-    <color name="rippleColorPink">@color/md_white_1000_20</color>
     <color name="backgroundPink">@color/md_black_1000</color>
+    <color name="dialogPink">@color/md_black_1000</color>
     <color name="selectorColorPink">#80FF69B4</color>
 
     <!-- Reader Theme -->
