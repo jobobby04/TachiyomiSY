@@ -56,6 +56,15 @@
     <color name="dialogPink">@color/md_black_1000</color>
     <color name="selectorColorPink">#80FF69B4</color>
 
+    <!-- Lime Green Theme -->
+    <color name="colorAccentLime">#5ccc00</color>
+    <color name="textColorPrimaryLime">@color/md_white_1000</color>
+    <color name="textColorSecondaryLime">@color/md_white_1000_70</color>
+    <color name="textColorHintLime">@color/md_white_1000_50</color>
+    <color name="backgroundLime">@color/md_black_1000</color>
+    <color name="dialogLime">@color/md_black_1000</color>
+    <color name="selectorColorLime">#805ccc00</color>
+
     <!-- Reader Theme -->
     <color name="readerColorDarkPrimary">@color/colorDarkPrimary</color>
     <color name="pageNumberBackgroundLight">@color/md_grey_50_75</color>
