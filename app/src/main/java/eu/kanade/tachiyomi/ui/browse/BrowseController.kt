@@ -114,21 +114,28 @@ class BrowseController :
 
         // SY -->
         private val tabTitles = (
-            if (preferences.latestTabInFront().get()) {
+            if (preferences.latestTabVisibility().get()) {
                 listOf(
-                    R.string.latest,
                     R.string.label_sources,
                     R.string.label_extensions,
                     R.string.label_migration
-
                 )
             } else {
-                listOf(
-                    R.string.label_sources,
-                    R.string.latest,
-                    R.string.label_extensions,
-                    R.string.label_migration
-                )
+                if (preferences.latestTabInFront().get()) {
+                    listOf(
+                        R.string.latest,
+                        R.string.label_sources,
+                        R.string.label_extensions,
+                        R.string.label_migration
+                    )
+                } else {
+                    listOf(
+                        R.string.label_sources,
+                        R.string.latest,
+                        R.string.label_extensions,
+                        R.string.label_migration
+                    )
+                }
             }
             )
             // SY <--
@@ -140,14 +147,27 @@ class BrowseController :
 
         override fun configureRouter(router: Router, position: Int) {
             if (!router.hasRootController()) {
-                val controller: Controller = when (position) {
-                    // SY -->
-                    SOURCES_CONTROLLER -> if (preferences.latestTabInFront().get()) LatestController() else SourceController()
-                    LATEST_CONTROLLER -> if (!preferences.latestTabInFront().get()) LatestController() else SourceController()
-                    // SY <--
-                    EXTENSIONS_CONTROLLER -> ExtensionController()
-                    MIGRATION_CONTROLLER -> MigrationSourcesController()
-                    else -> error("Wrong position $position")
+                val controller: Controller = if (!preferences.latestTabVisibility().get()) {
+                    when (position) {
+                        // SY -->
+                        SOURCES_CONTROLLER -> if (preferences.latestTabInFront().get()) LatestController() else SourceController()
+                        LATEST_CONTROLLER -> if (!preferences.latestTabInFront().get()) LatestController() else SourceController()
+
+                        // SY <--
+                        EXTENSIONS_CONTROLLER -> ExtensionController()
+                        MIGRATION_CONTROLLER -> MigrationSourcesController()
+                        else -> error("Wrong position $position")
+                    }
+                } else {
+                    when (position) {
+                        // SY -->
+                        SOURCES_CONTROLLER -> SourceController()
+
+                        // SY <--
+                        LATEST_CONTROLLER -> ExtensionController()
+                        EXTENSIONS_CONTROLLER -> MigrationSourcesController()
+                        else -> error("Wrong position $position")
+                    }
                 }
                 router.setRoot(RouterTransaction.with(controller))
             }

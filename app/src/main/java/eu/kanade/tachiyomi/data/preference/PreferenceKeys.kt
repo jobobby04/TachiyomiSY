@@ -295,6 +295,8 @@ object PreferenceKeys {
 
     const val latest_tab_position = "latest_tab_position"
 
+    const val latest_tab_visibility = "latest_tab_visibility"
+
     const val sources_tab_categories = "sources_tab_categories"
 
     const val sources_tab_categories_filter = "sources_tab_categories_filter"
