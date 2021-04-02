@@ -24,7 +24,7 @@ object TachideskBackupHandler {
                 client.newCall(
                     POST(
                         Injekt.get<PreferencesHelper>().tachideskUrl()
-                            .get() + "/backup/legacy/import",
+                            .get() + "/api/v1/backup/legacy/import",
                         body = uniFile.openInputStream().bufferedReader().use { it.readText() }
                             .toRequestBody(jsonMime)
                     )
@@ -40,7 +40,7 @@ object TachideskBackupHandler {
         val response = client.newCall(
             GET(
                 Injekt.get<PreferencesHelper>().tachideskUrl()
-                    .get() + "/backup/legacy/export"
+                    .get() + "/api/v1/backup/legacy/export"
             )
         ).await()
 

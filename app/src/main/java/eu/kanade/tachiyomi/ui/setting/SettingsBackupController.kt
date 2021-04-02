@@ -177,7 +177,7 @@ class SettingsBackupController : SettingsController() {
             editTextPreference {
                 key = Keys.tachideskUrl
                 title = "Tachidesk Url"
-                summary = "The url for a tachidesk server, example: \"192.168.0.2:4567\""
+                summary = "The url for a tachidesk server, example: \"http://192.168.0.2:4567\""
                 defaultValue = ""
             }
             preference {
