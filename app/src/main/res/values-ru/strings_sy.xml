@@ -248,7 +248,7 @@
     <string name="pref_show_vert_seekbar_landscape">Показать вертикальную панель поиска в альбомной ориентации</string>
     <string name="pref_show_vert_seekbar_landscape_summary">Включает вертикальную панель поиска в ландшафтном режиме</string>
     <string name="pref_left_handed_vertical_seekbar">Левая вертикальная панель поиска</string>
-    <string name="pref_left_handed_vertical_seekbar_summary">Switches which side the seekbar is on</string>
+    <string name="pref_left_handed_vertical_seekbar_summary">Переключает, на какой стороне находится панель поиска</string>
     <string name="pref_force_horz_seekbar">Принудительная горизонтальная панель поиска</string>
     <string name="pref_force_horz_seekbar_summary">Убирает вертикальную панель поиска полностью в пользу горизонтальной</string>
     <!-- Reader -->
