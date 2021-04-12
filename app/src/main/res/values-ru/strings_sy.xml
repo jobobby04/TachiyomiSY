@@ -166,10 +166,10 @@
 
     <!-- General Settings -->
     <string name="toggle_expand_search_filters">Разверните все фильтры поиска по умолчанию</string>
-    <string name="auto_solve_captchas">Автоматического решения капчи</string>
-    <string name="auto_solve_captchas_summary">Использовать В ВЫСШЕЙ СТЕПЕНИ ЭКСПЕРИМЕНТАЛЬНЫЙ автомат ReCAPTCHA решатель. Если ваше устройство не поддерживается, оно будет выделено серым цветом.</string>
-    <string name="put_recommends_in_overflow">Рекомендации в переполнении</string>
-    <string name="put_recommends_in_overflow_summary">Поместите кнопку рекомендации в меню переполнения вместо страницы манги</string>
+    <string name="auto_solve_captchas">Автоматическое решение капчи</string>
+    <string name="auto_solve_captchas_summary">Использовать В ВЫСШЕЙ СТЕПЕНИ ЭКСПЕРИМЕНТАЛЬНОЕ автоматическое прохождение ReCAPTCHA. Если ваше устройство не поддерживается, оно будет выделено серым цветом.</string>
+    <string name="put_recommends_in_overflow">Рекомендации в выпадающем меню</string>
+    <string name="put_recommends_in_overflow_summary">Поместите кнопку рекомендации в выпадающее меню вместо страницы манги</string>
 
     <!-- Library settings -->
     <string name="pref_sorting_settings">Настройки Сортировки</string>
