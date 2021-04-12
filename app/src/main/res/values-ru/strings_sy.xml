@@ -169,12 +169,12 @@
     <string name="auto_solve_captchas">Автоматическое решение капчи</string>
     <string name="auto_solve_captchas_summary">Использовать В ВЫСШЕЙ СТЕПЕНИ ЭКСПЕРИМЕНТАЛЬНОЕ автоматическое прохождение ReCAPTCHA. Если ваше устройство не поддерживается, оно будет выделено серым цветом.</string>
     <string name="put_recommends_in_overflow">Рекомендации в выпадающем меню</string>
-    <string name="put_recommends_in_overflow_summary">Поместите кнопку рекомендации в выпадающее меню вместо страницы манги</string>
+    <string name="put_recommends_in_overflow_summary">Поместить кнопку рекомендации в выпадающее меню вместо размещения на странице манги</string>
 
     <!-- Library settings -->
     <string name="pref_sorting_settings">Настройки Сортировки</string>
     <string name="pref_skip_pre_migration_summary">Используйте последние сохраненные настройки и источники перед миграцией для массовой миграции</string>
-    <string name="library_settings_sheet">Лист настроек библиотеки</string>
+    <string name="library_settings_sheet">Панель настроек библиотеки</string>
     <string name="library_settings_sheet_summary">Дополнительные настройки отображения библиотеки</string>
     <string name="library_group_updates">Динамическе обновление категорий библиотеки</string>
     <string name="library_group_updates_global">Всегда запускать глобальные обновления</string>
