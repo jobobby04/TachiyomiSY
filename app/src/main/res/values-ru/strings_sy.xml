@@ -3,7 +3,7 @@
     <!-- Actions -->
     <string name="action_sort_first_checked">Первый проверенный</string>
     <string name="action_sort_drag_and_drop">Перетаскивание</string>
-    <string name="action_sort_enabled">Enabled</string>
+    <string name="action_sort_enabled">Активные</string>
     <string name="action_skip_manga">Не перемещать</string>
     <string name="action_search_manually">Искать вручную</string>
     <string name="action_migrate_now">Переместить сейчас</string>
@@ -391,7 +391,7 @@
     <!-- Library -->
     <!-- Library Sheet -->
     <string name="tracked">Отслеживается</string>
-    <string name="lewd">Развратный</string>
+    <string name="lewd">18+</string>
     <string name="started">Начато</string>
 
     <!-- Library Grouping -->
@@ -525,8 +525,8 @@
     <string name="artist">Художник</string>
     <string name="reader_id">Читатель id</string>
     <string name="series">Серии</string>
-    <string name="characters">Characters</string>
-    <string name="group">Персонажи</string>
+    <string name="characters">Персонажи</string>
+    <string name="group">Группировать</string>
     <string name="media_id">Медиа id</string>
     <string name="japanese_title">Японское название</string>
     <string name="english_title">Английское название</string>
