@@ -19,6 +19,7 @@ import com.afollestad.materialdialogs.list.listItems
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.tfcporciuncula.flow.Preference
+import dev.chrisbanes.insetter.applyInsetter
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
@@ -384,6 +385,11 @@ open class BrowseSourceController(bundle: Bundle) :
             actionFab?.shrinkOnScroll(recycler)
         }
 
+        recycler.applyInsetter {
+            type(navigationBars = true) {
+                padding()
+            }
+        }
         recycler.setHasFixedSize(true)
         recycler.adapter = adapter
 

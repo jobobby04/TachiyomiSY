@@ -20,6 +20,9 @@ subprojects {
 
     kotlinter {
         experimentalRules = true
+
+        // Doesn't play well with Android Studio
+        disabledRules = arrayOf("experimental:argument-list-wrapping")
     }
 }
 
@@ -33,7 +36,7 @@ buildscript {
         classpath("io.realm:realm-gradle-plugin:10.3.1")
 
         // Firebase Crashlytics
-        classpath("com.google.firebase:firebase-crashlytics-gradle:2.5.1")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.5.2")
     }
     repositories {
         google()

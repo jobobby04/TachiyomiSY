@@ -150,6 +150,10 @@
             android:name=".extension.util.ExtensionInstallActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <activity
+            android:name="exh.ui.login.EhLoginActivity"
+            android:label="EHentaiLogin" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -316,7 +320,7 @@
                     android:scheme="https" />
 
                 <!-- MangaDex -->
-                <data
+                <!--<data
                     android:scheme="https"
                     android:host="www.mangadex.org"
                     android:pathPrefix="/manga/" />
@@ -365,7 +369,7 @@
                 <data
                     android:scheme="https"
                     android:host="www.mangadex.cc"
-                    android:pathPrefix="/chapter/" />
+                    android:pathPrefix="/chapter/" />-->
             </intent-filter>
         </activity>
         <activity
