@@ -217,7 +217,7 @@
     <string name="biometric_lock_invalid_time_selected">Выбрано неверное время</string>
 
     <!-- Reader Settings -->
-    <string name="download_threads">Скачать темы</string>
+    <string name="download_threads">Потоки загрузки</string>
     <string name="download_threads_summary">Более высокие значения могут значительно ускорить загрузку изображений, но также могут вызвать запреты. Рекомендуемое значение-2 или 3. Текущее значение: %s</string>
     <string name="aggressively_load_pages">Агрессивная загрузка страниц</string>
     <string name="aggressively_load_pages_summary">Медленно загружайте всю главу во время чтения, а не просто загружайте страницы, которые вы просматриваете.</string>
