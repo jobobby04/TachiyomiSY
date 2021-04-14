@@ -526,7 +526,7 @@
     <string name="reader_id">Читатель id</string>
     <string name="series">Серии</string>
     <string name="characters">Персонажи</string>
-    <string name="group">Группировать</string>
+    <string name="group">Группировка</string>
     <string name="media_id">Медиа id</string>
     <string name="japanese_title">Японское название</string>
     <string name="english_title">Английское название</string>
@@ -534,7 +534,7 @@
     <string name="cover_image_file_type">Тип изображения обложки</string>
     <string name="thumbnail_image_file_type">Тип файла миниатюры изображения</string>
     <string name="scanlator">Сканлэйтор</string>
-    <string name="url">Url</string>
+    <string name="url">Ссылка</string>
     <string name="alt_titles">Альтернативные названия</string>
     <string name="uploader_capital">Загрузчик с заглавной буквы</string>
     <string name="uploader">Загрузчик</string>
@@ -596,20 +596,20 @@
     <string name="md_follows_unfollowed">Нарушенными</string>
     <string name="mangadex_specific_settings">MangaDex настройки</string>
     <string name="mangadex_sync_follows_to_library">Синхронизация Mangadex мангу в вашу библиотеку</string>
-    <string name="mangadex_sync_follows_to_library_summary">Тянет чтение/перечитывание манги из MangaDex в вашу библиотеку, если они еще не добавлены.</string>
+    <string name="mangadex_sync_follows_to_library_summary">Берёт чтение/перечитывание манги из MangaDex в вашу библиотеку, если они еще не добавлены.</string>
     <string name="mangadex_sync_follows_to_library_message">Выберите статус Манги, чтобы вытащить из Mangadex</string>
     <string name="mangadex_low_quality_covers">Используйте миниатюры низкого качества</string>
     <string name="mangadex_use_latest_cover">Использовать последние загруженные обложки</string>
-    <string name="mangadex_use_latest_cover_summary">Когда он включен, он использует последнюю загруженную обложку манги под /covers url iвместо того чтобы использовать обложку на MangaDex странице манги</string>
+    <string name="mangadex_use_latest_cover_summary">Когда включён, он использует последнюю загруженную обложку манги под /covers url вместо того чтобы использовать обложку на MangaDex странице манги</string>
     <string name="mangadex_preffered_source">Предпочтительный MangaDex источник</string>
     <string name="mangadex_preffered_source_summary">Установите выбранный вами источник MangaDex, он будет использоваться для следующих и еще нескольких функций вокруг приложения</string>
     <string name="two_factor">2FA Code</string>
     <string name="fields_cannot_be_blank">Поля не могут быть пустыми</string>
     <string name="mangadex_add_to_follows">Добавьте в MangaDex следующее</string>
     <string name="mangadex_follows">MangaDex последователи</string>
-    <string name="random">Random</string>
+    <string name="random">Рандом</string>
     <string name="mangadex_push_favorites_to_mangadex">Синхронизация библиотеки манги с MangaDex</string>
-    <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любые не MdList отслеживаемая манга MangaDex как чтение.</string>
+    <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любую не отслеживаемую MDList мангу с MangaDex помечая читаемой.</string>
     <string name="mangadex_push_favorites_to_mangadex_toast">Переместил %d мангу в MangaDex</string>
 
 
@@ -621,8 +621,8 @@
     <!-- Similar -->
     <string name="similar">Аналогично %1$s</string>
     <string name="similar_manga">Похожая Манга</string>
-    <string name="similar_loading_percent">Обновление похожая манга (%1$d / %2$d обновлена)</string>
-    <string name="similar_loading_complete">Обновлена похожая манга</string>
+    <string name="similar_loading_percent">Обновление похожей манги (%1$d / %2$d обновлена)</string>
+    <string name="similar_loading_complete">Похожая манга обновлена </string>
     <string name="similar_loading_complete_error">Ошибка при попытке загрузить/обработать похожую мангу</string>
     <string name="similar_loading_progress_start">Загрузка файла данных похожей манги…</string>
     <string name="similar_ask_to_enable_title">Включить Похожую Мангу?</string>
@@ -652,7 +652,7 @@
     <string name="similar_credit_message">
         Для получения дополнительной информации и просмотра исходного кода:\n%s
     </string>
-    <string name="similar_no_results">Подобной манги не найдено</string>
+    <string name="similar_no_results">Похожая манга не найдена</string>
 
     <!-- Humanize time -->
     <plurals name="humanize_year">
