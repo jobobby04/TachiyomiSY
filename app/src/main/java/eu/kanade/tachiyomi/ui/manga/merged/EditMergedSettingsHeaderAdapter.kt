@@ -42,7 +42,7 @@ class EditMergedSettingsHeaderAdapter(private val controller: EditMergedSettings
                 android.R.layout.simple_spinner_item,
                 listOf(
                     "No dedupe",
-                    "Dedupe by priority",
+                    /*"Dedupe by priority",*/
                     "Show source with most chapters",
                     "Show source with highest chapter number"
                 )
@@ -53,9 +53,9 @@ class EditMergedSettingsHeaderAdapter(private val controller: EditMergedSettings
                 binding.dedupeModeSpinner.setSelection(
                     when (it.chapterSortMode) {
                         MergedMangaReference.CHAPTER_SORT_NO_DEDUPE -> 0
-                        MergedMangaReference.CHAPTER_SORT_PRIORITY -> 1
-                        MergedMangaReference.CHAPTER_SORT_MOST_CHAPTERS -> 2
-                        MergedMangaReference.CHAPTER_SORT_HIGHEST_CHAPTER_NUMBER -> 3
+                        /*MergedMangaReference.CHAPTER_SORT_PRIORITY -> 1*/
+                        MergedMangaReference.CHAPTER_SORT_MOST_CHAPTERS -> 1
+                        MergedMangaReference.CHAPTER_SORT_HIGHEST_CHAPTER_NUMBER -> 2
                         else -> 0
                     }
                 )
@@ -69,9 +69,9 @@ class EditMergedSettingsHeaderAdapter(private val controller: EditMergedSettings
                 ) {
                     controller.mergeReference?.chapterSortMode = when (position) {
                         0 -> MergedMangaReference.CHAPTER_SORT_NO_DEDUPE
-                        1 -> MergedMangaReference.CHAPTER_SORT_PRIORITY
-                        2 -> MergedMangaReference.CHAPTER_SORT_MOST_CHAPTERS
-                        3 -> MergedMangaReference.CHAPTER_SORT_HIGHEST_CHAPTER_NUMBER
+                        /*1 -> MergedMangaReference.CHAPTER_SORT_PRIORITY*/
+                        1 -> MergedMangaReference.CHAPTER_SORT_MOST_CHAPTERS
+                        2 -> MergedMangaReference.CHAPTER_SORT_HIGHEST_CHAPTER_NUMBER
                         else -> MergedMangaReference.CHAPTER_SORT_NO_DEDUPE
                     }
                     xLogD(controller.mergeReference?.chapterSortMode)
@@ -85,7 +85,13 @@ class EditMergedSettingsHeaderAdapter(private val controller: EditMergedSettings
 
             val mergedMangas = controller.mergedMangas
 
-            val mangaInfoAdapter: ArrayAdapter<String> = ArrayAdapter(itemView.context, android.R.layout.simple_spinner_item, mergedMangas.map { sourceManager.getOrStub(it.second.mangaSourceId).toString() + " " + it.first?.title })
+            val mangaInfoAdapter: ArrayAdapter<String> = ArrayAdapter(
+                itemView.context,
+                android.R.layout.simple_spinner_item,
+                mergedMangas.map {
+                    sourceManager.getOrStub(it.second.mangaSourceId).toString() + " " + it.first?.title
+                }
+            )
             mangaInfoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             binding.mangaInfoSpinner.adapter = mangaInfoAdapter
 
@@ -102,11 +108,16 @@ class EditMergedSettingsHeaderAdapter(private val controller: EditMergedSettings
                     position: Int,
                     id: Long
                 ) {
-                    controller.mergedMangas.find { mergedManga -> mergedManga.second.id == mergedMangas.getOrNull(position)?.second?.id }?.second?.let { newInfoManga ->
+                    val mergedInfoManga = controller.mergedMangas
+                        .find { mergedManga ->
+                            mergedManga.second.id == mergedMangas.getOrNull(position)?.second?.id
+                        }
+
+                    if (mergedInfoManga != null) {
                         controller.mergedMangas.onEach {
                             it.second.isInfoManga = false
                         }
-                        newInfoManga.isInfoManga = true
+                        mergedInfoManga.second.isInfoManga = true
                     }
                 }
 
