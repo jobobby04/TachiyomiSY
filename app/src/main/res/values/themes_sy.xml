@@ -9,6 +9,7 @@
         <item name="colorAccentOnPrimary">@color/textColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/colorPrimary</item>
         <item name="background">@color/colorPrimary</item>
+        <item name="colorSurface">@color/dialogDark</item>
     </style>
 
 
