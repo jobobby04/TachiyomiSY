@@ -47,6 +47,7 @@ abstract class BaseThemedActivity : AppCompatActivity() {
     private val darkTheme: Int by lazy {
         when (preferences.themeDark().get()) {
             Values.DarkThemeVariant.blue -> R.style.Theme_Tachiyomi_DarkBlue
+            Values.DarkThemeVariant.amoledblue -> R.style.Theme_Tachiyomi_AmoledBlue
             Values.DarkThemeVariant.amoled -> R.style.Theme_Tachiyomi_Amoled
             Values.DarkThemeVariant.red -> R.style.Theme_Tachiyomi_Red
             Values.DarkThemeVariant.midnightdusk -> R.style.Theme_Tachiyomi_MidnightDusk
