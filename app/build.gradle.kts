@@ -34,8 +34,8 @@ android {
         minSdkVersion(AndroidConfig.minSdk)
         targetSdkVersion(AndroidConfig.targetSdk)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 14
-        versionName = "1.6.0"
+        versionCode = 15
+        versionName = "1.6.1"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -170,7 +170,7 @@ dependencies {
     implementation("org.conscrypt:conscrypt-android:2.5.1")
 
     // JSON
-    val kotlinSerializationVersion = "1.0.1"
+    val kotlinSerializationVersion = "1.1.0"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinSerializationVersion")
     implementation("com.google.code.gson:gson:2.8.6")
@@ -181,7 +181,7 @@ dependencies {
 
     // Disk
     implementation("com.jakewharton:disklrucache:2.0.2")
-    implementation("com.github.inorichi:unifile:e9ee588")
+    implementation("com.github.tachiyomiorg:unifile:17bec43")
     implementation("com.github.junrar:junrar:7.4.0")
 
     // HTML parser
@@ -267,12 +267,12 @@ dependencies {
 
     implementation(kotlin("reflect", version = BuildPluginsVersion.KOTLIN))
 
-    val coroutinesVersion = "1.4.2"
+    val coroutinesVersion = "1.4.3"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
 
     // For detecting memory leaks; see https://square.github.io/leakcanary/
-    // debugImplementation("com.squareup.leakcanary:leakcanary-android:2.6")
+    // debugImplementation("com.squareup.leakcanary:leakcanary-android:2.7")
 
     // SY -->
     // [EXH] Android 7 SSL Workaround

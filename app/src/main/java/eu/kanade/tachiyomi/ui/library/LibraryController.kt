@@ -7,7 +7,6 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
@@ -35,7 +34,6 @@ import eu.kanade.tachiyomi.ui.base.controller.SearchableNucleusController
 import eu.kanade.tachiyomi.ui.base.controller.TabbedController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.PreMigrationController
-import eu.kanade.tachiyomi.ui.browse.migration.sources.MigrationSourcesController
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaController
@@ -44,6 +42,7 @@ import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.toast
 import exh.favorites.FavoritesIntroDialog
 import exh.favorites.FavoritesSyncStatus
+import exh.source.MERGED_SOURCE_ID
 import exh.source.PERV_EDEN_EN_SOURCE_ID
 import exh.source.PERV_EDEN_IT_SOURCE_ID
 import exh.source.isEhBasedManga
@@ -194,18 +193,16 @@ class LibraryController(
         return LibraryPresenter()
     }
 
-    override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
-        binding = LibraryControllerBinding.inflate(inflater)
+    override fun createBinding(inflater: LayoutInflater) = LibraryControllerBinding.inflate(inflater)
+
+    override fun onViewCreated(view: View) {
+        super.onViewCreated(view)
+
         binding.actionToolbar.applyInsetter {
             type(navigationBars = true) {
                 margin(bottom = true)
             }
         }
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View) {
-        super.onViewCreated(view)
 
         adapter = LibraryAdapter(this)
         binding.libraryPager.adapter = adapter
@@ -479,9 +476,6 @@ class LibraryController(
                 }
             }
             // SY -->
-            R.id.action_source_migration -> {
-                router.pushController(MigrationSourcesController().withFadeTransaction())
-            }
             R.id.action_sync_favorites -> {
                 if (preferences.exhShowSyncIntro().get()) {
                     activity?.let { FavoritesIntroDialog().show(it) }
@@ -548,9 +542,13 @@ class LibraryController(
             // SY -->
             R.id.action_migrate -> {
                 val skipPre = preferences.skipPreMigration().get()
-                val selectedMangaIds = selectedMangas.mapNotNull { it.id }
+                val selectedMangaIds = selectedMangas.filterNot { it.source == MERGED_SOURCE_ID }.mapNotNull { it.id }
                 destroyActionModeIfNeeded()
-                PreMigrationController.navigateToMigration(skipPre, router, selectedMangaIds)
+                if (selectedMangaIds.isNotEmpty()) {
+                    PreMigrationController.navigateToMigration(skipPre, router, selectedMangaIds)
+                } else {
+                    activity?.toast(R.string.no_valid_manga)
+                }
             }
             R.id.action_clean -> cleanTitles()
             R.id.action_push_to_mdlist -> pushToMdList()

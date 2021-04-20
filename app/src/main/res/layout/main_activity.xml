@@ -19,7 +19,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarTheme"
-            app:layout_scrollFlags="scroll|enterAlways|snap" />
+            app:layout_scrollFlags="scroll|enterAlways" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabs"
@@ -90,18 +90,5 @@
         app:labelVisibilityMode="labeled"
         app:layout_insetEdge="bottom"
         app:menu="@menu/bottom_nav" />
-
-    <View
-        android:id="@+id/navigation_scrim"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_gravity="bottom"
-        android:alpha="0.5"
-        android:background="?android:attr/navigationBarColor"
-        android:clickable="false"
-        android:focusable="false"
-        android:visibility="gone"
-        tools:layout_height="?attr/actionBarSize"
-        tools:visibility="visible" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

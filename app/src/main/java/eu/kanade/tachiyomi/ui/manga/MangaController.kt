@@ -17,7 +17,6 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
@@ -276,8 +275,11 @@ class MangaController :
         )
     }
 
-    override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
-        binding = MangaControllerBinding.inflate(inflater)
+    override fun createBinding(inflater: LayoutInflater) = MangaControllerBinding.inflate(inflater)
+
+    override fun onViewCreated(view: View) {
+        super.onViewCreated(view)
+
         binding.recycler.applyInsetter {
             type(navigationBars = true) {
                 padding()
@@ -288,11 +290,6 @@ class MangaController :
                 margin(bottom = true)
             }
         }
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View) {
-        super.onViewCreated(view)
 
         if (manga == null || source == null) return
         val adapters: MutableList<RecyclerView.Adapter<out RecyclerView.ViewHolder>?> = mutableListOf()
@@ -484,7 +481,7 @@ class MangaController :
         // Hide options for non-library manga
         menu.findItem(R.id.action_edit_categories).isVisible = presenter.manga.favorite && presenter.getCategories().isNotEmpty()
         menu.findItem(R.id.action_edit_cover).isVisible = /* SY --> */ false /* presenter.manga.favorite SY <-- */
-        menu.findItem(R.id.action_migrate).isVisible = presenter.manga.favorite
+        menu.findItem(R.id.action_migrate).isVisible = presenter.manga.favorite /* SY --> */ && presenter.manga.source != MERGED_SOURCE_ID /* SY <-- */
 
         // SY -->
         menu.findItem(R.id.action_edit).isVisible = presenter.manga.favorite || isLocalSource
@@ -1275,7 +1272,6 @@ class MangaController :
             binding.actionToolbar.findItem(R.id.action_mark_as_unread)?.isVisible = chapters.all { it.chapter.read }
 
             // Hide FAB to avoid interfering with the bottom action toolbar
-            // actionFab?.hide()
             actionFab?.isVisible = false
         }
         return false
@@ -1307,10 +1303,6 @@ class MangaController :
         chaptersAdapter?.clearSelection()
         selectedChapters.clear()
         actionMode = null
-
-        // TODO: there seems to be a bug in MaterialComponents where the [ExtendedFloatingActionButton]
-        // fails to show up properly
-        // actionFab?.show()
         actionFab?.isVisible = true
     }
 
@@ -1433,13 +1425,14 @@ class MangaController :
     // OVERFLOW MENU DIALOGS
 
     private fun getUnreadChaptersSorted() = /* SY --> */ if (presenter.source.isEhBasedSource()) presenter.chapters
+        .sortedWith(presenter.getChapterSort())
         .filter { !it.read && it.status == Download.State.NOT_DOWNLOADED }
         .distinctBy { it.name }
-        .sortedBy { it.source_order }
     else /* SY <-- */ presenter.chapters
+        .sortedWith(presenter.getChapterSort())
         .filter { !it.read && it.status == Download.State.NOT_DOWNLOADED }
         .distinctBy { it.name }
-        .sortedByDescending { it.source_order }
+        .reversed()
 
     private fun downloadChapters(choice: Int) {
         val chaptersToDownload = when (choice) {
