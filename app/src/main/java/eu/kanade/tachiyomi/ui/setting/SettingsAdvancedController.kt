@@ -41,6 +41,7 @@ import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
+import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.toast
 import exh.debug.SettingsDebugController
@@ -48,12 +49,8 @@ import exh.log.EHLogLevel
 import exh.source.BlacklistedSources
 import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.launch
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -347,27 +344,28 @@ class SettingsAdvancedController : SettingsController() {
     private fun cleanupDownloads(removeRead: Boolean, removeNonFavorite: Boolean) {
         if (job?.isActive == true) return
         activity?.toast(R.string.starting_cleanup)
-        job = GlobalScope.launch(Dispatchers.IO, CoroutineStart.DEFAULT) {
+        job = launchIO {
             val mangaList = db.getMangas().executeAsBlocking()
-            val sourceManager: SourceManager = Injekt.get()
             val downloadManager: DownloadManager = Injekt.get()
             var foldersCleared = 0
-            val sources = sourceManager.getOnlineSources()
-
-            for (source in sources) {
+            Injekt.get<SourceManager>().getOnlineSources().forEach { source ->
                 val mangaFolders = downloadManager.getMangaFolders(source)
-                val sourceManga = mangaList.filter { it.source == source.id }
+                val sourceManga = mangaList
+                    .asSequence()
+                    .filter { it.source == source.id }
+                    .map { it to DiskUtil.buildValidFilename(it.originalTitle) }
+                    .toList()
 
-                for (mangaFolder in mangaFolders) {
-                    val manga = sourceManga.find { it.originalTitle == mangaFolder.name }
+                mangaFolders.forEach mangaFolder@{ mangaFolder ->
+                    val manga = sourceManga.find { (_, folderName) -> folderName == mangaFolder.name }?.first
                     if (manga == null) {
                         // download is orphaned delete it
-                        foldersCleared += 1 + (mangaFolder.listFiles()?.size ?: 0)
+                        foldersCleared += 1 + (mangaFolder.listFiles().orEmpty().size)
                         mangaFolder.delete()
-                        continue
+                    } else {
+                        val chapterList = db.getChapters(manga).executeAsBlocking()
+                        foldersCleared += downloadManager.cleanupChapters(chapterList, manga, source, removeRead, removeNonFavorite)
                     }
-                    val chapterList = db.getChapters(manga).executeAsBlocking()
-                    foldersCleared += downloadManager.cleanupChapters(chapterList, manga, source, removeRead, removeNonFavorite)
                 }
             }
             withUIContext {

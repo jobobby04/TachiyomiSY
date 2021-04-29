@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi
 
+import android.os.Build
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
@@ -139,6 +140,15 @@ object Migrations {
                         putInt(PreferenceKeys.dohProvider, PREF_DOH_CLOUDFLARE)
                         remove("enable_doh")
                     }
+                }
+            }
+            if (oldVersion < 59) {
+                // Reset rotation to Free after replacing Lock
+                preferences.rotation().set(1)
+
+                // Disable update check for Android 5.x users
+                if (BuildConfig.INCLUDE_UPDATER && Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+                    UpdaterJob.cancelTask(context)
                 }
             }
             return true
