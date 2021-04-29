@@ -254,13 +254,13 @@
     <!-- Reader -->
     <!-- Reader Actions -->
     <string name="eh_autoscroll">Автопрокрутка</string>
-    <string name="eh_retry_all">Повторите все</string>
+    <string name="eh_retry_all">Повторить все</string>
     <string name="eh_boost_page">Буст страницы</string>
-    <string name="eh_autoscroll_help">Помощь в автопрокрутке</string>
-    <string name="eh_autoscroll_help_message">Автоматически переходите к следующей странице через указанный интервал. Интервал указывается в секундах.</string>
-    <string name="eh_retry_all_help">Повторите все помощь</string>
+    <string name="eh_autoscroll_help">Автопрокрутка (подсказка)</string>
+    <string name="eh_autoscroll_help_message">Автоматически переходит к следующей странице через указанный интервал. Интервал указывается в секундах.</string>
+    <string name="eh_retry_all_help">Повторить все (подсказка)</string>
     <string name="eh_retry_all_help_message">Повторно добавьте все неудачные страницы в очередь загрузки.</string>
-    <string name="eh_boost_page_help">Буст страницы помощь</string>
+    <string name="eh_boost_page_help">Буст страницы (подсказка)</string>
     <string name="eh_boost_page_help_message">Обычно загрузчик может одновременно загружать только определенное количество страниц. Это означает, что вы можете ждать загрузки страницы, но загрузчик не начнет загрузку страницы до тех пор, пока у него не будет свободного слота для загрузки. Нажатие \'Буст страницы\' заставит загрузчик начать загрузку текущей страницы, независимо от того, есть ли свободный слот или нет.</string>
 
     <!-- Auto Webtoon Mode -->
