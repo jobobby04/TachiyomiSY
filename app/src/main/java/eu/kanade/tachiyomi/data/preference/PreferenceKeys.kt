@@ -15,6 +15,8 @@ object PreferenceKeys {
 
     const val hideBottomBar = "pref_hide_bottom_bar_on_scroll"
 
+    const val bottomBarLabels = "pref_show_bottom_bar_labels"
+
     const val rotation = "pref_rotation_type_key"
 
     const val enableTransitionsPager = "pref_enable_transitions_pager_key"
