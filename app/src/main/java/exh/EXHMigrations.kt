@@ -7,6 +7,7 @@ import androidx.preference.PreferenceManager
 import com.pushtorefresh.storio.sqlite.queries.Query
 import com.pushtorefresh.storio.sqlite.queries.RawQuery
 import eu.kanade.tachiyomi.BuildConfig
+import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
@@ -73,6 +74,7 @@ object EXHMigrations {
                     }
                     ExtensionUpdateJob.setupTask(context)
                     LibraryUpdateJob.setupTask(context)
+                    BackupCreatorJob.setupTask(context)
                     return false
                 }
                 if (oldVersion under 4) {
