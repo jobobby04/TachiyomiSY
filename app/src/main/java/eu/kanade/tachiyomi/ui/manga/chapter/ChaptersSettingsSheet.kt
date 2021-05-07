@@ -9,18 +9,14 @@ import com.afollestad.materialdialogs.list.listItemsMultiChoice
 import com.bluelinelabs.conductor.Router
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.ui.manga.MangaPresenter
 import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.lang.withUIContext
-import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.popupMenu
 import eu.kanade.tachiyomi.widget.ExtendedNavigationView
 import eu.kanade.tachiyomi.widget.ExtendedNavigationView.Item.TriStateGroup.State
 import eu.kanade.tachiyomi.widget.sheet.TabbedBottomSheetDialog
 import exh.md.utils.MdUtil
-import exh.metadata.metadata.MangaDexSearchMetadata
-import exh.source.getMainSource
 import kotlinx.coroutines.supervisorScope
 
 class ChaptersSettingsSheet(
@@ -88,7 +84,7 @@ class ChaptersSettingsSheet(
          * Returns true if there's at least one filter from [FilterGroup] active.
          */
         fun hasActiveFilters(): Boolean {
-            return filterGroup.items.any { it.state != State.IGNORE.value } || (presenter.meta?.let { it is MangaDexSearchMetadata && it.filteredScanlators != null } ?: false)
+            return filterGroup.items.any { it.state != State.IGNORE.value } || presenter.manga.filtered_scanlators != null
         }
 
         inner class FilterGroup : Group {
@@ -100,7 +96,7 @@ class ChaptersSettingsSheet(
             private val scanlatorFilters = Item.DrawableSelection(0, this, R.string.scanlator, R.drawable.ic_outline_people_alt_24dp)
 
             override val header = null
-            override val items = listOf(downloaded, unread, bookmarked) + if (presenter.source.getMainSource() is MetadataSource<*, *>) listOf(scanlatorFilters) else emptyList()
+            override val items = listOf(downloaded, unread, bookmarked, scanlatorFilters)
             override val footer = null
 
             override fun initModels() {
@@ -116,16 +112,8 @@ class ChaptersSettingsSheet(
 
             override fun onItemClicked(item: Item) {
                 if (item is Item.DrawableSelection) {
-                    val meta = presenter.meta
-                    if (meta == null) {
-                        context.toast(R.string.metadata_corrupted)
-                        return
-                    } else if (presenter.allChapterScanlators.isEmpty()) {
-                        context.toast(R.string.no_scanlators)
-                        return
-                    }
                     val scanlators = presenter.allChapterScanlators.toList()
-                    val filteredScanlators = meta.filteredScanlators?.let { MdUtil.getScanlators(it) }
+                    val filteredScanlators = presenter.manga.filtered_scanlators?.let { MdUtil.getScanlators(it) }
                     val preselected = if (filteredScanlators.isNullOrEmpty()) scanlators.mapIndexed { index, _ -> index }.toIntArray() else filteredScanlators.map { scanlators.indexOf(it) }.toIntArray()
 
                     MaterialDialog(context)
@@ -200,11 +188,11 @@ class ChaptersSettingsSheet(
                 }
 
                 source.state =
-                    if (sorting == Manga.SORTING_SOURCE) order else Item.MultiSort.SORT_NONE
+                    if (sorting == Manga.CHAPTER_SORTING_SOURCE) order else Item.MultiSort.SORT_NONE
                 chapterNum.state =
-                    if (sorting == Manga.SORTING_NUMBER) order else Item.MultiSort.SORT_NONE
+                    if (sorting == Manga.CHAPTER_SORTING_NUMBER) order else Item.MultiSort.SORT_NONE
                 uploadDate.state =
-                    if (sorting == Manga.SORTING_UPLOAD_DATE) order else Item.MultiSort.SORT_NONE
+                    if (sorting == Manga.CHAPTER_SORTING_UPLOAD_DATE) order else Item.MultiSort.SORT_NONE
             }
 
             override fun onItemClicked(item: Item) {
@@ -223,9 +211,9 @@ class ChaptersSettingsSheet(
                 }
 
                 when (item) {
-                    source -> presenter.setSorting(Manga.SORTING_SOURCE)
-                    chapterNum -> presenter.setSorting(Manga.SORTING_NUMBER)
-                    uploadDate -> presenter.setSorting(Manga.SORTING_UPLOAD_DATE)
+                    source -> presenter.setSorting(Manga.CHAPTER_SORTING_SOURCE)
+                    chapterNum -> presenter.setSorting(Manga.CHAPTER_SORTING_NUMBER)
+                    uploadDate -> presenter.setSorting(Manga.CHAPTER_SORTING_UPLOAD_DATE)
                     else -> throw Exception("Unknown sorting")
                 }
 
@@ -257,8 +245,8 @@ class ChaptersSettingsSheet(
 
             override fun initModels() {
                 val mode = presenter.manga.displayMode
-                displayTitle.checked = mode == Manga.DISPLAY_NAME
-                displayChapterNum.checked = mode == Manga.DISPLAY_NUMBER
+                displayTitle.checked = mode == Manga.CHAPTER_DISPLAY_NAME
+                displayChapterNum.checked = mode == Manga.CHAPTER_DISPLAY_NUMBER
             }
 
             override fun onItemClicked(item: Item) {
@@ -269,8 +257,8 @@ class ChaptersSettingsSheet(
                 item.checked = true
 
                 when (item) {
-                    displayTitle -> presenter.setDisplayMode(Manga.DISPLAY_NAME)
-                    displayChapterNum -> presenter.setDisplayMode(Manga.DISPLAY_NUMBER)
+                    displayTitle -> presenter.setDisplayMode(Manga.CHAPTER_DISPLAY_NAME)
+                    displayChapterNum -> presenter.setDisplayMode(Manga.CHAPTER_DISPLAY_NUMBER)
                     else -> throw NotImplementedError("Unknown display mode")
                 }
 

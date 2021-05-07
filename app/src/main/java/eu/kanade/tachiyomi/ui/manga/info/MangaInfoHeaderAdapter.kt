@@ -1,19 +1,14 @@
 package eu.kanade.tachiyomi.ui.manga.info
 
-import android.graphics.PorterDuff
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.load.engine.DiskCacheStrategy
+import coil.loadAny
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.glide.GlideApp
-import eu.kanade.tachiyomi.data.glide.MangaThumbnail
-import eu.kanade.tachiyomi.data.glide.toMangaThumbnail
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.databinding.MangaInfoHeaderBinding
 import eu.kanade.tachiyomi.source.Source
@@ -23,7 +18,6 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.util.system.copyToClipboard
-import eu.kanade.tachiyomi.util.system.getResourceColor
 import exh.merged.sql.models.MergedMangaReference
 import exh.source.MERGED_SOURCE_ID
 import exh.util.SourceTagsUtil
@@ -55,7 +49,7 @@ class MangaInfoHeaderAdapter(
 
     private lateinit var binding: MangaInfoHeaderBinding
 
-    private var currentMangaThumbnail: MangaThumbnail? = null
+    private var initialLoad: Boolean = true
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
         binding = MangaInfoHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -287,25 +281,8 @@ class MangaInfoHeaderAdapter(
             setFavoriteButtonState(manga.favorite)
 
             // Set cover if changed.
-            val mangaThumbnail = manga.toMangaThumbnail()
-            if (mangaThumbnail != currentMangaThumbnail) {
-                currentMangaThumbnail = mangaThumbnail
-                listOf(binding.mangaCover, binding.backdrop)
-                    .forEach {
-                        GlideApp.with(view.context)
-                            .load(mangaThumbnail)
-                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                            .centerCrop()
-                            .into(it)
-                    }
-            }
-
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP) {
-                @Suppress("DEPRECATION")
-                binding.backdropOverlay.background.setColorFilter(
-                    view.context.getResourceColor(android.R.attr.colorBackground),
-                    PorterDuff.Mode.SRC_ATOP
-                )
+            listOf(binding.mangaCover, binding.backdrop).forEach {
+                it.loadAny(manga)
             }
         }
 

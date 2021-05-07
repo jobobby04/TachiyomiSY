@@ -272,6 +272,7 @@
     <string name="pref_true_color_summary">Reduces banding, but impacts performance</string>
     <string name="pref_crop_borders">Crop borders</string>
     <string name="pref_custom_brightness">Custom brightness</string>
+    <string name="pref_grayscale">Grayscale</string>
     <string name="pref_custom_color_filter">Custom color filter</string>
     <string name="pref_color_filter_mode">Color filter blend mode</string>
     <string name="filter_mode_default">Default</string>
@@ -292,7 +293,10 @@
     <string name="tapping_inverted_horizontal">Horizontal</string>
     <string name="tapping_inverted_vertical">Vertical</string>
     <string name="tapping_inverted_both">Both</string>
-    <string name="pref_read_with_long_tap">Long tap dialog</string>
+    <string name="pref_reader_actions">Actions</string>
+    <string name="pref_read_with_long_tap">Show on long tap</string>
+    <string name="pref_create_folder_per_manga">Saves pages into separate folders</string>
+    <string name="pref_create_folder_per_manga_summary">Creates folders according to manga title</string>
     <string name="pref_reader_theme">Background color</string>
     <string name="white_background">White</string>
     <string name="gray_background">Gray</string>
@@ -331,7 +335,9 @@
     <string name="double_tap_anim_speed_0">No animation</string>
     <string name="double_tap_anim_speed_normal">Normal</string>
     <string name="double_tap_anim_speed_fast">Fast</string>
-    <string name="pref_rotation_type">Rotation</string>
+    <string name="pref_rotation_type">Default rotation type</string>
+    <string name="default_rotation_type">Default</string>
+    <string name="rotation_type">Rotation type</string>
     <string name="rotation_free">Free</string>
     <string name="rotation_portrait">Portrait</string>
     <string name="rotation_landscape">Landscape</string>
@@ -463,6 +469,7 @@
     <string name="label_downloaded_only">Downloaded only</string>
     <string name="pref_incognito_mode">Incognito mode</string>
     <string name="pref_incognito_mode_summary">Pauses reading history</string>
+    <string name="notification_incognito_text">Disable incognito mode</string>
     <string name="downloaded_only_summary">Filters all manga in your library</string>
     <plurals name="download_queue_summary">
         <item quantity="one">1 remaining</item>
@@ -772,5 +779,4 @@
     <!-- S Pen actions -->
     <string name="spen_previous_page">Previous page</string>
     <string name="spen_next_page">Next page</string>
-
 </resources>

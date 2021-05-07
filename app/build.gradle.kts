@@ -24,6 +24,14 @@ if (!gradle.startParameter.taskRequests.toString().contains("Debug")) {
 
 shortcutHelper.setFilePath("./shortcuts.xml")
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion("1.4.32")
+        }
+    }
+}
+
 android {
     compileSdkVersion(AndroidConfig.compileSdk)
     buildToolsVersion(AndroidConfig.buildTools)
@@ -34,7 +42,7 @@ android {
         minSdkVersion(AndroidConfig.minSdk)
         targetSdkVersion(AndroidConfig.targetSdk)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 16
+        versionCode = 17
         versionName = "1.6.2"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
@@ -191,7 +199,7 @@ dependencies {
     implementation("androidx.sqlite:sqlite-ktx:2.1.0")
     implementation("com.github.inorichi.storio:storio-common:8be19de@aar")
     implementation("com.github.inorichi.storio:storio-sqlite:8be19de@aar")
-    implementation("io.requery:sqlite-android:3.33.0")
+    implementation("com.github.requery:sqlite-android:3.35.5")
 
     // Preferences
     implementation("com.github.tfcporciuncula.flow-preferences:flow-preferences:1.3.4")
@@ -205,10 +213,9 @@ dependencies {
     implementation("com.github.inorichi.injekt:injekt-core:65b0440")
 
     // Image library
-    val glideVersion = "4.12.0"
-    implementation("com.github.bumptech.glide:glide:$glideVersion")
-    implementation("com.github.bumptech.glide:okhttp3-integration:$glideVersion")
-    kapt("com.github.bumptech.glide:compiler:$glideVersion")
+    val coilVersion = "1.2.0"
+    implementation("io.coil-kt:coil:$coilVersion")
+    implementation("io.coil-kt:coil-gif:$coilVersion")
 
     implementation("com.github.tachiyomiorg:subsampling-scale-image-view:547d9c0")
 
@@ -299,12 +306,10 @@ dependencies {
     testImplementation("com.ms-square:debugoverlay-no-op:$debugOverlayVersion")
 
     // RatingBar (SY)
-    implementation ("me.zhanghai.android.materialratingbar:library:1.4.0")
+    implementation("me.zhanghai.android.materialratingbar:library:1.4.0")
 
     // JsonReader for similar manga
     implementation("com.squareup.moshi:moshi:1.12.0")
-
-    implementation("com.mikepenz:fastadapter:5.4.0")
     // SY <--
 }
 
@@ -318,7 +323,8 @@ tasks {
             "-Xuse-experimental=kotlinx.coroutines.FlowPreview",
             "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi",
-            "-Xuse-experimental=kotlinx.serialization.ExperimentalSerializationApi"
+            "-Xuse-experimental=kotlinx.serialization.ExperimentalSerializationApi",
+            "-Xuse-experimental=coil.annotation.ExperimentalCoilApi",
         )
     }
 

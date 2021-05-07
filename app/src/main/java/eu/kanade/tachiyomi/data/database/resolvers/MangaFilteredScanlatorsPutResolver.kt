@@ -9,7 +9,8 @@ import eu.kanade.tachiyomi.data.database.inTransactionReturn
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.tables.MangaTable
 
-class MangaViewerPutResolver : PutResolver<Manga>() {
+// [EXH]
+class MangaFilteredScanlatorsPutResolver : PutResolver<Manga>() {
 
     override fun performPut(db: StorIOSQLite, manga: Manga) = db.inTransactionReturn {
         val updateQuery = mapToUpdateQuery(manga)
@@ -21,12 +22,11 @@ class MangaViewerPutResolver : PutResolver<Manga>() {
 
     fun mapToUpdateQuery(manga: Manga) = UpdateQuery.builder()
         .table(MangaTable.TABLE)
-        .where("${MangaTable.COL_ID} = ?")
-        .whereArgs(manga.id)
+        .where("${MangaTable.COL_FILTERED_SCANLATORS} = ?")
+        .whereArgs(manga.filtered_scanlators)
         .build()
 
-    fun mapToContentValues(manga: Manga) =
-        contentValuesOf(
-            MangaTable.COL_VIEWER to manga.viewer
-        )
+    fun mapToContentValues(manga: Manga) = contentValuesOf(
+        MangaTable.COL_FILTERED_SCANLATORS to manga.filtered_scanlators
+    )
 }

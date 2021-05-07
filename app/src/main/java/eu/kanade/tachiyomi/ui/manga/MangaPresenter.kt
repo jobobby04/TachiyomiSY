@@ -46,14 +46,13 @@ import eu.kanade.tachiyomi.widget.ExtendedNavigationView.Item.TriStateGroup.Stat
 import exh.debug.DebugToggles
 import exh.eh.EHentaiUpdateHelper
 import exh.log.xLogD
+import exh.log.xLogE
 import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
-import exh.md.utils.scanlatorList
 import exh.merged.sql.models.MergedMangaReference
 import exh.metadata.metadata.base.FlatMetadata
 import exh.metadata.metadata.base.RaisedSearchMetadata
 import exh.metadata.metadata.base.getFlatMetadataForManga
-import exh.metadata.metadata.base.insertFlatMetadataAsync
 import exh.source.MERGED_SOURCE_ID
 import exh.source.getMainSource
 import exh.source.isEhBasedSource
@@ -184,11 +183,6 @@ class MangaPresenter(
             .subscribeLatestCache({ view, (manga, flatMetadata) ->
                 flatMetadata?.let { metadata ->
                     view.onNextMetaInfo(metadata)
-                    meta?.let {
-                        it.filteredScanlators?.let {
-                            if (chapters.isNotEmpty()) chaptersRelay.call(chapters)
-                        }
-                    }
                 }
                 // SY <--
                 view.onNextMangaInfo(manga, source)
@@ -219,7 +213,7 @@ class MangaPresenter(
                     // Find downloaded chapters
                     setDownloadedChapters(chapters)
 
-                    allChapterScanlators = chapters.flatMap { it.chapter.scanlatorList() }.toSet()
+                    allChapterScanlators = chapters.flatMap { MdUtil.getScanlators(it.chapter.scanlator) }.toSet()
 
                     // Store the last emission
                     this.chapters = chapters
@@ -307,6 +301,7 @@ class MangaPresenter(
 
                 withUIContext { view?.onFetchMangaInfoDone() }
             } catch (e: Throwable) {
+                xLogE("Error getting manga details", e)
                 withUIContext { view?.onFetchMangaInfoError(e) }
             }
         }
@@ -448,9 +443,9 @@ class MangaPresenter(
                 copyFrom(originalManga)
                 favorite = true
                 last_update = originalManga.last_update
-                viewer = originalManga.viewer
+                viewer_flags = originalManga.viewer_flags
                 chapter_flags = originalManga.chapter_flags
-                sorting = Manga.SORTING_NUMBER
+                sorting = Manga.CHAPTER_SORTING_NUMBER
                 date_added = System.currentTimeMillis()
             }
             var existingManga = db.getManga(mergedManga.url, mergedManga.source).executeAsBlocking()
@@ -674,6 +669,7 @@ class MangaPresenter(
                     } else if (manga.favorite) {
                         coverCache.setCustomCoverToCache(manga, it)
                         manga.updateCoverLastModified(db)
+                        coverCache.clearMemoryCache()
                     }
                 }
             }
@@ -690,6 +686,7 @@ class MangaPresenter(
             .fromCallable {
                 coverCache.deleteCustomCover(manga)
                 manga.updateCoverLastModified(db)
+                coverCache.clearMemoryCache()
             }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -838,11 +835,9 @@ class MangaPresenter(
         }
 
         // SY -->
-        meta?.let { metadata ->
-            metadata.filteredScanlators?.let { filteredScanlatorString ->
-                val filteredScanlators = MdUtil.getScanlators(filteredScanlatorString)
-                observable = observable.filter { it.scanlatorList().any { group -> filteredScanlators.contains(group) } }
-            }
+        manga.filtered_scanlators?.let { filteredScanlatorString ->
+            val filteredScanlators = MdUtil.getScanlators(filteredScanlatorString)
+            observable = observable.filter { MdUtil.getScanlators(it.scanlator).any { group -> filteredScanlators.contains(group) } }
         }
         // SY <--
 
@@ -851,15 +846,15 @@ class MangaPresenter(
 
     fun getChapterSort(): (Chapter, Chapter) -> Int {
         return when (manga.sorting) {
-            Manga.SORTING_SOURCE -> when (sortDescending()) {
+            Manga.CHAPTER_SORTING_SOURCE -> when (sortDescending()) {
                 true -> { c1, c2 -> c1.source_order.compareTo(c2.source_order) }
                 false -> { c1, c2 -> c2.source_order.compareTo(c1.source_order) }
             }
-            Manga.SORTING_NUMBER -> when (sortDescending()) {
+            Manga.CHAPTER_SORTING_NUMBER -> when (sortDescending()) {
                 true -> { c1, c2 -> c2.chapter_number.compareTo(c1.chapter_number) }
                 false -> { c1, c2 -> c1.chapter_number.compareTo(c2.chapter_number) }
             }
-            Manga.SORTING_UPLOAD_DATE -> when (sortDescending()) {
+            Manga.CHAPTER_SORTING_UPLOAD_DATE -> when (sortDescending()) {
                 true -> { c1, c2 -> c2.date_upload.compareTo(c1.date_upload) }
                 false -> { c1, c2 -> c1.date_upload.compareTo(c2.date_upload) }
             }
@@ -993,8 +988,8 @@ class MangaPresenter(
      * Reverses the sorting and requests an UI update.
      */
     fun reverseSortOrder() {
-        manga.setChapterOrder(if (sortDescending()) Manga.SORT_ASC else Manga.SORT_DESC)
-        db.updateFlags(manga).executeAsBlocking()
+        manga.setChapterOrder(if (sortDescending()) Manga.CHAPTER_SORT_ASC else Manga.CHAPTER_SORT_DESC)
+        db.updateChapterFlags(manga).executeAsBlocking()
         refreshChapters()
     }
 
@@ -1005,10 +1000,10 @@ class MangaPresenter(
     fun setUnreadFilter(state: State) {
         manga.readFilter = when (state) {
             State.IGNORE -> Manga.SHOW_ALL
-            State.INCLUDE -> Manga.SHOW_UNREAD
-            State.EXCLUDE -> Manga.SHOW_READ
+            State.INCLUDE -> Manga.CHAPTER_SHOW_UNREAD
+            State.EXCLUDE -> Manga.CHAPTER_SHOW_READ
         }
-        db.updateFlags(manga).executeAsBlocking()
+        db.updateChapterFlags(manga).executeAsBlocking()
         refreshChapters()
     }
 
@@ -1019,10 +1014,10 @@ class MangaPresenter(
     fun setDownloadedFilter(state: State) {
         manga.downloadedFilter = when (state) {
             State.IGNORE -> Manga.SHOW_ALL
-            State.INCLUDE -> Manga.SHOW_DOWNLOADED
-            State.EXCLUDE -> Manga.SHOW_NOT_DOWNLOADED
+            State.INCLUDE -> Manga.CHAPTER_SHOW_DOWNLOADED
+            State.EXCLUDE -> Manga.CHAPTER_SHOW_NOT_DOWNLOADED
         }
-        db.updateFlags(manga).executeAsBlocking()
+        db.updateChapterFlags(manga).executeAsBlocking()
         refreshChapters()
     }
 
@@ -1033,20 +1028,18 @@ class MangaPresenter(
     fun setBookmarkedFilter(state: State) {
         manga.bookmarkedFilter = when (state) {
             State.IGNORE -> Manga.SHOW_ALL
-            State.INCLUDE -> Manga.SHOW_BOOKMARKED
-            State.EXCLUDE -> Manga.SHOW_NOT_BOOKMARKED
+            State.INCLUDE -> Manga.CHAPTER_SHOW_BOOKMARKED
+            State.EXCLUDE -> Manga.CHAPTER_SHOW_NOT_BOOKMARKED
         }
-        db.updateFlags(manga).executeAsBlocking()
+        db.updateChapterFlags(manga).executeAsBlocking()
         refreshChapters()
     }
 
     // SY -->
-    suspend fun setScanlatorFilter(filteredScanlators: Set<String>) {
-        val meta = meta ?: return
-        meta.filteredScanlators = if (filteredScanlators.size == allChapterScanlators.size) null else MdUtil.getScanlatorString(filteredScanlators)
-        meta.flatten().let {
-            db.insertFlatMetadataAsync(it).await()
-        }
+    fun setScanlatorFilter(filteredScanlators: Set<String>) {
+        val manga = manga
+        manga.filtered_scanlators = if (filteredScanlators.size == allChapterScanlators.size) null else MdUtil.getScanlatorString(filteredScanlators)
+        db.updateMangaFilteredScanlators(manga).executeAsBlocking()
         refreshChapters()
     }
     // SY <--
@@ -1057,7 +1050,7 @@ class MangaPresenter(
      */
     fun setDisplayMode(mode: Int) {
         manga.displayMode = mode
-        db.updateFlags(manga).executeAsBlocking()
+        db.updateChapterFlags(manga).executeAsBlocking()
     }
 
     /**
@@ -1066,7 +1059,7 @@ class MangaPresenter(
      */
     fun setSorting(sort: Int) {
         manga.sorting = sort
-        db.updateFlags(manga).executeAsBlocking()
+        db.updateChapterFlags(manga).executeAsBlocking()
         refreshChapters()
     }
 
@@ -1085,8 +1078,8 @@ class MangaPresenter(
             return State.INCLUDE
         }
         return when (manga.downloadedFilter) {
-            Manga.SHOW_DOWNLOADED -> State.INCLUDE
-            Manga.SHOW_NOT_DOWNLOADED -> State.EXCLUDE
+            Manga.CHAPTER_SHOW_DOWNLOADED -> State.INCLUDE
+            Manga.CHAPTER_SHOW_NOT_DOWNLOADED -> State.EXCLUDE
             else -> State.IGNORE
         }
     }
@@ -1096,8 +1089,8 @@ class MangaPresenter(
      */
     fun onlyBookmarked(): State {
         return when (manga.bookmarkedFilter) {
-            Manga.SHOW_BOOKMARKED -> State.INCLUDE
-            Manga.SHOW_NOT_BOOKMARKED -> State.EXCLUDE
+            Manga.CHAPTER_SHOW_BOOKMARKED -> State.INCLUDE
+            Manga.CHAPTER_SHOW_NOT_BOOKMARKED -> State.EXCLUDE
             else -> State.IGNORE
         }
     }
@@ -1107,8 +1100,8 @@ class MangaPresenter(
      */
     fun onlyUnread(): State {
         return when (manga.readFilter) {
-            Manga.SHOW_UNREAD -> State.INCLUDE
-            Manga.SHOW_READ -> State.EXCLUDE
+            Manga.CHAPTER_SHOW_UNREAD -> State.INCLUDE
+            Manga.CHAPTER_SHOW_READ -> State.EXCLUDE
             else -> State.IGNORE
         }
     }

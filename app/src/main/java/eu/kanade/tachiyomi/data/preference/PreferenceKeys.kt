@@ -13,8 +13,6 @@ object PreferenceKeys {
 
     const val confirmExit = "pref_confirm_exit"
 
-    const val hideBottomBar = "pref_hide_bottom_bar_on_scroll"
-
     const val bottomBarLabels = "pref_show_bottom_bar_labels"
 
     const val rotation = "pref_rotation_type_key"
@@ -55,7 +53,11 @@ object PreferenceKeys {
 
     const val colorFilterMode = "color_filter_mode"
 
-    const val defaultViewer = "pref_default_viewer_key"
+    const val grayscale = "pref_grayscale"
+
+    const val defaultReadingMode = "pref_default_reading_mode_key"
+
+    const val defaultOrientationType = "pref_default_orientation_type_key"
 
     const val imageScaleType = "pref_image_scale_type_key"
 
@@ -112,6 +114,8 @@ object PreferenceKeys {
     const val downloadsDirectory = "download_directory"
 
     const val downloadOnlyOverWifi = "pref_download_only_over_wifi_key"
+
+    const val folderPerManga = "create_folder_per_manga"
 
     const val numberOfBackups = "backup_slots"
 
@@ -370,4 +374,8 @@ object PreferenceKeys {
     const val leftVerticalSeekbar = "pref_left_handed_vertical_seekbar"
 
     const val forceHorizontalSeekbar = "pref_force_horz_seekbar"
+
+    const val readerBottomButtons = "reader_bottom_buttons"
+
+    const val hideBottomBar = "pref_hide_bottom_bar_on_scroll"
 }

@@ -4,13 +4,12 @@ import android.view.View
 import android.widget.PopupMenu
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import com.bumptech.glide.load.engine.DiskCacheStrategy
+import coil.clear
+import coil.loadAny
 import eu.davidea.viewholders.FlexibleViewHolder
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.glide.GlideApp
-import eu.kanade.tachiyomi.data.glide.toMangaThumbnail
 import eu.kanade.tachiyomi.databinding.MigrationMangaCardBinding
 import eu.kanade.tachiyomi.databinding.MigrationProcessItemBinding
 import eu.kanade.tachiyomi.source.Source
@@ -19,7 +18,6 @@ import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
 import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.util.lang.launchUI
 import eu.kanade.tachiyomi.util.lang.withUIContext
-import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.view.setVectorCompat
 import exh.source.MERGED_SOURCE_ID
 import exh.util.executeOnIO
@@ -55,13 +53,11 @@ class MigrationProcessHolder(
 
             binding.migrationMenu.setVectorCompat(
                 R.drawable.ic_more_vert_24dp,
-                view.context.getResourceColor(R.attr.colorOnPrimary)
+                R.attr.colorOnPrimary
             )
             binding.skipManga.setVectorCompat(
                 R.drawable.ic_close_24dp,
-                view.context.getResourceColor(
-                    R.attr.colorOnPrimary
-                )
+                R.attr.colorOnPrimary
             )
             binding.migrationMenu.isInvisible = true
             binding.skipManga.isVisible = true
@@ -131,6 +127,7 @@ class MigrationProcessHolder(
 
     private fun MigrationMangaCardBinding.resetManga() {
         loadingGroup.isVisible = true
+        thumbnail.clear()
         thumbnail.setImageDrawable(null)
         title.text = ""
         mangaSourceLabel.text = ""
@@ -141,12 +138,9 @@ class MigrationProcessHolder(
 
     private suspend fun MigrationMangaCardBinding.attachManga(manga: Manga, source: Source) {
         loadingGroup.isVisible = false
-        GlideApp.with(view.context.applicationContext)
-            .load(manga.toMangaThumbnail())
-            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-            .centerCrop()
-            .dontAnimate()
-            .into(thumbnail)
+        // For rounded corners
+        card.clipToOutline = true
+        thumbnail.loadAny(manga)
 
         title.text = if (manga.title.isBlank()) {
             view.context.getString(R.string.unknown)

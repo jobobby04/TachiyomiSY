@@ -9,7 +9,6 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.toMangaInfo
 import eu.kanade.tachiyomi.util.lang.awaitSingle
 import eu.kanade.tachiyomi.util.lang.runAsObservable
@@ -17,10 +16,12 @@ import eu.kanade.tachiyomi.util.lang.withIOContext
 import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
 import tachiyomi.source.model.MangaInfo
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 class MdList(private val context: Context, id: Int) : TrackService(id) {
 
-    private val mdex by lazy { MdUtil.getEnabledMangaDex() }
+    private val mdex by lazy { MdUtil.getEnabledMangaDex(Injekt.get()) }
 
     @StringRes
     override fun nameRes(): Int = R.string.mdlist
@@ -56,11 +57,12 @@ class MdList(private val context: Context, id: Int) : TrackService(id) {
             // this updates the follow status in the metadata
             // allow follow status to update
             if (remoteTrack.status != followStatus.int) {
-                mdex.updateFollowStatus(MdUtil.getMangaId(track.tracking_url), followStatus)
-                remoteTrack.status = followStatus.int
+                if (mdex.updateFollowStatus(MdUtil.getMangaId(track.tracking_url), followStatus)) {
+                    remoteTrack.status = followStatus.int
+                }
             }
 
-            if (track.score.toInt() > 0) {
+            /*if (track.score.toInt() > 0) {
                 mdex.updateRating(track)
             }
 
@@ -82,7 +84,7 @@ class MdList(private val context: Context, id: Int) : TrackService(id) {
             } else if (track.last_chapter_read != 0) {
                 // When followStatus has been changed to unfollowed 0 out read chapters since dex does
                 track.last_chapter_read = 0
-            }
+            }*/
             track
         }
     }
@@ -96,9 +98,9 @@ class MdList(private val context: Context, id: Int) : TrackService(id) {
             val mdex = mdex ?: throw MangaDexNotFoundException()
             val (remoteTrack, mangaMetadata) = mdex.getTrackingAndMangaInfo(track)
             track.copyPersonalFrom(remoteTrack)
-            if (track.total_chapters == 0 && mangaMetadata.status == SManga.COMPLETED) {
+            /*if (track.total_chapters == 0 && mangaMetadata.status == SManga.COMPLETED) {
                 track.total_chapters = mangaMetadata.maxChapterNumber ?: 0
-            }
+            }*/
             track
         }
     }
@@ -135,9 +137,6 @@ class MdList(private val context: Context, id: Int) : TrackService(id) {
     }
 
     override suspend fun login(username: String, password: String): Unit = throw Exception("not used")
-
-    override val isLogged: Boolean
-        get() = false
 
     class MangaDexNotFoundException : Exception("Mangadex not enabled")
 }

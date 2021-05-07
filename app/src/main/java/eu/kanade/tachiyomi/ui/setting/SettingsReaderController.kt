@@ -1,20 +1,33 @@
 package eu.kanade.tachiyomi.ui.setting
 
+import android.app.Dialog
 import android.os.Build
+import android.os.Bundle
 import androidx.preference.PreferenceScreen
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.list.listItemsMultiChoice
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferenceValues.TappingInvertMode
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.asImmediateFlow
+import eu.kanade.tachiyomi.ui.base.controller.DialogController
+import eu.kanade.tachiyomi.ui.reader.setting.OrientationType
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
+import eu.kanade.tachiyomi.ui.reader.setting.ReadingModeType
 import eu.kanade.tachiyomi.util.preference.defaultValue
 import eu.kanade.tachiyomi.util.preference.entriesRes
 import eu.kanade.tachiyomi.util.preference.intListPreference
 import eu.kanade.tachiyomi.util.preference.listPreference
+import eu.kanade.tachiyomi.util.preference.onClick
+import eu.kanade.tachiyomi.util.preference.preference
 import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 import kotlinx.coroutines.flow.launchIn
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 
 class SettingsReaderController : SettingsController() {
@@ -23,7 +36,7 @@ class SettingsReaderController : SettingsController() {
         titleRes = R.string.pref_category_reader
 
         intListPreference {
-            key = Keys.defaultViewer
+            key = Keys.defaultReadingMode
             titleRes = R.string.pref_viewer_type
             entriesRes = arrayOf(
                 R.string.left_to_right_viewer,
@@ -32,8 +45,9 @@ class SettingsReaderController : SettingsController() {
                 R.string.webtoon_viewer,
                 R.string.vertical_plus_viewer
             )
-            entryValues = arrayOf("1", "2", "3", "4", "5")
-            defaultValue = "2"
+            entryValues = ReadingModeType.values().drop(1)
+                .map { value -> "${value.flagValue}" }.toTypedArray()
+            defaultValue = "${ReadingModeType.RIGHT_TO_LEFT.flagValue}"
             summary = "%s"
         }
         intListPreference {
@@ -89,7 +103,7 @@ class SettingsReaderController : SettingsController() {
             titleRes = R.string.pref_category_display
 
             intListPreference {
-                key = Keys.rotation
+                key = Keys.defaultOrientationType
                 titleRes = R.string.pref_rotation_type
                 entriesRes = arrayOf(
                     R.string.rotation_free,
@@ -98,8 +112,9 @@ class SettingsReaderController : SettingsController() {
                     R.string.rotation_force_portrait,
                     R.string.rotation_force_landscape,
                 )
-                entryValues = arrayOf("1", "2", "3", "4", "5")
-                defaultValue = "1"
+                entryValues = OrientationType.values().drop(1)
+                    .map { value -> "${value.flagValue}" }.toTypedArray()
+                defaultValue = "${OrientationType.FREE.flagValue}"
                 summary = "%s"
             }
             intListPreference {
@@ -350,11 +365,6 @@ class SettingsReaderController : SettingsController() {
                 defaultValue = true
             }
             switchPreference {
-                key = Keys.readWithLongTap
-                titleRes = R.string.pref_read_with_long_tap
-                defaultValue = true
-            }
-            switchPreference {
                 key = Keys.readWithVolumeKeys
                 titleRes = R.string.pref_read_with_volume_keys
                 defaultValue = false
@@ -368,30 +378,25 @@ class SettingsReaderController : SettingsController() {
             }
         }
 
-        // EXH -->
         preferenceCategory {
-            titleRes = R.string.pref_category_fork
+            titleRes = R.string.pref_reader_actions
 
-            intListPreference {
-                key = Keys.eh_readerThreads
-                titleRes = R.string.download_threads
-                entries = arrayOf("1", "2", "3", "4", "5")
-                entryValues = entries
-                defaultValue = "2"
-                summaryRes = R.string.download_threads_summary
-            }
             switchPreference {
-                key = Keys.eh_aggressivePageLoading
-                titleRes = R.string.aggressively_load_pages
-                summaryRes = R.string.aggressively_load_pages_summary
-                defaultValue = false
-            }
-            switchPreference {
-                key = Keys.eh_readerInstantRetry
-                titleRes = R.string.skip_queue_on_retry
-                summaryRes = R.string.skip_queue_on_retry_summary
+                key = Keys.readWithLongTap
+                titleRes = R.string.pref_read_with_long_tap
                 defaultValue = true
             }
+            switchPreference {
+                key = Keys.folderPerManga
+                titleRes = R.string.pref_create_folder_per_manga
+                summaryRes = R.string.pref_create_folder_per_manga_summary
+                defaultValue = false
+            }
+        }
+
+        preferenceCategory {
+            titleRes = R.string.page_downloading
+
             intListPreference {
                 key = Keys.eh_preload_size
                 titleRes = R.string.reader_preload_amount
@@ -418,6 +423,16 @@ class SettingsReaderController : SettingsController() {
                 defaultValue = "10"
                 summaryRes = R.string.reader_preload_amount_summary
             }
+
+            intListPreference {
+                key = Keys.eh_readerThreads
+                titleRes = R.string.download_threads
+                entries = arrayOf("1", "2", "3", "4", "5")
+                entryValues = entries
+                defaultValue = "2"
+                summaryRes = R.string.download_threads_summary
+            }
+
             listPreference {
                 key = Keys.eh_cacheSize
                 titleRes = R.string.reader_cache_size
@@ -461,6 +476,25 @@ class SettingsReaderController : SettingsController() {
                 summaryRes = R.string.reader_cache_size_summary
             }
             switchPreference {
+                key = Keys.eh_aggressivePageLoading
+                titleRes = R.string.aggressively_load_pages
+                summaryRes = R.string.aggressively_load_pages_summary
+                defaultValue = false
+            }
+        }
+
+        // EXH -->
+        preferenceCategory {
+            titleRes = R.string.pref_category_fork
+
+            switchPreference {
+                key = Keys.eh_readerInstantRetry
+                titleRes = R.string.skip_queue_on_retry
+                summaryRes = R.string.skip_queue_on_retry_summary
+                defaultValue = true
+            }
+
+            switchPreference {
                 key = Keys.eh_preserveReadingPosition
                 titleRes = R.string.preserve_reading_position
                 defaultValue = false
@@ -471,7 +505,46 @@ class SettingsReaderController : SettingsController() {
                 summaryRes = R.string.auto_webtoon_mode_summary
                 defaultValue = true
             }
+
+            preference {
+                key = "reader_bottom_buttons_pref"
+                titleRes = R.string.reader_bottom_buttons
+                summaryRes = R.string.reader_bottom_buttons_summary
+
+                onClick {
+                    ReaderBottomButtonsDialog().showDialog(router)
+                }
+            }
         }
         // EXH <--
+    }
+
+    class ReaderBottomButtonsDialog : DialogController() {
+
+        private val preferences: PreferencesHelper = Injekt.get()
+
+        override fun onCreateDialog(savedViewState: Bundle?): Dialog {
+            val selected = preferences.readerBottomButtons().get()
+            val values = ReaderBottomButton.values()
+            val items = values.map { it.value }
+
+            val preselected = selected.mapNotNull { selection -> items.indexOf(selection).takeUnless { it == -1 } }
+                .toIntArray()
+
+            return MaterialDialog(activity!!)
+                .title(R.string.reader_bottom_buttons)
+                .listItemsMultiChoice(
+                    items = values.map { activity!!.getString(it.stringRes) },
+                    initialSelection = preselected
+                ) { _, selections: IntArray, _ ->
+                    val included = selections
+                        .map { values[it].value }
+                        .toSet()
+
+                    preferences.readerBottomButtons().set(included)
+                }
+                .positiveButton(android.R.string.ok)
+                .negativeButton(android.R.string.cancel)
+        }
     }
 }

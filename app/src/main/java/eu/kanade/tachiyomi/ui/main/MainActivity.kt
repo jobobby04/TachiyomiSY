@@ -43,6 +43,7 @@ import eu.kanade.tachiyomi.ui.base.controller.TabbedController
 import eu.kanade.tachiyomi.ui.base.controller.ToolbarLiftOnScrollController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
 import eu.kanade.tachiyomi.ui.browse.BrowseController
+import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceController
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.ui.download.DownloadController
 import eu.kanade.tachiyomi.ui.library.LibraryController
@@ -62,7 +63,9 @@ import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
 import exh.uconfig.WarnConfigureDialogController
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 import java.util.Date
 import java.util.LinkedList
@@ -279,8 +282,19 @@ class MainActivity : BaseViewBindingActivity<MainActivityBinding>() {
             .asImmediateFlow { binding.downloadedOnly.isVisible = it }
             .launchIn(lifecycleScope)
 
-        preferences.incognitoMode()
-            .asImmediateFlow { binding.incognitoMode.isVisible = it }
+        preferences.incognitoMode().asFlow()
+            .drop(1)
+            .onEach {
+                binding.incognitoMode.isVisible = it
+
+                // Close BrowseSourceController and its MangaController child when incognito mode is disabled
+                if (!it) {
+                    val fg = router.backstack.last().controller()
+                    if (fg is BrowseSourceController || fg is MangaController && fg.fromSource) {
+                        router.popToRoot()
+                    }
+                }
+            }
             .launchIn(lifecycleScope)
 
         // SY -->

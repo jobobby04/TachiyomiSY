@@ -10,7 +10,7 @@
         android:id="@+id/card"
         android:layout_width="wrap_content"
         android:layout_height="220dp"
-        android:background="?attr/colorSurface"
+        android:background="@drawable/rounded_rectangle"
         app:layout_constraintDimensionRatio="0.75"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,9 +22,7 @@
             android:id="@+id/thumbnail"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="?android:attr/colorBackground"
-            tools:background="?android:attr/colorBackground"
-            tools:ignore="ContentDescription"
+            android:scaleType="centerCrop"
             tools:src="@mipmap/ic_launcher" />
 
         <View
@@ -74,6 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:ellipsize="end"
+            android:fontFamily="@font/ptsans_narrow_bold"
             android:lineSpacingExtra="-4dp"
             android:maxLines="2"
             android:padding="8dp"
@@ -81,6 +80,7 @@
             android:shadowDx="0"
             android:shadowDy="0"
             android:shadowRadius="4"
+            android:textColor="@color/md_white_1000"
             tools:text="Sample name" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator

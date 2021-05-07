@@ -56,11 +56,13 @@ open class MangaImpl : Manga {
 
     override var initialized: Boolean = false
 
-    override var viewer: Int = 0
+    override var viewer_flags: Int = 0
 
     override var chapter_flags: Int = 0
 
     override var cover_last_modified: Long = 0
+
+    override var filtered_scanlators: String? = null
 
     // SY -->
     lateinit var ogTitle: String
