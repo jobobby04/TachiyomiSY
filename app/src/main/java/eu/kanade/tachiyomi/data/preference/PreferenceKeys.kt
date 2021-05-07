@@ -13,10 +13,6 @@ object PreferenceKeys {
 
     const val confirmExit = "pref_confirm_exit"
 
-    const val bottomBarLabels = "pref_show_bottom_bar_labels"
-
-    const val rotation = "pref_rotation_type_key"
-
     const val enableTransitionsPager = "pref_enable_transitions_pager_key"
 
     const val enableTransitionsWebtoon = "pref_enable_transitions_webtoon_key"
@@ -378,4 +374,6 @@ object PreferenceKeys {
     const val readerBottomButtons = "reader_bottom_buttons"
 
     const val hideBottomBar = "pref_hide_bottom_bar_on_scroll"
+
+    const val bottomBarLabels = "pref_show_bottom_bar_labels"
 }
