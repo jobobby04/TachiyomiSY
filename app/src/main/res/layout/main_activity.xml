@@ -90,5 +90,4 @@
         app:layout_insetEdge="bottom"
         app:menu="@menu/bottom_nav" />
 
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
