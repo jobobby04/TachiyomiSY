@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.library
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -33,6 +34,7 @@ import eu.kanade.tachiyomi.ui.base.controller.RootController
 import eu.kanade.tachiyomi.ui.base.controller.SearchableNucleusController
 import eu.kanade.tachiyomi.ui.base.controller.TabbedController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.requestPermissionsSafe
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.PreMigrationController
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.ui.main.MainActivity
@@ -213,6 +215,8 @@ class LibraryController(
                 updateTitle()
             }
             .launchIn(viewScope)
+
+        requestPermissionsSafe(arrayOf(WRITE_EXTERNAL_STORAGE), 301)
 
         getColumnsPreferenceForCurrentOrientation().asImmediateFlow { mangaPerRow = it }
             .drop(1)
