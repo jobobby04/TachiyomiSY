@@ -69,6 +69,7 @@ import eu.kanade.tachiyomi.util.view.hideBar
 import eu.kanade.tachiyomi.util.view.isDefaultBar
 import eu.kanade.tachiyomi.util.view.setTooltip
 import eu.kanade.tachiyomi.util.view.showBar
+import eu.kanade.tachiyomi.util.view.popupMenu
 import eu.kanade.tachiyomi.widget.SimpleAnimationListener
 import eu.kanade.tachiyomi.widget.SimpleSeekBarListener
 import exh.log.xLogE
