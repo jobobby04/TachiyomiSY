@@ -66,4 +66,22 @@
         <item name="android:statusBarColor">@color/dialogPink</item>
     </style>
 
+    <style name="Theme.Tachiyomi.Dark.NiceBooba" parent="Theme.Base.Dark">
+        <item name="colorPrimary">@color/dialogNice</item>
+        <item name="colorPrimaryDark">@color/dialogNice</item>
+        <item name="colorOnPrimary">@color/textColorPrimaryNice</item>
+        <item name="colorAccentOnPrimary">@color/colorAccentNice</item>
+        <item name="colorPrimaryVariant">@color/dialogNice</item>
+        <item name="colorSecondary">@color/colorAccentNice</item>
+        <item name="colorOnSecondary">@color/textColorPrimaryNice</item>
+        <item name="colorSurface">@color/dialogNice</item>
+        <item name="colorOnSurface">@color/textColorPrimaryNice</item>
+        <item name="colorOnBackground">@color/textColorPrimaryNice</item>
+        <item name="colorAccent">@color/colorAccentNice</item>
+        <item name="background">@color/backgroundNice</item>
+
+        <item name="android:colorBackground">@color/backgroundNice</item>
+        <item name="android:windowBackground">@color/backgroundNice</item>
+        <item name="android:statusBarColor">@color/dialogNice</item>
+    </style>
 </resources>
