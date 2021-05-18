@@ -246,7 +246,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         return SimilarHandler(baseHttpClient, mdLang.lang, preferences, useLowQualityThumbnail()).getSimilar(manga)
     }
 
-    //todo remove when mangadex gets it cover api
+    // todo remove when mangadex gets it cover api
     override fun fetchSearchManga(
         page: Int,
         query: String,
