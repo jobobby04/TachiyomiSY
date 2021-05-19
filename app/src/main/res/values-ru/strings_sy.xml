@@ -511,11 +511,11 @@
     <string name="video">Видео</string>
 
     <!-- More Info Menu -->
-    <string name="more_info">Дополнительная информация</string>
+    <string name="more_info">Информация</string>
     <string name="alt_title">Названия</string>
     <string name="id">Id</string>
-    <string name="token">Token</string>
-    <string name="is_exhentai_gallery">это Exhentai галерея</string>
+    <string name="token">Токен</string>
+    <string name="is_exhentai_gallery">это ExHentai галерея</string>
     <string name="thumbnail_url">URL-адрес миниатюры</string>
     <string name="genre">Жанр</string>
     <string name="date_posted">Дата публикации</string>
