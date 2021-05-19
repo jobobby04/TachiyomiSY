@@ -120,8 +120,8 @@
     <string name="recheck_login_status">Перепроверьте статус авторизации</string>
     <string name="alternative_login_page">Альтернативная страница авторизации</string>
     <string name="skip_page_restyling">Пропустить рестайлинг страницы</string>
-    <string name="custom_igneous_cookie">Кастомные "igneous" cookie</string>
-    <string name="custom_igneous_cookie_message">Некоторые пользователи не могут получить доступ к ExHentai обычным способом и должны передать определенное значение "igneous" cookie, эта опция предназначена для этих пользователей.</string>
+    <string name="custom_igneous_cookie">Кастомные igneous cookie</string>
+    <string name="custom_igneous_cookie_message">Некоторые пользователи не могут получить доступ к ExHentai обычным способом и должны передать определенное значение igneous cookie, эта опция предназначена для этих пользователей.</string>
 
     <!-- Advanced Settings -->
     <string name="developer_tools">Инструменты разработчика</string>
@@ -177,7 +177,8 @@
     <string name="auto_solve_captchas_summary">Использовать В ВЫСШЕЙ СТЕПЕНИ ЭКСПЕРИМЕНТАЛЬНОЕ автоматическое прохождение ReCAPTCHA. Если ваше устройство не поддерживается, оно будет выделено серым цветом.</string>
     <string name="put_recommends_in_overflow">Рекомендации в выпадающем меню</string>
     <string name="put_recommends_in_overflow_summary">Поместить кнопку рекомендации в выпадающее меню вместо размещения на странице манги</string>
-
+    <string name="pref_hide_updates_button">Переместить кнопку Обновления на вкладку Ещё</string>
+    <string name="pref_hide_history_button">Переместить кнопку История на вкладку Ещё</string>
     <!-- Library settings -->
     <string name="pref_sorting_settings">Настройки Сортировки</string>
     <string name="pref_skip_pre_migration_summary">Используйте последние сохраненные настройки и источники перед миграцией для массовой миграции</string>
