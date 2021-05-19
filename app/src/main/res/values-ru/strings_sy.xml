@@ -117,7 +117,7 @@
     <string name="eh_settings_out_of_slots_error">Вы находитесь вне профильных слотов на %1$s, пожалуйста, удалите профиль!</string>
 
     <!-- EH Settings Login Activity -->
-    <string name="recheck_login_status">Перепроверьте статус авторизации</string>
+    <string name="recheck_login_status">Перепроверить статус авторизации</string>
     <string name="alternative_login_page">Альтернативная страница авторизации</string>
     <string name="skip_page_restyling">Пропустить рестайлинг страницы</string>
     <string name="custom_igneous_cookie">Кастомные igneous cookie</string>
