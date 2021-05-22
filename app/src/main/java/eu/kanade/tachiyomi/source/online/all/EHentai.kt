@@ -179,38 +179,43 @@ class EHentai(
                     tags += parsedTags
 
                     if (infoElements != null) {
-                        getGenre(infoElements.getOrNull(1))?.let { genre = it }
+                        genre = getGenre(infoElements.getOrNull(1))
 
-                        getDateTag(infoElements.getOrNull(2))?.let { datePosted = it }
+                        datePosted = getDateTag(infoElements.getOrNull(2))
 
-                        getRating(infoElements.getOrNull(3))?.let { averageRating = it }
+                        averageRating = getRating(infoElements.getOrNull(3))
 
-                        getUploader(infoElements.getOrNull(4))?.let { uploader = it }
+                        uploader = getUploader(infoElements.getOrNull(4))
 
-                        getPageCount(infoElements.getOrNull(5))?.let { length = it }
+                        length = getPageCount(infoElements.getOrNull(5))
                     } else {
                         val parsedGenre = body.selectFirst(".gl1c div")
-                        getGenre(genreString = parsedGenre?.text()?.nullIfBlank()?.toLowerCase()?.replace(" ", ""))?.let { genre = it }
+                        genre = getGenre(
+                            genreString = parsedGenre?.text()
+                                ?.nullIfBlank()
+                                ?.toLowerCase()
+                                ?.replace(" ", "")
+                        )
 
                         val info = body.selectFirst(".gl2c")
                         val extraInfo = body.selectFirst(".gl4c")
 
                         val infoList = info.select("div div")
 
-                        getDateTag(infoList.getOrNull(8))?.let { datePosted = it }
+                        datePosted = getDateTag(infoList.getOrNull(8))
 
-                        getRating(infoList.getOrNull(9))?.let { averageRating = it }
+                        averageRating = getRating(infoList.getOrNull(9))
 
                         val extraInfoList = extraInfo.select("div")
 
                         if (extraInfoList.getOrNull(2) == null) {
-                            getUploader(extraInfoList.getOrNull(0))?.let { uploader = it }
+                            uploader = getUploader(extraInfoList.getOrNull(0))
 
-                            getPageCount(extraInfoList.getOrNull(1))?.let { length = it }
+                            length = getPageCount(extraInfoList.getOrNull(1))
                         } else {
-                            getUploader(extraInfoList.getOrNull(1))?.let { uploader = it }
+                            uploader = getUploader(extraInfoList.getOrNull(1))
 
-                            getPageCount(extraInfoList.getOrNull(2))?.let { length = it }
+                            length = getPageCount(extraInfoList.getOrNull(2))
                         }
                     }
                 }
@@ -284,7 +289,7 @@ class EHentai(
 
     override suspend fun getChapterList(manga: MangaInfo): List<ChapterInfo> = getChapterList(manga) {}
 
-    suspend fun getChapterList(manga: MangaInfo, throttleFunc: () -> Unit): List<ChapterInfo> {
+    suspend fun getChapterList(manga: MangaInfo, throttleFunc: suspend () -> Unit): List<ChapterInfo> {
         // Pull all the way to the root gallery
         // We can't do this with RxJava or we run into stack overflows on shit like this:
         //   https://exhentai.org/g/1073061/f9345f1c12/
@@ -357,7 +362,7 @@ class EHentai(
 
     @Suppress("DeprecatedCallableAddReplaceWith")
     @Deprecated("Use getChapterList instead")
-    fun fetchChapterList(manga: SManga, throttleFunc: () -> Unit) = runAsObservable({
+    fun fetchChapterList(manga: SManga, throttleFunc: suspend () -> Unit) = runAsObservable({
         getChapterList(manga.toMangaInfo(), throttleFunc).map { it.toSChapter() }
     })
 
