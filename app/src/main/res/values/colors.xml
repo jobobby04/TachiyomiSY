@@ -57,6 +57,14 @@
     <color name="dialogPink">@color/md_black_1000</color>
     <color name="selectorColorPink">#80FF69B4</color>
 
+    <!-- Nice Booba Green Theme -->
+    <color name="colorAccentNiceGreen">#69b00b</color>
+    <color name="textColorPrimaryNiceGreen">@color/md_white_1000</color>
+    <color name="textColorSecondaryNiceGreen">@color/md_white_1000_70</color>
+    <color name="textColorHintNiceGreen">@color/md_white_1000_50</color>
+    <color name="backgroundNiceGreen">@color/colorDarkPrimaryDark</color>
+    <color name="dialogNiceGreen">@color/colorDarkPrimaryDark</color>
+
     <!-- Reader Theme -->
     <color name="readerColorDarkPrimary">@color/colorDarkPrimary</color>
     <color name="pageNumberBackgroundLight">@color/md_grey_50_75</color>
