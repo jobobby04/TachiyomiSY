@@ -63,7 +63,9 @@
         <item name="colorOnSurface">@color/textColorPrimaryPink</item>
         <item name="colorOnBackground">@color/textColorPrimaryPink</item>
         <item name="colorAccent">@color/colorAccentPink</item>
+        <item name="rippleColor">@color/md_white_1000_8</item>
         <item name="rippleSecondaryColor">@color/rippleColorPink</item>
+        <item name="rippleToolbarColor">@color/md_white_1000_8</item>
         <item name="background">@color/backgroundPink</item>
 
         <item name="android:colorBackground">@color/backgroundPink</item>
