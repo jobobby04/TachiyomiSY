@@ -495,19 +495,6 @@
     <string name="no_rating">Нет рейтинга</string>
 
 
-    <!-- Gallery types -->
-    <string name="doujinshi">Додзинси</string>
-    <string name="artist_cg">Художник CG</string>
-    <string name="game_cg">Игра CG</string>
-    <string name="western">Западный</string>
-    <string name="non_h">Non-H</string>
-    <string name="image_set">Набор изображений</string>
-    <string name="cosplay">Косплей</string>
-    <string name="asian_porn">Азиатское Порно</string>
-    <string name="misc">Разное</string>
-    <string name="artbook">Артбук</string>
-    <string name="video">Видео</string>
-
     <!-- More Info Menu -->
     <string name="more_info">Информация</string>
     <string name="alt_title">Названия</string>
