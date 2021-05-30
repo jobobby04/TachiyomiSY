@@ -201,6 +201,7 @@
 
     <!-- Backup settings -->
     <string name="custom_manga_info">Кастомная информация о манге</string>
+    <string name="all_read_manga">Вся прочитанная манга</string>
 
     <!-- Download settings -->
     <string name="save_chapter_as_cbz">Сохранить главы как CBZ</string>
@@ -225,6 +226,7 @@
     <string name="biometric_lock_invalid_time_selected">Выбрано неверное время</string>
 
     <!-- Reader Settings -->
+    <string name="page_downloading">Страница Загружается</string>
     <string name="download_threads">Потоки загрузки</string>
     <string name="download_threads_summary">Более высокие значения могут значительно ускорить загрузку изображений, но также могут вызвать запреты. Рекомендуемое значение-2 или 3. Текущее значение: %s</string>
     <string name="aggressively_load_pages">Агрессивная загрузка страниц</string>
@@ -268,9 +270,32 @@
     <string name="eh_retry_all_help_message">Повторно добавьте все неудачные страницы в очередь загрузки.</string>
     <string name="eh_boost_page_help">Буст страницы (подсказка)</string>
     <string name="eh_boost_page_help_message">Обычно загрузчик может одновременно загружать только определенное количество страниц. Это означает, что вы можете ждать загрузки страницы, но загрузчик не начнет загрузку страницы до тех пор, пока у него не будет свободного слота для загрузки. Нажатие \'Буст страницы\' заставит загрузчик начать загрузку текущей страницы, независимо от того, есть ли свободный слот или нет.</string>
+    <string name="pref_crop_borders_pager">Обрезать границы (Постранично)</string>
+    <string name="pref_crop_borders_continuous_vertical">Обрезать границы (Непрерывно вертикальный)</string>
+    <string name="pref_crop_borders_webtoon">Обрезать границы (Вебкомикс)</string>
+    <string name="action_set_first_page_cover">Установить первую страницу как обложку</string>
+    <string name="action_set_second_page_cover">Установить вторую страницу как обложку</string>
+    <string name="action_save_first_page">Сохранить первую страницу</string>
+    <string name="action_save_second_page">Сохранить вторую страницу</string>
+    <string name="action_share_first_page">Поделиться первой страницей</string>
+    <string name="action_share_second_page">Поделиться второй страницей</string>
+    <string name="action_save_combined_page">Сохранить объединённые страницы</string>
+    <string name="action_share_combined_page">Поделиться объединёнными страницами</string>
+
+    <!-- Reader Sharing -->
+    <string name="share_pages_info">%1$s: %2$s, страницы %3$s</string>
 
     <!-- Auto Webtoon Mode -->
     <string name="eh_auto_webtoon_snack">Стиль чтения веб-комикс</string>
+
+    <!-- Double page spread -->
+    <string name="page_layout">Разметка страниц</string>
+    <string name="shift_double_pages">Сдвинуть на одну страницу</string>
+    <string name="double_pages">Двойные страницы</string>
+    <string name="single_page">Одна страница</string>
+    <string name="automatic_orientation">Автоматически (на основе ориентации)</string>
+    <string name="automatic_can_still_switch">При использовании автоматической разметки страниц, вы всё ещё можете переключиться между разметками, когда читаете, без переопределения этой настройки</string>
+    <string name="invert_double_pages">Двойные страницы наоборот</string>
 
     <!-- Manga Page -->
     <!-- Manga Info -->
@@ -294,6 +319,9 @@
     <string name="cover_reset_toast">Обложка будет обновлена, когда вы выйдете из редактора манги. </string>
 
     <!-- Browse -->
+    <!-- Sources Tab -->
+    <string name="find_in_another_source">Найти в другом источнике</string>
+
     <!-- Smart Search -->
     <string name="searching_source">Поиск источника…</string>
 
@@ -395,6 +423,10 @@
     </plurals>
 
     <!-- Library -->
+    <!-- Library Actions -->
+    <string name="no_valid_manga">Не выбрана допустимая манга</string>
+
+
     <!-- Library Sheet -->
     <string name="tracked">Отслеживается</string>
     <string name="lewd">18+</string>
