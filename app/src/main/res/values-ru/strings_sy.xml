@@ -272,9 +272,9 @@
     <string name="eh_retry_all_help_message">Повторно добавьте все неудачные страницы в очередь загрузки.</string>
     <string name="eh_boost_page_help">Буст страницы (подсказка)</string>
     <string name="eh_boost_page_help_message">Обычно загрузчик может одновременно загружать только определенное количество страниц. Это означает, что вы можете ждать загрузки страницы, но загрузчик не начнет загрузку страницы до тех пор, пока у него не будет свободного слота для загрузки. Нажатие \'Буст страницы\' заставит загрузчик начать загрузку текущей страницы, независимо от того, есть ли свободный слот или нет.</string>
-    <string name="pref_crop_borders_pager">Обрезать границы (Постранично)</string>
-    <string name="pref_crop_borders_continuous_vertical">Обрезать границы (Непрерывно вертикальный)</string>
-    <string name="pref_crop_borders_webtoon">Обрезать границы (Вебкомикс)</string>
+    <string name="pref_crop_borders_pager">Обрезать поля (Постранично)</string>
+    <string name="pref_crop_borders_continuous_vertical">Обрезать поля (Непрерывно вертикальный)</string>
+    <string name="pref_crop_borders_webtoon">Обрезать поля (Вебкомикс)</string>
     <string name="action_set_first_page_cover">Установить первую страницу как обложку</string>
     <string name="action_set_second_page_cover">Установить вторую страницу как обложку</string>
     <string name="action_save_first_page">Сохранить первую страницу</string>
