@@ -24,6 +24,7 @@ import com.bluelinelabs.conductor.RouterTransaction
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
 import com.google.android.material.navigation.NavigationBarView
+import com.google.android.material.navigationrail.NavigationRailView
 import dev.chrisbanes.insetter.applyInsetter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
@@ -301,7 +302,7 @@ class MainActivity : BaseViewBindingActivity<MainActivityBinding>() {
 
         // SY -->
         preferences.bottomBarLabels()
-            .asImmediateFlow { setBottomNavLabelVisibility() }
+            .asImmediateFlow { setNavLabelVisibility() }
             .launchIn(lifecycleScope)
         // SY <--
     }
@@ -580,12 +581,19 @@ class MainActivity : BaseViewBindingActivity<MainActivityBinding>() {
     private val nav: NavigationBarView
         get() = binding.bottomNav ?: binding.sideNav!!
 
-    private fun setBottomNavLabelVisibility() {
+    private fun setNavLabelVisibility() {
         binding.bottomNav?.let {
             if (preferences.bottomBarLabels().get()) {
                 it.labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_LABELED
             } else {
                 it.labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_SELECTED
+            }
+        }
+        binding.sideNav?.let {
+            if (preferences.bottomBarLabels().get()) {
+                it.labelVisibilityMode = NavigationRailView.LABEL_VISIBILITY_LABELED
+            } else {
+                it.labelVisibilityMode = NavigationRailView.LABEL_VISIBILITY_SELECTED
             }
         }
     }
