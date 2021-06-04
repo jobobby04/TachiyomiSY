@@ -41,7 +41,7 @@
     <string name="enable_exhentai">Ativar ExHentai</string>
     <string name="requires_login">Requer login</string>
     <string name="use_hentai_at_home">Usar Hentai@Home Network</string>
-    <string name="use_hentai_at_home_summary">Deseja carregar imagens pela Hentai@Home Network, se disponível? Desativar isto reduzirá o número de páginas que você pode ver\nOpções:\n- Qualquer cliente (Recomendado)\n- Apenas clientes de porta padrão (Pode ser mais lento. Ative se usa um firewall/proxy que bloqueia portas não-padrão de saída).</string>
+    <string name="use_hentai_at_home_summary">Deseja carregar imagens pela Hentai@Home Network se disponível? Desativar isto reduzirá o número de páginas que você pode ver\nOpções:\n- Qualquer cliente (Recomendado)\n- Apenas clientes de porta padrão (Pode ser mais lento. Ative se usa um firewall/proxy que bloqueia portas não-padrão de saída).</string>
     <string name="use_hentai_at_home_option_1">Qualquer cliente (Recomendado)</string>
     <string name="use_hentai_at_home_option_2">Apenas portas não-padrão de saída </string>
     <string name="show_japanese_titles">Mostrar títulos japoneses na pesquisa</string>
@@ -177,8 +177,8 @@
     <string name="auto_solve_captchas_summary">Use o Resolve-ReCAPTCHA automático ALTAMENTE EXPERIMENTAL. Ficará cinza se não suportado por seu celular.</string>
     <string name="put_recommends_in_overflow">Recomendações no menu kebab</string>
     <string name="put_recommends_in_overflow_summary">Põe o botão de recomendações no menu flutuante em vez de na página do mangá</string>
-    <string name="pref_hide_updates_button">Mover Botão Atualizações à aba Mais</string>
-    <string name="pref_hide_history_button">Mover Botão Histórico à aba Mais</string>
+    <string name="pref_hide_updates_button">Mover Botão Atualizações à barra inferior</string>
+    <string name="pref_hide_history_button">Mover Botão Histórico à barra inferior</string>
     <string name="pref_show_bottom_bar_labels">Sempre mostrar rótulos na barra inferior</string>
 
     <!-- Library settings -->
@@ -534,12 +534,12 @@
 
 
     <!-- Gallery types -->
-    <string name="doujinshi">Dōjinshi</string>
+    <string name="doujinshi">Doujinshi</string>
     <string name="artist_cg">CG de Artista</string>
     <string name="game_cg">CG de Jogo</string>
     <string name="western">Ocidental</string>
     <string name="non_h">Não-H</string>
-    <string name="image_set">Acervo de Imagem</string>
+    <string name="image_set">Coleção de Imagem</string>
     <string name="cosplay">Cosplay</string>
     <string name="asian_porn">Pornô Asiático</string>
     <string name="misc">Diversos</string>
@@ -615,11 +615,11 @@
     <string name="merge_settings">Configurações da junção</string>
     <string name="fetch_chapter_updates">Buscar atualizações de capítulo</string>
     <string name="delete_merged_manga">Tem certeza?</string>
-    <string name="delete_merged_manga_desc">Isto removerá o mangá da junção, usar isto também perderá qualquer mudança não salva aplicada ao mangá juntado.</string>
+    <string name="delete_merged_manga_desc">Isto removerá o mangá da junção, e também perderá qualquer mudança não salva aplicada ao mangá juntado.</string>
     <string name="chapter_updates_merged_manga">Alternar atualizações de capítulo</string>
-    <string name="chapter_updates_merged_manga_desc">Mudar isto destivará ou ativará atualizações de capítulo a este mangá juntado</string>
+    <string name="chapter_updates_merged_manga_desc">Mudar isto desativará ou ativará atualizações de capítulo a este mangá juntado</string>
     <string name="download_merged_manga">Alternar downloads de capítulo novos</string>
-    <string name="download_merged_manga_desc">Mudar isto destivará ou ativará downloads de capítulo a este mangá juntado</string>
+    <string name="download_merged_manga_desc">Mudar isto desativará ou ativará downloads de capítulo a este mangá juntado</string>
     <string name="merged_references_invalid">Referências juntadas inválidas</string>
     <string name="merged_chapter_updates_error">Alternar erro de atualizações de capítulo</string>
     <string name="merged_references">Referências juntadas</string>
@@ -635,21 +635,21 @@
     <!-- MangaDex -->
     <string name="mdlist">MDList</string>
     <string name="md_follows_unfollowed">Deixado de seguir</string>
-    <string name="mangadex_specific_settings">Configurações doMangaDex</string>
-    <string name="mangadex_sync_follows_to_library">Sincronizar mangá do Mangadex a sua bilioteca</string>
-    <string name="mangadex_sync_follows_to_library_summary">Move mangás do MangaDex para sua biblioteca, se ainda não foram adicionados.</string>
+    <string name="mangadex_specific_settings">Configurações do MangaDex</string>
+    <string name="mangadex_sync_follows_to_library">Sincronizar mangá do MangaDex a sua bilioteca</string>
+    <string name="mangadex_sync_follows_to_library_summary">Move mangás do MangaDex a sua biblioteca, se ainda não foram adicionados.</string>
     <string name="mangadex_sync_follows_to_library_message">Selecione o status do mangá a ser movido do MangaDex</string>
-    <string name="mangadex_low_quality_covers">Use miniaturas de baixa qualidade</string>
+    <string name="mangadex_low_quality_covers">Usar miniaturas de baixa qualidade</string>
     <string name="mangadex_use_latest_cover">Usar última capa enviada</string>
     <string name="mangadex_use_latest_cover_summary">Se ativado, usa a última capa de mangá enviada sob o url /covers em vez da capa da página de mangá do MangaDex</string>
     <string name="mangadex_preffered_source">Fonte do MangaDex preferida</string>
-    <string name="mangadex_preffered_source_summary">Defina sua fonte do mangadex escolhida, ela será usada para os follows e muitas outras funções ao redor do app</string>
+    <string name="mangadex_preffered_source_summary">Define sua fonte do mangadex escolhida, ela será usada para os follows e muitas outras funções ao redor do app</string>
     <string name="two_factor">Código 2FA</string>
-    <string name="fields_cannot_be_blank">Campo não pode estar vazio</string>
+    <string name="fields_cannot_be_blank">Campos não podem estar vazios</string>
     <string name="mangadex_add_to_follows">Adicionar aos follows do MangaDex</string>
     <string name="mangadex_follows">Follows do MangaDex</string>
     <string name="random">Aleatório</string>
-    <string name="mangadex_push_favorites_to_mangadex">Sincronizar mangá da bilioteca ao MangaDex</string>
+    <string name="mangadex_push_favorites_to_mangadex">Sincronizar mangás da bilioteca ao MangaDex</string>
     <string name="mangadex_push_favorites_to_mangadex_summary">Sincroniza qualquer mangá não monitado no MdList como Lendo.</string>
     <string name="mangadex_push_favorites_to_mangadex_toast">%d mangás movidos ao MangaDex</string>
 
@@ -664,19 +664,19 @@
     <string name="similar_manga">Mangás Similares</string>
     <string name="similar_loading_percent">Atualizando mangás similares (%1$d / %2$d atualizado)</string>
     <string name="similar_loading_complete">Atualização de mangás similares feita</string>
-    <string name="similar_loading_complete_error">Erro ao tentar carrega/processar mangás similares</string>
+    <string name="similar_loading_complete_error">Erro ao tentar carregar/processar mangás similares</string>
     <string name="similar_loading_progress_start">Baixando arquivo de dados de mangás similares…</string>
     <string name="similar_ask_to_enable_title">Ativar Mangás Similares?</string>
     <string name="similar_ask_to_enable">
         Gostaria de ativar recomendações de mangás similares?
-        Isso baixará cerca de 9 MB de dados, se ativado agora.
+        Isto baixará cerca de 9 MB de dados se ativado agora.
         Pode ativar isto sempre em Configurações > MangaDex.
     </string>
     <string name="similar_ask_to_enable_yes">Ativar</string>
     <string name="similar_ask_to_enable_no">Pular</string>
     <string name="similar_settings">Configurações de mangás similares</string>
     <string name="similar_screen">Mostrar mangás similares</string>
-    <string name="similar_manually_update">Puxar último anco de dados</string>
+    <string name="similar_manually_update">Atualizar ao último banco de dados</string>
     <string name="similar_manually_toast">Iniciando atualização manual</string>
     <string name="similar_manually_update_message">
         Baixa o banco de dados de mangás similares mais recente.
@@ -685,9 +685,9 @@
     <string name="similar_update_fequency">Frequência de atualização de similares</string>
     <string name="similar_screen_summary_message">
         Isto é uma função que pode obter recomendações de mangá.
-        Isto é um sistema de recomendação fora do MangaDex e funciona combinando por gêneros,
+        É um sistema de recomendação fora do MangaDex e funciona combinando por gêneros,
         demografias, tipo de conteúdo, temas, e então usando frequência do termo–inverso da frequência nos documentos (tf–idf) para obter a
-        semelhança das descrições de dois mangás. Quando ativado, este arquivo será baixado imediatamente!! O arquivo pesa cerca de 9 MB.
+        semelhança das descrições de dois mangás. Quando ativado, este arquivo será baixado imediatamente! O arquivo pesa cerca de 9 MB.
     </string>
     <string name="similar_credit">Créditos</string>
     <string name="similar_credit_message">
