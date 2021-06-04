@@ -177,8 +177,8 @@
     <string name="auto_solve_captchas_summary">Use HIGHLY EXPERIMENTAL automatic ReCAPTCHA solver. Will be grayed out if unsupported by your device.</string>
     <string name="put_recommends_in_overflow">Recommendations in overflow</string>
     <string name="put_recommends_in_overflow_summary">Put the recommendations button in the overflow menu instead of on the manga page</string>
-    <string name="pref_hide_updates_button">Move Update button to the More tab</string>
-    <string name="pref_hide_history_button">Move History button to the More tab</string>
+    <string name="pref_hide_updates_button">Show updates in the nav</string>
+    <string name="pref_hide_history_button">Show history in the nav</string>
     <string name="pref_show_bottom_bar_labels">Always show bottom bar labels</string>
 
     <!-- Library settings -->
@@ -315,10 +315,6 @@
     <string name="az_recommends">See Recommendations</string>
     <string name="merge">Merge</string>
     <string name="merge_with_another_source">Merge With Another</string>
-    <string name="cover_saved">Cover saved</string>
-    <string name="share_cover">Share cover</string>
-    <string name="error_saving_cover">Error saving cover</string>
-    <string name="error_sharing_cover">Error sharing cover</string>
 
     <!-- Manga info fragment -->
     <string name="hiatus">Hiatus</string>
@@ -348,6 +344,7 @@
     <string name="save_search_failed_to_delete_message">An error occurred while deleting the search.</string>
     <string name="save_search_delete">Delete saved search query?</string>
     <string name="save_search_delete_message">Are you sure you wish to delete your saved search query: \'%1$s\'?</string>
+    <string name="save_search_invalid">Saved search invalid, filters have changed</string>
 
     <!-- Source Categories -->
     <string name="no_source_categories">No source categories available</string>

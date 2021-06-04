@@ -27,7 +27,6 @@ import eu.kanade.tachiyomi.util.system.toast
 import exh.syDebugVersion
 import timber.log.Timber
 import java.text.DateFormat
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -165,9 +164,8 @@ class AboutController : SettingsController(), NoToolbarElevationController {
             )
             outputDf.timeZone = TimeZone.getDefault()
 
-            @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-            buildTime.toDateTimestampString(dateFormat)
-        } catch (e: ParseException) {
+            buildTime!!.toDateTimestampString(dateFormat)
+        } catch (e: Exception) {
             BuildConfig.BUILD_TIME
         }
     }

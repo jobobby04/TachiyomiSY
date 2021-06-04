@@ -161,7 +161,10 @@
     <string name="pref_date_format">Date format</string>
     <string name="pref_confirm_exit">Confirm exit</string>
     <string name="pref_hide_bottom_bar_on_scroll">Hide bottom bar on scroll</string>
-    <string name="pref_move_side_nav_to_bottom">Move side navigation buttons to bottom</string>
+    <string name="pref_side_nav_icon_alignment">Side navigation icon alignment</string>
+    <string name="alignment_top">Top</string>
+    <string name="alignment_center">Center</string>
+    <string name="alignment_bottom">Bottom</string>
     <string name="pref_manage_notifications">Manage notifications</string>
 
     <string name="pref_category_security">Security</string>
@@ -559,6 +562,10 @@
     <string name="download_custom">Custom</string>
     <string name="download_all">All</string>
     <string name="download_unread">Unread</string>
+    <string name="manga_cover">Cover</string>
+    <string name="cover_saved">Cover saved</string>
+    <string name="error_saving_cover">Error saving cover</string>
+    <string name="error_sharing_cover">Error sharing cover</string>
     <string name="confirm_delete_chapters">Are you sure you want to delete the selected chapters?</string>
     <string name="invalid_download_dir">Invalid download location</string>
     <string name="chapter_settings">Chapter settings</string>

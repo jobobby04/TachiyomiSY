@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.os.Environment
 import androidx.annotation.ColorInt
 import com.jakewharton.rxrelay.BehaviorRelay
 import eu.kanade.tachiyomi.R
@@ -35,8 +34,9 @@ import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.lang.byteSize
 import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.lang.takeBytes
-import eu.kanade.tachiyomi.util.lang.withIOContext
 import eu.kanade.tachiyomi.util.storage.DiskUtil
+import eu.kanade.tachiyomi.util.storage.getPicturesDir
+import eu.kanade.tachiyomi.util.storage.getTempShareDir
 import eu.kanade.tachiyomi.util.system.ImageUtil
 import eu.kanade.tachiyomi.util.updateCoverLastModified
 import exh.md.utils.FollowStatus
@@ -83,6 +83,8 @@ class ReaderPresenter(
 
     // SY -->
     var meta: RaisedSearchMetadata? = null
+        private set
+    var mergedManga: List<Manga>? = null
         private set
     // SY <--
 
@@ -282,8 +284,8 @@ class ReaderPresenter(
         val context = Injekt.get<Application>()
         val source = sourceManager.getOrStub(manga.source)
         val mergedReferences = if (source is MergedSource) db.getMergedMangaReferences(manga.id!!).executeAsBlocking() else emptyList()
-        val mergedManga = if (source is MergedSource) db.getMergedMangas(manga.id!!).executeAsBlocking() else emptyList()
-        loader = ChapterLoader(context, downloadManager, manga, source, sourceManager, mergedReferences, mergedManga)
+        mergedManga = if (source is MergedSource) db.getMergedMangas(manga.id!!).executeAsBlocking() else emptyList()
+        loader = ChapterLoader(context, downloadManager, manga, source, sourceManager, mergedReferences, mergedManga ?: emptyList())
 
         Observable.just(manga).subscribeLatestCache(ReaderActivity::setManga)
         viewerChaptersRelay.subscribeLatestCache(ReaderActivity::setChapters)
@@ -305,25 +307,23 @@ class ReaderPresenter(
     }
 
     // SY -->
-    suspend fun getChapters(context: Context): List<ReaderChapterItem> {
-        return withIOContext {
-            val currentChapter = getCurrentChapter()
-            val decimalFormat = DecimalFormat(
-                "#.###",
-                DecimalFormatSymbols()
-                    .apply { decimalSeparator = '.' }
-            )
+    fun getChapters(context: Context): List<ReaderChapterItem> {
+        val currentChapter = getCurrentChapter()
+        val decimalFormat = DecimalFormat(
+            "#.###",
+            DecimalFormatSymbols()
+                .apply { decimalSeparator = '.' }
+        )
 
-            chapterList.map {
-                ReaderChapterItem(
-                    it.chapter,
-                    manga!!,
-                    it.chapter == currentChapter?.chapter,
-                    context,
-                    preferences.dateFormat(),
-                    decimalFormat
-                )
-            }
+        return chapterList.map {
+            ReaderChapterItem(
+                it.chapter,
+                manga!!,
+                it.chapter == currentChapter?.chapter,
+                context,
+                preferences.dateFormat(),
+                decimalFormat
+            )
         }
     }
     // SY <--
@@ -705,9 +705,7 @@ class ReaderPresenter(
         notifier.onClear()
 
         // Pictures directory.
-        val baseDir = Environment.getExternalStorageDirectory().absolutePath +
-            File.separator + Environment.DIRECTORY_PICTURES +
-            File.separator + context.getString(R.string.app_name)
+        val baseDir = getPicturesDir(context).absolutePath
         val destDir = if (preferences.folderPerManga()) {
             File(baseDir + File.separator + manga.title)
         } else {
@@ -740,11 +738,7 @@ class ReaderPresenter(
         notifier.onClear()
 
         // Pictures directory.
-        val destDir = File(
-            Environment.getExternalStorageDirectory().absolutePath +
-                File.separator + Environment.DIRECTORY_PICTURES +
-                File.separator + context.getString(R.string.app_name)
-        )
+        val destDir = getPicturesDir(context)
 
         // Copy file in background.
         Observable.fromCallable { saveImages(firstPage, secondPage, isLTR, bg, destDir, manga) }
@@ -805,7 +799,7 @@ class ReaderPresenter(
         val manga = manga ?: return
         val context = Injekt.get<Application>()
 
-        val destDir = File(context.cacheDir, "shared_image")
+        val destDir = getTempShareDir(context)
 
         Observable.fromCallable { destDir.deleteRecursively() } // Keep only the last shared file
             .map { saveImage(page, destDir, manga) }
@@ -824,7 +818,7 @@ class ReaderPresenter(
         val manga = manga ?: return
         val context = Injekt.get<Application>()
 
-        val destDir = File(context.cacheDir, "shared_image")
+        val destDir = getTempShareDir(context)
 
         Observable.fromCallable { destDir.deleteRecursively() } // Keep only the last shared file
             .map { saveImages(firstPage, secondPage, isLTR, bg, destDir, manga) }
@@ -930,7 +924,13 @@ class ReaderPresenter(
      */
     private fun enqueueDeleteReadChapters(chapter: ReaderChapter) {
         if (!chapter.chapter.read) return
-        val manga = manga ?: return
+        // SY -->
+        val manga = if (mergedManga.isNullOrEmpty()) {
+            manga
+        } else {
+            mergedManga?.find { it.id == chapter.chapter.manga_id }
+        } ?: return
+        // SY <--
 
         launchIO {
             downloadManager.enqueueDeleteChapters(listOf(chapter.chapter), manga)
