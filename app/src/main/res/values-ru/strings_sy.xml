@@ -735,6 +735,6 @@
     </plurals>
     <string name="humanize_fallback">мгновение назад</string>
     <!-- Themes -->
-    <string name="theme_dark_amoledblue">AMOLED синяя</string>
+    <string name="theme_dark_amoledblue">AMOLED Синий</string>
     <string name="theme_dark_red">Чёрное и Красное</string>
 </resources>
