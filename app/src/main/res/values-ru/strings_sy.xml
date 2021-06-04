@@ -736,5 +736,5 @@
     <string name="humanize_fallback">мгновение назад</string>
     <!-- Themes -->
     <string name="theme_dark_amoledblue">AMOLED Синий</string>
-    <string name="theme_dark_red">Чёрное и Красное</string>
+    <string name="theme_dark_red">Чёрный и Красный</string>
 </resources>
