@@ -84,7 +84,7 @@
                 android:resource="@xml/s_pen_actions"/>
         </activity>
         <activity
-            android:name=".ui.security.BiometricUnlockActivity"
+            android:name=".ui.security.UnlockActivity"
             android:theme="@style/Theme.Base" />
         <activity
             android:name=".ui.webview.WebViewActivity"
@@ -189,10 +189,6 @@
             android:exported="false" />
 
         <!-- EH -->
-        <service
-            android:name="exh.md.similar.SimilarUpdateService"
-            android:exported="false" />
-
         <service
             android:name="exh.eh.EHentaiUpdateWorker"
             android:permission="android.permission.BIND_JOB_SERVICE"

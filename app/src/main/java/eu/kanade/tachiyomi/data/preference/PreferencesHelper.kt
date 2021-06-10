@@ -15,6 +15,7 @@ import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.ui.reader.setting.OrientationType
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingModeType
+import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
 import eu.kanade.tachiyomi.widget.ExtendedNavigationView
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
@@ -39,8 +40,9 @@ operator fun <T> Preference<Set<T>>.minusAssign(item: T) {
     set(get() - item)
 }
 
-fun Preference<Boolean>.toggle() {
+fun Preference<Boolean>.toggle(): Boolean {
     set(!get())
+    return get()
 }
 
 class PreferencesHelper(val context: Context) {
@@ -64,11 +66,11 @@ class PreferencesHelper(val context: Context) {
 
     fun confirmExit() = prefs.getBoolean(Keys.confirmExit, false)
 
-    fun hideBottomBar() = flowPrefs.getBoolean(Keys.hideBottomBar, true)
+    fun hideBottomBarOnScroll() = flowPrefs.getBoolean(Keys.hideBottomBarOnScroll, true)
 
-    fun bottomBarLabels() = flowPrefs.getBoolean(Keys.bottomBarLabels, true)
+    fun sideNavIconAlignment() = flowPrefs.getInt(Keys.sideNavIconAlignment, 0)
 
-    fun useBiometricLock() = flowPrefs.getBoolean(Keys.useBiometricLock, false)
+    fun useAuthenticator() = flowPrefs.getBoolean(Keys.useAuthenticator, false)
 
     fun lockAppAfter() = flowPrefs.getInt(Keys.lockAppAfter, 0)
 
@@ -80,9 +82,9 @@ class PreferencesHelper(val context: Context) {
 
     fun autoUpdateMetadata() = prefs.getBoolean(Keys.autoUpdateMetadata, false)
 
-    fun showLibraryUpdateErrors() = prefs.getBoolean(Keys.showLibraryUpdateErrors, false)
+    fun autoUpdateTrackers() = prefs.getBoolean(Keys.autoUpdateTrackers, false)
 
-    fun clear() = prefs.edit { clear() }
+    fun showLibraryUpdateErrors() = prefs.getBoolean(Keys.showLibraryUpdateErrors, false)
 
     fun themeMode() = flowPrefs.getEnum(Keys.themeMode, Values.ThemeMode.system)
 
@@ -176,6 +178,8 @@ class PreferencesHelper(val context: Context) {
 
     fun autoUpdateTrack() = prefs.getBoolean(Keys.autoUpdateTrack, true)
 
+    fun autoAddTrack() = prefs.getBoolean(Keys.autoAddTrack, true)
+
     fun lastUsedSource() = flowPrefs.getLong(Keys.lastUsedSource, -1)
 
     fun lastUsedCategory() = flowPrefs.getInt(Keys.lastUsedCategory, 0)
@@ -226,7 +230,7 @@ class PreferencesHelper(val context: Context) {
 
     fun libraryUpdateInterval() = flowPrefs.getInt(Keys.libraryUpdateInterval, 24)
 
-    fun libraryUpdateRestriction() = prefs.getStringSet(Keys.libraryUpdateRestriction, setOf("wifi"))
+    fun libraryUpdateRestriction() = flowPrefs.getStringSet(Keys.libraryUpdateRestriction, setOf(UNMETERED_NETWORK))
 
     fun libraryUpdateCategories() = flowPrefs.getStringSet(Keys.libraryUpdateCategories, emptySet())
     fun libraryUpdateCategoriesExclude() = flowPrefs.getStringSet(Keys.libraryUpdateCategoriesExclude, emptySet())
@@ -236,6 +240,8 @@ class PreferencesHelper(val context: Context) {
     fun libraryDisplayMode() = flowPrefs.getEnum(Keys.libraryDisplayMode, DisplayMode.COMPACT_GRID)
 
     fun downloadBadge() = flowPrefs.getBoolean(Keys.downloadBadge, false)
+
+    fun localBadge() = flowPrefs.getBoolean(Keys.localBadge, true)
 
     fun downloadedOnly() = flowPrefs.getBoolean(Keys.downloadedOnly, false)
 
@@ -286,6 +292,8 @@ class PreferencesHelper(val context: Context) {
 
     fun defaultCategory() = prefs.getInt(Keys.defaultCategory, -1)
 
+    fun categorisedDisplaySettings() = flowPrefs.getBoolean(Keys.categorizedDisplay, false)
+
     fun skipRead() = prefs.getBoolean(Keys.skipRead, false)
 
     fun skipFiltered() = prefs.getBoolean(Keys.skipFiltered, true)
@@ -311,8 +319,6 @@ class PreferencesHelper(val context: Context) {
     fun sortChapterByAscendingOrDescending() = prefs.getInt(Keys.defaultChapterSortByAscendingOrDescending, Manga.CHAPTER_SORT_DESC)
 
     fun incognitoMode() = flowPrefs.getBoolean(Keys.incognitoMode, false)
-
-    fun createLegacyBackup() = flowPrefs.getBoolean(Keys.createLegacyBackup, true)
 
     fun setChapterSettingsDefault(manga: Manga) {
         prefs.edit {
@@ -446,15 +452,7 @@ class PreferencesHelper(val context: Context) {
 
     fun preferredMangaDexId() = flowPrefs.getString(Keys.preferredMangaDexId, "0")
 
-    fun mangadexSimilarEnabled() = flowPrefs.getBoolean(Keys.mangadexSimilarEnabled, false)
-
-    fun shownMangaDexSimilarAskDialog() = flowPrefs.getBoolean("shown_similar_ask_dialog", false)
-
-    fun mangadexSimilarOnlyOverWifi() = flowPrefs.getBoolean(Keys.mangadexSimilarOnlyOverWifi, true)
-
     fun mangadexSyncToLibraryIndexes() = flowPrefs.getStringSet(Keys.mangadexSyncToLibraryIndexes, emptySet())
-
-    fun mangadexSimilarUpdateInterval() = flowPrefs.getInt(Keys.mangadexSimilarUpdateInterval, 2)
 
     fun dataSaver() = flowPrefs.getBoolean(Keys.dataSaver, false)
 
@@ -476,7 +474,9 @@ class PreferencesHelper(val context: Context) {
 
     fun allowLocalSourceHiddenFolders() = flowPrefs.getBoolean(Keys.allowLocalSourceHiddenFolders, false)
 
-    fun biometricTimeRanges() = flowPrefs.getStringSet(Keys.biometricTimeRanges, mutableSetOf())
+    fun authenticatorTimeRanges() = flowPrefs.getStringSet(Keys.authenticatorTimeRanges, mutableSetOf())
+
+    fun authenticatorDays() = flowPrefs.getInt(Keys.authenticatorDays, 0x7F)
 
     fun sortTagsForLibrary() = flowPrefs.getStringSet(Keys.sortTagsForLibrary, mutableSetOf())
 
@@ -493,4 +493,14 @@ class PreferencesHelper(val context: Context) {
     fun leftVerticalSeekbar() = flowPrefs.getBoolean(Keys.leftVerticalSeekbar, false)
 
     fun readerBottomButtons() = flowPrefs.getStringSet(Keys.readerBottomButtons, ReaderBottomButton.BUTTONS_DEFAULTS)
+
+    fun bottomBarLabels() = flowPrefs.getBoolean(Keys.bottomBarLabels, true)
+
+    fun showNavUpdates() = flowPrefs.getBoolean(Keys.showNavUpdates, true)
+
+    fun showNavHistory() = flowPrefs.getBoolean(Keys.showNavHistory, true)
+
+    fun pageLayout() = flowPrefs.getInt(Keys.pageLayout, PagerConfig.PageLayout.AUTOMATIC)
+
+    fun invertDoublePages() = flowPrefs.getBoolean(Keys.invertDoublePages, false)
 }

@@ -18,6 +18,7 @@ import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import eu.kanade.tachiyomi.util.system.isTablet
 import kotlinx.coroutines.flow.launchIn
 import java.util.Date
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
@@ -46,9 +47,34 @@ class SettingsGeneralController : SettingsController() {
             titleRes = R.string.pref_confirm_exit
             defaultValue = false
         }
+        if (context.isTablet()) {
+            intListPreference {
+                key = Keys.sideNavIconAlignment
+                titleRes = R.string.pref_side_nav_icon_alignment
+                entriesRes = arrayOf(
+                    R.string.alignment_top,
+                    R.string.alignment_center,
+                    R.string.alignment_bottom,
+                )
+                entryValues = arrayOf("0", "1", "2")
+                defaultValue = "0"
+                summary = "%s"
+            }
+        } else {
+            switchPreference {
+                key = Keys.hideBottomBarOnScroll
+                titleRes = R.string.pref_hide_bottom_bar_on_scroll
+                defaultValue = true
+            }
+        }
         switchPreference {
-            key = Keys.hideBottomBar
-            titleRes = R.string.pref_hide_bottom_bar_on_scroll
+            key = Keys.showNavUpdates
+            titleRes = R.string.pref_hide_updates_button
+            defaultValue = true
+        }
+        switchPreference {
+            key = Keys.showNavHistory
+            titleRes = R.string.pref_hide_history_button
             defaultValue = true
         }
         switchPreference {
@@ -112,11 +138,13 @@ class SettingsGeneralController : SettingsController() {
                 titleRes = R.string.pref_theme_light
                 entriesRes = arrayOf(
                     R.string.theme_light_default,
-                    R.string.theme_light_blue
+                    R.string.theme_light_blue,
+                    R.string.theme_light_strawberrydaiquiri
                 )
                 entryValues = arrayOf(
                     Values.LightThemeVariant.default.name,
-                    Values.LightThemeVariant.blue.name
+                    Values.LightThemeVariant.blue.name,
+                    Values.LightThemeVariant.strawberrydaiquiri.name
                 )
                 defaultValue = Values.LightThemeVariant.default.name
                 summary = "%s"
@@ -137,22 +165,24 @@ class SettingsGeneralController : SettingsController() {
                 entriesRes = arrayOf(
                     R.string.theme_dark_default,
                     R.string.theme_dark_blue,
-                    R.string.theme_dark_amoledblue,
-                    R.string.theme_dark_amoled,
-                    R.string.theme_dark_red,
+                    R.string.theme_dark_greenapple,
                     R.string.theme_dark_midnightdusk,
-                    R.string.theme_dark_hotpink,
+                    R.string.theme_dark_amoled,
+                    R.string.theme_dark_amoled_hotpink,
+                    R.string.theme_dark_amoledblue,
+                    R.string.theme_dark_red,
                     R.string.theme_dark_nicebooba,
                 )
                 entryValues = arrayOf(
                     Values.DarkThemeVariant.default.name,
                     Values.DarkThemeVariant.blue.name,
-                    Values.DarkThemeVariant.amoledblue.name,
-                    Values.DarkThemeVariant.amoled.name,
-                    Values.DarkThemeVariant.red.name,
+                    Values.DarkThemeVariant.greenapple.name,
                     Values.DarkThemeVariant.midnightdusk.name,
+                    Values.DarkThemeVariant.amoled.name,
                     Values.DarkThemeVariant.hotpink.name,
+                    Values.DarkThemeVariant.amoledblue.name,
                     Values.DarkThemeVariant.nicebooba.name,
+                    Values.DarkThemeVariant.red.name
                 )
                 defaultValue = Values.DarkThemeVariant.default.name
                 summary = "%s"

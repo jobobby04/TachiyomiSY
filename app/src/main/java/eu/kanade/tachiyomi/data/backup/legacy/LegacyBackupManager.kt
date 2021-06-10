@@ -2,55 +2,27 @@ package eu.kanade.tachiyomi.data.backup.legacy
 
 import android.content.Context
 import android.net.Uri
-import com.github.salomonbrys.kotson.fromJson
-import com.github.salomonbrys.kotson.registerTypeAdapter
-import com.github.salomonbrys.kotson.registerTypeHierarchyAdapter
-import com.github.salomonbrys.kotson.set
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonArray
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.backup.AbstractBackupManager
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_CATEGORY
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_CATEGORY_MASK
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_CHAPTER
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_CHAPTER_MASK
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_HISTORY
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_HISTORY_MASK
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_TRACK
-import eu.kanade.tachiyomi.data.backup.BackupCreateService.Companion.BACKUP_TRACK_MASK
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.CATEGORIES
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.CHAPTERS
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.CURRENT_VERSION
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.EXTENSIONS
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.HISTORY
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.MANGA
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.MERGEDMANGAREFERENCES
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.SAVEDSEARCHES
-import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.TRACK
+import eu.kanade.tachiyomi.data.backup.legacy.models.Backup.Companion.CURRENT_VERSION
 import eu.kanade.tachiyomi.data.backup.legacy.models.DHistory
-import eu.kanade.tachiyomi.data.backup.legacy.serializer.CategoryTypeAdapter
-import eu.kanade.tachiyomi.data.backup.legacy.serializer.ChapterTypeAdapter
-import eu.kanade.tachiyomi.data.backup.legacy.serializer.HistoryTypeAdapter
-import eu.kanade.tachiyomi.data.backup.legacy.serializer.MangaTypeAdapter
-import eu.kanade.tachiyomi.data.backup.legacy.serializer.MergedMangaReferenceTypeAdapter
-import eu.kanade.tachiyomi.data.backup.legacy.serializer.TrackTypeAdapter
-import eu.kanade.tachiyomi.data.database.models.CategoryImpl
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.CategoryImplTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.CategoryTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.ChapterImplTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.ChapterTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.HistoryTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.MangaImplTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.MangaTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.MergedMangaTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.TrackImplTypeSerializer
+import eu.kanade.tachiyomi.data.backup.legacy.serializer.TrackTypeSerializer
+import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.data.database.models.ChapterImpl
 import eu.kanade.tachiyomi.data.database.models.History
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
-import eu.kanade.tachiyomi.data.database.models.MangaImpl
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.database.models.TrackImpl
 import eu.kanade.tachiyomi.data.database.models.toMangaInfo
-import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.toSManga
 import eu.kanade.tachiyomi.source.online.all.MergedSource
@@ -61,25 +33,33 @@ import exh.source.MERGED_SOURCE_ID
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import timber.log.Timber
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import java.lang.RuntimeException
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import kotlin.math.max
 
 class LegacyBackupManager(context: Context, version: Int = CURRENT_VERSION) : AbstractBackupManager(context) {
 
-    val parser: Gson = when (version) {
-        2 -> GsonBuilder()
-            .registerTypeAdapter<MangaImpl>(MangaTypeAdapter.build())
-            .registerTypeHierarchyAdapter<ChapterImpl>(ChapterTypeAdapter.build())
-            .registerTypeAdapter<CategoryImpl>(CategoryTypeAdapter.build())
-            .registerTypeAdapter<DHistory>(HistoryTypeAdapter.build())
-            .registerTypeHierarchyAdapter<TrackImpl>(TrackTypeAdapter.build())
-            // SY -->
-            .registerTypeAdapter<MergedMangaReference>(MergedMangaReferenceTypeAdapter.build())
-            // SY <--
-            .create()
+    val parser: Json = when (version) {
+        2 -> Json {
+            // Forks may have added items to backup
+            ignoreUnknownKeys = true
+
+            // Register custom serializers
+            serializersModule = SerializersModule {
+                contextual(MangaTypeSerializer)
+                contextual(MangaImplTypeSerializer)
+                contextual(ChapterTypeSerializer)
+                contextual(ChapterImplTypeSerializer)
+                contextual(CategoryTypeSerializer)
+                contextual(CategoryImplTypeSerializer)
+                contextual(TrackTypeSerializer)
+                contextual(TrackImplTypeSerializer)
+                contextual(HistoryTypeSerializer)
+                // SY -->
+                contextual(MergedMangaTypeSerializer)
+                // SY <--
+            }
+        }
         else -> throw Exception("Unknown backup version")
     }
 
@@ -89,180 +69,8 @@ class LegacyBackupManager(context: Context, version: Int = CURRENT_VERSION) : Ab
      * @param uri path of Uri
      * @param isJob backup called from job
      */
-    override fun createBackup(uri: Uri, flags: Int, isJob: Boolean): String? {
-        // Create root object
-        val root = JsonObject()
-
-        // Create manga array
-        val mangaEntries = JsonArray()
-
-        // Create category array
-        val categoryEntries = JsonArray()
-
-        // Create extension ID/name mapping
-        val extensionEntries = JsonArray()
-
-        // Merged Manga References
-        val mergedMangaReferenceEntries = JsonArray()
-
-        // Add value's to root
-        root[Backup.VERSION] = CURRENT_VERSION
-        root[Backup.MANGAS] = mangaEntries
-        root[CATEGORIES] = categoryEntries
-        root[EXTENSIONS] = extensionEntries
-        // SY -->
-        root[MERGEDMANGAREFERENCES] = mergedMangaReferenceEntries
-        // SY <--
-
-        databaseHelper.inTransaction {
-            val mangas = getFavoriteManga()/* SY --> */.filterNot { it.source == MERGED_SOURCE_ID } + getMergedManga().filterNot { it.source == MERGED_SOURCE_ID } /* SY <-- */
-
-            val extensions: MutableSet<String> = mutableSetOf()
-
-            // Backup library manga and its dependencies
-            mangas.forEach { manga ->
-                mangaEntries.add(backupMangaObject(manga, flags))
-
-                // Maintain set of extensions/sources used (excludes local source)
-                if (manga.source != LocalSource.ID) {
-                    sourceManager.get(manga.source)?.let {
-                        extensions.add("${manga.source}:${it.name}")
-                    }
-                }
-            }
-
-            // Backup categories
-            if ((flags and BACKUP_CATEGORY_MASK) == BACKUP_CATEGORY) {
-                backupCategories(categoryEntries)
-            }
-
-            // Backup extension ID/name mapping
-            backupExtensionInfo(extensionEntries, extensions)
-            // SY -->
-            root[SAVEDSEARCHES] =
-                Injekt.get<PreferencesHelper>().savedSearches().get().joinToString(separator = "***")
-
-            backupMergedMangaReferences(mergedMangaReferenceEntries)
-            // SY <--
-        }
-
-        try {
-            val file: UniFile = (
-                if (isJob) {
-                    // Get dir of file and create
-                    var dir = UniFile.fromUri(context, uri)
-                    dir = dir.createDirectory("automatic")
-
-                    // Delete older backups
-                    val numberOfBackups = numberOfBackups()
-                    val backupRegex = Regex("""tachiyomi_\d+-\d+-\d+_\d+-\d+.json""")
-                    dir.listFiles { _, filename -> backupRegex.matches(filename) }
-                        .orEmpty()
-                        .sortedByDescending { it.name }
-                        .drop(numberOfBackups - 1)
-                        .forEach { it.delete() }
-
-                    // Create new file to place backup
-                    dir.createFile(Backup.getDefaultFilename())
-                } else {
-                    UniFile.fromUri(context, uri)
-                }
-                )
-                ?: throw Exception("Couldn't create backup file")
-
-            file.openOutputStream().bufferedWriter().use {
-                parser.toJson(root, it)
-            }
-            return file.uri.toString()
-        } catch (e: Exception) {
-            Timber.e(e)
-            throw e
-        }
-    }
-
-    private fun backupExtensionInfo(root: JsonArray, extensions: Set<String>) {
-        extensions.sorted().forEach {
-            root.add(it)
-        }
-    }
-
-    // SY -->
-    private fun backupMergedMangaReferences(root: JsonArray) {
-        val mergedMangaReferences = databaseHelper.getMergedMangaReferences().executeAsBlocking()
-        mergedMangaReferences.forEach { root.add(parser.toJsonTree(it)) }
-    }
-    // SY <--
-
-    /**
-     * Backup the categories of library
-     *
-     * @param root root of categories json
-     */
-    internal fun backupCategories(root: JsonArray) {
-        val categories = databaseHelper.getCategories().executeAsBlocking()
-        categories.forEach { root.add(parser.toJsonTree(it)) }
-    }
-
-    /**
-     * Convert a manga to Json
-     *
-     * @param manga manga that gets converted
-     * @return [JsonElement] containing manga information
-     */
-    internal fun backupMangaObject(manga: Manga, options: Int): JsonElement {
-        // Entry for this manga
-        val entry = JsonObject()
-
-        // Backup manga fields
-        entry[MANGA] = parser.toJsonTree(manga)
-
-        // Check if user wants chapter information in backup
-        if (options and BACKUP_CHAPTER_MASK == BACKUP_CHAPTER) {
-            // Backup all the chapters
-            val chapters = databaseHelper.getChapters(manga).executeAsBlocking()
-            if (chapters.isNotEmpty()) {
-                val chaptersJson = parser.toJsonTree(chapters)
-                if (chaptersJson.asJsonArray.size() > 0) {
-                    entry[CHAPTERS] = chaptersJson
-                }
-            }
-        }
-
-        // Check if user wants category information in backup
-        if (options and BACKUP_CATEGORY_MASK == BACKUP_CATEGORY) {
-            // Backup categories for this manga
-            val categoriesForManga = databaseHelper.getCategoriesForManga(manga).executeAsBlocking()
-            if (categoriesForManga.isNotEmpty()) {
-                val categoriesNames = categoriesForManga.map { it.name }
-                entry[CATEGORIES] = parser.toJsonTree(categoriesNames)
-            }
-        }
-
-        // Check if user wants track information in backup
-        if (options and BACKUP_TRACK_MASK == BACKUP_TRACK) {
-            val tracks = databaseHelper.getTracks(manga).executeAsBlocking()
-            if (tracks.isNotEmpty()) {
-                entry[TRACK] = parser.toJsonTree(tracks)
-            }
-        }
-
-        // Check if user wants history information in backup
-        if (options and BACKUP_HISTORY_MASK == BACKUP_HISTORY) {
-            val historyForManga = databaseHelper.getHistoryByMangaId(manga.id!!).executeAsBlocking()
-            if (historyForManga.isNotEmpty()) {
-                val historyData = historyForManga.mapNotNull { history ->
-                    val url = databaseHelper.getChapter(history.chapter_id).executeAsBlocking()?.url
-                    url?.let { DHistory(url, history.last_read) }
-                }
-                val historyJson = parser.toJsonTree(historyData)
-                if (historyJson.asJsonArray.size() > 0) {
-                    entry[HISTORY] = historyJson
-                }
-            }
-        }
-
-        return entry
-    }
+    override fun createBackup(uri: Uri, flags: Int, isJob: Boolean) =
+        throw IllegalStateException("Legacy backup creation is not supported")
 
     fun restoreMangaNoFetch(manga: Manga, dbManga: Manga) {
         manga.id = dbManga.id
@@ -312,12 +120,11 @@ class LegacyBackupManager(context: Context, version: Int = CURRENT_VERSION) : Ab
     /**
      * Restore the categories from Json
      *
-     * @param jsonCategories array containing categories
+     * @param backupCategories array containing categories
      */
-    internal fun restoreCategories(jsonCategories: JsonArray) {
+    internal fun restoreCategories(backupCategories: List<Category>) {
         // Get categories from file and from db
         val dbCategories = databaseHelper.getCategories().executeAsBlocking()
-        val backupCategories = parser.fromJson<List<CategoryImpl>>(jsonCategories)
 
         // Iterate over them
         backupCategories.forEach { category ->
@@ -477,35 +284,25 @@ class LegacyBackupManager(context: Context, version: Int = CURRENT_VERSION) : Ab
     }
 
     // SY -->
-    internal fun restoreSavedSearches(jsonSavedSearches: JsonElement) {
-        val backupSavedSearches = jsonSavedSearches.asString.split("***").toSet()
+    internal fun restoreSavedSearches(jsonSavedSearches: String) {
+        val backupSavedSearches = jsonSavedSearches.split("***").toSet()
 
         val newSavedSearches = backupSavedSearches.mapNotNull {
-            try {
+            runCatching {
                 val id = it.substringBefore(':').toLong()
-                val content = Json.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
+                val content = parser.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
                 id to content
-            } catch (t: RuntimeException) {
-                // Load failed
-                Timber.e(t, "Failed to load saved search!")
-                t.printStackTrace()
-                null
-            }
+            }.getOrNull()
         }.toMutableList()
 
         val currentSources = newSavedSearches.map { it.first }.toSet()
 
         newSavedSearches += preferences.savedSearches().get().mapNotNull {
-            try {
+            kotlin.runCatching {
                 val id = it.substringBefore(':').toLong()
-                val content = Json.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
+                val content = parser.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
                 id to content
-            } catch (t: RuntimeException) {
-                // Load failed
-                Timber.e(t, "Failed to load saved search!")
-                t.printStackTrace()
-                null
-            }
+            }.getOrNull()
         }.toMutableList()
 
         val otherSerialized = preferences.savedSearches().get().mapNotNull {
@@ -523,12 +320,11 @@ class LegacyBackupManager(context: Context, version: Int = CURRENT_VERSION) : Ab
     /**
      * Restore the categories from Json
      *
-     * @param jsonMergedMangaReferences array containing md manga references
+     * @param backupMergedMangaReferences array containing md manga references
      */
-    internal fun restoreMergedMangaReferences(jsonMergedMangaReferences: JsonArray) {
+    internal fun restoreMergedMangaReferences(backupMergedMangaReferences: List<MergedMangaReference>) {
         // Get merged manga references from file and from db
         val dbMergedMangaReferences = databaseHelper.getMergedMangaReferences().executeAsBlocking()
-        val backupMergedMangaReferences = parser.fromJson<List<MergedMangaReference>>(jsonMergedMangaReferences)
         var lastMergeManga: Manga? = null
 
         // Iterate over them

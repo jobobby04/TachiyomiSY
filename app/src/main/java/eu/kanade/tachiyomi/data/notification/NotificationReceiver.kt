@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.data.notification
 
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
-import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -25,8 +24,8 @@ import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.notificationManager
+import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
-import exh.md.similar.SimilarUpdateService
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -59,22 +58,22 @@ class NotificationReceiver : BroadcastReceiver() {
             ACTION_SHARE_IMAGE ->
                 shareImage(
                     context,
-                    intent.getStringExtra(EXTRA_FILE_LOCATION),
+                    intent.getStringExtra(EXTRA_FILE_LOCATION)!!,
                     intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
                 )
             // Delete image from path and dismiss notification
             ACTION_DELETE_IMAGE ->
                 deleteImage(
                     context,
-                    intent.getStringExtra(EXTRA_FILE_LOCATION),
+                    intent.getStringExtra(EXTRA_FILE_LOCATION)!!,
                     intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
                 )
             // Share backup file
             ACTION_SHARE_BACKUP ->
                 shareFile(
                     context,
-                    intent.getParcelableExtra(EXTRA_URI),
-                    if (intent.getBooleanExtra(EXTRA_IS_LEGACY_BACKUP, false)) "application/json" else "application/x-protobuf+gzip",
+                    intent.getParcelableExtra(EXTRA_URI)!!,
+                    "application/x-protobuf+gzip",
                     intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
                 )
             ACTION_CANCEL_RESTORE -> cancelRestore(
@@ -107,13 +106,10 @@ class NotificationReceiver : BroadcastReceiver() {
             ACTION_SHARE_CRASH_LOG ->
                 shareFile(
                     context,
-                    intent.getParcelableExtra(EXTRA_URI),
+                    intent.getParcelableExtra(EXTRA_URI)!!,
                     "text/plain",
                     intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
                 )
-            // SY -->
-            ACTION_CANCEL_SIMILAR_UPDATE -> cancelSimilarUpdate(context)
-            // SY <--
         }
     }
 
@@ -134,16 +130,8 @@ class NotificationReceiver : BroadcastReceiver() {
      * @param notificationId id of notification
      */
     private fun shareImage(context: Context, path: String, notificationId: Int) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            val uri = File(path).getUriCompat(context)
-            putExtra(Intent.EXTRA_STREAM, uri)
-            clipData = ClipData.newRawUri(null, uri)
-            type = "image/*"
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-        }
         dismissNotification(context, notificationId)
-        // Launch share activity
-        context.startActivity(intent)
+        context.startActivity(File(path).getUriCompat(context).toShareIntent())
     }
 
     /**
@@ -154,16 +142,8 @@ class NotificationReceiver : BroadcastReceiver() {
      * @param notificationId id of notification
      */
     private fun shareFile(context: Context, uri: Uri, fileMimeType: String, notificationId: Int) {
-        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-            putExtra(Intent.EXTRA_STREAM, uri)
-            clipData = ClipData.newRawUri(null, uri)
-            type = fileMimeType
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-        }
-        // Dismiss notification
         dismissNotification(context, notificationId)
-        // Launch share activity
-        context.startActivity(sendIntent)
+        context.startActivity(uri.toShareIntent())
     }
 
     /**
@@ -255,18 +235,6 @@ class NotificationReceiver : BroadcastReceiver() {
         }
     }
 
-    // SY -->
-    /**
-     * Method called when user wants to stop a similar manga update
-     *
-     * @param context context of application
-     */
-    private fun cancelSimilarUpdate(context: Context) {
-        SimilarUpdateService.stop(context)
-        Handler().post { dismissNotification(context, Notifications.ID_SIMILAR_PROGRESS) }
-    }
-    // SY <--
-
     companion object {
         private const val NAME = "NotificationReceiver"
 
@@ -297,12 +265,6 @@ class NotificationReceiver : BroadcastReceiver() {
         private const val EXTRA_MANGA_ID = "$ID.$NAME.EXTRA_MANGA_ID"
         private const val EXTRA_CHAPTER_ID = "$ID.$NAME.EXTRA_CHAPTER_ID"
         private const val EXTRA_CHAPTER_URL = "$ID.$NAME.EXTRA_CHAPTER_URL"
-        private const val EXTRA_IS_LEGACY_BACKUP = "$ID.$NAME.EXTRA_IS_LEGACY_BACKUP"
-
-        // Sy -->
-        // Called to cancel similar manga update.
-        private const val ACTION_CANCEL_SIMILAR_UPDATE = "$ID.$NAME.CANCEL_SIMILAR_UPDATE"
-        // SY <--
 
         /**
          * Returns a [PendingIntent] that resumes the download of a chapter
@@ -515,11 +477,10 @@ class NotificationReceiver : BroadcastReceiver() {
          * @param notificationId id of notification
          * @return [PendingIntent]
          */
-        internal fun shareBackupPendingBroadcast(context: Context, uri: Uri, isLegacyFormat: Boolean, notificationId: Int): PendingIntent {
+        internal fun shareBackupPendingBroadcast(context: Context, uri: Uri, notificationId: Int): PendingIntent {
             val intent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_SHARE_BACKUP
                 putExtra(EXTRA_URI, uri)
-                putExtra(EXTRA_IS_LEGACY_BACKUP, isLegacyFormat)
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             }
             return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -572,20 +533,5 @@ class NotificationReceiver : BroadcastReceiver() {
             }
             return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         }
-
-        // SY -->
-        /**
-         * Returns [PendingIntent] that starts a service which stops the similar update
-         *
-         * @param context context of application
-         * @return [PendingIntent]
-         */
-        internal fun cancelSimilarUpdatePendingBroadcast(context: Context): PendingIntent {
-            val intent = Intent(context, NotificationReceiver::class.java).apply {
-                action = ACTION_CANCEL_SIMILAR_UPDATE
-            }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        }
-        // SY <--
     }
 }

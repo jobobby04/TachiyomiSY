@@ -14,6 +14,7 @@ import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.reader.setting.OrientationType
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingModeType
+import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
 import eu.kanade.tachiyomi.util.preference.defaultValue
 import eu.kanade.tachiyomi.util.preference.entriesRes
 import eu.kanade.tachiyomi.util.preference.intListPreference
@@ -120,8 +121,8 @@ class SettingsReaderController : SettingsController() {
             intListPreference {
                 key = Keys.readerTheme
                 titleRes = R.string.pref_reader_theme
-                entriesRes = arrayOf(R.string.black_background, R.string.gray_background, R.string.white_background, R.string.smart_based_on_page, R.string.smart_based_on_page_and_theme)
-                entryValues = arrayOf("1", "2", "0", "3", "4")
+                entriesRes = arrayOf(R.string.black_background, R.string.gray_background, R.string.white_background, R.string.automatic_background)
+                entryValues = arrayOf("1", "2", "0", "3")
                 defaultValue = "3"
                 summary = "%s"
             }
@@ -514,6 +515,24 @@ class SettingsReaderController : SettingsController() {
                 onClick {
                     ReaderBottomButtonsDialog().showDialog(router)
                 }
+            }
+            intListPreference {
+                key = Keys.pageLayout
+                titleRes = R.string.page_layout
+                summaryRes = R.string.automatic_can_still_switch
+                entriesRes = arrayOf(
+                    R.string.single_page,
+                    R.string.double_pages,
+                    R.string.automatic_orientation
+                )
+                entryValues = arrayOf("0", "1", "2")
+                defaultValue = "2"
+            }
+            switchPreference {
+                key = Keys.invertDoublePages
+                titleRes = R.string.invert_double_pages
+                defaultValue = false
+                preferences.pageLayout().asImmediateFlow { isVisible = it != PagerConfig.PageLayout.SINGLE_PAGE }
             }
         }
         // EXH <--

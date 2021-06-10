@@ -25,17 +25,19 @@ abstract class BaseThemedActivity : AppCompatActivity() {
             when (preferences.themeDark().get()) {
                 DarkThemeVariant.default -> R.style.Theme_Tachiyomi_Dark
                 DarkThemeVariant.blue -> R.style.Theme_Tachiyomi_Dark_Blue
-                DarkThemeVariant.amoledblue -> R.style.Theme_Tachiyomi_Dark_AmoledBlue
-                DarkThemeVariant.amoled -> R.style.Theme_Tachiyomi_Dark_Amoled
-                DarkThemeVariant.red -> R.style.Theme_Tachiyomi_Dark_Red
+                DarkThemeVariant.greenapple -> R.style.Theme_Tachiyomi_Dark_GreenApple
                 DarkThemeVariant.midnightdusk -> R.style.Theme_Tachiyomi_Dark_MidnightDusk
-                DarkThemeVariant.hotpink -> R.style.Theme_Tachiyomi_Dark_HotPink
+                DarkThemeVariant.amoled -> R.style.Theme_Tachiyomi_Amoled
+                DarkThemeVariant.hotpink -> R.style.Theme_Tachiyomi_Amoled_HotPink
+                DarkThemeVariant.amoledblue -> R.style.Theme_Tachiyomi_Amoled_Blue
+                DarkThemeVariant.red -> R.style.Theme_Tachiyomi_Amoled_Red
                 DarkThemeVariant.nicebooba -> R.style.Theme_Tachiyomi_Dark_NiceBooba
             }
         } else {
             when (preferences.themeLight().get()) {
                 LightThemeVariant.default -> R.style.Theme_Tachiyomi_Light
                 LightThemeVariant.blue -> R.style.Theme_Tachiyomi_Light_Blue
+                LightThemeVariant.strawberrydaiquiri -> R.style.Theme_Tachiyomi_Light_StrawberryDaiquiri
             }
         }
         setTheme(themeId)

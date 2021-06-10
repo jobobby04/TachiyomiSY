@@ -8,11 +8,11 @@ plugins {
     id("com.android.application")
     id("com.mikepenz.aboutlibraries.plugin")
     kotlin("android")
-    kotlin("kapt")
     kotlin("plugin.parcelize")
     kotlin("plugin.serialization")
     id("com.github.zellius.shortcut-helper")
     // Realm (EH)
+    kotlin("kapt")
     id("realm-android")
 }
 
@@ -24,14 +24,6 @@ if (!gradle.startParameter.taskRequests.toString().contains("Debug")) {
 
 shortcutHelper.setFilePath("./shortcuts.xml")
 
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.jetbrains.kotlin") {
-            useVersion("1.4.32")
-        }
-    }
-}
-
 android {
     compileSdkVersion(AndroidConfig.compileSdk)
     buildToolsVersion(AndroidConfig.buildTools)
@@ -42,8 +34,8 @@ android {
         minSdkVersion(AndroidConfig.minSdk)
         targetSdkVersion(AndroidConfig.targetSdk)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 17
-        versionName = "1.6.2"
+        versionCode = 19
+        versionName = "1.7.0"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -70,14 +62,12 @@ android {
             applicationIdSuffix = ".rt"
             //isMinifyEnabled = true
             //isShrinkResources = true
-            isZipAlignEnabled = true
-            setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
+            setProguardFiles(listOf(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
         }
         named("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            isZipAlignEnabled = true
-            setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
+            setProguardFiles(listOf(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
         }
     }
 
@@ -132,34 +122,34 @@ android {
 dependencies {
 
     // Source models and interfaces from Tachiyomi 1.x
-    implementation("tachiyomi.sourceapi:source-api:1.1")
+    implementation("org.tachiyomi:source-api:1.1")
 
     // AndroidX libraries
     implementation("androidx.annotation:annotation:1.3.0-alpha01")
-    implementation("androidx.appcompat:appcompat:1.3.0-rc01")
+    implementation("androidx.appcompat:appcompat:1.4.0-alpha02")
     implementation("androidx.biometric:biometric-ktx:1.2.0-alpha03")
     implementation("androidx.browser:browser:1.3.0")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.0-beta01")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.0-beta02")
     implementation("androidx.coordinatorlayout:coordinatorlayout:1.1.0")
-    implementation("androidx.core:core-ktx:1.3.2")
+    implementation("androidx.core:core-ktx:1.6.0-beta02")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("androidx.preference:preference-ktx:1.1.1")
-    implementation("androidx.recyclerview:recyclerview:1.2.0")
+    implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
 
-    val lifecycleVersion = "2.3.0"
+    val lifecycleVersion = "2.4.0-alpha01"
     implementation("androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-process:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
 
     // Job scheduling
-    implementation("androidx.work:work-runtime-ktx:2.5.0")
+    implementation("androidx.work:work-runtime-ktx:2.7.0-alpha04")
 
     // UI library
-    implementation("com.google.android.material:material:1.3.0")
+    implementation("com.google.android.material:material:1.4.0-rc01")
 
-    "standardImplementation"("com.google.firebase:firebase-core:18.0.3")
+    "standardImplementation"("com.google.firebase:firebase-core:19.0.0")
 
     // ReactiveX
     implementation("io.reactivex:rxandroid:1.2.1")
@@ -175,13 +165,13 @@ dependencies {
     implementation("com.squareup.okio:okio:2.10.0")
 
     // TLS 1.3 support for Android < 10
-    implementation("org.conscrypt:conscrypt-android:2.5.1")
+    implementation("org.conscrypt:conscrypt-android:2.5.2")
 
     // JSON
-    val kotlinSerializationVersion = "1.1.0"
+    val kotlinSerializationVersion = "1.2.1"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinSerializationVersion")
-    implementation("com.google.code.gson:gson:2.8.6")
+    implementation("com.google.code.gson:gson:2.8.7")
     implementation("com.github.salomonbrys.kotson:kotson:2.5.0")
 
     // JavaScript engine
@@ -202,7 +192,7 @@ dependencies {
     implementation("com.github.requery:sqlite-android:3.35.5")
 
     // Preferences
-    implementation("com.github.tfcporciuncula.flow-preferences:flow-preferences:1.3.4")
+    implementation("com.github.tfcporciuncula.flow-preferences:flow-preferences:1.4.0")
 
     // Model View Presenter
     val nucleusVersion = "3.0.0"
@@ -217,7 +207,10 @@ dependencies {
     implementation("io.coil-kt:coil:$coilVersion")
     implementation("io.coil-kt:coil-gif:$coilVersion")
 
-    implementation("com.github.tachiyomiorg:subsampling-scale-image-view:547d9c0")
+    implementation("com.github.tachiyomiorg:subsampling-scale-image-view:846abe0") {
+        exclude(module = "image-decoder")
+    }
+    implementation("com.github.tachiyomiorg:image-decoder:ac5f65c")
 
     // Logging
     implementation("com.jakewharton.timber:timber:4.7.1")
@@ -229,14 +222,13 @@ dependencies {
     implementation("com.github.gpanther:java-nat-sort:natural-comparator-1.1")
 
     // UI
-    implementation("com.dmitrymalkovich.android:material-design-dimens:1.4")
     implementation("com.github.dmytrodanylyk.android-process-button:library:1.0.4")
     implementation("eu.davidea:flexible-adapter:5.1.0")
     implementation("eu.davidea:flexible-adapter-ui:1.0.0")
     implementation("com.nightlynexus.viewstatepageradapter:viewstatepageradapter:1.1.0")
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
     implementation("com.github.tachiyomiorg:DirectionalViewPager:1.0.0")
-    implementation("dev.chrisbanes.insetter:insetter:0.5.0")
+    implementation("dev.chrisbanes.insetter:insetter:0.6.0")
 
     // 3.2.0+ introduces weird UI blinking or cut off issues on some devices
     val materialDialogsVersion = "3.1.1"
@@ -252,7 +244,7 @@ dependencies {
     implementation("com.github.tachiyomiorg:conductor-support-preference:2.0.1")
 
     // FlowBinding
-    val flowbindingVersion = "0.12.0"
+    val flowbindingVersion = "1.0.0"
     implementation("io.github.reactivecircus.flowbinding:flowbinding-android:$flowbindingVersion")
     implementation("io.github.reactivecircus.flowbinding:flowbinding-appcompat:$flowbindingVersion")
     implementation("io.github.reactivecircus.flowbinding:flowbinding-recyclerview:$flowbindingVersion")
@@ -274,7 +266,7 @@ dependencies {
 
     implementation(kotlin("reflect", version = BuildPluginsVersion.KOTLIN))
 
-    val coroutinesVersion = "1.4.3"
+    val coroutinesVersion = "1.5.0"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
 
@@ -282,9 +274,6 @@ dependencies {
     // debugImplementation("com.squareup.leakcanary:leakcanary-android:2.7")
 
     // SY -->
-    // [EXH] Android 7 SSL Workaround
-    implementation("com.google.android.gms:play-services-safetynet:17.0.0")
-
     // Changelog
     implementation("com.github.gabrielemariotti.changeloglib:changelog:2.1.0")
 
@@ -292,8 +281,8 @@ dependencies {
     implementation ("info.debatty:java-string-similarity:2.0.0")
 
     // Firebase (EH)
-    implementation("com.google.firebase:firebase-analytics-ktx:18.0.3")
-    implementation("com.google.firebase:firebase-crashlytics-ktx:17.4.1")
+    implementation("com.google.firebase:firebase-analytics-ktx:19.0.0")
+    implementation("com.google.firebase:firebase-crashlytics-ktx:18.0.0")
 
     // Better logging (EH)
     implementation("com.elvishew:xlog:1.9.0")
@@ -307,10 +296,6 @@ dependencies {
 
     // RatingBar (SY)
     implementation("me.zhanghai.android.materialratingbar:library:1.4.0")
-
-    // JsonReader for similar manga
-    implementation("com.squareup.moshi:moshi:1.12.0")
-    // SY <--
 }
 
 tasks {
@@ -325,6 +310,7 @@ tasks {
             "-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi",
             "-Xuse-experimental=kotlinx.serialization.ExperimentalSerializationApi",
             "-Xuse-experimental=coil.annotation.ExperimentalCoilApi",
+            "-Xuse-experimental=kotlin.time.ExperimentalTime",
         )
     }
 

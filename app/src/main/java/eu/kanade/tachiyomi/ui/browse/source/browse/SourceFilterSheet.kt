@@ -21,6 +21,7 @@ import eu.kanade.tachiyomi.widget.SimpleNavigationView
 import eu.kanade.tachiyomi.widget.sheet.BaseBottomSheetDialog
 import exh.savedsearches.EXHSavedSearch
 import exh.source.getMainSource
+import exh.util.under
 
 class SourceFilterSheet(
     activity: Activity,
@@ -29,10 +30,10 @@ class SourceFilterSheet(
     source: CatalogueSource,
     searches: List<EXHSavedSearch> = emptyList(),
     // SY <--
-    onFilterClicked: () -> Unit,
-    onResetClicked: () -> Unit,
+    private val onFilterClicked: () -> Unit,
+    private val onResetClicked: () -> Unit,
     // EXH -->
-    onSaveClicked: () -> Unit,
+    private val onSaveClicked: () -> Unit,
     var onSavedSearchClicked: (Int) -> Unit = {},
     var onSavedSearchDeleteClicked: (Int, String) -> Unit = { _, _ -> }
     // EXH <--
@@ -43,12 +44,12 @@ class SourceFilterSheet(
         // SY -->
         searches = searches,
         source = source,
-        controller = controller
+        controller = controller,
+        dismissSheet = ::dismiss
         // SY <--
     )
-    private val sheetBehavior: BottomSheetBehavior<*>
 
-    init {
+    override fun createView(inflater: LayoutInflater): View {
         filterNavView.onFilterClicked = {
             onFilterClicked()
             this.dismiss()
@@ -63,14 +64,12 @@ class SourceFilterSheet(
         filterNavView.onSavedSearchDeleteClicked = onSavedSearchDeleteClicked
         // EXH <--
 
-        setContentView(filterNavView)
-
-        sheetBehavior = BottomSheetBehavior.from(filterNavView.parent as ViewGroup)
+        return filterNavView
     }
 
     override fun show() {
         super.show()
-        sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     fun setFilters(items: List<IFlexible<*>>) {
@@ -93,7 +92,8 @@ class SourceFilterSheet(
         // SY -->
         searches: List<EXHSavedSearch> = emptyList(),
         source: CatalogueSource? = null,
-        controller: BaseController<*>? = null
+        controller: BaseController<*>? = null,
+        dismissSheet: (() -> Unit)? = null
         // SY <--
     ) :
         SimpleNavigationView(context, attrs) {
@@ -126,7 +126,7 @@ class SourceFilterSheet(
             // SY -->
             val mainSource = source?.getMainSource()
             if (mainSource is BrowseSourceFilterHeader && controller != null) {
-                adapters += mainSource.getFilterHeader(controller)
+                adapters += mainSource.getFilterHeader(controller) { dismissSheet?.invoke() }
             }
             adapters += savedSearchesAdapter
             adapters += adapter
@@ -153,22 +153,20 @@ class SourceFilterSheet(
 
         private fun getSavedSearchesChips(searches: List<EXHSavedSearch>): List<Chip> {
             recycler.post {
-                binding.saveSearchBtn.visibility = if (searches.size < MAX_SAVED_SEARCHES) View.VISIBLE else View.GONE
+                binding.saveSearchBtn.isVisible = searches.size under MAX_SAVED_SEARCHES
             }
-            val chips: MutableList<Chip> = mutableListOf()
-
-            searches.withIndex().sortedBy { it.value.name }.forEach { (index, search) ->
-                val chip = Chip(context).apply {
-                    text = search.name
-                    setOnClickListener { onSavedSearchClicked(index) }
-                    setOnLongClickListener {
-                        onSavedSearchDeleteClicked(index, search.name); true
+            return searches.withIndex()
+                .sortedBy { it.value.name }
+                .map { (index, search) ->
+                    Chip(context).apply {
+                        text = search.name
+                        setOnClickListener { onSavedSearchClicked(index) }
+                        setOnLongClickListener {
+                            onSavedSearchDeleteClicked(index, search.name); true
+                        }
                     }
                 }
-
-                chips += chip
-            }
-            return chips.sortedBy { it.text.toString().toLowerCase() }
+                .sortedBy { it.text.toString().lowercase() }
         }
 
         fun hideFilterButton() {

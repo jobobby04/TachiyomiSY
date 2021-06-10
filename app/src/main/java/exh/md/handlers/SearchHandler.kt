@@ -18,7 +18,13 @@ import okhttp3.Request
 import okhttp3.Response
 import rx.Observable
 
-class SearchHandler(val client: OkHttpClient, private val headers: Headers, val lang: String, val filterHandler: FilterHandler, private val useLowQualityCovers: Boolean) {
+class SearchHandler(
+    private val client: OkHttpClient,
+    private val headers: Headers,
+    private val lang: String,
+    private val filterHandler: FilterHandler,
+    private val apiMangaParser: ApiMangaParser
+) {
 
     fun fetchSearchManga(page: Int, query: String, filters: FilterList, sourceId: Long): Observable<MangasPage> {
         return if (query.startsWith(PREFIX_ID_SEARCH)) {
@@ -28,24 +34,29 @@ class SearchHandler(val client: OkHttpClient, private val headers: Headers, val 
                 .flatMap { response ->
                     runAsObservable({
                         val mangaResponse = response.parseAs<MangaResponse>(MdUtil.jsonParser)
-                        val details = ApiMangaParser(client, lang)
-                            .parseToManga(MdUtil.createMangaEntry(mangaResponse, lang, useLowQualityCovers), response, emptyList(), sourceId).toSManga()
+                        val details = apiMangaParser
+                            .parseToManga(MdUtil.createMangaEntry(mangaResponse, lang, null), response, sourceId).toSManga()
                         MangasPage(listOf(details), false)
                     })
                 }
         } else {
             client.newCall(searchMangaRequest(page, query, filters))
                 .asObservableSuccess()
-                .map { response ->
-                    searchMangaParse(response)
+                .flatMap { response ->
+                    runAsObservable({
+                        searchMangaParse(response)
+                    })
                 }
         }
     }
 
-    private fun searchMangaParse(response: Response): MangasPage {
+    private suspend fun searchMangaParse(response: Response): MangasPage {
         val mlResponse = response.parseAs<MangaListResponse>(MdUtil.jsonParser)
+        val coverMap = MdUtil.getCoversFromMangaList(mlResponse.results, client)
         val hasMoreResults = mlResponse.limit + mlResponse.offset < mlResponse.total
-        val mangaList = mlResponse.results.map { MdUtil.createMangaEntry(it, lang, useLowQualityCovers).toSManga() }
+        val mangaList = mlResponse.results.map {
+            MdUtil.createMangaEntry(it, lang, coverMap[it.data.id]).toSManga()
+        }
         return MangasPage(mangaList, hasMoreResults)
     }
 

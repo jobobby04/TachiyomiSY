@@ -1,8 +1,6 @@
 package eu.kanade.tachiyomi.ui.more
 
-import android.content.Context
 import android.os.Bundle
-import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +14,9 @@ import eu.kanade.tachiyomi.ui.base.controller.RootController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
 import eu.kanade.tachiyomi.ui.category.CategoryController
 import eu.kanade.tachiyomi.ui.download.DownloadController
+import eu.kanade.tachiyomi.ui.recent.history.HistoryController
+import eu.kanade.tachiyomi.ui.recent.updates.UpdatesController
+import eu.kanade.tachiyomi.ui.setting.SettingsBackupController
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.ui.setting.SettingsMainController
 import eu.kanade.tachiyomi.util.preference.add
@@ -75,6 +76,26 @@ class MoreController :
         }
 
         preferenceCategory {
+            if (!preferences.showNavUpdates().get()) {
+                preference {
+                    titleRes = R.string.label_recent_updates
+                    iconRes = R.drawable.ic_updates_outline_24dp
+                    iconTint = tintColor
+                    onClick {
+                        router.pushController(UpdatesController().withFadeTransaction())
+                    }
+                }
+            }
+            if (!preferences.showNavHistory().get()) {
+                preference {
+                    titleRes = R.string.label_recent_manga
+                    iconRes = R.drawable.ic_history_24dp
+                    iconTint = tintColor
+                    onClick {
+                        router.pushController(HistoryController().withFadeTransaction())
+                    }
+                }
+            }
             preference {
                 titleRes = R.string.label_download_queue
 
@@ -94,6 +115,14 @@ class MoreController :
                 iconTint = tintColor
                 onClick {
                     router.pushController(CategoryController().withFadeTransaction())
+                }
+            }
+            preference {
+                titleRes = R.string.label_backup
+                iconRes = R.drawable.ic_settings_backup_restore_24dp
+                iconTint = tintColor
+                onClick {
+                    router.pushController(SettingsBackupController().withFadeTransaction())
                 }
             }
             // SY -->
@@ -179,15 +208,6 @@ class MoreController :
 
     private fun <T> Observable<T>.subscribeUntilDestroy(onNext: (T) -> Unit): Subscription {
         return subscribe(onNext).also { untilDestroySubscriptions.add(it) }
-    }
-
-    private class MoreHeaderPreference @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
-        Preference(context, attrs) {
-
-        init {
-            layoutResource = R.layout.pref_more_header
-            isSelectable = false
-        }
     }
 
     companion object {

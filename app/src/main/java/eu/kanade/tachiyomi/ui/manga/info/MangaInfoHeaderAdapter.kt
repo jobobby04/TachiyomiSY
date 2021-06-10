@@ -30,7 +30,8 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 
 class MangaInfoHeaderAdapter(
-    private val controller: MangaController
+    private val controller: MangaController,
+    private val isTablet: Boolean
 ) :
     RecyclerView.Adapter<MangaInfoHeaderAdapter.HeaderViewHolder>() {
 
@@ -135,7 +136,11 @@ class MangaInfoHeaderAdapter(
             if (controller.presenter.source is HttpSource) {
                 binding.btnWebview.isVisible = true
                 binding.btnWebview.clicks()
-                    .onEach { controller.openMangaInWebView() }
+                    .onEach {
+                        if (controller.presenter.source.id == MERGED_SOURCE_ID) {
+                            controller.openMergedMangaWebview()
+                        } else controller.openMangaInWebView()
+                    }
                     .launchIn(controller.viewScope)
             }
 

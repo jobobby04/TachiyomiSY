@@ -1,5 +1,8 @@
 package eu.kanade.tachiyomi.data.preference
 
+const val UNMETERED_NETWORK = "wifi"
+const val CHARGING = "ac"
+
 /**
  * This class stores the values for the preferences in the application.
  */
@@ -18,17 +21,19 @@ object PreferenceValues {
     enum class LightThemeVariant {
         default,
         blue,
+        strawberrydaiquiri,
     }
 
     // Keys are lowercase to match legacy string values
     enum class DarkThemeVariant {
         default,
         blue,
-        amoledblue,
-        amoled,
-        red,
+        greenapple,
         midnightdusk,
+        amoled,
         hotpink,
+        amoledblue,
+        red,
         nicebooba,
     }
 
@@ -37,12 +42,11 @@ object PreferenceValues {
     enum class DisplayMode {
         COMPACT_GRID,
         COMFORTABLE_GRID,
+        LIST,
 
         // SY -->
         NO_TITLE_GRID,
-
         // SY <--
-        LIST,
     }
 
     enum class TappingInvertMode(val shouldInvertHorizontal: Boolean = false, val shouldInvertVertical: Boolean = false) {

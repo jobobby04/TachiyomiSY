@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="2dp"
     android:background="@drawable/library_item_selector"
     android:padding="4dp">
 
@@ -68,13 +69,13 @@
                     style="@style/TextAppearance.Regular.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/green"
+                    android:background="?attr/colorTertiary"
                     android:paddingStart="3dp"
                     android:paddingTop="1dp"
                     android:paddingEnd="3dp"
                     android:paddingBottom="1dp"
                     android:text="@string/local_source_badge"
-                    android:textColor="@color/md_white_1000"
+                    android:textColor="?attr/colorOnTertiary"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
@@ -83,12 +84,12 @@
                     style="@style/TextAppearance.Regular.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/green"
+                    android:background="?attr/colorTertiary"
                     android:paddingStart="3dp"
                     android:paddingTop="1dp"
                     android:paddingEnd="3dp"
                     android:paddingBottom="1dp"
-                    android:textColor="@color/md_white_1000"
+                    android:textColor="?attr/colorOnTertiary"
                     android:visibility="gone"
                     tools:text="120"
                     tools:visibility="visible" />
@@ -98,12 +99,12 @@
                     style="@style/TextAppearance.Regular.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/colorAccentDark"
+                    android:background="?attr/colorSecondary"
                     android:paddingStart="3dp"
                     android:paddingTop="1dp"
                     android:paddingEnd="3dp"
                     android:paddingBottom="1dp"
-                    android:textColor="@color/md_white_1000"
+                    android:textColor="?attr/colorOnSecondary"
                     android:visibility="gone"
                     tools:text="120"
                     tools:visibility="visible" />

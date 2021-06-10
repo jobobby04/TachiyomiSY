@@ -1,9 +1,7 @@
 package exh.md.handlers
 
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.track.mdlist.MdList
 import eu.kanade.tachiyomi.network.GET
-import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.model.SChapter
@@ -13,12 +11,11 @@ import eu.kanade.tachiyomi.source.model.toSChapter
 import eu.kanade.tachiyomi.source.model.toSManga
 import eu.kanade.tachiyomi.util.lang.runAsObservable
 import eu.kanade.tachiyomi.util.lang.withIOContext
-import exh.md.handlers.serializers.ChapterListResponse
 import exh.md.handlers.serializers.ChapterResponse
 import exh.md.handlers.serializers.GroupListResponse
 import exh.md.utils.MdUtil
+import exh.md.utils.mdListCall
 import exh.metadata.metadata.MangaDexSearchMetadata
-import exh.util.under
 import kotlinx.coroutines.async
 import okhttp3.CacheControl
 import okhttp3.Headers
@@ -27,150 +24,73 @@ import okhttp3.Request
 import rx.Observable
 import tachiyomi.source.model.ChapterInfo
 import tachiyomi.source.model.MangaInfo
-import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MangaHandler(val client: OkHttpClient, val headers: Headers, private val lang: String, private val forceLatestCovers: Boolean = false) {
+class MangaHandler(
+    private val client: OkHttpClient,
+    private val headers: Headers,
+    private val lang: String,
+    private val apiMangaParser: ApiMangaParser,
+    private val followsHandler: FollowsHandler
+) {
 
-    suspend fun fetchMangaAndChapterDetails(manga: MangaInfo, sourceId: Long): Pair<MangaInfo, List<ChapterInfo>> {
+    suspend fun fetchMangaAndChapterDetails(manga: MangaInfo, sourceId: Long, forceLatestCovers: Boolean): Pair<MangaInfo, List<ChapterInfo>> {
         return withIOContext {
             val response = client.newCall(mangaRequest(manga)).await()
-            val covers = getCovers(manga, forceLatestCovers)
-            val parser = ApiMangaParser(client, lang)
-
-            parser.parseToManga(manga, response, covers, sourceId) to getChapterList(manga)
+            apiMangaParser.parseToManga(manga, response, sourceId) to getChapterList(manga)
         }
     }
 
-    suspend fun getCovers(manga: MangaInfo, forceLatestCovers: Boolean): List<String> {
-        /*  if (forceLatestCovers) {
+    /*suspend fun getCovers(manga: MangaInfo, forceLatestCovers: Boolean): List<String> {
+        *//*  if (forceLatestCovers) {
               val covers = client.newCall(coverRequest(manga)).await().parseAs<ApiCovers>(MdUtil.jsonParser)
               return covers.data.map { it.url }
-          } else {*/
-        return emptyList<String>()
+          } else {*//*
+        return emptyList()
         //  }
-    }
+    }*/
 
     suspend fun getMangaIdFromChapterId(urlChapterId: String): String {
         return withIOContext {
             val request = GET(MdUtil.chapterUrl + urlChapterId)
             val response = client.newCall(request).await()
-            ApiMangaParser(client, lang).chapterParseForMangaId(response)
+            apiMangaParser.chapterParseForMangaId(response)
         }
     }
 
-    suspend fun getMangaDetails(manga: MangaInfo, sourceId: Long): MangaInfo {
+    suspend fun getMangaDetails(manga: MangaInfo, sourceId: Long, forceLatestCovers: Boolean): MangaInfo {
         val response = withIOContext { client.newCall(mangaRequest(manga)).await() }
-        val covers = withIOContext { getCovers(manga, forceLatestCovers) }
-        return ApiMangaParser(client, lang).parseToManga(manga, response, covers, sourceId)
+        return apiMangaParser.parseToManga(manga, response, sourceId)
     }
 
-    fun fetchMangaDetailsObservable(manga: SManga, sourceId: Long): Observable<SManga> {
-        return client.newCall(mangaRequest(manga.toMangaInfo()))
-            .asObservableSuccess()
-            .flatMap { response ->
-                runAsObservable({
-                    ApiMangaParser(client, lang).parseToManga(manga.toMangaInfo(), response, emptyList(), sourceId).toSManga()
-                })
-            }
+    fun fetchMangaDetailsObservable(manga: SManga, sourceId: Long, forceLatestCovers: Boolean): Observable<SManga> {
+        return runAsObservable({
+            getMangaDetails(manga.toMangaInfo(), sourceId, forceLatestCovers).toSManga()
+        })
     }
 
-    fun fetchChapterListObservable(manga: SManga): Observable<List<SChapter>> {
-        return client.newCall(mangaFeedRequest(manga.toMangaInfo(), 0, lang))
-            .asObservableSuccess()
-            .map { response ->
-                if (response.code == 204) {
-                    return@map emptyList()
-                }
-
-                val chapterListResponse = response.parseAs<ChapterListResponse>(MdUtil.jsonParser)
-                val results = chapterListResponse.results.toMutableList()
-
-                var hasMoreResults = chapterListResponse.limit + chapterListResponse.offset under chapterListResponse.total
-                var lastOffset = chapterListResponse.offset
-
-                while (hasMoreResults) {
-                    val offset = lastOffset + chapterListResponse.limit
-                    val newResponse = client.newCall(mangaFeedRequest(manga.toMangaInfo(), offset, lang)).execute()
-                    if (newResponse.code != 204) {
-                        val newChapterListResponse = newResponse
-                            .parseAs<ChapterListResponse>(MdUtil.jsonParser)
-                        results += newChapterListResponse.results
-                        hasMoreResults = newChapterListResponse.limit + newChapterListResponse.offset under newChapterListResponse.total
-                        lastOffset = newChapterListResponse.offset
-                    } else {
-                        hasMoreResults = false
-                    }
-                }
-                val groupIds =
-                    results.asSequence()
-                        .map { chapter -> chapter.relationships }
-                        .flatten()
-                        .filter { it.type == "scanlation_group" }
-                        .map { it.id }
-                        .distinct()
-                        .toList()
-
-                val groupMap = runCatching {
-                    groupIds.chunked(100).flatMapIndexed { index, ids ->
-                        val groupResponse = client.newCall(groupIdRequest(ids, 100 * index)).execute()
-                        if (groupResponse.code != 204) {
-                            groupResponse
-                                .parseAs<GroupListResponse>(MdUtil.jsonParser)
-                                .results
-                                .map { group -> Pair(group.data.id, group.data.attributes.name) }
-                        } else {
-                            emptyList()
-                        }
-                    }.toMap()
-                }.getOrNull() ?: emptyMap()
-
-                ApiMangaParser(client, lang).chapterListParse(results, groupMap).map { it.toSChapter() }
-            }
-    }
+    fun fetchChapterListObservable(manga: SManga): Observable<List<SChapter>> = runAsObservable({
+        getChapterList(manga.toMangaInfo()).map { it.toSChapter() }
+    })
 
     suspend fun getChapterList(manga: MangaInfo): List<ChapterInfo> {
         return withIOContext {
-            val response = client.newCall(mangaFeedRequest(manga, 0, lang)).await()
-
-            if (response.code == 204) {
-                return@withIOContext emptyList()
-            }
-
-            val chapterListResponse = response.parseAs<ChapterListResponse>(MdUtil.jsonParser)
-            val results = chapterListResponse.results.toMutableList()
-
-            var hasMoreResults = chapterListResponse.limit + chapterListResponse.offset under chapterListResponse.total
-            var lastOffset = chapterListResponse.offset
-
-            while (hasMoreResults) {
-                val offset = lastOffset + chapterListResponse.limit
-                val newResponse = client.newCall(mangaFeedRequest(manga, offset, lang)).await()
-                if (newResponse.code != 204) {
-                    val newChapterListResponse = newResponse
-                        .parseAs<ChapterListResponse>(MdUtil.jsonParser)
-                    results += newChapterListResponse.results
-                    hasMoreResults = newChapterListResponse.limit + newChapterListResponse.offset under newChapterListResponse.total
-                    lastOffset = newChapterListResponse.offset
-                } else {
-                    hasMoreResults = false
-                }
+            val results = client.mdListCall<ChapterResponse> {
+                mangaFeedRequest(manga, it, lang)
             }
 
             val groupMap = getGroupMap(results)
 
-            ApiMangaParser(client, lang).chapterListParse(results, groupMap)
+            apiMangaParser.chapterListParse(results, groupMap)
         }
     }
 
     private suspend fun getGroupMap(results: List<ChapterResponse>): Map<String, String> {
         val groupIds = results.asSequence()
-            .map { chapter -> chapter.relationships }
-            .flatten()
+            .flatMap { chapter -> chapter.relationships }
             .filter { it.type == "scanlation_group" }
             .map { it.id }
-            .distinct()
-            .toList()
+            .toSet()
 
         return runCatching {
             groupIds.chunked(100).flatMapIndexed { index, ids ->
@@ -178,40 +98,33 @@ class MangaHandler(val client: OkHttpClient, val headers: Headers, private val l
                 if (response.code != 204) {
                     response
                         .parseAs<GroupListResponse>(MdUtil.jsonParser)
-                        .results.map { group -> Pair(group.data.id, group.data.attributes.name) }
+                        .results.map { group -> group.data.id to group.data.attributes.name }
                 } else {
                     emptyList()
                 }
             }.toMap()
-        }.getOrNull() ?: emptyMap()
+        }.getOrNull().orEmpty()
     }
 
     suspend fun fetchRandomMangaId(): String {
         return withIOContext {
             val response = client.newCall(randomMangaRequest()).await()
-            ApiMangaParser(client, lang).randomMangaIdParse(response)
+            apiMangaParser.randomMangaIdParse(response)
         }
     }
 
-    suspend fun getTrackingInfo(track: Track, useLowQualityCovers: Boolean, mdList: MdList): Pair<Track, MangaDexSearchMetadata?> {
+    suspend fun getTrackingInfo(track: Track): Pair<Track, MangaDexSearchMetadata?> {
         return withIOContext {
-            val metadata = async {
-                val mangaUrl = "/manga/" + MdUtil.getMangaId(track.tracking_url)
+            /*val metadata = async {
+                val mangaUrl = MdUtil.buildMangaUrl(MdUtil.getMangaId(track.tracking_url))
                 val manga = MangaInfo(mangaUrl, track.title)
                 val response = client.newCall(mangaRequest(manga)).await()
                 val metadata = MangaDexSearchMetadata()
-                ApiMangaParser(client, lang).parseIntoMetadata(metadata, response, emptyList())
+                apiMangaParser.parseIntoMetadata(metadata, response, emptyList())
                 metadata
-            }
+            }*/
             val remoteTrack = async {
-                FollowsHandler(
-                    client,
-                    headers,
-                    Injekt.get(),
-                    lang,
-                    useLowQualityCovers,
-                    mdList
-                ).fetchTrackingInfo(track.tracking_url)
+                followsHandler.fetchTrackingInfo(track.tracking_url)
             }
             remoteTrack.await() to null
         }

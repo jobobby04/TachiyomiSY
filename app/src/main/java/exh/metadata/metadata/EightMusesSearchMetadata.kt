@@ -3,6 +3,7 @@ package exh.metadata.metadata
 import android.content.Context
 import eu.kanade.tachiyomi.R
 import exh.metadata.metadata.base.RaisedSearchMetadata
+import exh.util.nullIfEmpty
 import kotlinx.serialization.Serializable
 import tachiyomi.source.model.MangaInfo
 
@@ -38,14 +39,14 @@ class EightMusesSearchMetadata : RaisedSearchMetadata() {
     }
 
     override fun getExtraInfoPairs(context: Context): List<Pair<String, String>> {
-        val pairs = mutableListOf<Pair<String, String>>()
-        title?.let { pairs += context.getString(R.string.title) to it }
-        val path = path.joinToString("/", prefix = "/")
-        if (path.isNotBlank()) {
-            pairs += context.getString(R.string.path) to path
+        return with(context) {
+            listOfNotNull(
+                title?.let { getString(R.string.title) to it },
+                path.nullIfEmpty()?.joinToString("/", prefix = "/")
+                    ?.let { getString(R.string.path) to it },
+                thumbnailUrl?.let { getString(R.string.thumbnail_url) to it }
+            )
         }
-        thumbnailUrl?.let { pairs += context.getString(R.string.thumbnail_url) to it }
-        return pairs
     }
 
     companion object {

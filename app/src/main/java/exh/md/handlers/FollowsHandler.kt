@@ -16,9 +16,11 @@ import exh.md.handlers.serializers.MangaListResponse
 import exh.md.handlers.serializers.MangaResponse
 import exh.md.handlers.serializers.MangaStatusListResponse
 import exh.md.handlers.serializers.MangaStatusResponse
+import exh.md.handlers.serializers.ResultResponse
 import exh.md.handlers.serializers.UpdateReadingStatus
 import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
+import exh.md.utils.mdListCall
 import exh.metadata.metadata.MangaDexSearchMetadata
 import exh.util.under
 import kotlinx.serialization.encodeToString
@@ -33,11 +35,10 @@ import okhttp3.Response
 import java.util.Locale
 
 class FollowsHandler(
-    val client: OkHttpClient,
-    val headers: Headers,
-    val preferences: PreferencesHelper,
+    private val client: OkHttpClient,
+    private val headers: Headers,
+    private val preferences: PreferencesHelper,
     private val lang: String,
-    private val useLowQualityCovers: Boolean,
     private val mdList: MdList
 ) {
 
@@ -58,7 +59,8 @@ class FollowsHandler(
             }
 
             val hasMoreResults = mangaListResponse.limit + mangaListResponse.offset under mangaListResponse.total
-            val statusListResponse = client.newCall(mangaStatusListRequest(mangaListResponse.results)).await().parseAs<MangaStatusListResponse>()
+            val statusListResponse = client.newCall(mangaStatusListRequest()).await()
+                .parseAs<MangaStatusListResponse>()
             val results = followsParseMangaPage(mangaListResponse.results, statusListResponse.statuses)
 
             MetadataMangasPage(results.map { it.first }, hasMoreResults, results.map { it.second })
@@ -69,15 +71,17 @@ class FollowsHandler(
      * Parse follows api to manga page
      * used when multiple follows
      */
-    private fun followsParseMangaPage(response: List<MangaResponse>, statuses: Map<String, String?>): List<Pair<SManga, MangaDexSearchMetadata>> {
+    private suspend fun followsParseMangaPage(response: List<MangaResponse>, statuses: Map<String, String?>): List<Pair<SManga, MangaDexSearchMetadata>> {
         val comparator = compareBy<Pair<SManga, MangaDexSearchMetadata>> { it.second.followStatus }
             .thenBy { it.first.title }
+
+        val coverMap = MdUtil.getCoversFromMangaList(response, client)
 
         return response.map {
             MdUtil.createMangaEntry(
                 it,
                 lang,
-                useLowQualityCovers
+                coverMap[it.data.id]
             ).toSManga() to MangaDexSearchMetadata().apply {
                 followStatus = FollowStatus.fromDex(statuses[it.data.id]).int
             }
@@ -121,7 +125,7 @@ class FollowsHandler(
         return withIOContext {
             val status = when (followStatus == FollowStatus.UNFOLLOWED) {
                 true -> null
-                false -> followStatus.name.toLowerCase(Locale.US)
+                false -> followStatus.name.lowercase(Locale.US)
             }
 
             val jsonString = MdUtil.jsonParser.encodeToString(UpdateReadingStatus(status))
@@ -133,13 +137,15 @@ class FollowsHandler(
                     jsonString.toRequestBody("application/json".toMediaType())
                 )
             ).await()
-            postResult.isSuccessful
+
+            val body = postResult.parseAs<ResultResponse>(MdUtil.jsonParser)
+            body.result == "ok"
         }
     }
 
-    suspend fun updateReadingProgress(track: Track): Boolean {
+    /*suspend fun updateReadingProgress(track: Track): Boolean {
         return true
-        /*return withIOContext {
+        return withIOContext {
             val mangaID = getMangaId(track.tracking_url)
             val formBody = FormBody.Builder()
                 .add("volume", "0")
@@ -163,12 +169,12 @@ class FollowsHandler(
                 }
             }
             result.isSuccess
-        }*/
+        }
     }
 
     suspend fun updateRating(track: Track): Boolean {
         return true
-        /*return withIOContext {
+        return withIOContext {
             val mangaID = getMangaId(track.tracking_url)
             val result = runCatching {
                 client.newCall(
@@ -189,49 +195,20 @@ class FollowsHandler(
                 }
             }
             result.isSuccess
-        }*/
-    }
+        }
+    }*/
 
     /**
      * fetch all manga from all possible pages
      */
     suspend fun fetchAllFollows(): List<Pair<SManga, MangaDexSearchMetadata>> {
         return withIOContext {
-            val response = client.newCall(followsListRequest(0)).await()
-
-            if (response.code == 204) {
-                return@withIOContext emptyList()
+            val results = client.mdListCall<MangaResponse> {
+                followsListRequest(it)
             }
 
-            val mangaListResponse = response.parseAs<MangaListResponse>(MdUtil.jsonParser)
-            val results = mangaListResponse.results.toMutableList()
-
-            if (results.isEmpty()) {
-                return@withIOContext emptyList()
-            }
-
-            var hasMoreResults = mangaListResponse.limit + mangaListResponse.offset under mangaListResponse.total
-            var lastOffset = mangaListResponse.offset
-
-            while (hasMoreResults) {
-                val offset = lastOffset + mangaListResponse.limit
-                val newResponse = client.newCall(followsListRequest(offset)).await()
-                if (newResponse.code != 204) {
-                    val newMangaListResponse = newResponse.parseAs<MangaListResponse>(MdUtil.jsonParser)
-                    results += newMangaListResponse.results
-                    hasMoreResults = newMangaListResponse.limit + newMangaListResponse.offset under newMangaListResponse.total
-                    lastOffset = newMangaListResponse.offset
-                } else {
-                    hasMoreResults = false
-                }
-            }
-            val statuses = results.chunked(100)
-                .map {
-                    client.newCall(mangaStatusListRequest(results)).await().parseAs<MangaStatusListResponse>().statuses
-                }.fold(mutableMapOf<String, String?>()) { acc, curr ->
-                    acc.putAll(curr)
-                    acc
-                }
+            val statuses = client.newCall(mangaStatusListRequest()).await()
+                .parseAs<MangaStatusListResponse>().statuses
 
             followsParseMangaPage(results, statuses)
         }
@@ -256,7 +233,13 @@ class FollowsHandler(
         }
     }
 
-    private fun mangaStatusListRequest(mangaListResponse: List<MangaResponse>): Request {
-        return GET(MdUtil.mangaStatus + "/" + mangaListResponse.joinToString("&ids[]=", "?ids[]=") { it.data.id }, MdUtil.getAuthHeaders(headers, preferences, mdList), CacheControl.FORCE_NETWORK)
+    private fun mangaStatusListRequest(status: FollowStatus? = null): Request {
+        val mangaStatusUrl = MdUtil.mangaStatus.toHttpUrl().newBuilder()
+
+        if (status != null) {
+            mangaStatusUrl.addQueryParameter("status", status.name.lowercase(Locale.US))
+        }
+
+        return GET(mangaStatusUrl.build().toString(), MdUtil.getAuthHeaders(headers, preferences, mdList), CacheControl.FORCE_NETWORK)
     }
 }

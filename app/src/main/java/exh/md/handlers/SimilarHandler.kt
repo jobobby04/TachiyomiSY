@@ -1,36 +1,65 @@
 package exh.md.handlers
 
-import eu.kanade.tachiyomi.data.database.DatabaseHelper
-import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.network.GET
+import eu.kanade.tachiyomi.network.await
+import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SManga
-import exh.md.similar.sql.models.MangaSimilarImpl
+import exh.md.handlers.serializers.CoverListResponse
+import exh.md.handlers.serializers.SimilarMangaResponse
 import exh.md.utils.MdUtil
-import exh.util.executeOnIO
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import okhttp3.CacheControl
+import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import tachiyomi.source.model.MangaInfo
 
-class SimilarHandler(val preferences: PreferencesHelper, private val useLowQualityCovers: Boolean) {
+class SimilarHandler(
+    private val client: OkHttpClient,
+    private val lang: String
+) {
 
-    /**
-     * fetch our similar mangas
-     */
-    suspend fun fetchSimilar(manga: Manga): MangasPage {
-        // Parse the Mangadex id from the URL
-        val mangaId = MdUtil.getMangaId(manga.url).toLong()
-        val similarMangaDb = Injekt.get<DatabaseHelper>().getSimilar(mangaId).executeOnIO()
-        return if (similarMangaDb != null) {
-            val similarMangaTitles = similarMangaDb.matched_titles.split(MangaSimilarImpl.DELIMITER)
-            val similarMangaIds = similarMangaDb.matched_ids.split(MangaSimilarImpl.DELIMITER)
-            val similarMangas = similarMangaIds.mapIndexed { index, similarId ->
-                SManga.create().apply {
-                    title = similarMangaTitles[index]
-                    url = "/manga/$similarId/"
-                    thumbnail_url = MdUtil.formThumbUrl(url, useLowQualityCovers)
-                }
+    suspend fun getSimilar(manga: MangaInfo): MangasPage {
+        val response = client.newCall(similarMangaRequest(manga)).await()
+            .parseAs<SimilarMangaResponse>()
+
+        val ids = response.matches.map { it.id }
+
+        val coverUrl = MdUtil.coverUrl.toHttpUrl().newBuilder().apply {
+            ids.forEach { mangaId ->
+                addQueryParameter("manga[]", mangaId)
             }
-            MangasPage(similarMangas, false)
-        } else MangasPage(mutableListOf(), false)
+            addQueryParameter("limit", ids.size.toString())
+        }.build().toString()
+        val coverListResponse = client.newCall(GET(coverUrl)).await()
+            .parseAs<CoverListResponse>()
+
+        val unique = coverListResponse.results.distinctBy { it.relationships[0].id }
+
+        val coverMap = unique.map { coverResponse ->
+            val fileName = coverResponse.data.attributes.fileName
+            val mangaId = coverResponse.relationships.first { it.type.equals("manga", true) }.id
+            val thumbnailUrl = "${MdUtil.cdnUrl}/covers/$mangaId/$fileName"
+            mangaId to thumbnailUrl
+        }.toMap()
+
+        return similarMangaParse(response, coverMap)
+    }
+
+    private fun similarMangaRequest(manga: MangaInfo): Request {
+        val tempUrl = MdUtil.similarBaseApi + MdUtil.getMangaId(manga.key) + ".json"
+        return GET(tempUrl, Headers.Builder().build(), CacheControl.FORCE_NETWORK)
+    }
+
+    private fun similarMangaParse(response: SimilarMangaResponse, coverMap: Map<String, String>): MangasPage {
+        val mangaList = response.matches.map {
+            SManga.create().apply {
+                url = MdUtil.buildMangaUrl(it.id)
+                title = MdUtil.cleanString(it.title[lang] ?: it.title["en"]!!)
+                thumbnail_url = coverMap[it.id]
+            }
+        }
+        return MangasPage(mangaList, false)
     }
 }

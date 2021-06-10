@@ -33,7 +33,8 @@ import reactivecircus.flowbinding.android.view.longClicks
 
 class MangaInfoItemAdapter(
     private val controller: MangaController,
-    private val fromSource: Boolean
+    private val fromSource: Boolean,
+    private val isTablet: Boolean
 ) :
     RecyclerView.Adapter<MangaInfoItemAdapter.HeaderViewHolder>() {
 
@@ -135,14 +136,35 @@ class MangaInfoItemAdapter(
                         var namespaceTags: List<NamespaceTagsItem> = emptyList()
                         if (source.isEhBasedSource() && metaTags != null && metaTags.all { it.key != null }) {
                             namespaceTags = metaTags
-                                .mapValues { values -> values.value.map { makeSearchChip(it.name, controller::performSearch, controller::performGlobalSearch, source.id, itemView.context, it.namespace, it.type) } }
+                                .mapValues { values ->
+                                    values.value.map {
+                                        itemView.context.makeSearchChip(
+                                            it.name,
+                                            controller::performSearch,
+                                            controller::performGlobalSearch,
+                                            source.id,
+                                            it.namespace,
+                                            it.type
+                                        )
+                                    }
+                                }
                                 .map { NamespaceTagsItem(it.key!!, it.value) }
                         } else {
                             val genre = manga.getRaisedTags()
                             if (!genre.isNullOrEmpty()) {
                                 namespaceTags = genre
                                     .groupBy { it.namespace }
-                                    .mapValues { values -> values.value.map { makeSearchChip(it.name, controller::performSearch, controller::performGlobalSearch, source.id, itemView.context, it.namespace) } }
+                                    .mapValues { values ->
+                                        values.value.map {
+                                            itemView.context.makeSearchChip(
+                                                it.name,
+                                                controller::performSearch,
+                                                controller::performGlobalSearch,
+                                                source.id,
+                                                it.namespace
+                                            )
+                                        }
+                                    }
                                     .map { NamespaceTagsItem(it.key, it.value) }
                             }
                         }
@@ -170,7 +192,7 @@ class MangaInfoItemAdapter(
                     .launchIn(controller.viewScope)
 
                 // Expand manga info if navigated from source listing
-                if (initialLoad && fromSource) {
+                if (initialLoad && (fromSource || isTablet)) {
                     toggleMangaInfo()
                     initialLoad = false
                 }

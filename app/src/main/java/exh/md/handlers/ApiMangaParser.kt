@@ -15,18 +15,22 @@ import exh.metadata.metadata.MangaDexSearchMetadata
 import exh.metadata.metadata.base.RaisedTag
 import exh.metadata.metadata.base.getFlatMetadataForManga
 import exh.metadata.metadata.base.insertFlatMetadata
+import exh.util.capitalize
 import exh.util.dropEmpty
 import exh.util.executeOnIO
 import exh.util.floor
+import exh.util.nullIfEmpty
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import tachiyomi.source.model.ChapterInfo
 import tachiyomi.source.model.MangaInfo
 import uy.kohesive.injekt.injectLazy
-import java.util.Date
 import java.util.Locale
 
-class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
+class ApiMangaParser(
+    private val client: OkHttpClient,
+    private val lang: String
+) {
     val db: DatabaseHelper by injectLazy()
 
     val metaClass = MangaDexSearchMetadata::class
@@ -39,18 +43,18 @@ class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
     }?.call()
         ?: error("Could not find no-args constructor for meta class: ${metaClass.qualifiedName}!")
 
-    suspend fun parseToManga(manga: MangaInfo, input: Response, coverUrls: List<String>, sourceId: Long): MangaInfo {
-        return parseToManga(manga, input.parseAs<MangaResponse>(MdUtil.jsonParser), coverUrls, sourceId)
+    suspend fun parseToManga(manga: MangaInfo, input: Response, sourceId: Long): MangaInfo {
+        return parseToManga(manga, input.parseAs<MangaResponse>(MdUtil.jsonParser), sourceId)
     }
 
-    suspend fun parseToManga(manga: MangaInfo, input: MangaResponse, coverUrls: List<String>, sourceId: Long): MangaInfo {
+    suspend fun parseToManga(manga: MangaInfo, input: MangaResponse, sourceId: Long): MangaInfo {
         val mangaId = db.getManga(manga.key, sourceId).executeOnIO()?.id
         val metadata = if (mangaId != null) {
             val flatMetadata = db.getFlatMetadataForManga(mangaId).executeOnIO()
             flatMetadata?.raise(metaClass) ?: newMetaInstance()
         } else newMetaInstance()
 
-        parseIntoMetadata(metadata, input, coverUrls)
+        parseIntoMetadata(metadata, input)
         if (mangaId != null) {
             metadata.mangaId = mangaId
             db.insertFlatMetadata(metadata.flatten())
@@ -62,24 +66,20 @@ class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
     /**
      * Parse the manga details json into metadata object
      */
-    suspend fun parseIntoMetadata(metadata: MangaDexSearchMetadata, input: Response, coverUrls: List<String>) {
-        parseIntoMetadata(metadata, input.parseAs<MangaResponse>(MdUtil.jsonParser), coverUrls)
+    suspend fun parseIntoMetadata(metadata: MangaDexSearchMetadata, input: Response) {
+        parseIntoMetadata(metadata, input.parseAs<MangaResponse>(MdUtil.jsonParser))
     }
 
-    suspend fun parseIntoMetadata(metadata: MangaDexSearchMetadata, networkApiManga: MangaResponse, coverUrls: List<String>) {
+    suspend fun parseIntoMetadata(metadata: MangaDexSearchMetadata, networkApiManga: MangaResponse) {
         with(metadata) {
             try {
                 val networkManga = networkApiManga.data.attributes
                 mdUuid = networkApiManga.data.id
                 title = MdUtil.cleanString(networkManga.title[lang] ?: networkManga.title["en"]!!)
-                altTitles = networkManga.altTitles.mapNotNull { it[lang] }
-                cover =
-                    if (coverUrls.isNotEmpty()) {
-                        coverUrls.last()
-                    } else {
-                        null
-                        // networkManga.mainCover
-                    }
+                altTitles = networkManga.altTitles.mapNotNull { it[lang] }.nullIfEmpty()
+
+                val coverId = networkApiManga.relationships.firstOrNull { it.type.equals("cover_art", true) }?.id
+                cover = MdUtil.getCoverUrl(networkApiManga.data.id, coverId, client)
 
                 description = MdUtil.cleanDescription(networkManga.description[lang] ?: networkManga.description["en"]!!)
 
@@ -115,7 +115,7 @@ class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
                 artists = artistIds.mapNotNull { authorMap[it] }.dropEmpty()
 
                 langFlag = networkManga.originalLanguage
-                val lastChapter = networkManga.lastChapter.toFloatOrNull()
+                val lastChapter = networkManga.lastChapter?.toFloatOrNull()
                 lastChapterNumber = lastChapter?.floor()
 
                 /*networkManga.rating?.let {
@@ -131,22 +131,12 @@ class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
                     links["ap"]?.let { animePlanetId = it }
                 }
 
-                if (kitsuId?.toIntOrNull() != null) {
-                    cover = "https://media.kitsu.io/manga/poster_images/$kitsuId/large.jpg"
-                }
-                if (cover == null && !myAnimeListId.isNullOrEmpty()) {
-                    cover = "https://coverapi.orell.dev/api/v1/mal/manga/$myAnimeListId/cover"
-                }
-                if (cover == null) {
-                    cover = "https://coverapi.orell.dev/api/v1/mdaltimage/manga/$mdUuid/cover"
-                }
-
                 // val filteredChapters = filterChapterForChecking(networkApiManga)
 
                 val tempStatus = parseStatus(networkManga.status ?: "")
-                val publishedOrCancelled =
+                /*val publishedOrCancelled =
                     tempStatus == SManga.PUBLICATION_COMPLETE || tempStatus == SManga.CANCELLED
-                /*if (publishedOrCancelled && isMangaCompleted(networkApiManga, filteredChapters)) {
+                if (publishedOrCancelled && isMangaCompleted(networkApiManga, filteredChapters)) {
                     manga.status = SManga.COMPLETED
                     manga.missing_chapters = null
                 } else {*/
@@ -155,8 +145,11 @@ class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
 
                 // things that will go with the genre tags but aren't actually genre
                 val nonGenres = listOfNotNull(
-                    networkManga.publicationDemographic?.let { RaisedTag("Demographic", it.capitalize(Locale.US), MangaDexSearchMetadata.TAG_TYPE_DEFAULT) },
-                    networkManga.contentRating?.let { RaisedTag("Content Rating", it.capitalize(Locale.US), MangaDexSearchMetadata.TAG_TYPE_DEFAULT) },
+                    networkManga.publicationDemographic
+                        ?.let { RaisedTag("Demographic", it.capitalize(Locale.US), MangaDexSearchMetadata.TAG_TYPE_DEFAULT) },
+                    networkManga.contentRating
+                        ?.takeUnless { it == "safe" }
+                        ?.let { RaisedTag("Content Rating", it.capitalize(Locale.US), MangaDexSearchMetadata.TAG_TYPE_DEFAULT) },
                 )
 
                 val genres = nonGenres + networkManga.tags
@@ -225,7 +218,7 @@ class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
 
     private fun parseStatus(status: String) = when (status) {
         "ongoing" -> SManga.ONGOING
-        "complete" -> SManga.PUBLICATION_COMPLETE
+        "completed" -> SManga.PUBLICATION_COMPLETE
         "cancelled" -> SManga.CANCELLED
         "hiatus" -> SManga.HIATUS
         else -> SManga.UNKNOWN
@@ -239,7 +232,7 @@ class ApiMangaParser(val client: OkHttpClient, private val lang: String) {
     }
 
     fun chapterListParse(chapterListResponse: List<ChapterResponse>, groupMap: Map<String, String>): List<ChapterInfo> {
-        val now = Date().time
+        val now = System.currentTimeMillis()
 
         return chapterListResponse.asSequence()
             .map {

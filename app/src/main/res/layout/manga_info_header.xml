@@ -185,6 +185,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/btn_webview"
             app:layout_constraintTop_toBottomOf="@+id/manga_info"
+            app:rippleColor="?attr/rippleColor"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

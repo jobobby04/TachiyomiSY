@@ -60,7 +60,7 @@ class SourcePresenter(
         // SY -->
         val categories = mutableListOf<SourceCategory>()
 
-        preferences.sourcesTabCategories().get().sortedByDescending { it.toLowerCase() }.forEach {
+        preferences.sourcesTabCategories().get().sortedByDescending { it.lowercase() }.forEach {
             categories.add(SourceCategory(it))
         }
 
@@ -126,7 +126,7 @@ class SourcePresenter(
 
         // SY -->
         categories.forEach {
-            sourceItems = it.sources.sortedBy { sourceItem -> sourceItem.source.name.toLowerCase() } + sourceItems
+            sourceItems = it.sources.sortedBy { sourceItem -> sourceItem.source.name.lowercase() } + sourceItems
         }
         // SY <--
 
@@ -181,7 +181,7 @@ class SourcePresenter(
         return sourceManager.getVisibleCatalogueSources()
             .filter { it.lang in languages }
             .filterNot { it.id.toString() in disabledSourceIds }
-            .sortedBy { "(${it.lang}) ${it.name.toLowerCase()}" } +
+            .sortedBy { "(${it.lang}) ${it.name.lowercase()}" } +
             sourceManager.get(LocalSource.ID) as LocalSource
     }
 

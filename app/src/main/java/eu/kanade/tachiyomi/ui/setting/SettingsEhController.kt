@@ -17,7 +17,9 @@ import com.tfcporciuncula.flow.Preference
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.preference.CHARGING
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys
+import eu.kanade.tachiyomi.data.preference.UNMETERED_NETWORK
 import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.databinding.EhDialogCategoriesBinding
 import eu.kanade.tachiyomi.databinding.EhDialogLanguagesBinding
@@ -45,9 +47,13 @@ import exh.metadata.metadata.base.getFlatMetadataForManga
 import exh.source.isEhBasedManga
 import exh.uconfig.WarnConfigureDialogController
 import exh.ui.login.EhLoginActivity
+import exh.util.days
 import exh.util.executeOnIO
-import exh.util.floor
+import exh.util.hours
+import exh.util.milliseconds
+import exh.util.minutes
 import exh.util.nullIfBlank
+import exh.util.seconds
 import exh.util.trans
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
@@ -59,12 +65,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import uy.kohesive.injekt.injectLazy
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
-import kotlin.time.days
-import kotlin.time.hours
-import kotlin.time.milliseconds
-import kotlin.time.minutes
-import kotlin.time.seconds
 
 /**
  * EH Settings fragment
@@ -543,7 +543,7 @@ class SettingsEhController : SettingsController() {
                         MaterialDialog(activity)
                             .title(R.string.favorites_sync_reset)
                             .message(R.string.favorites_sync_reset_message)
-                            .positiveButton(android.R.string.yes) {
+                            .positiveButton(android.R.string.ok) {
                                 LocalFavoritesStorage().apply {
                                     getRealm().use {
                                         it.trans {
@@ -553,7 +553,7 @@ class SettingsEhController : SettingsController() {
                                 }
                                 activity.toast(context.getString(R.string.sync_state_reset), Toast.LENGTH_LONG)
                             }
-                            .negativeButton(android.R.string.no)
+                            .negativeButton(android.R.string.cancel)
                             .cancelable(false)
                             .show()
                     }
@@ -601,8 +601,26 @@ class SettingsEhController : SettingsController() {
                 key = PreferenceKeys.eh_autoUpdateRestrictions
                 titleRes = R.string.auto_update_restrictions
                 entriesRes = arrayOf(R.string.network_unmetered, R.string.charging)
-                entryValues = arrayOf("wifi", "ac")
-                summaryRes = R.string.pref_library_update_restriction_summary
+                entryValues = arrayOf(UNMETERED_NETWORK, CHARGING)
+
+                fun updateSummary() {
+                    val restrictions = preferences.exhAutoUpdateRequirements().get()
+                        .sorted()
+                        .map {
+                            when (it) {
+                                UNMETERED_NETWORK -> context.getString(R.string.network_unmetered)
+                                CHARGING -> context.getString(R.string.charging)
+                                else -> it
+                            }
+                        }
+                    val restrictionsText = if (restrictions.isEmpty()) {
+                        context.getString(R.string.none)
+                    } else {
+                        restrictions.joinToString()
+                    }
+
+                    summary = context.getString(R.string.restrictions, restrictionsText)
+                }
 
                 preferences.exhAutoUpdateFrequency().asFlow()
                     .onEach { isVisible = it > 0 }
@@ -613,6 +631,10 @@ class SettingsEhController : SettingsController() {
                     Handler().post { EHentaiUpdateWorker.scheduleBackground(context) }
                     true
                 }
+
+                preferences.exhAutoUpdateRequirements().asFlow()
+                    .onEach { updateSummary() }
+                    .launchIn(viewScope)
             }
 
             preference {
@@ -625,7 +647,6 @@ class SettingsEhController : SettingsController() {
                         .cancelable(false)
                     progress.show()
 
-                    @OptIn(ExperimentalTime::class)
                     viewScope.launch(Dispatchers.IO) {
                         val updateInfo = try {
                             val stats =
@@ -645,7 +666,7 @@ class SettingsEhController : SettingsController() {
                                 }.toList()
 
                             fun metaInRelativeDuration(duration: Duration): Int {
-                                val durationMs = duration.toLongMilliseconds()
+                                val durationMs = duration.inWholeMilliseconds
                                 return allMeta.asSequence().filter {
                                     System.currentTimeMillis() - it.lastUpdateCheck < durationMs
                                 }.count()
@@ -679,7 +700,6 @@ class SettingsEhController : SettingsController() {
         }
     }
 
-    @OptIn(ExperimentalTime::class)
     private fun getRelativeTimeFromNow(then: Duration): RelativeTime {
         val now = System.currentTimeMillis().milliseconds
         var period: Duration = now - then
@@ -687,50 +707,50 @@ class SettingsEhController : SettingsController() {
         while (period > 0.milliseconds) {
             when {
                 period >= 365.days -> {
-                    (period.inDays / 365).floor().let {
+                    (period.inWholeDays / 365).let {
                         relativeTime.years = it
                         period -= (it * 365).days
                     }
                     continue
                 }
                 period >= 30.days -> {
-                    (period.inDays / 30).floor().let {
+                    (period.inWholeDays / 30).let {
                         relativeTime.months = it
                         period -= (it * 30).days
                     }
                 }
                 period >= 7.days -> {
-                    (period.inDays / 7).floor().let {
+                    (period.inWholeDays / 7).let {
                         relativeTime.weeks = it
                         period -= (it * 7).days
                     }
                 }
                 period >= 1.days -> {
-                    period.inDays.floor().let {
+                    period.inWholeDays.let {
                         relativeTime.days = it
                         period -= it.days
                     }
                 }
                 period >= 1.hours -> {
-                    period.inHours.floor().let {
+                    period.inWholeHours.let {
                         relativeTime.hours = it
                         period -= it.hours
                     }
                 }
                 period >= 1.minutes -> {
-                    period.inMinutes.floor().let {
+                    period.inWholeMinutes.let {
                         relativeTime.minutes = it
                         period -= it.minutes
                     }
                 }
                 period >= 1.seconds -> {
-                    period.inSeconds.floor().let {
+                    period.inWholeSeconds.let {
                         relativeTime.seconds = it
                         period -= it.seconds
                     }
                 }
                 period >= 1.milliseconds -> {
-                    period.inMilliseconds.floor().let {
+                    period.inWholeMilliseconds.let {
                         relativeTime.milliseconds = it
                     }
                     period = 0.milliseconds
@@ -741,17 +761,26 @@ class SettingsEhController : SettingsController() {
     }
 
     private fun getRelativeTimeString(relativeTime: RelativeTime, context: Context): String {
-        return relativeTime.years?.let { context.resources.getQuantityString(R.plurals.humanize_year, it, it) }
-            ?: relativeTime.months?.let { context.resources.getQuantityString(R.plurals.humanize_month, it, it) }
-            ?: relativeTime.weeks?.let { context.resources.getQuantityString(R.plurals.humanize_week, it, it) }
-            ?: relativeTime.days?.let { context.resources.getQuantityString(R.plurals.humanize_day, it, it) }
-            ?: relativeTime.hours?.let { context.resources.getQuantityString(R.plurals.humanize_hour, it, it) }
-            ?: relativeTime.minutes?.let { context.resources.getQuantityString(R.plurals.humanize_minute, it, it) }
-            ?: relativeTime.seconds?.let { context.resources.getQuantityString(R.plurals.humanize_second, it, it) }
+        return relativeTime.years?.let { context.resources.getQuantityString(R.plurals.humanize_year, it.toInt(), it) }
+            ?: relativeTime.months?.let { context.resources.getQuantityString(R.plurals.humanize_month, it.toInt(), it) }
+            ?: relativeTime.weeks?.let { context.resources.getQuantityString(R.plurals.humanize_week, it.toInt(), it) }
+            ?: relativeTime.days?.let { context.resources.getQuantityString(R.plurals.humanize_day, it.toInt(), it) }
+            ?: relativeTime.hours?.let { context.resources.getQuantityString(R.plurals.humanize_hour, it.toInt(), it) }
+            ?: relativeTime.minutes?.let { context.resources.getQuantityString(R.plurals.humanize_minute, it.toInt(), it) }
+            ?: relativeTime.seconds?.let { context.resources.getQuantityString(R.plurals.humanize_second, it.toInt(), it) }
             ?: context.getString(R.string.humanize_fallback)
     }
 
-    data class RelativeTime(var years: Int? = null, var months: Int? = null, var weeks: Int? = null, var days: Int? = null, var hours: Int? = null, var minutes: Int? = null, var seconds: Int? = null, var milliseconds: Int? = null)
+    data class RelativeTime(
+        var years: Long? = null,
+        var months: Long? = null,
+        var weeks: Long? = null,
+        var days: Long? = null,
+        var hours: Long? = null,
+        var minutes: Long? = null,
+        var seconds: Long? = null,
+        var milliseconds: Long? = null
+    )
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {

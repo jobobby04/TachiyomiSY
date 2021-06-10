@@ -3,12 +3,13 @@ package eu.kanade.tachiyomi.data.backup
 import android.content.Context
 import androidx.core.net.toUri
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExperimentalExpeditedWork
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import eu.kanade.tachiyomi.data.backup.full.FullBackupManager
-import eu.kanade.tachiyomi.data.backup.legacy.LegacyBackupManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -23,9 +24,6 @@ class BackupCreatorJob(private val context: Context, workerParams: WorkerParamet
         val flags = BackupCreateService.BACKUP_ALL
         return try {
             FullBackupManager(context).createBackup(uri, flags, true)
-            if (preferences.createLegacyBackup().get()) {
-                LegacyBackupManager(context).createBackup(uri, flags, true)
-            }
             Result.success()
         } catch (e: Exception) {
             Result.failure()
@@ -35,6 +33,7 @@ class BackupCreatorJob(private val context: Context, workerParams: WorkerParamet
     companion object {
         private const val TAG = "BackupCreator"
 
+        @ExperimentalExpeditedWork
         fun setupTask(context: Context, prefInterval: Int? = null) {
             val preferences = Injekt.get<PreferencesHelper>()
             val interval = prefInterval ?: preferences.backupInterval().get()
@@ -45,6 +44,7 @@ class BackupCreatorJob(private val context: Context, workerParams: WorkerParamet
                     10,
                     TimeUnit.MINUTES
                 )
+                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                     .addTag(TAG)
                     .build()
 

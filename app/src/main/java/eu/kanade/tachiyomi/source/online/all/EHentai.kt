@@ -46,6 +46,7 @@ import exh.ui.metadata.adapters.EHentaiDescriptionAdapter
 import exh.util.UriFilter
 import exh.util.UriGroup
 import exh.util.asObservableWithAsyncStacktrace
+import exh.util.awaitResponse
 import exh.util.dropBlank
 import exh.util.ignore
 import exh.util.nullIfBlank
@@ -178,38 +179,43 @@ class EHentai(
                     tags += parsedTags
 
                     if (infoElements != null) {
-                        getGenre(infoElements.getOrNull(1))?.let { genre = it }
+                        genre = getGenre(infoElements.getOrNull(1))
 
-                        getDateTag(infoElements.getOrNull(2))?.let { datePosted = it }
+                        datePosted = getDateTag(infoElements.getOrNull(2))
 
-                        getRating(infoElements.getOrNull(3))?.let { averageRating = it }
+                        averageRating = getRating(infoElements.getOrNull(3))
 
-                        getUploader(infoElements.getOrNull(4))?.let { uploader = it }
+                        uploader = getUploader(infoElements.getOrNull(4))
 
-                        getPageCount(infoElements.getOrNull(5))?.let { length = it }
+                        length = getPageCount(infoElements.getOrNull(5))
                     } else {
                         val parsedGenre = body.selectFirst(".gl1c div")
-                        getGenre(genreString = parsedGenre?.text()?.nullIfBlank()?.toLowerCase()?.replace(" ", ""))?.let { genre = it }
+                        genre = getGenre(
+                            genreString = parsedGenre?.text()
+                                ?.nullIfBlank()
+                                ?.lowercase()
+                                ?.replace(" ", "")
+                        )
 
                         val info = body.selectFirst(".gl2c")
                         val extraInfo = body.selectFirst(".gl4c")
 
                         val infoList = info.select("div div")
 
-                        getDateTag(infoList.getOrNull(8))?.let { datePosted = it }
+                        datePosted = getDateTag(infoList.getOrNull(8))
 
-                        getRating(infoList.getOrNull(9))?.let { averageRating = it }
+                        averageRating = getRating(infoList.getOrNull(9))
 
                         val extraInfoList = extraInfo.select("div")
 
                         if (extraInfoList.getOrNull(2) == null) {
-                            getUploader(extraInfoList.getOrNull(0))?.let { uploader = it }
+                            uploader = getUploader(extraInfoList.getOrNull(0))
 
-                            getPageCount(extraInfoList.getOrNull(1))?.let { length = it }
+                            length = getPageCount(extraInfoList.getOrNull(1))
                         } else {
-                            getUploader(extraInfoList.getOrNull(1))?.let { uploader = it }
+                            uploader = getUploader(extraInfoList.getOrNull(1))
 
-                            getPageCount(extraInfoList.getOrNull(2))?.let { length = it }
+                            length = getPageCount(extraInfoList.getOrNull(2))
                         }
                     }
                 }
@@ -283,7 +289,7 @@ class EHentai(
 
     override suspend fun getChapterList(manga: MangaInfo): List<ChapterInfo> = getChapterList(manga) {}
 
-    suspend fun getChapterList(manga: MangaInfo, throttleFunc: () -> Unit): List<ChapterInfo> {
+    suspend fun getChapterList(manga: MangaInfo, throttleFunc: suspend () -> Unit): List<ChapterInfo> {
         // Pull all the way to the root gallery
         // We can't do this with RxJava or we run into stack overflows on shit like this:
         //   https://exhentai.org/g/1073061/f9345f1c12/
@@ -300,7 +306,7 @@ class EHentai(
                 doc = client.newCall(exGet(baseUrl + url)).await().asJsoup()
 
                 val parentLink = doc.select("#gdd .gdt1").find { el ->
-                    el.text().toLowerCase() == "parent:"
+                    el.text().lowercase() == "parent:"
                 }!!.nextElementSibling().selectFirst("a")?.attr("href")
 
                 if (parentLink != null) {
@@ -329,7 +335,7 @@ class EHentai(
             number = 1f,
             dateUpload = MetadataUtil.EX_DATE_FORMAT.parse(
                 doc.select("#gdd .gdt1").find { el ->
-                    el.text().toLowerCase() == "posted:"
+                    el.text().lowercase() == "posted:"
                 }!!.nextElementSibling().text()
             )!!.time
         )
@@ -356,15 +362,21 @@ class EHentai(
 
     @Suppress("DeprecatedCallableAddReplaceWith")
     @Deprecated("Use getChapterList instead")
-    fun fetchChapterList(manga: SManga, throttleFunc: () -> Unit) = runAsObservable({
+    fun fetchChapterList(manga: SManga, throttleFunc: suspend () -> Unit) = runAsObservable({
         getChapterList(manga.toMangaInfo(), throttleFunc).map { it.toSChapter() }
     })
 
-    override fun fetchPageList(chapter: SChapter) = fetchChapterPage(chapter, baseUrl + chapter.url).map {
-        it.mapIndexed { i, s ->
-            Page(i, s)
+    override fun fetchPageList(chapter: SChapter) = fetchChapterPage(chapter, baseUrl + chapter.url)
+        .map {
+            it.mapIndexed { i, s ->
+                Page(i, s)
+            }
+        }!!
+        .doOnNext { pages ->
+            if (pages.any { it.url == "https://$domain/img/509.gif" }) throw Exception(
+                "Hit page limit"
+            )
         }
-    }!!.doOnNext { pages -> if (pages.any { it.url == "https://$domain/img/509.gif" }) throw Exception("Hit page limit") }
 
     private fun fetchChapterPage(
         chapter: SChapter,
@@ -407,6 +419,20 @@ class EHentai(
         exGet("$baseUrl/toplist.php?tl=15&p=${page - 1}", null) // Custom page logic for toplists
     }
 
+    private fun <T : MangasPage> Observable<T>.checkValid(): Observable<MangasPage> = map {
+        if (exh && it.mangas.isEmpty() && preferences.igneousVal().get().equals("mystery", true)) {
+            throw Exception("Invalid igneous cookie, try re-logging or finding a correct one to input in the login menu")
+        } else it
+    }
+
+    override fun fetchLatestUpdates(page: Int): Observable<MangasPage> {
+        return super.fetchLatestUpdates(page).checkValid()
+    }
+
+    override fun fetchPopularManga(page: Int): Observable<MangasPage> {
+        return super.fetchPopularManga(page).checkValid()
+    }
+
     // Support direct URL importing
     override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> =
         urlImportFetchSearchManga(context, query) {
@@ -414,7 +440,7 @@ class EHentai(
                 client.newCall(it).asObservableSuccess()
             }.map { response ->
                 searchMangaParse(response)
-            }
+            }.checkValid()
         }
 
     private fun searchMangaRequestObservable(page: Int, query: String, filters: FilterList): Observable<Request> {
@@ -459,23 +485,23 @@ class EHentai(
 
     private fun exGet(url: String, page: Int? = null, additionalHeaders: Headers? = null, cache: Boolean = true): Request {
         return GET(
-            page?.let {
+            if (page != null) {
                 addParam(url, "page", (page - 1).toString())
-            } ?: url,
-            additionalHeaders?.let { additionalHeadersNotNull ->
+            } else url,
+            if (additionalHeaders != null) {
                 val headers = headers.newBuilder()
-                additionalHeadersNotNull.toMultimap().forEach { (t, u) ->
+                additionalHeaders.toMultimap().forEach { (t, u) ->
                     u.forEach {
                         headers.add(t, it)
                     }
                 }
                 headers.build()
-            } ?: headers
+            } else headers
         ).let {
-            if (!cache) {
-                it.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build()
-            } else {
+            if (cache) {
                 it
+            } else {
+                it.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build()
             }
         }
     }
@@ -523,7 +549,7 @@ class EHentai(
 
     override suspend fun getMangaDetails(manga: MangaInfo): MangaInfo {
         val exception = Exception("Async stacktrace")
-        val response = client.newCall(mangaDetailsRequest(manga.toSManga())).await()
+        val response = client.newCall(mangaDetailsRequest(manga.toSManga())).awaitResponse()
         if (response.isSuccessful) {
             // Pull to most recent
             val doc = response.asJsoup()
@@ -581,7 +607,7 @@ class EHentai(
                     val right = rightElement.text().trimOrNull()
                     if (left != null && right != null) {
                         ignore {
-                            when (left.removeSuffix(":").toLowerCase()) {
+                            when (left.removeSuffix(":").lowercase()) {
                                 "posted" -> datePosted = MetadataUtil.EX_DATE_FORMAT.parse(right)!!.time
                                 // Example gallery with parent: https://e-hentai.org/g/1390451/7f181c2426/
                                 // Example JP gallery: https://exhentai.org/g/1375385/03519d541b/

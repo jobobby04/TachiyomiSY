@@ -13,7 +13,9 @@ object PreferenceKeys {
 
     const val confirmExit = "pref_confirm_exit"
 
-    const val hideBottomBar = "pref_hide_bottom_bar_on_scroll"
+    const val hideBottomBarOnScroll = "pref_hide_bottom_bar_on_scroll"
+
+    const val sideNavIconAlignment = "pref_side_nav_icon_alignment"
 
     const val enableTransitionsPager = "pref_enable_transitions_pager_key"
 
@@ -99,6 +101,8 @@ object PreferenceKeys {
 
     const val autoUpdateTrack = "pref_auto_update_manga_sync_key"
 
+    const val autoAddTrack = "pref_auto_add_track_key"
+
     const val lastUsedSource = "last_catalogue_source"
 
     const val lastUsedCategory = "last_used_category"
@@ -158,7 +162,7 @@ object PreferenceKeys {
 
     const val startScreen = "start_screen"
 
-    const val useBiometricLock = "use_biometric_lock"
+    const val useAuthenticator = "use_biometric_lock"
 
     const val lockAppAfter = "lock_app_after"
 
@@ -169,6 +173,8 @@ object PreferenceKeys {
     const val hideNotificationContent = "hide_notification_content"
 
     const val autoUpdateMetadata = "auto_update_metadata"
+
+    const val autoUpdateTrackers = "auto_update_trackers"
 
     const val showLibraryUpdateErrors = "show_library_update_errors"
 
@@ -185,6 +191,8 @@ object PreferenceKeys {
 
     const val defaultCategory = "default_category"
 
+    const val categorizedDisplay = "categorized_display"
+
     const val skipRead = "skip_read"
 
     const val skipFiltered = "skip_filtered"
@@ -192,6 +200,8 @@ object PreferenceKeys {
     const val downloadBadge = "display_download_badge"
 
     const val unreadBadge = "display_unread_badge"
+
+    const val localBadge = "display_local_badge"
 
     const val categoryTabs = "display_category_tabs"
 
@@ -216,8 +226,6 @@ object PreferenceKeys {
     const val defaultChapterDisplayByNameOrNumber = "default_chapter_display_by_name_or_number"
 
     const val incognitoMode = "incognito_mode"
-
-    const val createLegacyBackup = "create_legacy_backup"
 
     fun trackUsername(syncId: Int) = "pref_mangasync_username_$syncId"
 
@@ -327,12 +335,6 @@ object PreferenceKeys {
 
     const val mangaDexForceLatestCovers = "manga_dex_force_latest_covers"
 
-    const val mangadexSimilarEnabled = "pref_related_show_tab_key"
-
-    const val mangadexSimilarUpdateInterval = "related_update_interval"
-
-    const val mangadexSimilarOnlyOverWifi = "pref_simular_only_over_wifi_key"
-
     const val mangadexSyncToLibraryIndexes = "pref_mangadex_sync_to_library_indexes"
 
     const val preferredMangaDexId = "preferred_mangaDex_id"
@@ -357,7 +359,9 @@ object PreferenceKeys {
 
     const val allowLocalSourceHiddenFolders = "allow_local_source_hidden_folders"
 
-    const val biometricTimeRanges = "biometric_time_ranges"
+    const val authenticatorTimeRanges = "biometric_time_ranges"
+
+    const val authenticatorDays = "biometric_days"
 
     const val sortTagsForLibrary = "sort_tags_for_library"
 
@@ -376,4 +380,12 @@ object PreferenceKeys {
     const val readerBottomButtons = "reader_bottom_buttons"
 
     const val bottomBarLabels = "pref_show_bottom_bar_labels"
+
+    const val showNavUpdates = "pref_show_updates_button"
+
+    const val showNavHistory = "pref_show_history_button"
+
+    const val pageLayout = "page_layout"
+
+    const val invertDoublePages = "invert_double_pages"
 }

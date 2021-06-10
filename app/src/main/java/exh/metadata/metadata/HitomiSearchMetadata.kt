@@ -4,6 +4,7 @@ import android.content.Context
 import eu.kanade.tachiyomi.R
 import exh.metadata.MetadataUtil
 import exh.metadata.metadata.base.RaisedSearchMetadata
+import exh.util.nullIfEmpty
 import kotlinx.serialization.Serializable
 import tachiyomi.source.model.MangaInfo
 import java.util.Date
@@ -62,29 +63,20 @@ class HitomiSearchMetadata : RaisedSearchMetadata() {
     }
 
     override fun getExtraInfoPairs(context: Context): List<Pair<String, String>> {
-        val pairs = mutableListOf<Pair<String, String>>()
-        with(context) {
-            hlId?.let { pairs += getString(R.string.id) to it }
-            title?.let { pairs += getString(R.string.title) to it }
-            thumbnailUrl?.let { pairs += getString(R.string.thumbnail_url) to it }
-            val artists = artists.joinToString()
-            if (artists.isNotBlank()) {
-                pairs += getString(R.string.artist) to artists
-            }
-            group?.let { pairs += getString(R.string.group) to it }
-            genre?.let { pairs += getString(R.string.genre) to it }
-            language?.let { pairs += getString(R.string.language) to it }
-            val series = series.joinToString()
-            if (series.isNotBlank()) {
-                pairs += getString(R.string.series) to series
-            }
-            val characters = characters.joinToString()
-            if (characters.isNotBlank()) {
-                pairs += getString(R.string.characters) to characters
-            }
-            uploadDate?.let { pairs += getString(R.string.date_posted) to MetadataUtil.EX_DATE_FORMAT.format(Date(it)) }
+        return with(context) {
+            listOfNotNull(
+                hlId?.let { getString(R.string.id) to it },
+                title?.let { getString(R.string.title) to it },
+                thumbnailUrl?.let { getString(R.string.thumbnail_url) to it },
+                artists.nullIfEmpty()?.joinToString()?.let { getString(R.string.artist) to it },
+                group?.let { getString(R.string.group) to it },
+                genre?.let { getString(R.string.genre) to it },
+                language?.let { getString(R.string.language) to it },
+                series.nullIfEmpty()?.joinToString()?.let { getString(R.string.series) to it },
+                characters.nullIfEmpty()?.joinToString()?.let { getString(R.string.characters) to it },
+                uploadDate?.let { getString(R.string.date_posted) to MetadataUtil.EX_DATE_FORMAT.format(Date(it)) }
+            )
         }
-        return pairs
     }
 
     companion object {

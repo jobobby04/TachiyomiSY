@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.toSManga
+import eu.kanade.tachiyomi.util.lang.runAsObservable
 import exh.md.handlers.serializers.MangaListResponse
 import exh.md.utils.MdUtil
 import okhttp3.CacheControl
@@ -18,13 +19,19 @@ import rx.Observable
 /**
  * Returns the latest manga from the updates url since it actually respects the users settings
  */
-class PopularHandler(val client: OkHttpClient, private val headers: Headers, private val lang: String, private val useLowQualityCovers: Boolean) {
+class PopularHandler(
+    private val client: OkHttpClient,
+    private val headers: Headers,
+    private val lang: String
+) {
 
     fun fetchPopularManga(page: Int): Observable<MangasPage> {
         return client.newCall(popularMangaRequest(page))
             .asObservableSuccess()
-            .map { response ->
-                popularMangaParse(response)
+            .flatMap { response ->
+                runAsObservable({
+                    popularMangaParse(response)
+                })
             }
     }
 
@@ -39,10 +46,15 @@ class PopularHandler(val client: OkHttpClient, private val headers: Headers, pri
         return GET(tempUrl.build().toString(), headers, CacheControl.FORCE_NETWORK)
     }
 
-    private fun popularMangaParse(response: Response): MangasPage {
+    private suspend fun popularMangaParse(response: Response): MangasPage {
         val mlResponse = response.parseAs<MangaListResponse>(MdUtil.jsonParser)
         val hasMoreResults = mlResponse.limit + mlResponse.offset < mlResponse.total
-        val mangaList = mlResponse.results.map { MdUtil.createMangaEntry(it, lang, useLowQualityCovers).toSManga() }
+
+        val coverMap = MdUtil.getCoversFromMangaList(mlResponse.results, client)
+
+        val mangaList = mlResponse.results.map {
+            MdUtil.createMangaEntry(it, lang, coverMap[it.data.id]).toSManga()
+        }
         return MangasPage(mangaList, hasMoreResults)
     }
 }

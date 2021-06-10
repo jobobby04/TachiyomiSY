@@ -35,7 +35,6 @@ import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.LoginSource
-import eu.kanade.tachiyomi.source.online.all.MangaDex
 import eu.kanade.tachiyomi.ui.base.controller.FabController
 import eu.kanade.tachiyomi.ui.base.controller.SearchableNucleusController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
@@ -57,7 +56,6 @@ import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.widget.AutofitRecyclerView
 import eu.kanade.tachiyomi.widget.EmptyView
 import exh.log.xLogW
-import exh.md.similar.ui.EnableMangaDexSimilarDialogController
 import exh.savedsearches.EXHSavedSearch
 import exh.source.getMainSource
 import exh.source.isEhBasedSource
@@ -172,11 +170,6 @@ open class BrowseSourceController(bundle: Bundle) :
 
         // SY -->
         val mainSource = presenter.source.getMainSource()
-        if (mainSource is MangaDex && !preferences.mangadexSimilarEnabled().get() && !preferences.shownMangaDexSimilarAskDialog().get()) {
-            EnableMangaDexSimilarDialogController().showDialog(router)
-            preferences.shownMangaDexSimilarAskDialog().set(true)
-        }
-
         if (mainSource is LoginSource && mainSource.requiresLogin && !mainSource.isLogged()) {
             val dialog = MangadexLoginDialog(mainSource)
             dialog.showDialog(router)
@@ -253,6 +246,11 @@ open class BrowseSourceController(bundle: Bundle) :
                     return@cb
                 }
 
+                if (search.filterList == null) {
+                    activity?.toast(R.string.save_search_invalid)
+                    return@cb
+                }
+
                 presenter.sourceFilters = FilterList(search.filterList)
                 filterSheet?.setFilters(presenter.filterItems)
                 val allDefault = presenter.sourceFilters == presenter.source.getFilterList()
@@ -285,7 +283,7 @@ open class BrowseSourceController(bundle: Bundle) :
                         .title(R.string.save_search_delete)
                         .message(text = it.getString(R.string.save_search_delete_message, search.name))
                         .positiveButton(R.string.action_cancel)
-                        .negativeButton(android.R.string.yes) {
+                        .negativeButton(android.R.string.ok) {
                             val newSearches = savedSearches.filterIndexed { index, _ ->
                                 index != indexToDelete
                             }

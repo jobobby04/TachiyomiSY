@@ -275,6 +275,17 @@ object EXHMigrations {
                             .build()
                     )
                 }
+                if (oldVersion under 18) {
+                    val readerTheme = preferences.readerTheme().get()
+                    if (readerTheme == 4) {
+                        preferences.readerTheme().set(3)
+                    }
+                    val updateInterval = preferences.libraryUpdateInterval().get()
+                    if (updateInterval == 1 || updateInterval == 2) {
+                        preferences.libraryUpdateInterval().set(3)
+                        LibraryUpdateJob.setupTask(context, 3)
+                    }
+                }
 
                 // if (oldVersion under 1) { } (1 is current release version)
                 // do stuff here when releasing changed crap

@@ -9,6 +9,9 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
 import eu.kanade.tachiyomi.data.database.models.toMangaInfo
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.track.TrackManager
+import eu.kanade.tachiyomi.data.track.TrackService
+import eu.kanade.tachiyomi.data.track.UnattendedTrackService
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.Filter
@@ -32,6 +35,7 @@ import eu.kanade.tachiyomi.ui.browse.source.filter.TextSectionItem
 import eu.kanade.tachiyomi.ui.browse.source.filter.TriStateItem
 import eu.kanade.tachiyomi.ui.browse.source.filter.TriStateSectionItem
 import eu.kanade.tachiyomi.util.chapter.ChapterSettingsHelper
+import eu.kanade.tachiyomi.util.chapter.syncChaptersWithTrackServiceTwoWay
 import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.lang.withUIContext
 import eu.kanade.tachiyomi.util.removeCovers
@@ -45,11 +49,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.put
+import kotlinx.serialization.json.JsonArray
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
@@ -117,9 +119,9 @@ open class BrowseSourcePresenter(
      */
     private var pageSubscription: Subscription? = null
 
-    // SY -->
-    private var manga: Manga? = null
+    private val loggedServices by lazy { Injekt.get<TrackManager>().services.filter { it.isLogged } }
 
+    // SY -->
     private val filterSerializer = FilterSerializer()
     // SY <--
 
@@ -136,8 +138,8 @@ open class BrowseSourcePresenter(
 
         // SY -->
         if (filters != null) {
-            val filters = Json.decodeFromString<JsonObject>(filters)
-            filterSerializer.deserialize(sourceFilters, filters["filters"]!!.jsonArray)
+            val filters = Json.decodeFromString<JsonSavedSearch>(filters)
+            filterSerializer.deserialize(sourceFilters, filters.filters)
         }
         val allDefault = sourceFilters == source.getFilterList()
         // SY <--
@@ -293,9 +295,34 @@ open class BrowseSourcePresenter(
             manga.removeCovers(coverCache)
         } else {
             ChapterSettingsHelper.applySettingDefaults(manga)
+
+            if (prefs.autoAddTrack()) {
+                autoAddTrack(manga)
+            }
         }
 
         db.insertManga(manga).executeAsBlocking()
+    }
+
+    private fun autoAddTrack(manga: Manga) {
+        loggedServices
+            .filterIsInstance<UnattendedTrackService>()
+            .filter { it.accept(source) }
+            .forEach { service ->
+                launchIO {
+                    try {
+                        service.match(manga)?.let { track ->
+                            track.manga_id = manga.id!!
+                            (service as TrackService).bind(track)
+                            db.insertTrack(track).executeAsBlocking()
+
+                            syncChaptersWithTrackServiceTwoWay(db, db.getChapters(manga).executeAsBlocking(), track, service as TrackService)
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "Could not match manga: ${manga.title} with service $service")
+                    }
+                }
+            }
     }
 
     /**
@@ -420,11 +447,15 @@ open class BrowseSourcePresenter(
             !it.startsWith("${source.id}:")
         }
         val newSerialized = searches.map {
-            "${source.id}:" + buildJsonObject {
-                put("name", it.name)
-                put("query", it.query)
-                put("filters", filterSerializer.serialize(it.filterList))
-            }.toString()
+            "${source.id}:" + Json.encodeToString(
+                JsonSavedSearch(
+                    it.name,
+                    it.query,
+                    if (it.filterList != null) {
+                        filterSerializer.serialize(it.filterList)
+                    } else JsonArray(emptyList())
+                )
+            )
         }
         prefs.savedSearches().set((otherSerialized + newSerialized).toSet())
     }
@@ -432,10 +463,10 @@ open class BrowseSourcePresenter(
     fun loadSearches(): List<EXHSavedSearch> {
         val loaded = prefs.savedSearches().get()
         return loaded.map {
+            val id = it.substringBefore(':').toLong()
+            if (id != source.id) return@map null
+            val content = Json.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
             try {
-                val id = it.substringBefore(':').toLong()
-                if (id != source.id) return@map null
-                val content = Json.decodeFromString<JsonSavedSearch>(it.substringAfter(':'))
                 val originalFilters = source.getFilterList()
                 filterSerializer.deserialize(originalFilters, content.filters)
                 EXHSavedSearch(
@@ -447,7 +478,11 @@ open class BrowseSourcePresenter(
                 // Load failed
                 Timber.e(t, "Failed to load saved search!")
                 t.printStackTrace()
-                null
+                EXHSavedSearch(
+                    content.name,
+                    content.query,
+                    null
+                )
             }
         }.filterNotNull()
     }

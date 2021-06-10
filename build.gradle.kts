@@ -29,14 +29,14 @@ subprojects {
 buildscript {
     dependencies {
         classpath("com.github.zellius:android-shortcut-gradle-plugin:0.1.2")
-        classpath("com.google.gms:google-services:4.3.5")
+        classpath("com.google.gms:google-services:4.3.8")
         classpath("com.mikepenz.aboutlibraries.plugin:aboutlibraries-plugin:${BuildPluginsVersion.ABOUTLIB_PLUGIN}")
         classpath(kotlin("serialization", version = BuildPluginsVersion.KOTLIN))
         // Realm (EH)
         classpath("io.realm:realm-gradle-plugin:10.3.1")
 
         // Firebase Crashlytics
-        classpath("com.google.firebase:firebase-crashlytics-gradle:2.5.2")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.6.1")
     }
     repositories {
         google()

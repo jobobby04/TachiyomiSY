@@ -8,31 +8,30 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.mikepenz.aboutlibraries.LibsBuilder
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.updater.UpdateResult
+import eu.kanade.tachiyomi.data.updater.GithubUpdateChecker
+import eu.kanade.tachiyomi.data.updater.GithubUpdateResult
 import eu.kanade.tachiyomi.data.updater.UpdaterService
-import eu.kanade.tachiyomi.data.updater.github.GithubUpdateChecker
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
-import eu.kanade.tachiyomi.ui.base.controller.openInBrowser
+import eu.kanade.tachiyomi.ui.base.controller.NoToolbarElevationController
 import eu.kanade.tachiyomi.ui.main.WhatsNewDialogController
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.lang.launchNow
 import eu.kanade.tachiyomi.util.lang.toDateTimestampString
+import eu.kanade.tachiyomi.util.preference.add
 import eu.kanade.tachiyomi.util.preference.onClick
 import eu.kanade.tachiyomi.util.preference.preference
-import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.toast
 import exh.syDebugVersion
 import timber.log.Timber
 import java.text.DateFormat
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
-class AboutController : SettingsController() {
+class AboutController : SettingsController(), NoToolbarElevationController {
 
     private val updateChecker by lazy { GithubUpdateChecker() }
 
@@ -43,21 +42,23 @@ class AboutController : SettingsController() {
     override fun setupPreferenceScreen(screen: PreferenceScreen) = screen.apply {
         titleRes = R.string.pref_category_about
 
+        add(MoreHeaderPreference(context))
+
         preference {
             key = "pref_about_version"
             titleRes = R.string.version
             summary = if (BuildConfig.DEBUG /* SY --> */ || syDebugVersion != "0" /* SY --> */) {
-                "Preview r$syDebugVersion (${BuildConfig.COMMIT_SHA})"
+                "Preview r$syDebugVersion (${BuildConfig.COMMIT_SHA}, ${getFormattedBuildTime()})"
             } else {
-                "Stable ${BuildConfig.VERSION_NAME}"
+                "Stable ${BuildConfig.VERSION_NAME} (${getFormattedBuildTime()})"
             }
 
-            onClick { copyDebugInfo() }
-        }
-        preference {
-            key = "pref_about_build_time"
-            titleRes = R.string.build_time
-            summary = getFormattedBuildTime()
+            onClick {
+                activity?.let {
+                    val deviceInfo = CrashLogUtil(it).getDebugInfo()
+                    it.copyToClipboard("Debug information", deviceInfo)
+                }
+            }
         }
         if (isUpdaterEnabled) {
             preference {
@@ -77,82 +78,21 @@ class AboutController : SettingsController() {
                 // SY <--
             }
         }
-
-        preferenceCategory {
-            preference {
-                key = "pref_about_website"
-                titleRes = R.string.website
-                "https://tachiyomi.org".also {
-                    summary = it
-                    onClick { openInBrowser(it) }
-                }
-            }
-            preference {
-                key = "pref_about_facebook"
-                title = "Facebook"
-                "https://facebook.com/tachiyomiorg".also {
-                    summary = it
-                    onClick { openInBrowser(it) }
-                }
-            }
-            preference {
-                key = "pref_about_twitter"
-                title = "Twitter"
-                "https://twitter.com/tachiyomiorg".also {
-                    summary = it
-                    onClick { openInBrowser(it) }
-                }
-            }
-            preference {
-                key = "pref_about_discord"
-                title = "Discord"
-                "https://discord.gg/tachiyomi".also {
-                    summary = it
-                    onClick { openInBrowser(it) }
-                }
-            }
-            preference {
-                key = "pref_about_github"
-                title = "GitHub"
-                // SY -->
-                "https://github.com/jobobby04/TachiyomiSY".also {
-                    summary = it
-                    onClick { openInBrowser(it) }
-                }
-                // SY <--
-            }
-            // SY -->
-            preference {
-                key = "pref_about_label_original_tachiyomi_github"
-                title = "Original Tachiyomi GitHub "
-                "https://github.com/tachiyomiorg".also {
-                    summary = it
-                    onClick { openInBrowser(it) }
-                }
-            }
-            // SY <--
-            preference {
-                key = "pref_about_label_extensions"
-                titleRes = R.string.label_extensions
-                "https://github.com/tachiyomiorg/tachiyomi-extensions".also {
-                    summary = it
-                    onClick { openInBrowser(it) }
-                }
-            }
-            preference {
-                key = "pref_about_licenses"
-                titleRes = R.string.licenses
-                onClick {
-                    LibsBuilder()
-                        .withActivityTitle(activity!!.getString(R.string.licenses))
-                        .withAboutIconShown(false)
-                        .withAboutVersionShown(false)
-                        .withLicenseShown(true)
-                        .withEdgeToEdge(true)
-                        .start(activity!!)
-                }
+        preference {
+            key = "pref_about_licenses"
+            titleRes = R.string.licenses
+            onClick {
+                LibsBuilder()
+                    .withActivityTitle(activity!!.getString(R.string.licenses))
+                    .withAboutIconShown(false)
+                    .withAboutVersionShown(false)
+                    .withLicenseShown(true)
+                    .withEdgeToEdge(true)
+                    .start(activity!!)
             }
         }
+
+        add(AboutLinksPreference(context))
     }
 
     /**
@@ -166,14 +106,14 @@ class AboutController : SettingsController() {
         launchNow {
             try {
                 when (val result = updateChecker.checkForUpdate()) {
-                    is UpdateResult.NewUpdate<*> -> {
+                    is GithubUpdateResult.NewUpdate -> {
                         val body = result.release.info
                         val url = result.release.downloadLink
 
                         // Create confirmation window
                         NewUpdateDialogController(body, url).showDialog(router)
                     }
-                    is UpdateResult.NoNewUpdate -> {
+                    is GithubUpdateResult.NoNewUpdate -> {
                         activity?.toast(R.string.update_check_no_new_updates)
                     }
                 }
@@ -211,13 +151,6 @@ class AboutController : SettingsController() {
         }
     }
 
-    private fun copyDebugInfo() {
-        activity?.let {
-            val deviceInfo = CrashLogUtil(it).getDebugInfo()
-            activity?.copyToClipboard("Debug information", deviceInfo)
-        }
-    }
-
     private fun getFormattedBuildTime(): String {
         return try {
             val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US)
@@ -231,9 +164,8 @@ class AboutController : SettingsController() {
             )
             outputDf.timeZone = TimeZone.getDefault()
 
-            @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-            buildTime.toDateTimestampString(dateFormat)
-        } catch (e: ParseException) {
+            buildTime!!.toDateTimestampString(dateFormat)
+        } catch (e: Exception) {
             BuildConfig.BUILD_TIME
         }
     }

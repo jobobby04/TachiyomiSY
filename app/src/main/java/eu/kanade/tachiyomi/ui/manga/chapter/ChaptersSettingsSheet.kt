@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.manga.chapter
 
 import android.content.Context
+import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.view.isVisible
@@ -22,21 +23,18 @@ import kotlinx.coroutines.supervisorScope
 class ChaptersSettingsSheet(
     private val router: Router,
     private val presenter: MangaPresenter,
-    onGroupClickListener: (ExtendedNavigationView.Group) -> Unit
+    private val onGroupClickListener: (ExtendedNavigationView.Group) -> Unit
 ) : TabbedBottomSheetDialog(router.activity!!) {
 
-    val filters: Filter
-    private val sort: Sort
-    private val display: Display
+    val filters = Filter(router.activity!!)
+    private val sort = Sort(router.activity!!)
+    private val display = Display(router.activity!!)
 
-    init {
-        filters = Filter(router.activity!!)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
         filters.onGroupClicked = onGroupClickListener
-
-        sort = Sort(router.activity!!)
         sort.onGroupClicked = onGroupClickListener
-
-        display = Display(router.activity!!)
         display.onGroupClicked = onGroupClickListener
 
         binding.menu.isVisible = true
@@ -114,7 +112,11 @@ class ChaptersSettingsSheet(
                 if (item is Item.DrawableSelection) {
                     val scanlators = presenter.allChapterScanlators.toList()
                     val filteredScanlators = presenter.manga.filtered_scanlators?.let { MdUtil.getScanlators(it) }
-                    val preselected = if (filteredScanlators.isNullOrEmpty()) scanlators.mapIndexed { index, _ -> index }.toIntArray() else filteredScanlators.map { scanlators.indexOf(it) }.toIntArray()
+                    val preselected = if (filteredScanlators.isNullOrEmpty()) {
+                        scanlators.mapIndexed { index, _ -> index }
+                    } else {
+                        filteredScanlators.map { scanlators.indexOf(it) }
+                    }.toIntArray()
 
                     MaterialDialog(context)
                         .title(R.string.select_scanlators)

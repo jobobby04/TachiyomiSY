@@ -1,5 +1,7 @@
 package exh.md.handlers
 
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.track.mdlist.MdList
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.source.model.Page
@@ -11,26 +13,46 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import rx.Observable
 
-class PageHandler(val client: OkHttpClient, val headers: Headers, private val dataSaver: Boolean) {
+class PageHandler(
+    private val client: OkHttpClient,
+    private val headers: Headers,
+    private val apiChapterParser: ApiChapterParser,
+    private val mangaPlusHandler: MangaPlusHandler,
+    private val preferences: PreferencesHelper,
+    private val mdList: MdList,
+) {
 
-    fun fetchPageList(chapter: SChapter): Observable<List<Page>> {
+    fun fetchPageList(chapter: SChapter, isLogged: Boolean, usePort443Only: Boolean, dataSaver: Boolean): Observable<List<Page>> {
         if (chapter.scanlator.equals("MangaPlus")) {
             return client.newCall(pageListRequest(chapter))
                 .asObservableSuccess()
                 .map { response ->
-                    val chapterId = ApiChapterParser().externalParse(response)
-                    MangaPlusHandler(client).fetchPageList(chapterId)
+                    val chapterId = apiChapterParser.externalParse(response)
+                    mangaPlusHandler.fetchPageList(chapterId)
                 }
         }
+
+        val atHomeRequestUrl = if (usePort443Only) {
+            "${MdUtil.atHomeUrl}/${MdUtil.getChapterId(chapter.url)}?forcePort443=true"
+        } else {
+            "${MdUtil.atHomeUrl}/${MdUtil.getChapterId(chapter.url)}"
+        }
+
+        val headers = if (isLogged) {
+            MdUtil.getAuthHeaders(headers, preferences, mdList)
+        } else {
+            headers
+        }
+
         return client.newCall(pageListRequest(chapter))
             .asObservableSuccess()
             .map { response ->
-                val host = MdUtil.atHomeUrlHostUrl("${MdUtil.atHomeUrl}/${MdUtil.getChapterId(chapter.url)}", client)
-                ApiChapterParser().pageListParse(response, host, dataSaver)
+                val host = MdUtil.atHomeUrlHostUrl(atHomeRequestUrl, client, headers, CacheControl.FORCE_NETWORK)
+                apiChapterParser.pageListParse(response, host, dataSaver)
             }
     }
 
     private fun pageListRequest(chapter: SChapter): Request {
-        return GET("${MdUtil.chapterUrl}${MdUtil.getChapterId(chapter.url)}", headers, CacheControl.FORCE_NETWORK)
+        return GET(MdUtil.chapterUrl + MdUtil.getChapterId(chapter.url), headers, CacheControl.FORCE_NETWORK)
     }
 }

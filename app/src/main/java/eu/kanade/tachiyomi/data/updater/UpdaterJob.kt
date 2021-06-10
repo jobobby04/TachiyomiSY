@@ -3,12 +3,13 @@ package eu.kanade.tachiyomi.data.updater
 import android.content.Context
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExperimentalExpeditedWork
 import androidx.work.NetworkType
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import eu.kanade.tachiyomi.data.updater.github.GithubUpdateChecker
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 
@@ -19,7 +20,7 @@ class UpdaterJob(private val context: Context, workerParams: WorkerParameters) :
         try {
             val result = GithubUpdateChecker().checkForUpdate()
 
-            if (result is UpdateResult.NewUpdate<*>) {
+            if (result is GithubUpdateResult.NewUpdate) {
                 UpdaterNotifier(context).promptUpdate(result.release.downloadLink)
             }
             Result.success()
@@ -31,6 +32,7 @@ class UpdaterJob(private val context: Context, workerParams: WorkerParameters) :
     companion object {
         private const val TAG = "UpdateChecker"
 
+        @ExperimentalExpeditedWork
         fun setupTask(context: Context) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -42,6 +44,7 @@ class UpdaterJob(private val context: Context, workerParams: WorkerParameters) :
                 3,
                 TimeUnit.HOURS
             )
+                .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
                 .addTag(TAG)
                 .setConstraints(constraints)
                 .build()

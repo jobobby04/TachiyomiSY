@@ -49,6 +49,7 @@ import exh.source.isEhBasedManga
 import exh.source.mangaDexSourceIds
 import exh.source.nHentaiSourceIds
 import exh.ui.LoaderManager
+import exh.util.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
@@ -59,8 +60,6 @@ import reactivecircus.flowbinding.viewpager.pageSelections
 import rx.Subscription
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 class LibraryController(
     bundle: Bundle? = null,
@@ -207,6 +206,7 @@ class LibraryController(
         adapter = LibraryAdapter(this)
         binding.libraryPager.adapter = adapter
         binding.libraryPager.pageSelections()
+            .drop(1)
             .onEach {
                 preferences.lastUsedCategory().set(it)
                 activeCategory = it
@@ -297,7 +297,9 @@ class LibraryController(
     }
 
     fun showSettingsSheet() {
-        settingsSheet?.show()
+        adapter?.categories?.get(binding.libraryPager.currentItem)?.let { category ->
+            settingsSheet?.show(category)
+        }
     }
 
     fun onNextLibraryUpdate(categories: List<Category>, mangaMap: Map<Int, List<LibraryItem>>) {
@@ -673,7 +675,6 @@ class LibraryController(
     }
 
     // SY -->
-    @OptIn(ExperimentalTime::class)
     override fun onAttach(view: View) {
         super.onAttach(view)
 

@@ -22,16 +22,18 @@ import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackManager
+import eu.kanade.tachiyomi.data.track.TrackService
+import eu.kanade.tachiyomi.data.track.UnattendedTrackService
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.toSChapter
 import eu.kanade.tachiyomi.source.model.toSManga
-import eu.kanade.tachiyomi.source.online.all.MangaDex
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.ui.library.LibraryGroup
 import eu.kanade.tachiyomi.ui.manga.track.TrackItem
 import eu.kanade.tachiyomi.util.chapter.NoChaptersException
 import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
+import eu.kanade.tachiyomi.util.chapter.syncChaptersWithTrackServiceTwoWay
 import eu.kanade.tachiyomi.util.lang.withIOContext
 import eu.kanade.tachiyomi.util.prepUpdateCover
 import eu.kanade.tachiyomi.util.shouldDownloadNewChapters
@@ -45,6 +47,7 @@ import exh.metadata.metadata.base.insertFlatMetadataAsync
 import exh.source.LIBRARY_UPDATE_EXCLUDED_SOURCES
 import exh.source.MERGED_SOURCE_ID
 import exh.source.getMainSource
+import exh.source.isMdBasedSource
 import exh.source.mangaDexSourceIds
 import exh.util.executeOnIO
 import exh.util.nullIfBlank
@@ -353,6 +356,7 @@ class LibraryUpdateService(
         val newUpdates = mutableListOf<Pair<LibraryManga, Array<Chapter>>>()
         val failedUpdates = mutableListOf<Pair<Manga, String?>>()
         var hasDownloads = false
+        val loggedServices by lazy { trackManager.services.filter { it.isLogged } }
 
         withIOContext {
             mangaToUpdate.groupBy { it.source }
@@ -390,6 +394,10 @@ class LibraryUpdateService(
                                             e.message
                                         }
                                         failedUpdates.add(manga to errorMessage)
+                                    }
+
+                                    if (preferences.autoUpdateTrackers()) {
+                                        updateTrackings(manga, loggedServices)
                                     }
                                 }
                         }
@@ -460,7 +468,7 @@ class LibraryUpdateService(
             Timber.e(exception)
         }
         ioScope.launch(handler) {
-            if (source is MangaDex && trackManager.mdList.isLogged) {
+            if (source.isMdBasedSource() && trackManager.mdList.isLogged) {
                 val tracks = db.getTracks(manga).executeOnIO()
                 if (tracks.isEmpty() || tracks.none { it.sync_id == TrackManager.MDLIST }) {
                     var track = trackManager.mdList.createInitialTracker(manga)
@@ -528,27 +536,35 @@ class LibraryUpdateService(
             notifier.showProgressNotification(manga, progressCount++, mangaToUpdate.size)
 
             // Update the tracking details.
-            db.getTracks(manga).executeAsBlocking()
-                .map { track ->
-                    supervisorScope {
-                        async {
-                            val service = trackManager.getService(track.sync_id)
-                            if (service != null && service in loggedServices) {
-                                try {
-                                    val updatedTrack = service.refresh(track)
-                                    db.insertTrack(updatedTrack).executeAsBlocking()
-                                } catch (e: Throwable) {
-                                    // Ignore errors and continue
-                                    Timber.e(e)
+            updateTrackings(manga, loggedServices)
+        }
+
+        notifier.cancelProgressNotification()
+    }
+
+    private suspend fun updateTrackings(manga: LibraryManga, loggedServices: List<TrackService>) {
+        db.getTracks(manga).executeAsBlocking()
+            .map { track ->
+                supervisorScope {
+                    async {
+                        val service = trackManager.getService(track.sync_id)
+                        if (service != null && service in loggedServices) {
+                            try {
+                                val updatedTrack = service.refresh(track)
+                                db.insertTrack(updatedTrack).executeAsBlocking()
+
+                                if (service is UnattendedTrackService) {
+                                    syncChaptersWithTrackServiceTwoWay(db, db.getChapters(manga).executeAsBlocking(), track, service)
                                 }
+                            } catch (e: Throwable) {
+                                // Ignore errors and continue
+                                Timber.e(e)
                             }
                         }
                     }
                 }
-                .awaitAll()
-        }
-
-        notifier.cancelProgressNotification()
+            }
+            .awaitAll()
     }
 
     // SY -->

@@ -11,6 +11,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Environment
+import android.webkit.WebView
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
@@ -31,9 +32,6 @@ import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.clean.FileLastModifiedCleanStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException
-import com.google.android.gms.common.GooglePlayServicesRepairableException
-import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.ms_square.debugoverlay.DebugOverlay
@@ -55,6 +53,7 @@ import exh.log.XLogTree
 import exh.log.xLogD
 import exh.log.xLogE
 import exh.syDebugVersion
+import exh.util.days
 import io.realm.Realm
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -64,13 +63,9 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.io.File
-import java.security.NoSuchAlgorithmException
 import java.security.Security
 import java.text.SimpleDateFormat
 import java.util.Locale
-import javax.net.ssl.SSLContext
-import kotlin.time.ExperimentalTime
-import kotlin.time.days
 
 open class App : Application(), LifecycleObserver, ImageLoaderFactory {
 
@@ -85,11 +80,15 @@ open class App : Application(), LifecycleObserver, ImageLoaderFactory {
         Timber.plant(XLogTree()) // SY Redirect Timber to XLog
         if (!BuildConfig.DEBUG) addAnalytics()
 
-        workaroundAndroid7BrokenSSL()
-
         // TLS 1.3 support for Android < 10
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             Security.insertProviderAt(Conscrypt.newProvider(), 1)
+        }
+
+        // Avoid potential crashes
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val process = getProcessName()
+            if (packageName != process) WebView.setDataDirectorySuffix(process)
         }
 
         Injekt.importModule(AppModule(this))
@@ -103,9 +102,6 @@ open class App : Application(), LifecycleObserver, ImageLoaderFactory {
         LocaleHelper.updateConfiguration(this, resources.configuration)
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-
-        // Reset Incognito Mode on relaunch
-        preferences.incognitoMode().set(false)
 
         // Show notification to disable Incognito Mode when it's enabled
         preferences.incognitoMode().asFlow()
@@ -163,26 +159,6 @@ open class App : Application(), LifecycleObserver, ImageLoaderFactory {
         }.build()
     }
 
-    private fun workaroundAndroid7BrokenSSL() {
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.N ||
-            Build.VERSION.SDK_INT == Build.VERSION_CODES.N_MR1
-        ) {
-            try {
-                SSLContext.getInstance("TLSv1.2")
-            } catch (e: NoSuchAlgorithmException) {
-                xLogE("Could not install Android 7 broken SSL workaround!", e)
-            }
-
-            try {
-                ProviderInstaller.installIfNeeded(applicationContext)
-            } catch (e: GooglePlayServicesRepairableException) {
-                xLogE("Could not install Android 7 broken SSL workaround!", e)
-            } catch (e: GooglePlayServicesNotAvailableException) {
-                xLogE("Could not install Android 7 broken SSL workaround!", e)
-            }
-        }
-    }
-
     private fun addAnalytics() {
         if (syDebugVersion != "0") {
             Firebase.analytics.setUserProperty("preview_version", syDebugVersion)
@@ -227,7 +203,6 @@ open class App : Application(), LifecycleObserver, ImageLoaderFactory {
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
-        @OptIn(ExperimentalTime::class)
         printers += EnhancedFilePrinter
             .Builder(logFolder.absolutePath) {
                 fileNameGenerator = object : DateFileNameGenerator() {
@@ -241,7 +216,7 @@ open class App : Application(), LifecycleObserver, ImageLoaderFactory {
                 flattener { timeMillis, level, tag, message ->
                     "${dateFormat.format(timeMillis)} ${LogLevel.getShortLevelName(level)}/$tag: $message"
                 }
-                cleanStrategy = FileLastModifiedCleanStrategy(7.days.toLongMilliseconds())
+                cleanStrategy = FileLastModifiedCleanStrategy(7.days.inWholeMilliseconds)
                 backupStrategy = NeverBackupStrategy()
             }
 
@@ -257,15 +232,17 @@ open class App : Application(), LifecycleObserver, ImageLoaderFactory {
 
         xLogD("Application booting...")
         xLogD(
-            "App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})\n" +
-                "Preview build: $syDebugVersion\n" +
-                "Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}) \n" +
-                "Android build ID: ${Build.DISPLAY}\n" +
-                "Device brand: ${Build.BRAND}\n" +
-                "Device manufacturer: ${Build.MANUFACTURER}\n" +
-                "Device name: ${Build.DEVICE}\n" +
-                "Device model: ${Build.MODEL}\n" +
-                "Device product name: ${Build.PRODUCT}"
+            """
+                App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
+                Preview build: $syDebugVersion
+                Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}) 
+                Android build ID: ${Build.DISPLAY}
+                Device brand: ${Build.BRAND}
+                Device manufacturer: ${Build.MANUFACTURER}
+                Device name: ${Build.DEVICE}
+                Device model: ${Build.MODEL}
+                Device product name: ${Build.PRODUCT}
+            """.trimIndent()
         )
     }
 

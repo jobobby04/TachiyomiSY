@@ -21,14 +21,11 @@
     <string name="pref_category_reader">पाठक</string>
     <string name="pref_category_library">पुस्तकालय</string>
     <string name="pref_category_general">सामान्य</string>
-    <string name="short_recent_updates">अद्यावधिकहरू</string>
     <string name="app_not_available">एप उपलब्ध छैन</string>
     <string name="loading">लोड गर्दै …</string>
     <string name="action_webview_refresh">रिफ्रेस गर्नुहोस्</string>
     <string name="action_webview_forward">अगाडि</string>
     <string name="action_webview_back">पछाडि</string>
-    <string name="action_login">लग - इन</string>
-    <string name="action_open">खोल्नुहोस्</string>
     <string name="action_restore">पुनर्स्थापना गर्नुहोस्</string>
     <string name="action_create">सिर्जना गर्नुहोस्</string>
     <string name="action_open_log">लग खोल्नुहोस्</string>
@@ -40,7 +37,6 @@
     <string name="action_move_to_bottom">तल सार्नुहोस्</string>
     <string name="action_move_to_top">शीर्षमा सार्नुहोस्</string>
     <string name="action_desc">अवतरण</string>
-    <string name="action_sort_descending">अवतरण</string>
     <string name="action_asc">आरोहण</string>
     <string name="action_oldest">सबैभन्दा पुरानो</string>
     <string name="action_newest">सबैभन्दा नयाँ</string>
@@ -63,20 +59,15 @@
     <string name="action_migrate">स्थानान्तरण</string>
     <string name="action_open_in_settings">सेटिंग्समा खोल्नुहोस्</string>
     <string name="action_open_in_browser">ब्राउजरमा खाेल्नुहाेस्</string>
-    <string name="action_move">सार्नुहोस्</string>
     <string name="action_resume">पुनःसुरु गर्नुहोस्</string>
     <string name="action_start">सुरु गर्नुहोस्</string>
     <string name="action_remove">हटाउनुहोस्</string>
     <string name="action_retry">पुनःप्रयास गर्नुहोस्</string>
     <string name="action_next_chapter">अर्को अध्याय</string>
     <string name="action_previous_chapter">अघिल्लो अध्याय</string>
-    <string name="action_close">बन्द</string>
     <string name="action_pause">रोक्नुहोस्</string>
     <string name="action_stop">रोक</string>
     <string name="action_view_chapters">अध्यायहरू हेर्नुहोस्</string>
-    <string name="action_next_unread">अर्को अपठित</string>
-    <string name="action_show_downloaded">डाउनलोड गरियो</string>
-    <string name="action_sort_up"></string>
     <string name="action_edit_cover">आवरण सम्पादन गर्नुहोस्</string>
     <string name="action_move_category">कोटिहरू सेट गर्नुहोस्</string>
     <string name="action_rename_category">श्रेणी पुन: नामाकरण गर्नुहोस्</string>
@@ -108,7 +99,7 @@
     <string name="action_filter_unread">अपठित</string>
     <string name="action_filter_tracked">ट्र्याक गरियो</string>
     <string name="action_filter_bookmarked">बुकमार्क गरिएको</string>
-    <string name="action_filter_downloaded">डाउनलोड गरियो</string>
+    <string name="action_filter_downloaded">डाउनलोड गरिएको</string>
     <string name="action_filter">फिल्टर</string>
     <string name="action_menu">मेनू</string>
     <string name="action_settings">सेटिंग्स</string>
@@ -120,7 +111,7 @@
     <string name="information_empty_category">तपाईंसँग कुनै कोटीहरू छैन। तपाईंको पुस्तकालय व्यवस्थित गर्न प्लस बटन थिच्नुहोस्।</string>
     <string name="information_empty_library">तपाईंको पुस्तकालय खाली छ। ब्राउजबाट तपाईंको लाइब्रेरीमा श्रृंखला थप गर्नुहोस्।</string>
     <string name="information_no_recent_manga">भर्खर पढिएको केहि छैन</string>
-    <string name="information_no_recent">कुनै भर्खरका अपडेटहरू छैनन्</string>
+    <string name="information_no_recent">कुनै नयाँ अपडेटहरू छैनन्</string>
     <string name="label_download_queue">डाउनलोड लाम</string>
     <string name="confirm_exit">बाहिर निस्किन फेरि फिर्ता थिच्नुहोस्</string>
     <string name="unlock_app">ताचियोमी अनलक गर्नुहोस्</string>
@@ -137,4 +128,5 @@
     <string name="label_settings">सेटिंग्स</string>
     <string name="label_more">अरु</string>
     <string name="name">नाम</string>
+    <string name="information_cloudflare_bypass_failure">क्लाउडफ्लेयरलाई बाइपास गर्न असफल भयो</string>
 </resources>

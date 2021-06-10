@@ -6,23 +6,23 @@
     <!--========-->
     <style name="Theme.Toolbar" parent="@style/ThemeOverlay.MaterialComponents.ActionBar" />
 
-    <style name="Theme.Toolbar.Red" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
-        <item name="android:textColorPrimary">@color/red</item>
+    <style name="Theme.Toolbar.Custom.Light" parent="@style/ThemeOverlay.MaterialComponents.ActionBar">
+        <item name="android:colorControlHighlight">?attr/rippleToolbarColor</item>
     </style>
 
-    <style name="Theme.Toolbar.MidnightDusk" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
-        <item name="android:textColorPrimary">@color/md_white_1000</item>
+    <style name="Theme.Toolbar.Custom.Dark" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        <item name="android:colorControlHighlight">?attr/rippleToolbarColor</item>
     </style>
 
-    <style name="Theme.Toolbar.HotPink" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
-        <item name="android:textColorPrimary">@color/md_white_1000</item>
+    <style name="Theme.Toolbar.Custom.Amoled" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        <item name="android:colorControlHighlight">?attr/rippleToolbarColor</item>
     </style>
 
     <style name="Theme.Toolbar.NiceBooba" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
         <item name="android:textColorPrimary">@color/md_white_1000</item>
     </style>
 
-    <style name="Theme.Toolbar.Light" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+    <style name="Theme.Toolbar.Custom.PopupTheme" parent="Theme.Toolbar.Custom.Dark">
         <item name="popupTheme">@style/ThemeOverlay.MaterialComponents.Light</item>
     </style>
 
@@ -72,8 +72,28 @@
         <item name="colorAccent">@color/colorAccentLight</item>
     </style>
 
+    <style name="Theme.AlertDialog.Light.StrawberryDaiquiri" parent="Theme.AlertDialog">
+        <item name="colorAccent">@color/colorAccentStrawberry</item>
+    </style>
+
     <style name="Theme.AlertDialog.Dark" parent="Theme.AlertDialog">
         <item name="colorAccent">@color/colorAccentDark</item>
+    </style>
+
+    <style name="Theme.AlertDialog.Dark.GreenApple" parent="Theme.AlertDialog">
+        <item name="colorAccent">@color/colorAccentApple</item>
+    </style>
+
+    <style name="Theme.AlertDialog.Dark.MidnightDusk" parent="Theme.AlertDialog">
+        <item name="colorAccent">@color/colorAccentDusk</item>
+    </style>
+
+    <style name="Theme.AlertDialog.Amoled" parent="Theme.AlertDialog">
+        <item name="colorAccent">@color/colorAccentAmoled</item>
+    </style>
+
+    <style name="Theme.AlertDialog.Amoled.HotPink" parent="Theme.AlertDialog">
+        <item name="colorAccent">@color/colorAccentPink</item>
     </style>
 
 
@@ -84,8 +104,9 @@
     <style name="Theme.BottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
         <item name="android:windowIsFloating">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
         <item name="bottomSheetStyle">@style/Theme.BottomSheet.Style</item>
+        <item name="android:windowAnimationStyle">@style/Animation.BottomSheetDialog</item>
     </style>
 
     <style name="Theme.BottomSheet.Style" parent="Widget.MaterialComponents.BottomSheet">
@@ -98,6 +119,11 @@
         <item name="cornerSizeTopLeft">@dimen/dialog_radius</item>
         <item name="cornerSizeBottomRight">0dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
+    </style>
+
+    <style name="Animation.BottomSheetDialog" parent="Animation.AppCompat.Dialog">
+        <item name="android:windowEnterAnimation">@anim/bottom_sheet_slide_in</item>
+        <item name="android:windowExitAnimation">@anim/bottom_sheet_slide_out</item>
     </style>
 
 
@@ -193,17 +219,11 @@
     <style name="Theme.Widget.CardView" parent="CardView">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:padding">@dimen/material_component_cards_top_and_bottom_padding</item>
-        <item name="android:layout_marginTop">@dimen/material_component_cards_space_between_cards
-        </item>
-        <item name="android:layout_marginBottom">
-            @dimen/material_component_cards_space_between_cards
-        </item>
-        <item name="android:layout_marginStart">
-            @dimen/material_component_cards_space_between_cards
-        </item>
-        <item name="android:layout_marginEnd">@dimen/material_component_cards_space_between_cards
-        </item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
         <item name="cardBackgroundColor">?attr/colorSurface</item>
         <item name="cardCornerRadius">@dimen/card_radius</item>
         <item name="cardElevation">2dp</item>
@@ -249,8 +269,12 @@
     <style name="Theme.Widget.Chip" parent="Widget.MaterialComponents.Chip.Action">
         <item name="chipStrokeWidth">1dp</item>
         <item name="chipStrokeColor">?attr/colorAccent</item>
-        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="chipBackgroundColor">@color/background_color_chip_state</item>
         <item name="android:textColor">?attr/colorAccent</item>
+
+        <!-- Custom chip states -->
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
 
         <!-- Smaller text/height -->
         <item name="chipCornerRadius">12dp</item>
@@ -306,14 +330,14 @@
     <!--==============-->
     <style name="Theme.Widget.Button" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:textColor">?attr/colorAccent</item>
-        <item name="rippleColor">?attr/colorAccent</item>
+        <item name="rippleColor">?attr/rippleSecondaryColor</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
     <style name="Theme.Widget.Button.FilledAccent" parent="Widget.MaterialComponents.Button">
         <item name="android:textColor">?attr/colorOnSecondary</item>
         <item name="backgroundTint">?attr/colorAccent</item>
-        <item name="rippleColor">?attr/colorAccent</item>
+        <item name="rippleColor">?attr/rippleColor</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
@@ -322,6 +346,7 @@
         <item name="android:textAllCaps">false</item>
 
         <item name="backgroundTint">@android:color/transparent</item>
+        <item name="rippleColor">?attr/rippleColor</item>
 
         <item name="iconGravity">top</item>
         <item name="iconTint">@color/button_action_selector</item>
@@ -361,6 +386,7 @@
         <item name="tabMinWidth">75dp</item>
         <item name="tabMode">scrollable</item>
         <item name="tabTextAppearance">@style/TextAppearance.Widget.Tab</item>
+        <item name="tabRippleColor">?attr/rippleSecondaryColor</item>
     </style>
 
 
@@ -380,18 +406,13 @@
         <item name="android:textSize">15sp</item>
     </style>
 
-    <!--==-->
-    <!--SY-->
-    <!--==-->
-    <style name="SheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
-        <!--<item name="android:windowCloseOnTouchOutside">false</item>-->
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:colorBackground">     @android:color/transparent</item>
-        <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:backgroundDimAmount">0.3</item>
-        <item name="android:windowFrame">@null</item>
-        <item name="android:windowIsFloating">true</item>
+
+    <!--===============-->
+    <!--Custom Selector-->
+    <!--===============-->
+    <style name="PreferenceThemeCustom" parent="@style/PreferenceThemeOverlay">
+        <item name="android:selectableItemBackground">@drawable/ripple_background</item>
     </style>
+
 
 </resources>
