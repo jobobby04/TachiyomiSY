@@ -35,6 +35,7 @@ object PreferenceValues {
         hotpink,
         amoledblue,
         red,
+        nicebooba,
     }
 
     /* ktlint-enable experimental:enum-entry-name-case */
