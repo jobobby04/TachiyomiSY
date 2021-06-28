@@ -10,6 +10,7 @@ import eu.davidea.viewholders.FlexibleViewHolder
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.MigrationMangaCardBinding
 import eu.kanade.tachiyomi.databinding.MigrationProcessItemBinding
 import eu.kanade.tachiyomi.source.Source
@@ -36,6 +37,9 @@ class MigrationProcessHolder(
 
     private var item: MigrationProcessItem? = null
     private val binding = MigrationProcessItemBinding.bind(view)
+
+    private val preferences: PreferencesHelper by injectLazy()
+    private val hideNotFoundManga = preferences.hideNotFoundMigration().get()
 
     init {
         // We need to post a Runnable to show the popup to make sure that the PopupMenu is
@@ -116,6 +120,9 @@ class MigrationProcessHolder(
                         binding.migrationMangaCardTo.loadingGroup.isVisible = false
                         binding.migrationMangaCardTo.title.text = view.context.applicationContext
                             .getString(R.string.no_alternatives_found)
+                        if (hideNotFoundManga) {
+                            adapter.removeManga(bindingAdapterPosition)
+                        }
                     }
                     binding.migrationMenu.isVisible = true
                     binding.skipManga.isVisible = false

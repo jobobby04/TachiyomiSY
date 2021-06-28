@@ -83,6 +83,8 @@ class MigrationListController(bundle: Bundle? = null) :
 
     private val throttleManager = EHentaiThrottleManager()
 
+    private val hideNotFoundManga = preferences.hideNotFoundMigration().get()
+
     override fun getTitle(): String {
         return resources?.getString(R.string.migration) + " (${adapter?.items?.count {
             it.manga.migrationStatus != MigrationStatus.RUNNING
@@ -312,7 +314,9 @@ class MigrationListController(bundle: Bundle? = null) :
                     )
                 )
             }
-            router.popCurrentController()
+            if (!hideNotFoundManga) {
+                router.popCurrentController()
+            }
         }
     }
 
