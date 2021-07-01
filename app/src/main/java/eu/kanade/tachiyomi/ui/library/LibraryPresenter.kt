@@ -688,8 +688,7 @@ class LibraryPresenter(
         mangas.forEach { manga ->
             launchIO {
                 val source = sourceManager.get(manga.source)!!
-                val networkManga = source.getMangaDetails(manga.toMangaInfo())
-                val sManga = networkManga.toSManga()
+                val sManga = source.getMangaDetails(manga.toMangaInfo()).toSManga()
                 manga.copyFrom(sManga)
                 manga.initialized = true
                 db.insertManga(manga).executeAsBlocking()
