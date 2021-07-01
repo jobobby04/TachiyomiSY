@@ -58,4 +58,11 @@
         app:iconTint="?attr/colorOnToolbar"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/action_cache_manga"
+        android:icon="@drawable/ic_sync_24dp"
+        android:title="@string/action_cache_manga"
+        app:iconTint="?attr/colorOnToolbar"
+        app:showAsAction="ifRoom" />
+
 </menu>

@@ -15,11 +15,15 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.toMangaInfo
+import eu.kanade.tachiyomi.source.model.toSChapter
+import eu.kanade.tachiyomi.source.model.toSManga
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
 import eu.kanade.tachiyomi.ui.library.setting.SortDirectionSetting
 import eu.kanade.tachiyomi.ui.library.setting.SortModeSetting
+import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.lang.combineLatest
 import eu.kanade.tachiyomi.util.lang.isNullOrUnsubscribed
@@ -668,6 +672,22 @@ class LibraryPresenter(
                 mangaList.forEach {
                     mdex.updateFollowStatus(MdUtil.getMangaId(it.url), FollowStatus.READING)
                 }
+            }
+        }
+    }
+
+    fun cacheManga(mangas: List<Manga>) {
+        mangas.forEach { manga ->
+            launchIO {
+                val source = sourceManager.get(manga.source)!!
+                val networkManga = source.getMangaDetails(manga.toMangaInfo())
+                val sManga = networkManga.toSManga()
+                manga.copyFrom(sManga)
+                manga.initialized = true
+                db.insertManga(manga).executeAsBlocking()
+                val chapters = source.getChapterList(manga.toMangaInfo())
+                    .map { it.toSChapter() }
+                syncChaptersWithSource(db, chapters, manga, source)
             }
         }
     }
