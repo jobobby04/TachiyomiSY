@@ -687,8 +687,7 @@ class LibraryController(
     }
 
     private fun cacheManga() {
-        val mangas = selectedMangas
-        presenter.cacheManga(mangas.toList())
+        presenter.cacheManga(selectedMangas.toList())
         destroyActionModeIfNeeded()
     }
     // SY <--
