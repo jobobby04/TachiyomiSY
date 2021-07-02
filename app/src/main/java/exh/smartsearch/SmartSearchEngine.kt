@@ -113,6 +113,9 @@ class SmartSearchEngine(
         // Strip splitters and consecutive spaces
         cleanedTitle = cleanedTitle.trim().replace(" - ", " ").replace(consecutiveSpacesRegex, " ").trim()
 
+        // Strip chapter reference RU
+        cleanedTitle = cleanedTitle.replace(chapterRefRuRegexp, " ").trim()
+
         return cleanedTitle
     }
 
@@ -185,8 +188,9 @@ class SmartSearchEngine(
         const val MIN_SMART_ELIGIBLE_THRESHOLD = 0.4
         const val MIN_NORMAL_ELIGIBLE_THRESHOLD = 0.4
 
-        private val titleRegex = Regex("[^a-zA-Z0-9- ]")
+        private val titleRegex = Regex("[^a-zA-Z0-9а-яА-Я- ]")
         private val consecutiveSpacesRegex = Regex(" +")
+        private val chapterRefRuRegexp = Regex("""((часть|глава) \d*)""")
     }
 }
 
