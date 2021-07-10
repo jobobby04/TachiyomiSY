@@ -107,9 +107,18 @@ class SmartSearchEngine(
             cleanedTitle = removeTextInBrackets(preTitle, false)
         }
 
-        // Strip non-special characters
-        cleanedTitle = cleanedTitle.replace(titleRegex, " ")
+        // Strip chapter reference RU
+        cleanedTitle = cleanedTitle.replace(chapterRefRuRegexp, " ").trim()
 
+        // Strip non-special characters
+        val cleanedTitleEng = cleanedTitle.replace(titleRegex, " ").trim()
+
+        // Do not strip foreign language letters if cleanedTitle is too short
+        if (cleanedTitleEng.length <= 5) {
+            cleanedTitle = cleanedTitle.replace(titleForeignRegex, " ")
+        } else {
+            cleanedTitle = cleanedTitleEng
+        }
         // Strip splitters and consecutive spaces
         cleanedTitle = cleanedTitle.trim().replace(" - ", " ").replace(consecutiveSpacesRegex, " ").trim()
 
@@ -186,7 +195,9 @@ class SmartSearchEngine(
         const val MIN_NORMAL_ELIGIBLE_THRESHOLD = 0.4
 
         private val titleRegex = Regex("[^a-zA-Z0-9- ]")
+        private val titleForeignRegex = Regex("[^\\p{L}0-9- ]")
         private val consecutiveSpacesRegex = Regex(" +")
+        private val chapterRefRuRegexp = Regex("""((- часть|- глава) \d*)""")
     }
 }
 
