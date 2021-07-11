@@ -566,6 +566,7 @@ class LibraryController(
             }
             R.id.action_clean -> cleanTitles()
             R.id.action_push_to_mdlist -> pushToMdList()
+            R.id.action_cache_manga -> cacheManga()
             // SY <--
             else -> return false
         }
@@ -683,6 +684,11 @@ class LibraryController(
             it.source in mangaDexSourceIds
         }
         presenter.syncMangaToDex(mangas)
+    }
+
+    private fun cacheManga() {
+        presenter.cacheManga(selectedMangas.toList())
+        destroyActionModeIfNeeded()
     }
     // SY <--
 
