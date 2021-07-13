@@ -69,11 +69,6 @@
     <string name="eh_image_quality_summary">Качество загруженных изображений</string>
     <string name="eh_image_quality">Качество изображения</string>
     <string name="eh_image_quality_auto">Авто</string>
-    <string name="eh_image_quality_2400">2400x</string>
-    <string name="eh_image_quality_1600">1600x</string>
-    <string name="eh_image_quality_1280">1280x</string>
-    <string name="eh_image_quality_980">980x</string>
-    <string name="eh_image_quality_780">780x</string>
     <string name="pref_enhanced_e_hentai_view">Улучшения E/ExHentai</string>
     <string name="pref_enhanced_e_hentai_view_summary">Включить/отключить расширенное меню просмотра, созданное для E/ExHentai</string>
     <string name="favorites_sync">Синхронизация избранного</string>
