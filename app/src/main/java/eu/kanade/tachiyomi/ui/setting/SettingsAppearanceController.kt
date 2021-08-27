@@ -176,4 +176,5 @@ class SettingsAppearanceController : SettingsController() {
                 defaultValue = true
             }
         }
+    }
 }
