@@ -150,6 +150,8 @@ object PreferenceKeys {
 
     const val filterTracked = "pref_filter_library_tracked"
 
+    const val filterSource = "pref_filter_library_source"
+
     const val filterStarted = "pref_filter_library_started"
 
     const val filterLewd = "pref_filter_library_lewd"

@@ -13,6 +13,7 @@
     <string name="action_display_no_title_grid">No title grid</string>
     <string name="action_start_reading">Start reading</string>
     <string name="action_edit_info">Edit info</string>
+    <string name="action_filter_source">Source</string>
 
     <!-- Library fragment -->
     <string name="buttons_header">Buttons</string>

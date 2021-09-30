@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.TrackService
+import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.library.setting.DisplayModeSetting
 import eu.kanade.tachiyomi.ui.library.setting.SortDirectionSetting
 import eu.kanade.tachiyomi.ui.library.setting.SortModeSetting
@@ -23,6 +24,7 @@ import uy.kohesive.injekt.injectLazy
 class LibrarySettingsSheet(
     router: Router,
     private val trackManager: TrackManager = Injekt.get(),
+    private val sourceManager: SourceManager = Injekt.get(),
     onGroupClickListener: (ExtendedNavigationView.Group) -> Unit
 ) : TabbedBottomSheetDialog(router.activity!!) {
 
@@ -101,6 +103,7 @@ class LibrarySettingsSheet(
             // SY -->
             private val started = Item.TriStateGroup(R.string.started, this)
             private val lewd = Item.TriStateGroup(R.string.lewd, this)
+            private val sourceFilters: Map<Int, Item.TriStateGroup>
             // SY <--
 
             override val header = null
@@ -108,17 +111,29 @@ class LibrarySettingsSheet(
             override val footer = null
 
             init {
+                val list: MutableList<Item> = mutableListOf(downloaded, unread, completed, started, lewd)
+
                 trackManager.services.filter { service -> service.isLogged }
                     .also { services ->
                         val size = services.size
                         trackFilters = services.associate { service ->
                             Pair(service.id, Item.TriStateGroup(getServiceResId(service, size), this))
                         }
-                        val list: MutableList<Item> = mutableListOf(downloaded, unread, completed, started, lewd)
                         if (size > 1) list.add(Item.Header(R.string.action_filter_tracked))
                         list.addAll(trackFilters.values)
-                        items = list
                     }
+
+                // SY -->
+                sourceManager.getCatalogueSources().let { catalogue ->
+                    val size = catalogue.size
+                    sourceFilters = catalogue.associate {
+                        Pair(it.id.toInt(), Item.TriStateGroup(it.id.toInt(), this))
+                    }
+                    if (size > 1) list.add(Item.Header(R.string.action_filter_source))
+                    list.addAll(sourceFilters.values)
+                }
+                // SY <--
+                items = list
             }
 
             private fun getServiceResId(service: TrackService, size: Int): Int {
@@ -142,6 +157,10 @@ class LibrarySettingsSheet(
                 // SY -->
                 started.state = preferences.filterStarted().get()
                 lewd.state = preferences.filterLewd().get()
+
+                sourceFilters.forEach { sourceFilter ->
+                    sourceFilter.value.state = preferences.filterSources(sourceFilter.key).get()
+                }
                 // SY <--
             }
 
@@ -168,6 +187,13 @@ class LibrarySettingsSheet(
                                 preferences.filterTracking(trackFilter.key).set(newState)
                             }
                         }
+                        // SY -->
+                        sourceFilters.forEach { sourceFilter ->
+                            if (sourceFilter.value == item) {
+                                preferences.filterSources(sourceFilter.key).set(newState)
+                            }
+                        }
+                        // SY <--
                     }
                 }
 

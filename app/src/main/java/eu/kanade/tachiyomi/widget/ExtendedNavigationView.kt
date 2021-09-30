@@ -11,7 +11,10 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.system.getResourceColor
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 /**
  * An alternative implementation of [com.google.android.material.navigation.NavigationView], without menu
@@ -269,7 +272,18 @@ open class ExtendedNavigationView @JvmOverloads constructor(
                 is MultiStateHolder -> {
                     val item = items[position] as Item.MultiStateGroup
                     val drawable = item.getStateDrawable(context)
-                    holder.text.setText(item.resTitle)
+
+                    // SY -->
+                    try {
+                        holder.text.setText(item.resTitle)
+                    } catch (e: Exception) {
+                        val sourceManager: SourceManager = Injekt.get()
+                        sourceManager.getCatalogueSources().filter { it.id.toInt() == item.resTitle }.map {
+                            holder.text.text = it.name
+                        }
+                    }
+                    // SY <--
+
                     holder.text.setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null)
 
                     holder.itemView.isClickable = item.enabled
