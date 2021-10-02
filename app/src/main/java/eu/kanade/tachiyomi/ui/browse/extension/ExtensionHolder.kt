@@ -98,7 +98,9 @@ class ExtensionHolder(view: View, val adapter: ExtensionAdapter) :
             }
         )
         // SY -->
-        if (extension is Extension.Installed && extension.sources.any { it is ConfigurableSource }) {
+        if (installStep == InstallStep.Idle
+            && extension is Extension.Installed
+            && extension.sources.any { it is ConfigurableSource }) {
             @SuppressLint("SetTextI18n")
             text = "$text+"
         }
