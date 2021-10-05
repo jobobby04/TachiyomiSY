@@ -174,7 +174,7 @@ class LibraryPresenter(
         val filterStarted = preferences.filterStarted().get()
         val filterLewd = preferences.filterLewd().get()
         val inSources = sourceManager.getCatalogueSources().associate {
-            Pair(it.id.toInt(), preferences.filterSources(it.id.toInt()).get())
+            it.id to preferences.filterSources(it.id).get()
         }
         // SY <--
 
@@ -253,8 +253,8 @@ class LibraryPresenter(
 
             if (!containsExclude.any() && !containsInclude.any()) return@source true
 
-            val include = containsInclude.containsKey(item.manga.source.toInt())
-            val exclude = containsExclude.containsKey(item.manga.source.toInt())
+            val include = containsInclude.containsKey(item.manga.source)
+            val exclude = containsExclude.containsKey(item.manga.source)
 
             if (include && !exclude) return@source true
             if (!containsInclude.any() && !exclude) return@source true

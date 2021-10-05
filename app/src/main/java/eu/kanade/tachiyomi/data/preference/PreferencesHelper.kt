@@ -268,7 +268,7 @@ class PreferencesHelper(val context: Context) {
 
     fun filterTracking(name: Int) = flowPrefs.getInt("${Keys.filterTracked}_$name", ExtendedNavigationView.Item.TriStateGroup.State.IGNORE.value)
 
-    fun filterSources(name: Int) = flowPrefs.getInt("${Keys.filterSource}_$name", ExtendedNavigationView.Item.TriStateGroup.State.IGNORE.value)
+    fun filterSources(name: Long) = flowPrefs.getInt("${Keys.filterSource}_$name", ExtendedNavigationView.Item.TriStateGroup.State.IGNORE.value)
 
     fun filterStarted() = flowPrefs.getInt(Keys.filterStarted, ExtendedNavigationView.Item.TriStateGroup.State.IGNORE.value)
 

@@ -103,7 +103,7 @@ class LibrarySettingsSheet(
             // SY -->
             private val started = Item.TriStateGroup(R.string.started, this)
             private val lewd = Item.TriStateGroup(R.string.lewd, this)
-            private val sourceFilters: Map<Int, Item.TriStateGroup>
+            private val sourceFilters: Map<Long, Item.TriStateGroup>
             // SY <--
 
             override val header = null
@@ -127,7 +127,7 @@ class LibrarySettingsSheet(
                 sourceManager.getCatalogueSources().let { catalogue ->
                     val size = catalogue.size
                     sourceFilters = catalogue.associate {
-                        Pair(it.id.toInt(), Item.TriStateGroup(it.id.toInt(), this))
+                        it.id to Item.TriStateGroup(it.id.toInt(), this)
                     }
                     if (size > 1) list.add(Item.Header(R.string.action_filter_source))
                     list.addAll(sourceFilters.values)
