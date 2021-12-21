@@ -30,16 +30,16 @@
     <!-- Preferences -->
     <!-- Subsections -->
     <string name="pref_category_all_sources">Все источники</string>
-    <string name="pref_category_eh">E-Hentai</string>
-    <string name="pref_category_fork">Настройки «Fork\'а»</string>
-    <string name="pref_category_mangadex">MangaDex</string>
+    <string name="pref_category_eh">«E-Hentai»</string>
+    <string name="pref_category_fork">Настройки «Fork»\'а</string>
+    <string name="pref_category_mangadex">«MangaDex»</string>
 
     <!-- EH Settings -->
     <string name="ehentai_prefs_account_settings">Настройки учетной записи (E-Hentai)</string>
     <string name="enable_exhentai">Включить «ExHentai»</string>
     <string name="requires_login">Требуется авторизация</string>
     <string name="use_hentai_at_home">Использовать «Hentai@Home Network»</string>
-    <string name="use_hentai_at_home_summary">Вы хотите загружать изображения через «Hentai@Home Network», если оно доступно? Отключение этой опции уменьшит количество страниц, которые вы можете просматривать\nОпции:\n- Любой клиент (Рекомендуется)\n- Только клиенты портов по умолчанию (Может работать медленнее. Включите это, если firewall/proxy, блокирует исходящие нестандартные порты.)</string>
+    <string name="use_hentai_at_home_summary">Загружать изображения через «Hentai@Home Network», если оно доступно? Отключение этой опции уменьшит количество страниц, которые вы можете просматривать\nОпции:\n- Любой клиент (Рекомендуется)\n- Только клиенты портов по умолчанию (Может работать медленнее. Включите это, если firewall/proxy, блокирует исходящие нестандартные порты.)</string>
     <string name="use_hentai_at_home_option_1">Любой клиент (Рекомендуется)</string>
     <string name="use_hentai_at_home_option_2">Только клиенты портов по умолчанию</string>
     <string name="show_japanese_titles">Показывать японские названия в результатах поиска</string>
@@ -54,7 +54,7 @@
     <string name="watched_tags_eh">Отслеживать тэги «E-Hentai»</string>
     <string name="tag_filtering_threshold">Порог фильтрации тэгов</string>
     <string name="tag_filtering_threshhold_error">Должно быть между -9999 и 0!</string>
-    <string name="tag_filtering_threshhold_summary">Вы можете мягко фильтровать теги, добавляя их в раздел "Мои теги" на странице «E/ExHentai» с отрицательным значением. Если в галерее есть теги, которые добавляются ниже этого значения, они исчезают из поля зрения. Этот порог может быть установлен между -9999 и 0. В текущий момент: %1$d</string>
+    <string name="tag_filtering_threshhold_summary">Вы можете мягко фильтровать теги, добавляя их в раздел «Мои теги» на странице «E/ExHentai» с отрицательным значением. Если в галерее есть теги, которые добавляются ниже этого значения, они исчезают из поля зрения. Этот порог может быть установлен между -9999 и 0. В текущий момент: %1$d</string>
     <string name="tag_watching_threshhold">Порог отслеживания тегов</string>
     <string name="tag_watching_threshhold_error">Должно быть между 0 и 9999!</string>
     <string name="tag_watching_threshhold_summary">Недавно загруженные галереи будут включены на экран отслеживания, если на экране есть хотя бы один просмотренный тег с положительным значением, и сумма значений отслеживаемых тегов складывается с этим значением или выше. Этот порог может быть установлен в между 0 и 9999. В текущий момент: %1$d</string>
@@ -155,7 +155,7 @@
     <string name="data_saver_image_format_summary_off">Размер файла JPEG значительно меньше, чем WebP(это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в WebP</string>
     <string name="data_saver_color_bw">Преобразование в чернобелое</string>
     <string name="data_saver_server">Прокси-сервер «Bandwidth Hero»</string>
-    <string name="data_saver_server_summary">Поместите URL-адрес прокси-сервера «Bandwidth Hero» в эту область</string>
+    <string name="data_saver_server_summary">Поместить URL-адрес прокси-сервера «Bandwidth Hero» в эту область</string>
     <string name="clear_db_exclude_read">Оставлять серии с прочитанными главами</string>
     <string name="data_saver_exclude">Исключить из экономии данных</string>
     <string name="data_saver_stop_exclude">Прекратить исключение из экономии данных</string>
@@ -171,7 +171,7 @@
     <!-- General Settings -->
     <string name="toggle_expand_search_filters">Развернуть все фильтры поиска по умолчанию</string>
     <string name="auto_solve_captchas">Автоматическое решение капчи</string>
-    <string name="auto_solve_captchas_summary">Использовать (ОЧЕНЬ ЭКСПЕРЕМЕНТАЛЬНО) автоматическое прохождение «ReCAPTCHA». Если ваше устройство не поддерживается, меню будет выделено серым цветом.</string>
+    <string name="auto_solve_captchas_summary">Использовать (ОЧЕНЬ ЭКСПЕРЕМЕНТАЛЬНО) автоматическое прохождение «ReCAPTCHA». Если ваше устройство не поддерживается, это меню будет выделено серым цветом.</string>
     <string name="put_recommends_in_overflow">«Рекомендации» в выпадающем меню</string>
     <string name="put_recommends_in_overflow_summary">Поместить кнопку «Рекомендации» в выпадающее меню, вместо размещения, на сведеньях серии</string>
 
@@ -192,11 +192,12 @@
     <string name="library_group_updates_all">Постоянно запускать обновление категорий</string>
 
     <!-- Browse settings -->
-    <string name="pref_latest_position">Позиция вкладки «Последнее»</string>
-    <string name="pref_latest_position_summery">Вы хотите, чтобы вкладка «Последняя» была первой вкладкой в «Поисковик»? Это сделает его вкладкой по умолчанию при открытии «Поисковик», не рекомендуется, если вы используете ограниченные сети(Моб. Данные)</string>    <string name="pref_source_source_filtering">Фильтровать источники по категориям</string>
+    <string name="pref_latest_position">Позиция вкладки «Последняя»</string>
+    <string name="pref_latest_position_summery">Вы хотите, чтобы вкладка «Последняя» была первой вкладкой в «Поисковик»? Это сделает его вкладкой по умолчанию при открытии «Поисковик», не рекомендуется, если вы используете ограниченные сети(Моб. Данные)</string>
+    <string name="pref_source_source_filtering">Фильтровать источники по категориям</string>
     <string name="pref_source_source_filtering_summery">Фильтровать источники, которые находятся в категориях, чтобы источники не попадали под язык, если они находятся в категориях</string>
     <string name="pref_source_navigation">Убрать кнопку «Последняя»</string>
-    <string name="pref_source_navigation_summery">Убирает кнопку «Последняя» возле источников, а также убрает внутри источников вкладки «Последняя» и «Поисковик», взамен, во вкладке «Последняя», включает последние главы в отслеживаемых источниках</string>    <string name="pref_local_source_hidden_folders">Скрытые папки в личном источнике</string>
+    <string name="pref_source_navigation_summery">Убирает кнопку «Последняя» возле источников, а также внутри источников вкладки «Последняя» и «Поисковик», взамен, во вкладке «Последняя», включает последние главы в отслеживаемых источниках</string>    <string name="pref_local_source_hidden_folders">Скрытые папки в личном источнике</string>
     <string name="pref_local_source_hidden_folders_summery">Разрешить личному источнику читать скрытые папки</string>
 
     <!-- Backup settings -->
@@ -238,7 +239,7 @@
     <string name="aggressively_load_pages">Агрессивная загрузка страниц</string>
     <string name="aggressively_load_pages_summary">Медленно загружать всю главу во время чтения, вместо загрузки просматриваемых страниц</string>
     <string name="skip_queue_on_retry">Пропускать очередь при повторной попытке</string>
-    <string name="skip_queue_on_retry_summary">Обычно нажатие кнопки повтора при неудачной загрузке будет ждать, пока загрузчик закончит загрузку последней страницы, прежде чем начать перезагрузку неудачной страницы. Включение этого режима заставит загрузчик немедленно начать перезагрузку неудачной страницы, как только вы нажмёте кнопку повтора.</string>
+    <string name="skip_queue_on_retry_summary">Обычно, нажатие кнопки «Повторить» при неудачной загрузке, будет ждать, пока загрузчик закончит загрузку последней страницы, прежде чем начать перезагрузку неудачной страницы. Включение этого режима заставит загрузчик немедленно начать перезагрузку неудачной страницы, как только вы нажмёте кнопку повтора.</string>
     <string name="reader_preload_amount">Количество страниц с предзагрузкой</string>
     <string name="reader_preload_amount_4_pages">4 страницы</string>
     <string name="reader_preload_amount_6_pages">6 страниц</string>
@@ -258,7 +259,7 @@
     <string name="tap_scroll_page">Нажатия листают постранично</string>
     <string name="tap_scroll_page_summary">Нажатие будет прокручивать целую страницу, а не по размеру экрана, если эта опция включена</string>
     <string name="reader_bottom_buttons">Кнопки в нижней части читалки</string>
-    <string name="reader_bottom_buttons_summary">Настроить какие кнопки, будут отображатся в нижней части читалки</string>
+    <string name="reader_bottom_buttons_summary">Настроить какие кнопки, будут отображатся, в нижней части читалки</string>
     <string name="pref_show_vert_seekbar_landscape">Показать вертикальную полосу прокрутки</string>
     <string name="pref_show_vert_seekbar_landscape_summary">Включает вертикальную полосу прокрутки в альбомной ориентации</string>
     <string name="pref_left_handed_vertical_seekbar">Вертикальная полоса прокрутки по левую сторону</string>
@@ -269,20 +270,20 @@
     <!-- Reader -->
     <!-- Reader Actions -->
     <string name="eh_autoscroll">Автопрокрутка</string>
-    <string name="eh_retry_all">Повторить попытку</string>
-    <string name="eh_boost_page">Ускорить страницы</string>
+    <string name="eh_retry_all">Повторить всё</string>
+    <string name="eh_boost_page">Ускорение страницы</string>
     <string name="eh_autoscroll_help">Автопрокрутка (подсказка)</string>
     <string name="eh_autoscroll_help_message">Автоматически переходить к следующей странице, через указанный интервал. Интервал указывается в секундах.</string>
-    <string name="eh_retry_all_help">Повторить попытку (подсказка)</string>
+    <string name="eh_retry_all_help">Повторить всё (подсказка)</string>
     <string name="eh_retry_all_help_message">Повторно добавить все страницы с ошибками, в очередь загрузки.</string>
     <plurals name="eh_retry_toast">
-        <item quantity="one">Повторная попытка для %1$d главы с ошибкой</item>
-        <item quantity="few">Повторная попытка для %1$d глав с ошибками</item>
-        <item quantity="many">Повторная попытка для %1$d глав с ошибками</item>
-        <item quantity="other">Повторная попытка для %1$d глав с ошибками</item>
+        <item quantity="one">Повторить всё для %1$d главы с ошибкой</item>
+        <item quantity="few">Повторить всё для %1$d глав с ошибками</item>
+        <item quantity="many">Повторить всё для %1$d глав с ошибками</item>
+        <item quantity="other">Повторить всё для %1$d глав с ошибками</item>
     </plurals>
-    <string name="eh_boost_page_help">Ускорить страницы (подсказка)</string>
-    <string name="eh_boost_page_help_message">Обычно загрузчик может одновременно загружать только определенное количество страниц. Это означает, что вы можете ждать загрузки страницы, но загрузчик не начнет загрузку страницы до тех пор, пока у него не будет свободного слота для загрузки. Нажатие по «Ускорить страницы» заставит загрузчик начать загрузку текущей страницы, независимо от того, есть ли свободный слот или нет.</string>
+    <string name="eh_boost_page_help">Ускорение страницы (подсказка)</string>
+    <string name="eh_boost_page_help_message">Обычно загрузчик может одновременно загружать только определенное количество страниц. Это означает, что вы можете ждать загрузки страницы, но загрузчик не начнет загрузку страницы до тех пор, пока у него не будет свободного слота для загрузки. Нажатие по «Ускорение страницы» заставит загрузчик начать загрузку текущей страницы, независимо от того, есть ли свободный слот или нет.</string>
     <string name="eh_boost_page_invalid">Эта страница, не может быть ускорена (недопустимая страница)!</string>
     <string name="eh_boost_page_errored">Ошибка загрузки страницы, нажмите на кнопку «Повторить»!</string>
     <string name="eh_boost_page_downloading">Эта страница уже загружается!</string>
@@ -328,7 +329,7 @@
     <string name="merge_duplicate">Эта слитая серия является дубликатом!</string>
 
     <!-- Manga info fragment -->
-    <string name="hiatus">Перерыв</string>
+    <string name="hiatus">На паузе</string>
     <string name="cancelled">Отменено</string>
     <string name="publication_complete">Публикация завершена</string>
 
@@ -362,7 +363,7 @@
     <string name="save_search_invalid">Сохраненный поисковый запрос недействителен, фильтры были изменены</string>
 
     <!-- Source Categories -->
-    <string name="no_source_categories">Отсутствуют категорий для источников</string>
+    <string name="no_source_categories">Отсутствуют категории для источников</string>
     <string name="invalid_category_name">Недопустимое имя категории</string>
 
     <!-- Latest Tab -->
@@ -380,7 +381,8 @@
         <item quantity="many">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по списку тегов, основанному на приоритете, это означает, что серия будет отсортирована таким образом, чтобы отдать предпочтение тем, у которых есть нужные вам тэги.</item>
         <item quantity="other">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по списку тегов, основанному на приоритете, это означает, что серия будет отсортирована таким образом, чтобы отдать предпочтение тем, у которых есть нужные вам тэги.</item>
     </plurals>
-    <string name="action_add_tags_message">ВАЖНО! Тэги должны быть точными, частичных совпадений нет, вы не можете добавить тэг «netorare», чтобы отфильтровать женский тэг: «netorare», и тому подобное! \nСтиль тегов должен быть таким: \n«female: sole female»\nБез стрелочек!\nПоддерживается добавление нескольких вариантов одного и того же тега, например: \n«tag: netorare» для «NHentai», \n«female: netorare» для «E-Hentai» и т.д!</string>    <string name="action_edit_tags">Редактировать тэги</string>
+    <string name="action_add_tags_message">ВАЖНО! Тэги должны быть точными, частичных совпадений нет, вы не можете добавить тэг «netorare», чтобы отфильтровать женский тэг: «netorare», и тому подобное! \nСтиль тегов должен быть таким: \n«female: sole female»\nБез стрелочек!\nПоддерживается добавление нескольких вариантов одного и того же тега, например: \n«tag: netorare» для «NHentai», \n«female: netorare» для «E-Hentai» и т.д!</string>
+    <string name="action_edit_tags">Редактировать тэги</string>
     <string name="information_empty_tags">У вас нет тэгов. Нажмите кнопку «Добавить», чтобы создать его для сортировки вашей библиотеки</string>
     <string name="error_tag_exists">Этот тэг уже существует!</string>
     <string name="snack_tags_deleted">Тэги удалены</string>
@@ -507,8 +509,9 @@
     <!-- Gallery Adder -->
     <!-- Batch Add -->
     <string name="eh_batch_add">Добавить галереи</string>
-    <string name="eh_batch_add_description">Пример:\n\nhttp://e-hentai.org/g/12345/1a2b3c4e\nhttp://g.e-hentai.org/g/67890/6f7g8h9i\nhttp://exhentai.org/g/13579/1a3b5c7e\nhttps://exhentai.org/g/24680/2f4g6h8i\n\nОн также поддерживает посещённые экспортированные данные в «E-Hentai»\n</string>
-    <string name="eh_batch_add_title">Введите URL галерей для добавления \n(разделенные новой строкой):</string>
+    <string
+        name="eh_batch_add_description">Пример:\n\nhttp://e-hentai.org/g/12345/1a2b3c4e\nhttp://g.e-hentai.org/g/67890/6f7g8h9i\nhttp://exhentai.org/g/13579/1a3b5c7e\nhttps://exhentai.org/g/24680/2f4g6h8i\n\nТакже поддерживаются посещённые экспортированные данные в «E-Hentai»\n</string>
+    <string name="eh_batch_add_title">Введите URL-адрес галерей для добавления \n(разделенные новой строкой):</string>
     <string name="eh_batch_add_button">Добавить</string>
     <string name="eh_batch_add_adding_galleries">Добавление галерей…</string>
     <string name="eh_batch_add_finish">Завершить</string>
@@ -528,7 +531,7 @@
     <string name="gallery_adder_uri_map_to_chapter_error">Ошибка исходного «URI map-to-chapter»!</string>
     <string name="gallery_adder_uri_clean_error">Ошибка очистки исходного «URI»!</string>
     <string name="gallery_adder_chapter_fetch_error">Не удалось обновить главы для серии: %1$s!</string>
-    <string name="gallery_adder_could_not_add_manga">Не удалось добавить серию (URL: %1$s)!</string>
+    <string name="gallery_adder_could_not_add_manga">Не удалось добавить серию (URL-адрес: %1$s)!</string>
     <string name="gallery_adder_could_not_identify_chapter">Не удалось идентифицировать главу (URL-адрес: %1$s)!</string>
 
     <!-- Intercept Activity -->
@@ -568,7 +571,7 @@
     <!-- More Info Menu -->
     <string name="more_info">Информация</string>
     <string name="alt_title">Другое название</string>
-    <string name="id">ID</string>
+    <string name="id">«ID»</string>
     <string name="token">Токен</string>
     <string name="is_exhentai_gallery">Галерея «ExHentai»</string>
     <string name="thumbnail_url">URL-адрес миниатюры</string>
@@ -588,7 +591,7 @@
     <string name="artist">Художник</string>
     <string name="characters">Персонажи</string>
     <string name="group">Группа</string>
-    <string name="media_id">ID мультимедии</string>
+    <string name="media_id">«ID» мультимедии</string>
     <string name="japanese_title">Японское название</string>
     <string name="english_title">Английское название</string>
     <string name="short_title">Краткое название</string>
@@ -605,11 +608,11 @@
     <string name="author">Автор</string>
     <string name="last_chapter_number">Номер последней главы</string>
     <string name="follow_status">Следить за статусом</string>
-    <string name="anilist_id">Anilist ID</string>
-    <string name="kitsu_id">Kitsu ID</string>
-    <string name="mal_id">MyAnimeList ID</string>
-    <string name="manga_updates_id">MangaUpdates ID</string>
-    <string name="anime_planet_id">Anime-Planet ID</string>
+    <string name="anilist_id">«Anilist ID»</string>
+    <string name="kitsu_id">«Kitsu ID»</string>
+    <string name="mal_id">«MyAnimeList ID»</string>
+    <string name="manga_updates_id">«MangaUpdates ID»</string>
+    <string name="anime_planet_id">«Anime-Planet ID»</string>
     <string name="translated">Переведено</string>
 
     <!-- Extra gallery info -->
@@ -631,7 +634,7 @@
     </plurals>
 
     <!-- Merged manga -->
-    <string name="merge_settings">Параметры слияния</string>
+    <string name="merge_settings">Настройки слияния</string>
     <string name="fetch_chapter_updates">Получить обновления глав</string>
     <string name="delete_merged_manga">Вы уверены?</string>
     <string name="delete_merged_manga_desc">Это приведет к удалению серии из слияния, а также потеряет все несохраненные изменения, примененные к слитой серии</string>
@@ -656,15 +659,15 @@
     <string name="dedupe_highest_chapter">Показать источник с наивысшим номером главы</string>
 
     <!-- MangaDex -->
-    <string name="mdlist">MDList</string>
+    <string name="mdlist">«MDList»</string>
     <string name="md_follows_unfollowed">Без отслеживания</string>
     <string name="mangadex_specific_settings">Настройки «MangaDex»</string>
     <string name="mangadex_sync_follows_to_library">Синхронизировать серии из «Mangadex» в вашу библиотеку</string>
     <string name="mangadex_sync_follows_to_library_summary">Добавляет серии из «MangaDex» в вашу библиотеку, если они, еще не были добавлены.</string>
     <string name="mangadex_preffered_source">Предпочитаемый источник «MangaDex»</string>
-    <string name="mangadex_preffered_source_summary">Установите выбранный вами источник MangaDex, он будет использоваться для следующих, и еще нескольких функций в приложении</string>
-    <string name="two_factor">Код 2FA</string>
-    <string name="fields_cannot_be_blank">Поля, не могут быть, пустыми</string>
+    <string name="mangadex_preffered_source_summary">Установить выбранный вами источник «MangaDex», он будет использоваться для следующих, и еще нескольких функций в приложении</string>
+    <string name="two_factor">Код «2FA»</string>
+    <string name="fields_cannot_be_blank">Поля, не могут быть пустыми</string>
     <string name="mangadex_add_to_follows">Добавить отслеживание в «MangaDex»</string>
     <string name="mangadex_follows">Отслеживание «MangaDex»</string>
     <string name="random">Случайная</string>
@@ -672,7 +675,7 @@
     <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любую не отслеживаемую «MDList» серию, как прочитанную в «MangaDex»</string>
 
     <!-- Scanlator filters -->
-    <string name="select_scanlators">Показать группы переводчиков</string>
+    <string name="select_scanlators">Показать группу(ы) переводчиков</string>
 
     <!-- Similar -->
     <string name="similar">Похожее на %1$s</string>
