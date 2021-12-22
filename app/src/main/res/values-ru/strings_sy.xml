@@ -107,7 +107,7 @@
     <string name="eh_settings_configuration_failed_message">В процессе настройки произошла ошибка: %1$s</string>
     <string name="eh_settings_uploading_to_server">Загрузка настроек на сервер</string>
     <string name="eh_settings_uploading_to_server_message">Пожалуйста, подождите, это может занять некоторое время…</string>
-    <string name="eh_settings_out_of_slots_error">У вас больше нет, профильных слотов на «%1$s», пожалуйста, удалите профиль!</string>
+    <string name="eh_settings_out_of_slots_error">У вас больше нет профильных слотов на «%1$s», пожалуйста, удалите профиль!</string>
 
     <!-- EH Settings Login Activity -->
     <string name="recheck_login_status">Перепроверить статус авторизации</string>
@@ -557,12 +557,12 @@
 
     <!-- Gallery types -->
     <string name="doujinshi">Додзинси</string>
-    <string name="artist_cg">Художественная CG</string>
-    <string name="game_cg">Игровая CG</string>
+    <string name="artist_cg">Художественное CG</string>
+    <string name="game_cg">Игровое CG</string>
     <string name="western">Западное</string>
     <string name="non_h">Не-хентай</string>
     <string name="image_set">Набор изображений</string>
-    <string name="cosplay">Азиатское порно</string>
+    <string name="cosplay">Косплей</string>
     <string name="asian_porn">Азиатское порно</string>
     <string name="misc">Разное</string>
     <string name="artbook">Артбук</string>
@@ -637,10 +637,10 @@
     <string name="merge_settings">Настройки слияния</string>
     <string name="fetch_chapter_updates">Получить обновления глав</string>
     <string name="delete_merged_manga">Вы уверены?</string>
-    <string name="delete_merged_manga_desc">Это приведет к удалению серии из слияния, а также потеряет все несохраненные изменения, примененные к слитой серии</string>
+    <string name="delete_merged_manga_desc">Это приведет к удалению серии из слияния, а также потеряет все несохраненные изменения, применённые к слитой серии</string>
     <string name="chapter_updates_merged_manga">Переключатель обновлений глав</string>
     <string name="chapter_updates_merged_manga_desc">Переключение этого параметра отключит/включит обновления глав, для этой слитой серии</string>
-    <string name="download_merged_manga">Переключатель загрузки новых глав</string>
+    <string name="download_merged_manga">Переключатель загрузки глав</string>
     <string name="download_merged_manga_desc">Переключение этого параметра отключит/включит загрузку глав, для этой слитой серии</string>
     <string name="merged_references_invalid">Недействительные слитые ссылки</string>
     <string name="merged_chapter_updates_error">Ошибка переключения обновлений глав</string>
@@ -648,7 +648,7 @@
     <string name="merged_toggle_chapter_updates_find_error">Не удалось найти серию, для переключения обновлений глав</string>
     <string name="merged_toggle_download_chapters_error">Ошибка переключения загрузки глав</string>
     <string name="merged_toggle_download_chapters_find_error">Не удалось найти серию, для переключения загрузки глав</string>
-    <string name="allow_deduplication">Разрешить дедупликацию: </string>
+    <string name="allow_deduplication">Разрешить дедупликацию:</string>
     <string name="deduplication_mode">Режим дедупликации:</string>
     <string name="manga_info_manga">Информация о серии:</string>
     <string name="toggle_dedupe">Переключить дедупликацию</string>
