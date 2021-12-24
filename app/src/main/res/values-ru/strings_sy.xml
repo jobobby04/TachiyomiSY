@@ -11,7 +11,7 @@
     <string name="action_start_reading_button">Кнопка «Начать чтение»</string>
     <string name="action_display_no_title_grid">Сетка без названий</string>
     <string name="action_start_reading">Начать чтение</string>
-    <string name="action_edit_info">Редактировать информацию</string>
+    <string name="action_edit_info">Редактировать сведенья</string>
 
     <!-- Library fragment -->
     <string name="buttons_header">Кнопки</string>
@@ -30,9 +30,7 @@
     <!-- Preferences -->
     <!-- Subsections -->
     <string name="pref_category_all_sources">Все источники</string>
-    <string name="pref_category_eh">«E-Hentai»</string>
     <string name="pref_category_fork">Настройки «Fork»\'а</string>
-    <string name="pref_category_mangadex">«MangaDex»</string>
 
     <!-- EH Settings -->
     <string name="ehentai_prefs_account_settings">Настройки учетной записи (E-Hentai)</string>
@@ -49,7 +47,7 @@
     <string name="use_original_images_on">В текущий момент используются оригинальные изображения</string>
     <string name="use_original_images_off">В текущий момент используется повторная выборка изображений</string>
     <string name="watched_tags">Отслеживать тэги</string>
-    <string name="watched_tags_summary">Открывает «WebView» для страницы «E/ExHentai» для отслеживания тэгов</string>
+    <string name="watched_tags_summary">Открывает «WebView» страницу отслеживания тэгов для «E/ExHentai»</string>
     <string name="watched_tags_exh">Отслеживать тэги «ExHentai»</string>
     <string name="watched_tags_eh">Отслеживать тэги «E-Hentai»</string>
     <string name="tag_filtering_threshold">Порог фильтрации тэгов</string>
@@ -146,13 +144,13 @@
     <string name="data_saver">Экономия данных</string>
     <string name="data_saver_summary">Сжатие изображений перед скачиванием или загрузкой в читалке, требует наличия прокси-сервера «Bandwidth Hero»</string>
     <string name="data_saver_downloader">Использовать экономию данных в загрузчике</string>
-    <string name="data_saver_ignore_jpeg">Игнорировать изображения JPEG</string>
+    <string name="data_saver_ignore_jpeg">Игнорировать изображения «JPEG»</string>
     <string name="data_saver_ignore_gif">Игнорировать GIF-Анимации</string>
     <string name="data_saver_image_quality">Качество изображения</string>
     <string name="data_saver_image_quality_summary">Более высокие значения означают, что сохраняется более высокий процент качества изображения, но это также означает, что размер файла будет больше, 80%% это хорошая промежуточная величина между размером файла и качеством изображения</string>
-    <string name="data_saver_image_format">Сжатие в JPEG</string>
-    <string name="data_saver_image_format_summary_on">Размер файла JPEG значительно меньше, чем WebP(это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в JPEG</string>
-    <string name="data_saver_image_format_summary_off">Размер файла JPEG значительно меньше, чем WebP(это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в WebP</string>
+    <string name="data_saver_image_format">Сжатие в «JPEG»</string>
+    <string name="data_saver_image_format_summary_on">Размер файла «JPEG» значительно меньше, чем «WebP»(это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в «JPEG»</string>
+    <string name="data_saver_image_format_summary_off">Размер файла «JPEG» значительно меньше, чем «WebP»(это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в «WebP»</string>
     <string name="data_saver_color_bw">Преобразование в чернобелое</string>
     <string name="data_saver_server">Прокси-сервер «Bandwidth Hero»</string>
     <string name="data_saver_server_summary">Поместить URL-адрес прокси-сервера «Bandwidth Hero» в эту область</string>
@@ -193,7 +191,8 @@
 
     <!-- Browse settings -->
     <string name="pref_latest_position">Позиция вкладки «Последняя»</string>
-    <string name="pref_latest_position_summery">Вы хотите, чтобы вкладка «Последняя» была первой вкладкой в «Поисковик»? Это сделает его вкладкой по умолчанию при открытии «Поисковик», не рекомендуется, если вы используете ограниченные сети(Моб. Данные)</string>
+    <string name="pref_latest_position_summery">Вы хотите, чтобы вкладка «Последняя» была первой вкладкой в «Поисковик»? Это сделает её вкладкой по умолчанию при открытии «Поисковик», не
+        рекомендуется, если вы используете ограниченные сети(Моб. Данные)</string>
     <string name="pref_source_source_filtering">Фильтровать источники по категориям</string>
     <string name="pref_source_source_filtering_summery">Фильтровать источники, которые находятся в категориях, чтобы источники не попадали под язык, если они находятся в категориях</string>
     <string name="pref_source_navigation">Убрать кнопку «Последняя»</string>
@@ -201,7 +200,7 @@
     <string name="pref_local_source_hidden_folders_summery">Разрешить личному источнику читать скрытые папки</string>
 
     <!-- Backup settings -->
-    <string name="custom_manga_info">Пользовательская информация о серии</string>
+    <string name="custom_manga_info">Сведенья пользователя о серии</string>
     <string name="all_read_manga">Все прочитанные серии</string>
 
     <!-- Download settings -->
@@ -383,7 +382,7 @@
     </plurals>
     <string name="action_add_tags_message">ВАЖНО! Тэги должны быть точными, частичных совпадений нет, вы не можете добавить тэг «netorare», чтобы отфильтровать женский тэг: «netorare», и тому подобное! \nСтиль тегов должен быть таким: \n«female: sole female»\nБез стрелочек!\nПоддерживается добавление нескольких вариантов одного и того же тега, например: \n«tag: netorare» для «NHentai», \n«female: netorare» для «E-Hentai» и т.д!</string>
     <string name="action_edit_tags">Редактировать тэги</string>
-    <string name="information_empty_tags">У вас нет тэгов. Нажмите кнопку «Добавить», чтобы создать его для сортировки вашей библиотеки</string>
+    <string name="information_empty_tags">У вас нет тэгов. Нажмите кнопку «Добавить», чтобы создать тэг для сортировки вашей библиотеки</string>
     <string name="error_tag_exists">Этот тэг уже существует!</string>
     <string name="snack_tags_deleted">Тэги удалены</string>
 
@@ -420,7 +419,7 @@
     <string name="include_extra_search_parameter">Дополнительный параметр при поиске</string>
     <string name="use_most_chapters">Использовать источник с наибольшим количеством глав (медленнее)</string>
     <string name="use_first_source">Использовать первый источник с альтернативой</string>
-    <string name="skip_this_step_next_time">Не показывать этот диалог в следующий раз</string>
+    <string name="skip_this_step_next_time">Не показывать этот экран в следующий раз</string>
     <string name="hide_not_found_manga">Скрыть не найденные серии</string>
     <string name="search_parameter">Параметр поиска (например: language:english)</string>
     <string name="latest_">Последняя: %1$s</string>
@@ -499,9 +498,8 @@
     <string name="favorites_sync_manga_in_multiple_categories">Галерея: %1$s находится более чем в одной категории (%2$s)!</string>
     <string name="favorites_sync_initializing">Инициализация синхронизации</string>
     <string name="favorites_sync_processing_throttle">%1$s\n\nСинхронизация в настоящее время регулируется (чтобы избежать блокировки в «ExHentai»), и ее выполнение может занять много времени. </string>
-    <string name="favorites_sync_notes">ВАЖНЫЕ ИЗБРАННЫЕ ЗАМЕТКИ ОБ СИНХРОНИЗАЦИИ</string>
-    <string name="favorites_sync_notes_message">
-        <![CDATA[1. Изменения в названиях категорий в приложении <b>НЕ</b> синхронизируются! Пожалуйста <i>вместо этого измените названия категорий на «ExHentai»</i>. Имена категорий будут копироваться с серверов «ExHentai» каждую синхронизацию.<br><br>2. Любимые категории на «ExHentai» соответствуют <b>первым 10 категориям в приложении</b> (за исключением категории «По умолчанию»). <i>Галереи в других категориях <b>НЕ</b> будут синхронизированы!</i><br><br>3. <font color=\'red\'><b>УБЕДИТЕСЬ, ЧТО У ВАС ЕСТЬ СТАБИЛЬНОЕ ПОДКЛЮЧЕНИЕ К ИНТЕРНЕТУ ВО ВРЕМЯ СИНХРОНИЗАЦИИ!</b></font> Если интернет отключится во время синхронизации приложения, ваши избранные могут остаться в<i>частично синхронизированном состоянии</i>.<br><br>4. Держите приложение открытым во время синхронизации избранного. «Android» иногда закрывает приложения, которые находятся в фоне, и это может быть плохо, если это произойдет во время синхронизации приложения.<br><br>5. <b>НЕ помещайте избранное в несколько категорий</b> (приложение поддерживает это). Это может сбить с толку алгоритм синхронизации, поскольку «ExHentai» позволяет каждому избранному быть только в одной категории.<br><br>Это диалоговое окно появится только один раз. Вы можете прочитать эти заметки еще раз, перейдя по «Настройки → E-Hentai → Показать избранные заметки о синхронизации».]]>
+    <string name="favorites_sync_notes">ВАЖНЫЕ ИЗБРАННЫЕ ЗАМЕТКИ О СИНХРОНИЗАЦИИ</string>
+    <string name="favorites_sync_notes_message"><![CDATA[1. Изменения в названиях категорий в приложении <b>НЕ</b> синхронизируются! Пожалуйста <i>вместо этого измените названия категорий на «ExHentai»</i>. Имена категорий будут копироваться с серверов «ExHentai» каждую синхронизацию.<br><br>2. Любимые категории на «ExHentai» соответствуют <b>первым 10 категориям в приложении</b> (за исключением категории «По умолчанию»). <i>Галереи в других категориях <b>НЕ</b> будут синхронизированы!</i><br><br>3. <font color=\'red\'><b>УБЕДИТЕСЬ, ЧТО У ВАС ЕСТЬ СТАБИЛЬНОЕ ПОДКЛЮЧЕНИЕ К ИНТЕРНЕТУ ВО ВРЕМЯ СИНХРОНИЗАЦИИ!</b></font> Если интернет отключится во время синхронизации приложения, ваши избранные могут остаться в<i>частично синхронизированном состоянии</i>.<br><br>4. Держите приложение открытым во время синхронизации избранного. «Android» иногда закрывает приложения, которые находятся в фоне, и это может быть плохо, если это произойдет во время синхронизации приложения.<br><br>5. <b>НЕ помещайте избранное в несколько категорий</b> (приложение поддерживает это). Это может сбить с толку алгоритм синхронизации, поскольку «ExHentai» позволяет каждому избранному быть только в одной категории.<br><br>Это диалоговое окно появится только один раз. Вы можете прочитать эти заметки еще раз, перейдя по «Настройки → E-Hentai → Показать избранные заметки о синхронизации».]]>
     </string>
     <string name="favorites_sync_reset">Вы уверены?</string>
     <string name="favorites_sync_reset_message">Сброс состояния синхронизации может привести к тому, что ваша следующая синхронизация будет чрезвычайно медленной.</string>
@@ -509,8 +507,7 @@
     <!-- Gallery Adder -->
     <!-- Batch Add -->
     <string name="eh_batch_add">Добавить галереи</string>
-    <string
-        name="eh_batch_add_description">Пример:\n\nhttp://e-hentai.org/g/12345/1a2b3c4e\nhttp://g.e-hentai.org/g/67890/6f7g8h9i\nhttp://exhentai.org/g/13579/1a3b5c7e\nhttps://exhentai.org/g/24680/2f4g6h8i\n\nТакже поддерживаются посещённые экспортированные данные в «E-Hentai»\n</string>
+    <string name="eh_batch_add_description">Пример:\n\nhttp://e-hentai.org/g/12345/1a2b3c4e\nhttp://g.e-hentai.org/g/67890/6f7g8h9i\nhttp://exhentai.org/g/13579/1a3b5c7e\nhttps://exhentai.org/g/24680/2f4g6h8i\n\nТакже поддерживаются посещённые экспортированные данные в «E-Hentai»\n</string>
     <string name="eh_batch_add_title">Введите URL-адрес галерей для добавления \n(разделенные новой строкой):</string>
     <string name="eh_batch_add_button">Добавить</string>
     <string name="eh_batch_add_adding_galleries">Добавление галерей…</string>
@@ -571,7 +568,7 @@
     <!-- More Info Menu -->
     <string name="more_info">Информация</string>
     <string name="alt_title">Другое название</string>
-    <string name="id">«ID»</string>
+    <string name="id">ID</string>
     <string name="token">Токен</string>
     <string name="is_exhentai_gallery">Галерея «ExHentai»</string>
     <string name="thumbnail_url">URL-адрес миниатюры</string>
@@ -591,7 +588,7 @@
     <string name="artist">Художник</string>
     <string name="characters">Персонажи</string>
     <string name="group">Группа</string>
-    <string name="media_id">«ID» мультимедии</string>
+    <string name="media_id">ID мультимедии</string>
     <string name="japanese_title">Японское название</string>
     <string name="english_title">Английское название</string>
     <string name="short_title">Краткое название</string>
@@ -608,11 +605,11 @@
     <string name="author">Автор</string>
     <string name="last_chapter_number">Номер последней главы</string>
     <string name="follow_status">Следить за статусом</string>
-    <string name="anilist_id">«Anilist ID»</string>
-    <string name="kitsu_id">«Kitsu ID»</string>
-    <string name="mal_id">«MyAnimeList ID»</string>
-    <string name="manga_updates_id">«MangaUpdates ID»</string>
-    <string name="anime_planet_id">«Anime-Planet ID»</string>
+    <string name="anilist_id">Anilist ID</string>
+    <string name="kitsu_id">Kitsu ID</string>
+    <string name="mal_id">MyAnimeList ID</string>
+    <string name="manga_updates_id">MangaUpdates ID</string>
+    <string name="anime_planet_id">Anime-Planet ID</string>
     <string name="translated">Переведено</string>
 
     <!-- Extra gallery info -->
@@ -659,7 +656,6 @@
     <string name="dedupe_highest_chapter">Показать источник с наивысшим номером главы</string>
 
     <!-- MangaDex -->
-    <string name="mdlist">«MDList»</string>
     <string name="md_follows_unfollowed">Без отслеживания</string>
     <string name="mangadex_specific_settings">Настройки «MangaDex»</string>
     <string name="mangadex_sync_follows_to_library">Синхронизировать серии из «Mangadex» в вашу библиотеку</string>
@@ -675,7 +671,7 @@
     <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любую не отслеживаемую «MDList» серию, как прочитанную в «MangaDex»</string>
 
     <!-- Scanlator filters -->
-    <string name="select_scanlators">Показать группу(ы) переводчиков</string>
+    <string name="select_scanlators">Группа(ы) переводчиков</string>
 
     <!-- Similar -->
     <string name="similar">Похожее на %1$s</string>
