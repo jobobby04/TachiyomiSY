@@ -100,7 +100,6 @@ import exh.source.isEhBasedSource
 import exh.util.defaultReaderType
 import exh.util.floor
 import exh.util.mangaType
-import exh.util.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -120,6 +119,7 @@ import uy.kohesive.injekt.injectLazy
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Activity containing the reader of Tachiyomi. This activity is mostly a container of the

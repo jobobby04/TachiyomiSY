@@ -52,8 +52,6 @@ import exh.source.isEhBasedManga
 import exh.source.mangaDexSourceIds
 import exh.source.nHentaiSourceIds
 import exh.ui.LoaderManager
-import exh.util.milliseconds
-import exh.util.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
@@ -69,6 +67,8 @@ import rx.android.schedulers.AndroidSchedulers
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class LibraryController(
     bundle: Bundle? = null,
@@ -230,7 +230,7 @@ class LibraryController(
                 is LibrarySettingsSheet.Filter.FilterGroup -> onFilterChanged()
                 is LibrarySettingsSheet.Sort.SortGroup -> onSortChanged()
                 is LibrarySettingsSheet.Display.DisplayGroup -> {
-                    val delay = if (preferences.categorisedDisplaySettings().get()) 125L else 0L
+                    val delay = if (preferences.categorizedDisplaySettings().get()) 125L else 0L
 
                     Observable.timer(delay, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
                         .subscribe {
