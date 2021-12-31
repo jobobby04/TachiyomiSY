@@ -247,4 +247,14 @@
         <item name="android:widgetLayout">@layout/pref_widget_switch_material</item>
     </style>
 
+    <!--===========-->
+    <!--Tachiyomi.ReaderActivity.TextInputLayout-->
+    <!--===========-->
+    <style name="ThemeTextEditLayout" parent="ThemeOverlay.AppCompat">
+        <item name="colorAccent">?attr/colorAccent</item>
+    </style>
+    <style name="ErrorTextEditLayout">
+        <item name="android:textSize">0sp</item>
+    </style>
+
 </resources>

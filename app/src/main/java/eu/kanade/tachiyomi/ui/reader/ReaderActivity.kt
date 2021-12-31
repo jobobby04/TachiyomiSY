@@ -727,12 +727,13 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 val parsed = it.toString().toDoubleOrNull()
 
                 if (parsed == null || parsed <= 0 || parsed > 9999) {
-                    binding.ehAutoscrollFreq.error = "Invalid frequency"
+                    binding.ehAutoscrollFreqMenu.setErrorIconDrawable(0)
+                    binding.ehAutoscrollFreqMenu.error = " "
                     preferences.autoscrollInterval().set(-1f)
                     binding.ehAutoscroll.isEnabled = false
                     setupAutoscroll(-1.0)
                 } else {
-                    binding.ehAutoscrollFreq.error = null
+                    binding.ehAutoscrollFreqMenu.error = null
                     preferences.autoscrollInterval().set(parsed.toFloat())
                     binding.ehAutoscroll.isEnabled = true
                     setupAutoscroll(if (binding.ehAutoscroll.isChecked) parsed else -1.0)
