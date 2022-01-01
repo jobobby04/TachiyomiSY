@@ -667,6 +667,8 @@
     <string name="random">Случайная</string>
     <string name="mangadex_push_favorites_to_mangadex">Синхронизировать библиотеку (MangaDex)</string>
     <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любую, не отслеживаемую MDList серию как прочитанную на MangaDex</string>
+    <string name="mangadex_similar">MangaDex похожее</string>
+    <string name="community_recomendations">Рекомендации сообщества</string>
 
     <!-- Scanlator filters -->
     <string name="select_scanlators">Группа(ы) переводчиков</string>
@@ -737,5 +739,4 @@
         <item quantity="other">%1$d секунд назад</item>
     </plurals>
     <string name="humanize_fallback">мгновение назад</string>
-
 </resources>
