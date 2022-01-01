@@ -192,7 +192,7 @@ class SourceCategoryController :
                     (activity as? MainActivity)?.binding?.rootCoordinator!!,
                     R.string.snack_categories_deleted,
                     R.string.action_undo,
-                    3000
+                    4000
                 )
 
                 mode.finish()
