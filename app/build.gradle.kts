@@ -64,7 +64,7 @@ android {
         }
     }
 
-    flavorDimensions("default")
+    flavorDimensions += "default"
 
     productFlavors {
         create("standard") {
@@ -246,8 +246,8 @@ dependencies {
     implementation("com.squareup.logcat:logcat:0.1")
 
     // Crash reports/analytics
-    //implementation("ch.acra:acra-http:5.8.1")
-    //"standardImplementation"("com.google.firebase:firebase-analytics-ktx:20.0.1")
+    //implementation("ch.acra:acra-http:5.8.4")
+    //"standardImplementation"("com.google.firebase:firebase-analytics-ktx:20.0.2")
 
     // Licenses
     implementation("com.mikepenz:aboutlibraries-core:${BuildPluginsVersion.ABOUTLIB_PLUGIN}")
@@ -277,8 +277,8 @@ dependencies {
     implementation ("info.debatty:java-string-similarity:2.0.0")
 
     // Firebase (EH)
-    implementation("com.google.firebase:firebase-analytics-ktx:19.0.2")
-    implementation("com.google.firebase:firebase-crashlytics-ktx:18.2.3")
+    implementation("com.google.firebase:firebase-analytics-ktx:20.0.2")
+    implementation("com.google.firebase:firebase-crashlytics-ktx:18.2.6")
 
     // Better logging (EH)
     implementation("com.elvishew:xlog:1.11.0")

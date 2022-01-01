@@ -8,7 +8,6 @@ import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
 import com.tfcporciuncula.flow.FlowSharedPreferences
-import com.tfcporciuncula.flow.Preference
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.track.TrackService
@@ -24,33 +23,12 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReadingModeType
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.widget.ExtendedNavigationView
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onEach
 import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 import eu.kanade.tachiyomi.data.preference.PreferenceValues as Values
-
-fun <T> Preference<T>.asImmediateFlow(block: (T) -> Unit): Flow<T> {
-    block(get())
-    return asFlow()
-        .onEach { block(it) }
-}
-
-operator fun <T> Preference<Set<T>>.plusAssign(item: T) {
-    set(get() + item)
-}
-
-operator fun <T> Preference<Set<T>>.minusAssign(item: T) {
-    set(get() - item)
-}
-
-fun Preference<Boolean>.toggle(): Boolean {
-    set(!get())
-    return get()
-}
 
 class PreferencesHelper(val context: Context) {
 
@@ -230,6 +208,8 @@ class PreferencesHelper(val context: Context) {
     fun downloadsDirectory() = flowPrefs.getString("download_directory", defaultDownloadsDir.toString())
 
     fun downloadOnlyOverWifi() = prefs.getBoolean(Keys.downloadOnlyOverWifi, true)
+
+    fun saveChaptersAsCBZ() = flowPrefs.getBoolean("save_chapter_as_cbz", false)
 
     fun folderPerManga() = prefs.getBoolean(Keys.folderPerManga, false)
 
@@ -507,10 +487,6 @@ class PreferencesHelper(val context: Context) {
     fun dataSaverExcludedSources() = flowPrefs.getStringSet("data_saver_excluded", emptySet())
 
     fun dataSaverDownloader() = flowPrefs.getBoolean("data_saver_downloader", true)
-
-    fun saveChaptersAsCBZ() = flowPrefs.getBoolean("save_chapter_as_cbz", false)
-
-    fun saveChaptersAsCBZLevel() = flowPrefs.getInt("save_chapter_as_cbz_level", 0)
 
     fun allowLocalSourceHiddenFolders() = flowPrefs.getBoolean("allow_local_source_hidden_folders", false)
 

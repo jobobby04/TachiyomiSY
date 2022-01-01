@@ -11,7 +11,9 @@ import exh.md.dto.ChapterDto
 import exh.md.dto.ChapterListDto
 import exh.md.dto.MangaDto
 import exh.md.dto.MangaListDto
+import exh.md.dto.RelationListDto
 import exh.md.dto.ResultDto
+import exh.md.dto.StatisticsDto
 import exh.md.utils.MdApi
 import exh.md.utils.MdConstants
 import exh.md.utils.MdUtil
@@ -57,6 +59,25 @@ class MangaDexService(
                         addQueryParameter("includes[]", MdConstants.Types.coverArt)
                         addQueryParameter("includes[]", MdConstants.Types.author)
                         addQueryParameter("includes[]", MdConstants.Types.artist)
+                    }
+                    .build()
+                    .toString(),
+                cache = CacheControl.FORCE_NETWORK
+            )
+        ).await().parseAs(MdUtil.jsonParser)
+    }
+
+    suspend fun mangasRating(
+        vararg ids: String
+    ): StatisticsDto {
+        return client.newCall(
+            GET(
+                MdApi.statistics.toHttpUrl()
+                    .newBuilder()
+                    .apply {
+                        ids.forEach { id ->
+                            addQueryParameter("manga[]", id)
+                        }
                     }
                     .build()
                     .toString(),
@@ -145,6 +166,21 @@ class MangaDexService(
     ): AtHomeDto {
         return client.newCall(GET(atHomeRequestUrl, headers, CacheControl.FORCE_NETWORK))
             .await()
-            .parseAs()
+            .parseAs(MdUtil.jsonParser)
+    }
+
+    suspend fun relatedManga(id: String): RelationListDto {
+        return client.newCall(
+            GET(
+                MdApi.manga.toHttpUrl().newBuilder()
+                    .apply {
+                        addPathSegment(id)
+                        addPathSegment("relation")
+                    }
+                    .build()
+                    .toString(),
+                cache = CacheControl.FORCE_NETWORK
+            )
+        ).await().parseAs(MdUtil.jsonParser)
     }
 }
