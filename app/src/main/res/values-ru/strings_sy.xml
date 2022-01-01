@@ -675,6 +675,24 @@
     <string name="similar">Похожее на %1$s</string>
     <string name="similar_no_results">Похожая серия не найдена</string>
 
+    <!-- Mangadex relations-->
+    <string name="relation_similar">Похожее</string>
+    <string name="relation_monochrome">Монохром</string>
+    <string name="relation_main_story">Главная история</string>
+    <string name="relation_adapted_from">Адаптировано из</string>
+    <string name="relation_based_on">Основано на</string>
+    <string name="relation_prequel">Приквел</string>
+    <string name="relation_side_story">Побочная история</string>
+    <string name="relation_doujinshi">Додзинси</string>
+    <string name="relation_same_franchise">Та же франшиза</string>
+    <string name="relation_shared_universe">Общая вселенная</string>
+    <string name="relation_sequel">Сиквел</string>
+    <string name="relation_spin_off">Спин-офф</string>
+    <string name="relation_alternate_story">Альт. история</string>
+    <string name="relation_preserialization">Предсериализация</string>
+    <string name="relation_colored">Цветное</string>
+    <string name="relation_serialization">Сериализация</string>
+
     <!-- Humanize time -->
     <plurals name="humanize_year">
         <item quantity="one">%1$d год назад</item>
