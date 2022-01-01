@@ -3,17 +3,23 @@ package exh.ui.batchadd
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
+import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.chrisbanes.insetter.applyInsetter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.EhFragmentBatchAddBinding
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
-import eu.kanade.tachiyomi.util.lang.combineLatest
-import eu.kanade.tachiyomi.util.lang.plusAssign
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import reactivecircus.flowbinding.android.view.clicks
-import rx.android.schedulers.AndroidSchedulers
-import rx.subscriptions.CompositeSubscription
 
 /**
  * Batch add screen
@@ -36,72 +42,71 @@ class BatchAddController : NucleusController<EhFragmentBatchAddBinding, BatchAdd
 
         binding.progressDismissBtn.clicks()
             .onEach {
-                presenter.currentlyAddingRelay.call(BatchAddPresenter.STATE_PROGRESS_TO_INPUT)
+                presenter.currentlyAddingFlow.value = BatchAddPresenter.STATE_PROGRESS_TO_INPUT
             }
             .launchIn(viewScope)
 
-        val progressSubscriptions = CompositeSubscription()
+        binding.scrollView.applyInsetter {
+            type(navigationBars = true) {
+                padding()
+            }
+        }
 
-        presenter.currentlyAddingRelay
-            .onBackpressureBuffer()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeUntilDestroy {
-                progressSubscriptions.clear()
-                if (it == BatchAddPresenter.STATE_INPUT_TO_PROGRESS) {
-                    showProgress(binding)
-                    progressSubscriptions += presenter.progressRelay
-                        .onBackpressureBuffer()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .combineLatest(presenter.progressTotalRelay) { progress, total ->
-                            // Show hide dismiss button
-                            binding.progressDismissBtn.visibility =
-                                if (progress == total) {
-                                    View.VISIBLE
-                                } else {
-                                    View.GONE
-                                }
+        presenter.currentlyAddingFlow
+            .buffer(capacity = 0, onBufferOverflow = BufferOverflow.SUSPEND)
+            .mapLatest { event ->
+                when (event) {
+                    BatchAddPresenter.STATE_INPUT_TO_PROGRESS -> coroutineScope {
+                        showProgress(binding)
+                        presenter.progressFlow
+                            .buffer(capacity = Channel.RENDEZVOUS)
+                            .combine(presenter.progressTotalFlow) { progress, total ->
+                                // Show hide dismiss button
+                                binding.progressDismissBtn.isVisible = progress == total
+                                formatProgress(progress, total)
+                            }
+                            .onEach {
+                                binding.progressText.text = it
+                            }
+                            .launchIn(this)
 
-                            formatProgress(progress, total)
-                        }.subscribeUntilDestroy {
-                            binding.progressText.text = it
-                        }
+                        presenter.progressTotalFlow
+                            .buffer(capacity = Channel.RENDEZVOUS)
+                            .onEach {
+                                binding.progressBar.max = it
+                            }
+                            .launchIn(this)
 
-                    progressSubscriptions += presenter.progressTotalRelay
-                        .onBackpressureBuffer()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeUntilDestroy {
-                            binding.progressBar.max = it
-                        }
+                        presenter.progressFlow
+                            .buffer(capacity = Channel.RENDEZVOUS)
+                            .onEach {
+                                binding.progressBar.progress = it
+                            }
+                            .launchIn(this)
 
-                    progressSubscriptions += presenter.progressRelay
-                        .onBackpressureBuffer()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeUntilDestroy {
-                            binding.progressBar.progress = it
-                        }
-
-                    presenter.eventRelay
-                        ?.onBackpressureBuffer()
-                        ?.observeOn(AndroidSchedulers.mainThread())
-                        ?.subscribeUntilDestroy {
-                            binding.progressLog.append("$it\n")
-                        }?.let {
-                            progressSubscriptions += it
-                        }
-                } else if (it == BatchAddPresenter.STATE_PROGRESS_TO_INPUT) {
-                    hideProgress(binding)
-                    presenter.currentlyAddingRelay.call(BatchAddPresenter.STATE_IDLE)
+                        presenter.eventFlow
+                            ?.buffer(capacity = Channel.RENDEZVOUS)
+                            ?.onEach {
+                                binding.progressLog.append("$it\n")
+                            }
+                            ?.launchIn(this)
+                        Unit
+                    }
+                    BatchAddPresenter.STATE_PROGRESS_TO_INPUT -> {
+                        hideProgress(binding)
+                        presenter.currentlyAddingFlow.value = BatchAddPresenter.STATE_IDLE
+                    }
                 }
             }
+            .launchIn(viewScope)
     }
 
     private val EhFragmentBatchAddBinding.progressViews
         get() = listOf(
             progressTitleView,
-            progressLogWrapper,
+            progressLog,
             progressBar,
             progressText,
-            progressDismissBtn
         )
 
     private val EhFragmentBatchAddBinding.inputViews
@@ -111,21 +116,30 @@ class BatchAddController : NucleusController<EhFragmentBatchAddBinding, BatchAdd
             btnAddGalleries
         )
 
-    private var List<View>.visibility: Int
+    private var List<View>.isVisible: Boolean
         get() = throw UnsupportedOperationException()
-        set(v) { forEach { it.visibility = v } }
+        set(v) {
+            forEach { it.isVisible = v }
+        }
 
     private fun showProgress(target: EhFragmentBatchAddBinding = binding) {
         target.apply {
-            progressViews.visibility = View.VISIBLE
-            inputViews.visibility = View.GONE
+            viewScope.launch {
+                inputViews.isVisible = false
+                delay(250L)
+                progressViews.isVisible = true
+            }
         }.progressLog.text = ""
     }
 
     private fun hideProgress(target: EhFragmentBatchAddBinding = binding) {
         target.apply {
-            progressViews.visibility = View.GONE
-            inputViews.visibility = View.VISIBLE
+            viewScope.launch {
+                progressViews.isVisible = false
+                binding.progressDismissBtn.isVisible = false
+                delay(250L)
+                inputViews.isVisible = true
+            }
         }.galleriesBox.setText("", TextView.BufferType.EDITABLE)
     }
 
@@ -138,7 +152,7 @@ class BatchAddController : NucleusController<EhFragmentBatchAddBinding, BatchAdd
             return
         }
 
-        presenter.addGalleries(activity!!, galleries)
+        presenter.addGalleries(applicationContext!!, galleries)
     }
 
     private fun noGalleriesSpecified() {
