@@ -53,28 +53,28 @@
     <string name="watched_tags_eh">Отслеживать тэги E-Hentai</string>
     <string name="tag_filtering_threshold">Порог фильтрации тэгов</string>
     <string name="tag_filtering_threshhold_error">Должно быть между -9999 и 0!</string>
-    <string name="tag_filtering_threshhold_summary">Мягкая фильтрация тэгов, которая добавляет тэги в раздел «My Tags» на странице E/ExHentai с отрицательным значением. Если в галерее есть теги, которые добавляются ниже этого значения, они не будут показываться. Этот порог может быть установлен между -9999 и 0. В текущий момент: %1$d</string>
+    <string name="tag_filtering_threshhold_summary">Мягкая фильтрация тэгов, которая добавляет тэги в раздел «My Tags» на странице E/ExHentai с отрицательным значением. Если в галерее есть теги, которые добавляются ниже этого значения, они не будут отображаться. Этот порог может быть установлен между -9999 и 0. Текущее значение: %1$d</string>
     <string name="tag_watching_threshhold">Порог отслеживания тегов</string>
     <string name="tag_watching_threshhold_error">Должно быть между 0 и 9999!</string>
-    <string name="tag_watching_threshhold_summary">Недавно загруженные галереи будут включёны на экран отслеживания, если на экране есть хотя бы один отслеживаемый тег с положительным значением, и сумма значений отслеживаемых тегов складывается с этим значением или сумма значений выше. Этот порог может быть установлен в между 0 и 9999. В текущий момент: %1$d</string>
+    <string name="tag_watching_threshhold_summary">Недавно загруженные галереи будут включёны на экран отслеживания, если на экране есть хотя бы один отслеживаемый тег с положительным значением, и сумма значений отслеживаемых тегов складывается с этим значением или сумма значений выше. Этот порог может быть установлен в между 0 и 9999. Текущее значение: %1$d</string>
     <string name="language_filtering">Языковая фильтрация</string>
-    <string name="language_filtering_summary">Скрывать галереи на определенных языках из списка и поиска, сделав выбор в появившемся диалоговом окне.\nОбратить внимание, что соответствующие галереи никогда не появятся независимо от поискового запроса.\nОтмечено = Исключать</string>
-    <string name="frong_page_categories">Категории первой страницы</string>
-    <string name="fromt_page_categories_summary">Категории по умолчанию на главной странице и поиске! Категории все ещё могут быть включены, задействовав соответствующие фильтры</string>
-    <string name="watched_list_default">Состояние отслеживаемого фильтра списка по умолчанию</string>
-    <string name="watched_list_state_summary">При просмотре E/ExHentai должен ли быть включён, фильтр списка по умолчанию</string>
+    <string name="language_filtering_summary">Скрывать галереи из поиска и определенных языков, сделав выбор в появившемся диалоговом окне.\nОбратите внимание, что соответствующие галереи никогда не отобразятся, независимо от поискового запроса.\nОтмечено = Исключать</string>
+    <string name="frong_page_categories">Категории на первой странице</string>
+    <string name="fromt_page_categories_summary">Категории по умолчанию на главной странице и при поиске! Категории все ещё могут быть включены, включив соответствующие фильтры</string>
+    <string name="watched_list_default">Фильтр для отслеживаемого списка</string>
+    <string name="watched_list_state_summary">При просмотре E/ExHentai должен ли быть включён, фильтр для отслеживаемого списка</string>
     <string name="eh_image_quality_summary">Качество загруженных изображений</string>
     <string name="eh_image_quality">Качество изображения</string>
     <string name="eh_image_quality_auto">Автоматически</string>
-    <string name="pref_enhanced_e_hentai_view">Расширенное меню просмотра E/ExHentai</string>
+    <string name="pref_enhanced_e_hentai_view">Расширенное меню просмотра (E/ExHentai)</string>
     <string name="pref_enhanced_e_hentai_view_summary">Включить/Отключить расширенное меню просмотра, созданное для E/ExHentai</string>
     <string name="favorites_sync">Синхронизация избранного</string>
     <string name="disable_favorites_uploading">Отключить загрузку избранного</string>
-    <string name="disable_favorites_uploading_summary">Избранное загружается только с ExHentai. Любые изменения избранного в приложении, не будут загружены. Предотвращает случайную потерю избранных на ExHentai. Обратить внимание, что удалённый материал все равно будут загружен (Удалённое избранное на ExHentai, также будет удалено в приложении).</string>
+    <string name="disable_favorites_uploading_summary">Избранное загружается только с ExHentai. Любые изменения избранного в приложении, не будут загружены. Предотвращает случайную потерю избранных на ExHentai. Обратите внимание, что удалённый материал все равно будут загружен (Удалённое избранное на ExHentai, также будет удалено в приложении).</string>
     <string name="show_favorite_sync_notes">Показать избранные заметки о синхронизации</string>
     <string name="show_favorite_sync_notes_summary">Показать некоторую информацию о функции синхронизации избранного</string>
     <string name="ignore_sync_errors">Игнорировать ошибки синхронизации, когда это возможно</string>
-    <string name="ignore_sync_errors_summary">При возникновении ошибок, не прерывать работу синхронизации. Ошибки по-прежнему будут отображаться после окончания синхронизации. В некоторых случаях это может привести к потере избранного. Полезно при синхронизации больших библиотек.</string>
+    <string name="ignore_sync_errors_summary">При возникновении ошибок, не прерывайте работу синхронизации. Ошибки по-прежнему будут отображаться после окончания синхронизации. В некоторых случаях, это может привести к потере избранного. Полезно при синхронизации больших библиотек.</string>
     <string name="force_sync_state_reset">Принудительный сброс состояния синхронизации</string>
     <string name="force_sync_state_reset_summary">Выполнять полную ресинхронизацию при следующей синхронизации. Удалённый материал не будет синхронизирован. Всё избранное в приложении будет перезагружено на ExHentai, а всё избранное на ExHentai будет перезагружено в приложение. Полезно для восстановления синхронизации после того, как она была прервана.</string>
     <string name="sync_state_reset">Сброс состояния синхронизации</string>
@@ -150,11 +150,11 @@
     <string name="data_saver_image_quality">Качество изображения</string>
     <string name="data_saver_image_quality_summary">Более высокие значения означают, что сохраняется более высокий процент качества изображения, но это также означает, что размер файла будет больше, 80%% это хорошая промежуточная величина между размером файла и качеством изображения</string>
     <string name="data_saver_image_format">Сжатие в JPEG</string>
-    <string name="data_saver_image_format_summary_on">Размер файла JPEG значительно меньше, чем WebP(Это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в JPEG</string>
-    <string name="data_saver_image_format_summary_off">Размер файла JPEG значительно меньше, чем WebP(Это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в WebP</string>
+    <string name="data_saver_image_format_summary_on">Размер файла JPEG значительно меньше, чем WebP(Это означает, что сохраняется больше данных), но из-за этого, изображения также теряют больше качества.\nВ текущий момент сжимается в JPEG</string>
+    <string name="data_saver_image_format_summary_off">Размер файла JPEG значительно меньше, чем WebP(Это означает, что сохраняется больше данных), но из-за этого, изображения также теряют больше качества.\nВ текущий момент сжимается в WebP</string>
     <string name="data_saver_color_bw">Преобразование в чернобелое</string>
     <string name="data_saver_server">Прокси-сервер Bandwidth Hero</string>
-    <string name="data_saver_server_summary">Поместить в эту область, URL-адрес прокси-сервера Bandwidth Hero</string>
+    <string name="data_saver_server_summary">Поместите в эту область, URL-адрес прокси-сервера Bandwidth Hero</string>
     <string name="clear_db_exclude_read">Оставлять серии с прочитанными главами</string>
     <string name="data_saver_exclude">Исключение из экономии данных</string>
     <string name="data_saver_stop_exclude">Прекратить исключение из экономии данных</string>
@@ -168,7 +168,7 @@
     <string name="log_extreme_desc">режим проверки сети</string>
 
     <!-- General Settings -->
-    <string name="toggle_expand_search_filters">Развернуть все поисковые фильтры по умолчанию</string>
+    <string name="toggle_expand_search_filters">Развернуть все поисковые фильтры</string>
     <string name="auto_solve_captchas">Автоматическое решение капчи</string>
     <string name="auto_solve_captchas_summary">Использовать (ОЧЕНЬ ЭКСПЕРЕМЕНТАЛЬНО) автоматическое прохождение ReCAPTCHA. Если устройство не поддерживается, это меню будет выделено серым цветом.</string>
     <string name="put_recommends_in_overflow">Рекомендации в выпадающем меню</string>
@@ -196,7 +196,7 @@
     <string name="pref_source_source_filtering">Фильтровать источники по категориям</string>
     <string name="pref_source_source_filtering_summery">Фильтровать источники которые находятся в категориях, чтобы источники которые находятся в категориях, не попадали под языковую фильтрацию</string>
     <string name="pref_source_navigation">Убрать кнопку (Последняя)</string>
-    <string name="pref_source_navigation_summery">Убирает кнопку «Последняя» возле источников, взамен, во вкладке «Последняя» показываются последние главы в отслеживаемых источниках</string>
+    <string name="pref_source_navigation_summery">Убирает кнопку «Последняя» возле источников, взамен, во вкладке «Последняя» отображаются последние главы в отслеживаемых источниках</string>
     <string name="pref_local_source_hidden_folders">Просмотр скрытых папок</string>
     <string name="pref_local_source_hidden_folders_summery">Личный источник может просматривать скрытые папки</string>
 
@@ -245,7 +245,7 @@
     <string name="reader_preload_amount_14_pages">14 страниц</string>
     <string name="reader_preload_amount_16_pages">16 страниц</string>
     <string name="reader_preload_amount_20_pages">20 страниц</string>
-    <string name="reader_preload_amount_summary">Количество предварительной загрузки страниц при чтении. Более высокие значения приведут, к более плавному чтению, за счет более высокого использования кэша. Рекомендуется увеличить, объём выделяемого кэша для высоких значений</string>
+    <string name="reader_preload_amount_summary">Количество предварительной загрузки страниц при чтении. Более высокие значения приведут, к более плавному чтению, за счет более высокого использования кэша. Рекомендуется увеличить объём выделяемого кэша для высоких значений</string>
     <string name="reader_cache_size">Размер кэша читалки</string>
     <string name="reader_cache_size_summary">Количество изображений, сохраняемых на устройстве во время чтения. Более высокие значения приведут к более плавному чтению, за счет более высокого использования хранилища устройства</string>
     <string name="preserve_reading_position">Сохранять позицию чтения для серий</string>
@@ -270,6 +270,7 @@
     <string name="eh_boost_page">Ускорение страницы</string>
     <string name="eh_autoscroll_help">Автопрокрутка (Подсказка)</string>
     <string name="eh_autoscroll_help_message">Автоматически переходить к следующей странице, через указанную частоту. Частота указывается в секундах.</string>
+    <string name="eh_autoscroll_freq_invalid">Недоп. частота</string>
     <string name="eh_retry_all_help">Повторить всё (Подсказка)</string>
     <string name="eh_retry_all_help_message">Повторно добавить все страницы с ошибками, в очередь загрузки.</string>
     <plurals name="eh_retry_toast">
@@ -372,10 +373,10 @@
     <string name="pref_tag_sorting">Сортировка тэгов</string>
     <string name="tag_sorting">Сортировка тэгов</string>
     <plurals name="pref_tag_sorting_desc">
-        <item quantity="one">%1$d тэг в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам, основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленный тэг.</item>
-        <item quantity="few">%1$d тэга в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам, основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленные тэги.</item>
-        <item quantity="many">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам, основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленные тэги.</item>
-        <item quantity="other">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам, основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленные тэги.</item>
+        <item quantity="one">%1$d тэг в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленный тэг.</item>
+        <item quantity="few">%1$d тэга в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленные тэги.</item>
+        <item quantity="many">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленные тэги.</item>
+        <item quantity="other">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам основанному на приоритете, это означает, что будут отображатся только те серий которые имеют добавленные тэги.</item>
     </plurals>
     <string name="action_add_tags_message">ВАЖНО! Тэги должны быть точными, частичных совпадений нет, вы не можете добавить тэг netorare, чтобы отфильтровать женский тэг: netorare, и тому подобное! \nСтиль тегов должен быть таким: \nfemale: sole female\nПоддерживается добавление нескольких вариантов одного и того же тега, например: \ntag: netorare для NHentai, \nfemale: netorare для E-Hentai и т.д!</string>
     <string name="action_edit_tags">Редактировать тэги</string>
@@ -506,7 +507,7 @@
     <!-- Batch Add -->
     <string name="eh_batch_add">Добавить галереи</string>
     <string name="eh_batch_add_description">Пример:\n\nhttp://e-hentai.org/g/12345/1a2b3c4e\nhttp://g.e-hentai.org/g/67890/6f7g8h9i\nhttp://exhentai.org/g/13579/1a3b5c7e\nhttps://exhentai.org/g/24680/2f4g6h8i\n\nТакже поддерживаются экспортированные данные на E-Hentai\n</string>
-    <string name="eh_batch_add_title">Ввести в этой области, URL-адрес галерей для добавления \n(разделённые новой строкой):</string>
+    <string name="eh_batch_add_title">Ввести в этой области, URL-адрес галерей для добавления (разделённые новой строкой):</string>
     <string name="eh_batch_add_button">Добавить</string>
     <string name="eh_batch_add_adding_galleries">Добавление галерей…</string>
     <string name="eh_batch_add_finish">Завершить</string>
@@ -648,8 +649,8 @@
     <string name="allow_deduplication">Разрешить дедупликацию:</string>
     <string name="deduplication_mode">Режим дедупликации:</string>
     <string name="no_dedupe">Без дедупликации</string>
-    <string name="dedupe_most_chapters">Показать источник с наибольшим количеством глав</string>
-    <string name="dedupe_highest_chapter">Показать источник с наивысшим номером главы</string>
+    <string name="dedupe_most_chapters">Показать источник, с наибольшим количеством глав</string>
+    <string name="dedupe_highest_chapter">Показать источник, с наивысшим номером главы</string>
     <string name="toggle_dedupe">Переключить дедупликацию</string>
     <string name="dedupe_priority">Дедупликация по приоритету</string>
 
@@ -666,7 +667,7 @@
     <string name="mangadex_follows">Отслеживание MangaDex</string>
     <string name="random">Случайная</string>
     <string name="mangadex_push_favorites_to_mangadex">Синхронизировать библиотеку (MangaDex)</string>
-    <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любую, не отслеживаемую MDList серию как прочитанную на MangaDex</string>
+    <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любую не отслеживаемую MDList серию, как прочитанную на MangaDex</string>
     <string name="mangadex_similar">MangaDex похожее</string>
     <string name="community_recommendations">Рекомендации сообщества</string>
 
@@ -739,5 +740,4 @@
         <item quantity="other">%1$d секунд назад</item>
     </plurals>
     <string name="humanize_fallback">мгновение назад</string>
-
 </resources>
