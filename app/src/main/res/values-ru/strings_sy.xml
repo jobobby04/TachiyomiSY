@@ -668,7 +668,7 @@
     <string name="mangadex_push_favorites_to_mangadex">Синхронизировать библиотеку (MangaDex)</string>
     <string name="mangadex_push_favorites_to_mangadex_summary">Синхронизирует любую, не отслеживаемую MDList серию как прочитанную на MangaDex</string>
     <string name="mangadex_similar">MangaDex похожее</string>
-    <string name="community_recommendations">Рекомендации сообщества</string>
+    <string name="community_recomendations">Рекомендации сообщества</string>
 
     <!-- Scanlator filters -->
     <string name="select_scanlators">Группа(ы) переводчиков</string>

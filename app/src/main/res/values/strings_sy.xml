@@ -657,8 +657,6 @@
     <string name="random">Random</string>
     <string name="mangadex_push_favorites_to_mangadex">Sync library manga to MangaDex</string>
     <string name="mangadex_push_favorites_to_mangadex_summary">Syncs any non MdList tracked manga to MangaDex as reading.</string>
-    <string name="mangadex_similar">MangaDex similar</string>
-    <string name="community_recommendations">Community recommendations</string>
 
 
     <!-- Scanlator filters -->
