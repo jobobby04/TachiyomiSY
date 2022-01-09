@@ -12,12 +12,12 @@
     <LinearLayout
         android:id="@+id/inner_container"
         android:layout_width="match_parent"
-        android:layout_height="60dp">
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/reorder"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:padding="16dp"
             android:scaleType="center"
             app:srcCompat="@drawable/ic_drag_handle_24dp"
@@ -27,13 +27,12 @@
         <TextView
             android:id="@+id/title"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_weight="1"
             android:ellipsize="end"
-            android:gravity="center_vertical"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             tools:text="Category Title" />
