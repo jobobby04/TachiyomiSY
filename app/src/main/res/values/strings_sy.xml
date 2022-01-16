@@ -1,142 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Actions -->
-    <string name="action_sort_first_checked">First checked</string>
-    <string name="action_sort_drag_and_drop">Drag &amp; Drop</string>
-    <string name="action_sort_enabled">Enabled</string>
-    <string name="action_skip_manga">Don\'t migrate</string>
-    <string name="action_search_manually">Search manually</string>
-    <string name="action_migrate_now">Migrate now</string>
-    <string name="action_copy_now">Copy now</string>
-    <string name="action_clean_titles">Clean titles</string>
-    <string name="action_start_reading_button">Start reading button</string>
-    <string name="action_display_no_title_grid">No title grid</string>
-    <string name="action_start_reading">Start reading</string>
-    <string name="action_edit_info">Edit info</string>
+    <string name="action_sort_first_checked">☞︎♓︎❒︎⬧︎⧫︎ ♍︎♒︎♏︎♍︎🙵♏︎♎︎</string>
+    <string name="action_sort_drag_and_drop">👎︎❒︎♋︎♑︎ 🕮︎ 👎︎❒︎□︎◻︎</string>
+    <string name="action_sort_enabled">☜︎■︎♋︎♌︎●︎♏︎♎︎</string>
+    <string name="action_skip_manga">👎︎□︎■︎🕯︎⧫︎ ❍︎♓︎♑︎❒︎♋︎⧫︎♏︎</string>
+    <string name="action_search_manually">💧︎♏︎♋︎❒︎♍︎♒︎ ❍︎♋︎■︎◆︎♋︎●︎●︎⍓︎</string>
+    <string name="action_migrate_now">💣︎♓︎♑︎❒︎♋︎⧫︎♏︎ ■︎□︎⬥︎</string>
+    <string name="action_copy_now">👍︎□︎◻︎⍓︎ ■︎□︎⬥︎</string>
+    <string name="action_clean_titles">👍︎●︎♏︎♋︎■︎ ⧫︎♓︎⧫︎●︎♏︎⬧︎</string>
+    <string name="action_start_reading_button">💧︎⧫︎♋︎❒︎⧫︎ ❒︎♏︎♋︎♎︎♓︎■︎♑︎ ♌︎◆︎⧫︎⧫︎□︎■︎</string>
+    <string name="action_display_no_title_grid">☠︎□︎ ⧫︎♓︎⧫︎●︎♏︎ ♑︎❒︎♓︎♎︎</string>
+    <string name="action_start_reading">💧︎⧫︎♋︎❒︎⧫︎ ❒︎♏︎♋︎♎︎♓︎■︎♑︎</string>
+    <string name="action_edit_info">☜︎♎︎♓︎⧫︎ ♓︎■︎♐︎□︎</string>
 
     <!-- Library fragment -->
-    <string name="buttons_header">Buttons</string>
+    <string name="buttons_header">👌︎◆︎⧫︎⧫︎□︎■︎⬧︎</string>
 
     <!-- Manga Type -->
     <string name="manhwa">Manhwa</string>
     <string name="manhua">Manhua</string>
-    <string name="comic">Comic</string>
-    <string name="webtoon">Webtoon</string>
+    <string name="comic">👍︎□︎❍︎♓︎♍︎</string>
+    <string name="webtoon">🕈︎♏︎♌︎⧫︎□︎□︎■︎</string>
 
     <!-- Captcha -->
-    <string name="captcha_solve_failure">Captcha solve failure</string>
-    <string name="captcha_solve_failure_message">Failed to auto-solve the captcha!</string>
-    <string name="please_login">Please log in!</string>
+    <string name="captcha_solve_failure">👍︎♋︎◻︎⧫︎♍︎♒︎♋︎ ⬧︎□︎●︎❖︎♏︎ ♐︎♋︎♓︎●︎◆︎❒︎♏︎</string>
+    <string name="captcha_solve_failure_message">☞︎♋︎♓︎●︎♏︎♎︎ ⧫︎□︎ ♋︎◆︎⧫︎□︎📫︎⬧︎□︎●︎❖︎♏︎ ⧫︎♒︎♏︎ ♍︎♋︎◻︎⧫︎♍︎♒︎♋︎✏︎</string>
+    <string name="please_login">🏱︎●︎♏︎♋︎⬧︎♏︎ ●︎□︎♑︎ ♓︎■︎✏︎</string>
 
     <!-- Preferences -->
     <!-- Subsections -->
-    <string name="pref_category_all_sources">All Sources</string>
-    <string name="pref_category_eh">E-Hentai</string>
-    <string name="pref_category_fork">Fork Settings</string>
-    <string name="pref_category_mangadex">MangaDex</string>
+    <string name="pref_category_all_sources">✌︎●︎●︎ 💧︎□︎◆︎❒︎♍︎♏︎⬧︎</string>
+    <string name="pref_category_eh">☜︎📫︎☟︎♏︎■︎⧫︎♋︎♓︎</string>
+    <string name="pref_category_fork">☞︎□︎❒︎🙵 💧︎♏︎⧫︎⧫︎♓︎■︎♑︎⬧︎</string>
+    <string name="pref_category_mangadex">💣︎♋︎■︎♑︎♋︎👎︎♏︎⌧︎</string>
 
 
     <!-- EH Settings -->
-    <string name="ehentai_prefs_account_settings">E-Hentai Website Account Settings</string>
-    <string name="enable_exhentai">Enable ExHentai</string>
-    <string name="requires_login">Requires login</string>
+    <string name="ehentai_prefs_account_settings">☜︎📫︎☟︎♏︎■︎⧫︎♋︎♓︎ 🕈︎♏︎♌︎⬧︎♓︎⧫︎♏︎ ✌︎♍︎♍︎□︎◆︎■︎⧫︎ 💧︎♏︎⧫︎⧫︎♓︎■︎♑︎⬧︎</string>
+    <string name="enable_exhentai">☜︎■︎♋︎♌︎●︎♏︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎</string>
+    <string name="requires_login">☼︎♏︎❑︎◆︎♓︎❒︎♏︎⬧︎ ●︎□︎♑︎♓︎■︎</string>
     <string name="use_hentai_at_home">Use Hentai@Home Network</string>
     <string name="use_hentai_at_home_summary">Do you wish to load images through the Hentai@Home Network, if available? Disabling this option will reduce the amount of pages you are able to view\nOptions:\n- Any client (Recommended)\n- Default port clients only (Can be slower. Enable if behind firewall/proxy that blocks outgoing non-standard ports.)</string>
     <string name="use_hentai_at_home_option_1">Any client (Recommended)</string>
     <string name="use_hentai_at_home_option_2">Default port clients only</string>
     <string name="show_japanese_titles">Show Japanese titles in search results</string>
-    <string name="show_japanese_titles_option_1">Currently showing Japanese titles in search results. Clear the chapter cache after changing this (in the Advanced section)</string>
-    <string name="show_japanese_titles_option_2">Currently showing English/Romanized titles in search results. Clear the chapter cache after changing this (in the Advanced section)</string>
-    <string name="use_original_images">Use original images</string>
-    <string name="use_original_images_on">Currently using original images</string>
-    <string name="use_original_images_off">Currently using resampled images</string>
-    <string name="watched_tags">Watched Tags</string>
-    <string name="watched_tags_summary">Opens a webview to your E/ExHentai watched tags page</string>
-    <string name="watched_tags_exh">ExHentai Watched Tags</string>
-    <string name="watched_tags_eh">E-Hentai Watched Tags</string>
-    <string name="tag_filtering_threshold">Tag Filtering Threshold</string>
-    <string name="tag_filtering_threshhold_error">Must be between -9999 and 0!</string>
-    <string name="tag_filtering_threshhold_summary">You can soft filter tags by adding them to the "My Tags" E/ExHentai page with a negative weight. If a gallery has tags that add up to weight below this value, it is filtered from view. This threshold can be set between -9999 and 0. Currently: %1$d</string>
-    <string name="tag_watching_threshhold">Tag Watching Threshold</string>
-    <string name="tag_watching_threshhold_error">Must be between 0 and 9999!</string>
-    <string name="tag_watching_threshhold_summary">Recently uploaded galleries will be included on the watched screen if it has at least one watched tag with positive weight, and the sum of weights on its watched tags add up to this value or higher. This threshold can be set between 0 and 9999. Currently: %1$d</string>
-    <string name="language_filtering">Language Filtering</string>
-    <string name="language_filtering_summary">If you wish to hide galleries in certain languages from the gallery list and searches, select them in the dialog that will popup.\nNote that matching galleries will never appear regardless of your search query.\nTldr checkmarked = exclude</string>
-    <string name="frong_page_categories">Front Page Categories</string>
-    <string name="fromt_page_categories_summary">What categories would you like to show by default on the front page and in searches? They can still be enabled by enabling their filters</string>
-    <string name="watched_list_default">Watched List Filter Default State</string>
-    <string name="watched_list_state_summary">When browsing ExHentai/E-Hentai should the watched list filter be enabled by default</string>
-    <string name="eh_image_quality_summary">The quality of the downloaded images</string>
-    <string name="eh_image_quality">Image quality</string>
-    <string name="eh_image_quality_auto">Auto</string>
-    <string name="eh_image_quality_2400">2400x</string>
-    <string name="eh_image_quality_1600">1600x</string>
-    <string name="eh_image_quality_1280">1280x</string>
-    <string name="eh_image_quality_980">980x</string>
-    <string name="eh_image_quality_780">780x</string>
-    <string name="pref_enhanced_e_hentai_view">Enhanced E/ExHentai browse</string>
-    <string name="pref_enhanced_e_hentai_view_summary">Enable/Disable the enhanced browse menu made for E/ExHentai</string>
-    <string name="favorites_sync">E-Hentai Favorites sync</string>
-    <string name="disable_favorites_uploading">Disable favorites uploading</string>
-    <string name="disable_favorites_uploading_summary">Favorites are only downloaded from ExHentai. Any changes to favorites in the app will not be uploaded. Prevents accidental loss of favorites on ExHentai. Note that removals will still be downloaded (if you remove a favorites on ExHentai, it will be removed in the app as well).</string>
-    <string name="show_favorite_sync_notes">Show favorites sync notes</string>
-    <string name="show_favorite_sync_notes_summary">Show some information regarding the favorites sync feature</string>
-    <string name="ignore_sync_errors">Ignore sync errors when possible</string>
-    <string name="ignore_sync_errors_summary">Do not abort immediately when encountering errors during the sync process. Errors will still be displayed when the sync is complete. Can cause loss of favorites in some cases. Useful when syncing large libraries.</string>
-    <string name="force_sync_state_reset">Force sync state reset</string>
-    <string name="force_sync_state_reset_summary">Performs a full resynchronization on the next sync. Removals will not be synced. All favorites in the app will be re-uploaded to ExHentai and all favorites on ExHentai will be re-downloaded into the app. Useful for repairing sync after sync has been interrupted.</string>
-    <string name="sync_state_reset">Sync state reset</string>
-    <string name="gallery_update_checker">Gallery update checker</string>
-    <string name="auto_update_restrictions">Auto update restrictions</string>
-    <string name="time_between_batches">Time between update batches</string>
-    <string name="time_between_batches_never">Never update galleries</string>
-    <string name="time_between_batches_1_hour">1 hour</string>
-    <string name="time_between_batches_2_hours">2 hours</string>
-    <string name="time_between_batches_3_hours">3 hours</string>
-    <string name="time_between_batches_6_hours">6 hours</string>
-    <string name="time_between_batches_12_hours">12 hours</string>
-    <string name="time_between_batches_24_hours">24 hours</string>
-    <string name="time_between_batches_48_hours">48 hours</string>
-    <string name="time_between_batches_summary_1">%1$s will currently never check galleries in your library for updates.</string>
-    <string name="time_between_batches_summary_2">%1$s checks/updates galleries in batches. This means it will wait %2$d hour(s), check %3$d galleries, wait %2$d hour(s), check %3$d and so on…</string>
-    <string name="show_updater_statistics">Show updater statistics</string>
-    <string name="gallery_updater_statistics_collection">Collecting statistics…</string>
-    <string name="gallery_updater_statistics">Gallery updater statistics</string>
-    <string name="gallery_updater_stats_text">The updater last ran %1$s, and checked %2$d out of the %3$d galleries that were ready for checking.</string>
-    <string name="gallery_updater_not_ran_yet">The updater has not ran yet.</string>
-    <string name="gallery_updater_stats_time">\nGalleries that were checked in the last:\n- hour: %1$d\n- 6 hours: %2$d\n- 12 hours: %3$d\n- day: %4$d\n- 2 days: %5$d\n- week: %6$d\n- month: %7$d\n- year: %8$d</string>
+    <string name="show_japanese_titles_option_1">👍︎◆︎❒︎❒︎♏︎■︎⧫︎●︎⍓︎ ⬧︎♒︎□︎⬥︎♓︎■︎♑︎ ☺︎♋︎◻︎♋︎■︎♏︎⬧︎♏︎ ⧫︎♓︎⧫︎●︎♏︎⬧︎ ♓︎■︎ ⬧︎♏︎♋︎❒︎♍︎♒︎ ❒︎♏︎⬧︎◆︎●︎⧫︎⬧︎📬︎ 👍︎●︎♏︎♋︎❒︎ ⧫︎♒︎♏︎ ♍︎♒︎♋︎◻︎⧫︎♏︎❒︎ ♍︎♋︎♍︎♒︎♏︎ ♋︎♐︎⧫︎♏︎❒︎ ♍︎♒︎♋︎■︎♑︎♓︎■︎♑︎ ⧫︎♒︎♓︎⬧︎ 🕿︎♓︎■︎ ⧫︎♒︎♏︎ ✌︎♎︎❖︎♋︎■︎♍︎♏︎♎︎ ⬧︎♏︎♍︎⧫︎♓︎□︎■︎✆︎</string>
+    <string name="show_japanese_titles_option_2">👍︎◆︎❒︎❒︎♏︎■︎⧫︎●︎⍓︎ ⬧︎♒︎□︎⬥︎♓︎■︎♑︎ ☜︎■︎♑︎●︎♓︎⬧︎♒︎📭︎☼︎□︎❍︎♋︎■︎♓︎⌘︎♏︎♎︎ ⧫︎♓︎⧫︎●︎♏︎⬧︎ ♓︎■︎ ⬧︎♏︎♋︎❒︎♍︎♒︎ ❒︎♏︎⬧︎◆︎●︎⧫︎⬧︎📬︎ 👍︎●︎♏︎♋︎❒︎ ⧫︎♒︎♏︎ ♍︎♒︎♋︎◻︎⧫︎♏︎❒︎ ♍︎♋︎♍︎♒︎♏︎ ♋︎♐︎⧫︎♏︎❒︎ ♍︎♒︎♋︎■︎♑︎♓︎■︎♑︎ ⧫︎♒︎♓︎⬧︎ 🕿︎♓︎■︎ ⧫︎♒︎♏︎ ✌︎♎︎❖︎♋︎■︎♍︎♏︎♎︎ ⬧︎♏︎♍︎⧫︎♓︎□︎■︎✆︎</string>
+    <string name="use_original_images">🕆︎⬧︎♏︎ □︎❒︎♓︎♑︎♓︎■︎♋︎●︎ ♓︎❍︎♋︎♑︎♏︎⬧︎</string>
+    <string name="use_original_images_on">👍︎◆︎❒︎❒︎♏︎■︎⧫︎●︎⍓︎ ◆︎⬧︎♓︎■︎♑︎ □︎❒︎♓︎♑︎♓︎■︎♋︎●︎ ♓︎❍︎♋︎♑︎♏︎⬧︎</string>
+    <string name="use_original_images_off">👍︎◆︎❒︎❒︎♏︎■︎⧫︎●︎⍓︎ ◆︎⬧︎♓︎■︎♑︎ ❒︎♏︎⬧︎♋︎❍︎◻︎●︎♏︎♎︎ ♓︎❍︎♋︎♑︎♏︎⬧︎</string>
+    <string name="watched_tags">🕈︎♋︎⧫︎♍︎♒︎♏︎♎︎ ❄︎♋︎♑︎⬧︎</string>
+    <string name="watched_tags_summary">⚐︎◻︎♏︎■︎⬧︎ ♋︎ ⬥︎♏︎♌︎❖︎♓︎♏︎⬥︎ ⧫︎□︎ ⍓︎□︎◆︎❒︎ ☜︎📭︎☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎ ⬥︎♋︎⧫︎♍︎♒︎♏︎♎︎ ⧫︎♋︎♑︎⬧︎ ◻︎♋︎♑︎♏︎</string>
+    <string name="watched_tags_exh">☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎ 🕈︎♋︎⧫︎♍︎♒︎♏︎♎︎ ❄︎♋︎♑︎⬧︎</string>
+    <string name="watched_tags_eh">☜︎📫︎☟︎♏︎■︎⧫︎♋︎♓︎ 🕈︎♋︎⧫︎♍︎♒︎♏︎♎︎ ❄︎♋︎♑︎⬧︎</string>
+    <string name="tag_filtering_threshold">❄︎♋︎♑︎ ☞︎♓︎●︎⧫︎♏︎❒︎♓︎■︎♑︎ ❄︎♒︎❒︎♏︎⬧︎♒︎□︎●︎♎︎</string>
+    <string name="tag_filtering_threshhold_error">💣︎◆︎⬧︎⧫︎ ♌︎♏︎ ♌︎♏︎⧫︎⬥︎♏︎♏︎■︎ 📫︎🖲︎🖲︎🖲︎🖲︎ ♋︎■︎♎︎ 📁︎✏︎</string>
+    <string name="tag_filtering_threshhold_summary">✡︎□︎◆︎ ♍︎♋︎■︎ ⬧︎□︎♐︎⧫︎ ♐︎♓︎●︎⧫︎♏︎❒︎ ⧫︎♋︎♑︎⬧︎ ♌︎⍓︎ ♋︎♎︎♎︎♓︎■︎♑︎ ⧫︎♒︎♏︎❍︎ ⧫︎□︎ ⧫︎♒︎♏︎ 💣︎⍓︎ ❄︎♋︎♑︎⬧︎☜︎📭︎☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎ ◻︎♋︎♑︎♏︎ ⬥︎♓︎⧫︎♒︎ ♋︎ ■︎♏︎♑︎♋︎⧫︎♓︎❖︎♏︎ ⬥︎♏︎♓︎♑︎♒︎⧫︎📬︎ ✋︎♐︎ ♋︎ ♑︎♋︎●︎●︎♏︎❒︎⍓︎ ♒︎♋︎⬧︎ ⧫︎♋︎♑︎⬧︎ ⧫︎♒︎♋︎⧫︎ ♋︎♎︎♎︎ ◆︎◻︎ ⧫︎□︎ ⬥︎♏︎♓︎♑︎♒︎⧫︎ ♌︎♏︎●︎□︎⬥︎ ⧫︎♒︎♓︎⬧︎ ❖︎♋︎●︎◆︎♏︎📪︎ ♓︎⧫︎ ♓︎⬧︎ ♐︎♓︎●︎⧫︎♏︎❒︎♏︎♎︎ ♐︎❒︎□︎❍︎ ❖︎♓︎♏︎⬥︎📬︎ ❄︎♒︎♓︎⬧︎ ⧫︎♒︎❒︎♏︎⬧︎♒︎□︎●︎♎︎ ♍︎♋︎■︎ ♌︎♏︎ ⬧︎♏︎⧫︎ ♌︎♏︎⧫︎⬥︎♏︎♏︎■︎ 📫︎🖲︎🖲︎🖲︎🖲︎ ♋︎■︎♎︎ 📁︎📬︎ 👍︎◆︎❒︎❒︎♏︎■︎⧫︎●︎⍓︎🖳︎ 🕭︎📂︎👓︎♎︎</string>
+    <string name="tag_watching_threshhold">❄︎♋︎♑︎ 🕈︎♋︎⧫︎♍︎♒︎♓︎■︎♑︎ ❄︎♒︎❒︎♏︎⬧︎♒︎□︎●︎♎︎</string>
+    <string name="tag_watching_threshhold_error">💣︎◆︎⬧︎⧫︎ ♌︎♏︎ ♌︎♏︎⧫︎⬥︎♏︎♏︎■︎ 📁︎ ♋︎■︎♎︎ 🖲︎🖲︎🖲︎🖲︎✏︎</string>
+    <string name="tag_watching_threshhold_summary">☼︎♏︎♍︎♏︎■︎⧫︎●︎⍓︎ ◆︎◻︎●︎□︎♋︎♎︎♏︎♎︎ ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎ ⬥︎♓︎●︎●︎ ♌︎♏︎ ♓︎■︎♍︎●︎◆︎♎︎♏︎♎︎ □︎■︎ ⧫︎♒︎♏︎ ⬥︎♋︎⧫︎♍︎♒︎♏︎♎︎ ⬧︎♍︎❒︎♏︎♏︎■︎ ♓︎♐︎ ♓︎⧫︎ ♒︎♋︎⬧︎ ♋︎⧫︎ ●︎♏︎♋︎⬧︎⧫︎ □︎■︎♏︎ ⬥︎♋︎⧫︎♍︎♒︎♏︎♎︎ ⧫︎♋︎♑︎ ⬥︎♓︎⧫︎♒︎ ◻︎□︎⬧︎♓︎⧫︎♓︎❖︎♏︎ ⬥︎♏︎♓︎♑︎♒︎⧫︎📪︎ ♋︎■︎♎︎ ⧫︎♒︎♏︎ ⬧︎◆︎❍︎ □︎♐︎ ⬥︎♏︎♓︎♑︎♒︎⧫︎⬧︎ □︎■︎ ♓︎⧫︎⬧︎ ⬥︎♋︎⧫︎♍︎♒︎♏︎♎︎ ⧫︎♋︎♑︎⬧︎ ♋︎♎︎♎︎ ◆︎◻︎ ⧫︎□︎ ⧫︎♒︎♓︎⬧︎ ❖︎♋︎●︎◆︎♏︎ □︎❒︎ ♒︎♓︎♑︎♒︎♏︎❒︎📬︎ ❄︎♒︎♓︎⬧︎ ⧫︎♒︎❒︎♏︎⬧︎♒︎□︎●︎♎︎ ♍︎♋︎■︎ ♌︎♏︎ ⬧︎♏︎⧫︎ ♌︎♏︎⧫︎⬥︎♏︎♏︎■︎ 📁︎ ♋︎■︎♎︎ 🖲︎🖲︎🖲︎🖲︎📬︎ 👍︎◆︎❒︎❒︎♏︎■︎⧫︎●︎⍓︎🖳︎ 🕭︎📂︎👓︎♎︎</string>
+    <string name="language_filtering">☹︎♋︎■︎♑︎◆︎♋︎♑︎♏︎ ☞︎♓︎●︎⧫︎♏︎❒︎♓︎■︎♑︎</string>
+    <string name="language_filtering_summary">✋︎♐︎ ⍓︎□︎◆︎ ⬥︎♓︎⬧︎♒︎ ⧫︎□︎ ♒︎♓︎♎︎♏︎ ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎ ♓︎■︎ ♍︎♏︎❒︎⧫︎♋︎♓︎■︎ ●︎♋︎■︎♑︎◆︎♋︎♑︎♏︎⬧︎ ♐︎❒︎□︎❍︎ ⧫︎♒︎♏︎ ♑︎♋︎●︎●︎♏︎❒︎⍓︎ ●︎♓︎⬧︎⧫︎ ♋︎■︎♎︎ ⬧︎♏︎♋︎❒︎♍︎♒︎♏︎⬧︎📪︎ ⬧︎♏︎●︎♏︎♍︎⧫︎ ⧫︎♒︎♏︎❍︎ ♓︎■︎ ⧫︎♒︎♏︎ ♎︎♓︎♋︎●︎□︎♑︎ ⧫︎♒︎♋︎⧫︎ ⬥︎♓︎●︎●︎ ◻︎□︎◻︎◆︎◻︎📬︎</string>
+    <string name="frong_page_categories">☠︎□︎⧫︎♏︎ ⧫︎♒︎♋︎⧫︎ ❍︎♋︎⧫︎♍︎♒︎♓︎■︎♑︎ ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎ ⬥︎♓︎●︎●︎ ■︎♏︎❖︎♏︎❒︎ ♋︎◻︎◻︎♏︎♋︎❒︎ ❒︎♏︎♑︎♋︎❒︎♎︎●︎♏︎⬧︎⬧︎ □︎♐︎ ⍓︎□︎◆︎❒︎ ⬧︎♏︎♋︎❒︎♍︎♒︎ ❑︎◆︎♏︎❒︎⍓︎📬︎</string>
+    <string name="fromt_page_categories_summary">❄︎●︎♎︎❒︎ ♍︎♒︎♏︎♍︎🙵❍︎♋︎❒︎🙵♏︎♎︎ 🖬︎ ♏︎⌧︎♍︎●︎◆︎♎︎♏︎</string>
+    <string name="watched_list_default">🕈︎♋︎⧫︎♍︎♒︎♏︎♎︎ ☹︎♓︎⬧︎⧫︎ ☞︎♓︎●︎⧫︎♏︎❒︎ 👎︎♏︎♐︎♋︎◆︎●︎⧫︎ 💧︎⧫︎♋︎⧫︎♏︎</string>
+    <string name="watched_list_state_summary">🕈︎♒︎♏︎■︎ ♌︎❒︎□︎⬥︎⬧︎♓︎■︎♑︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎📭︎☜︎📫︎☟︎♏︎■︎⧫︎♋︎♓︎ ⬧︎♒︎□︎◆︎●︎♎︎ ⧫︎♒︎♏︎ ⬥︎♋︎⧫︎♍︎♒︎♏︎♎︎ ●︎♓︎⬧︎⧫︎ ♐︎♓︎●︎⧫︎♏︎❒︎ ♌︎♏︎ ♏︎■︎♋︎♌︎●︎♏︎♎︎ ♌︎⍓︎ ♎︎♏︎♐︎♋︎◆︎●︎⧫︎</string>
+    <string name="eh_image_quality_summary">❄︎♒︎♏︎ ❑︎◆︎♋︎●︎♓︎⧫︎⍓︎ □︎♐︎ ⧫︎♒︎♏︎ ♎︎□︎⬥︎■︎●︎□︎♋︎♎︎♏︎♎︎ ♓︎❍︎♋︎♑︎♏︎⬧︎</string>
+    <string name="eh_image_quality">✋︎❍︎♋︎♑︎♏︎ ❑︎◆︎♋︎●︎♓︎⧫︎⍓︎</string>
+    <string name="eh_image_quality_auto">✌︎◆︎⧫︎□︎</string>
+    <string name="eh_image_quality_2400">📄︎🗐︎📁︎📁︎⌧︎</string>
+    <string name="eh_image_quality_1600">📂︎⌛︎📁︎📁︎⌧︎</string>
+    <string name="eh_image_quality_1280">📂︎📄︎🖰︎📁︎⌧︎</string>
+    <string name="eh_image_quality_980">🖲︎🖰︎📁︎⌧︎</string>
+    <string name="eh_image_quality_780">🖮︎🖰︎📁︎⌧︎</string>
+    <string name="pref_enhanced_e_hentai_view">☜︎■︎♒︎♋︎■︎♍︎♏︎♎︎ ☜︎📭︎☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎ ♌︎❒︎□︎⬥︎⬧︎♏︎</string>
+    <string name="pref_enhanced_e_hentai_view_summary">☜︎■︎♋︎♌︎●︎♏︎📭︎👎︎♓︎⬧︎♋︎♌︎●︎♏︎ ⧫︎♒︎♏︎ ♏︎■︎♒︎♋︎■︎♍︎♏︎♎︎ ♌︎❒︎□︎⬥︎⬧︎♏︎ ❍︎♏︎■︎◆︎ ❍︎♋︎♎︎♏︎ ♐︎□︎❒︎ ☜︎📭︎☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎</string>
+    <string name="favorites_sync">☜︎📫︎☟︎♏︎■︎⧫︎♋︎♓︎ ☞︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ⬧︎⍓︎■︎♍︎</string>
+    <string name="disable_favorites_uploading">👎︎♓︎⬧︎♋︎♌︎●︎♏︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ◆︎◻︎●︎□︎♋︎♎︎♓︎■︎♑︎</string>
+    <string name="disable_favorites_uploading_summary">☞︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ♋︎❒︎♏︎ □︎■︎●︎⍓︎ ♎︎□︎⬥︎■︎●︎□︎♋︎♎︎♏︎♎︎ ♐︎❒︎□︎❍︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎📬︎ ✌︎■︎⍓︎ ♍︎♒︎♋︎■︎♑︎♏︎⬧︎ ⧫︎□︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ♓︎■︎ ⧫︎♒︎♏︎ ♋︎◻︎◻︎ ⬥︎♓︎●︎●︎ ■︎□︎⧫︎ ♌︎♏︎ ◆︎◻︎●︎□︎♋︎♎︎♏︎♎︎📬︎ 🏱︎❒︎♏︎❖︎♏︎■︎⧫︎⬧︎ ♋︎♍︎♍︎♓︎♎︎♏︎■︎⧫︎♋︎●︎ ●︎□︎⬧︎⬧︎ □︎♐︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ □︎■︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎📬︎ ☠︎□︎⧫︎♏︎ ⧫︎♒︎♋︎⧫︎ ❒︎♏︎❍︎□︎❖︎♋︎●︎⬧︎ ⬥︎♓︎●︎●︎ ⬧︎⧫︎♓︎●︎●︎ ♌︎♏︎ ♎︎□︎⬥︎■︎●︎□︎♋︎♎︎♏︎♎︎ 🕿︎♓︎♐︎ ⍓︎□︎◆︎ ❒︎♏︎❍︎□︎❖︎♏︎ ♋︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ □︎■︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎📪︎ ♓︎⧫︎ ⬥︎♓︎●︎●︎ ♌︎♏︎ ❒︎♏︎❍︎□︎❖︎♏︎♎︎ ♓︎■︎ ⧫︎♒︎♏︎ ♋︎◻︎◻︎ ♋︎⬧︎ ⬥︎♏︎●︎●︎✆︎📬︎</string>
+    <string name="show_favorite_sync_notes">💧︎♒︎□︎⬥︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ⬧︎⍓︎■︎♍︎ ■︎□︎⧫︎♏︎⬧︎</string>
+    <string name="show_favorite_sync_notes_summary">💧︎♒︎□︎⬥︎ ⬧︎□︎❍︎♏︎ ♓︎■︎♐︎□︎❒︎❍︎♋︎⧫︎♓︎□︎■︎ ❒︎♏︎♑︎♋︎❒︎♎︎♓︎■︎♑︎ ⧫︎♒︎♏︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ⬧︎⍓︎■︎♍︎ ♐︎♏︎♋︎⧫︎◆︎❒︎♏︎</string>
+    <string name="ignore_sync_errors">✋︎♑︎■︎□︎❒︎♏︎ ⬧︎⍓︎■︎♍︎ ♏︎❒︎❒︎□︎❒︎⬧︎ ⬥︎♒︎♏︎■︎ ◻︎□︎⬧︎⬧︎♓︎♌︎●︎♏︎</string>
+    <string name="ignore_sync_errors_summary">👎︎□︎ ■︎□︎⧫︎ ♋︎♌︎□︎❒︎⧫︎ ♓︎❍︎❍︎♏︎♎︎♓︎♋︎⧫︎♏︎●︎⍓︎ ⬥︎♒︎♏︎■︎ ♏︎■︎♍︎□︎◆︎■︎⧫︎♏︎❒︎♓︎■︎♑︎ ♏︎❒︎❒︎□︎❒︎⬧︎ ♎︎◆︎❒︎♓︎■︎♑︎ ⧫︎♒︎♏︎ ⬧︎⍓︎■︎♍︎ ◻︎❒︎□︎♍︎♏︎⬧︎⬧︎📬︎ ☜︎❒︎❒︎□︎❒︎⬧︎ ⬥︎♓︎●︎●︎ ⬧︎⧫︎♓︎●︎●︎ ♌︎♏︎ ♎︎♓︎⬧︎◻︎●︎♋︎⍓︎♏︎♎︎ ⬥︎♒︎♏︎■︎ ⧫︎♒︎♏︎ ⬧︎⍓︎■︎♍︎ ♓︎⬧︎ ♍︎□︎❍︎◻︎●︎♏︎⧫︎♏︎📬︎ 👍︎♋︎■︎ ♍︎♋︎◆︎⬧︎♏︎ ●︎□︎⬧︎⬧︎ □︎♐︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ♓︎■︎ ⬧︎□︎❍︎♏︎ ♍︎♋︎⬧︎♏︎⬧︎📬︎ 🕆︎⬧︎♏︎♐︎◆︎●︎ ⬥︎♒︎♏︎■︎ ⬧︎⍓︎■︎♍︎♓︎■︎♑︎ ●︎♋︎❒︎♑︎♏︎ ●︎♓︎♌︎❒︎♋︎❒︎♓︎♏︎⬧︎📬︎</string>
+    <string name="force_sync_state_reset">☞︎□︎❒︎♍︎♏︎ ⬧︎⍓︎■︎♍︎ ⬧︎⧫︎♋︎⧫︎♏︎ ❒︎♏︎⬧︎♏︎⧫︎</string>
+    <string name="force_sync_state_reset_summary">🏱︎♏︎❒︎♐︎□︎❒︎❍︎⬧︎ ♋︎ ♐︎◆︎●︎●︎ ❒︎♏︎⬧︎⍓︎■︎♍︎♒︎❒︎□︎■︎♓︎⌘︎♋︎⧫︎♓︎□︎■︎ □︎■︎ ⧫︎♒︎♏︎ ■︎♏︎⌧︎⧫︎ ⬧︎⍓︎■︎♍︎📬︎ ☼︎♏︎❍︎□︎❖︎♋︎●︎⬧︎ ⬥︎♓︎●︎●︎ ■︎□︎⧫︎ ♌︎♏︎ ⬧︎⍓︎■︎♍︎♏︎♎︎📬︎ ✌︎●︎●︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ ♓︎■︎ ⧫︎♒︎♏︎ ♋︎◻︎◻︎ ⬥︎♓︎●︎●︎ ♌︎♏︎ ❒︎♏︎📫︎◆︎◻︎●︎□︎♋︎♎︎♏︎♎︎ ⧫︎□︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎ ♋︎■︎♎︎ ♋︎●︎●︎ ♐︎♋︎❖︎□︎❒︎♓︎⧫︎♏︎⬧︎ □︎■︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎ ⬥︎♓︎●︎●︎ ♌︎♏︎ ❒︎♏︎📫︎♎︎□︎⬥︎■︎●︎□︎♋︎♎︎♏︎♎︎ ♓︎■︎⧫︎□︎ ⧫︎♒︎♏︎ ♋︎◻︎◻︎📬︎ 🕆︎⬧︎♏︎♐︎◆︎●︎ ♐︎□︎❒︎ ❒︎♏︎◻︎♋︎♓︎❒︎♓︎■︎♑︎ ⬧︎⍓︎■︎♍︎ ♋︎♐︎⧫︎♏︎❒︎ ⬧︎⍓︎■︎♍︎ ♒︎♋︎⬧︎ ♌︎♏︎♏︎■︎ ♓︎■︎⧫︎♏︎❒︎❒︎◆︎◻︎⧫︎♏︎♎︎📬︎</string>
+    <string name="sync_state_reset">💧︎⍓︎■︎♍︎ ⬧︎⧫︎♋︎⧫︎♏︎ ❒︎♏︎⬧︎♏︎⧫︎</string>
+    <string name="gallery_update_checker">☝︎♋︎●︎●︎♏︎❒︎⍓︎ ◆︎◻︎♎︎♋︎⧫︎♏︎ ♍︎♒︎♏︎♍︎🙵♏︎❒︎</string>
+    <string name="auto_update_restrictions">✌︎◆︎⧫︎□︎ ◆︎◻︎♎︎♋︎⧫︎♏︎ ❒︎♏︎⬧︎⧫︎❒︎♓︎♍︎⧫︎♓︎□︎■︎⬧︎</string>
+    <string name="time_between_batches">❄︎♓︎❍︎♏︎ ♌︎♏︎⧫︎⬥︎♏︎♏︎■︎ ◆︎◻︎♎︎♋︎⧫︎♏︎ ♌︎♋︎⧫︎♍︎♒︎♏︎⬧︎</string>
+    <string name="time_between_batches_never">☠︎♏︎❖︎♏︎❒︎ ◆︎◻︎♎︎♋︎⧫︎♏︎ ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎</string>
+    <string name="time_between_batches_1_hour">📂︎ ♒︎□︎◆︎❒︎</string>
+    <string name="time_between_batches_2_hours">📄︎ ♒︎□︎◆︎❒︎⬧︎</string>
+    <string name="time_between_batches_3_hours">🗏︎ ♒︎□︎◆︎❒︎⬧︎</string>
+    <string name="time_between_batches_6_hours">⌛︎ ♒︎□︎◆︎❒︎⬧︎</string>
+    <string name="time_between_batches_12_hours">📂︎📄︎ ♒︎□︎◆︎❒︎⬧︎</string>
+    <string name="time_between_batches_24_hours">📄︎🗐︎ ♒︎□︎◆︎❒︎⬧︎</string>
+    <string name="time_between_batches_48_hours">🗐︎🖰︎ ♒︎□︎◆︎❒︎⬧︎</string>
+    <string name="time_between_batches_summary_1">🕭︎📂︎👓︎⬧︎ ⬥︎♓︎●︎●︎ ♍︎◆︎❒︎❒︎♏︎■︎⧫︎●︎⍓︎ ■︎♏︎❖︎♏︎❒︎ ♍︎♒︎♏︎♍︎🙵 ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎ ♓︎■︎ ⍓︎□︎◆︎❒︎ ●︎♓︎♌︎❒︎♋︎❒︎⍓︎ ♐︎□︎❒︎ ◆︎◻︎♎︎♋︎⧫︎♏︎⬧︎📬︎</string>
+    <string name="time_between_batches_summary_2">🕭︎📂︎👓︎⬧︎ ♍︎♒︎♏︎♍︎🙵⬧︎📭︎◆︎◻︎♎︎♋︎⧫︎♏︎⬧︎ ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎ ♓︎■︎ ♌︎♋︎⧫︎♍︎♒︎♏︎⬧︎📬︎ ❄︎♒︎♓︎⬧︎ ❍︎♏︎♋︎■︎⬧︎ ♓︎⧫︎ ⬥︎♓︎●︎●︎ ⬥︎♋︎♓︎⧫︎ 🕭︎📄︎👓︎♎︎ ♒︎□︎◆︎❒︎🕿︎⬧︎✆︎📪︎ ♍︎♒︎♏︎♍︎🙵 🕭︎🗏︎👓︎♎︎ ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎📪︎ ⬥︎♋︎♓︎⧫︎ 🕭︎📄︎👓︎♎︎ ♒︎□︎◆︎❒︎🕿︎⬧︎✆︎📪︎ ♍︎♒︎♏︎♍︎🙵 🕭︎🗏︎👓︎♎︎ ♋︎■︎♎︎ ⬧︎□︎ □︎■︎⑤︎</string>
+    <string name="show_updater_statistics">💧︎♒︎□︎⬥︎ ◆︎◻︎♎︎♋︎⧫︎♏︎❒︎ ⬧︎⧫︎♋︎⧫︎♓︎⬧︎⧫︎♓︎♍︎⬧︎</string>
+    <string name="gallery_updater_statistics_collection">👍︎□︎●︎●︎♏︎♍︎⧫︎♓︎■︎♑︎ ⬧︎⧫︎♋︎⧫︎♓︎⬧︎⧫︎♓︎♍︎⬧︎⑤︎</string>
+    <string name="gallery_updater_statistics">☝︎♋︎●︎●︎♏︎❒︎⍓︎ ◆︎◻︎♎︎♋︎⧫︎♏︎❒︎ ⬧︎⧫︎♋︎⧫︎♓︎⬧︎⧫︎♓︎♍︎⬧︎</string>
+    <string name="gallery_updater_stats_text">❄︎♒︎♏︎ ◆︎◻︎♎︎♋︎⧫︎♏︎❒︎ ●︎♋︎⬧︎⧫︎ ❒︎♋︎■︎ 🕭︎📂︎👓︎⬧︎📪︎ ♋︎■︎♎︎ ♍︎♒︎♏︎♍︎🙵♏︎♎︎ 🕭︎📄︎👓︎♎︎ □︎◆︎⧫︎ □︎♐︎ ⧫︎♒︎♏︎ 🕭︎🗏︎👓︎♎︎ ♑︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎ ⧫︎♒︎♋︎⧫︎ ⬥︎♏︎❒︎♏︎ ❒︎♏︎♋︎♎︎⍓︎ ♐︎□︎❒︎ ♍︎♒︎♏︎♍︎🙵♓︎■︎♑︎📬︎</string>
+    <string name="gallery_updater_not_ran_yet">❄︎♒︎♏︎ ◆︎◻︎♎︎♋︎⧫︎♏︎❒︎ ♒︎♋︎⬧︎ ■︎□︎⧫︎ ❒︎♋︎■︎ ⍓︎♏︎⧫︎📬︎</string>
 
     <!-- EH Settings Upload Dialogs -->
-    <string name="settings_profile_note">Settings profile note</string>
-    <string name="settings_profile_note_message">The app will now add a new settings profile on E-Hentai and ExHentai to optimize app performance. Please ensure that you have less than three profiles on both sites.\n\nIf you have no idea what settings profiles are, then it probably doesn\'t matter, just hit \'OK\'.</string>
-    <string name="eh_settings_successfully_uploaded">Settings successfully uploaded!</string>
-    <string name="eh_settings_configuration_failed">Configuration failed!</string>
-    <string name="eh_settings_configuration_failed_message">An error occurred during the configuration process: %1$s</string>
-    <string name="eh_settings_uploading_to_server">Uploading settings to server</string>
-    <string name="eh_settings_uploading_to_server_message">Please wait, this may take some time…</string>
-    <string name="eh_settings_out_of_slots_error">You are out of profile slots on %1$s, please delete a profile!</string>
+    <string name="settings_profile_note">☝︎♋︎●︎●︎♏︎❒︎♓︎♏︎⬧︎ ⧫︎♒︎♋︎⧫︎ ⬥︎♏︎❒︎♏︎ ♍︎♒︎♏︎♍︎🙵♏︎♎︎ ♓︎■︎ ⧫︎♒︎♏︎ ●︎♋︎⬧︎⧫︎🖳︎</string>
+    <string name="settings_profile_note_message">📫︎ ♒︎□︎◆︎❒︎🖳︎ 🕭︎📂︎👓︎♎︎</string>
+    <string name="eh_settings_successfully_uploaded">📫︎ ⌛︎ ♒︎□︎◆︎❒︎⬧︎🖳︎ 🕭︎📄︎👓︎♎︎</string>
+    <string name="eh_settings_configuration_failed">📫︎ 📂︎📄︎ ♒︎□︎◆︎❒︎⬧︎🖳︎ 🕭︎🗏︎👓︎♎︎</string>
+    <string name="eh_settings_configuration_failed_message">📫︎ ♎︎♋︎⍓︎🖳︎ 🕭︎🗐︎👓︎♎︎</string>
+    <string name="eh_settings_uploading_to_server">📫︎ 📄︎ ♎︎♋︎⍓︎⬧︎🖳︎ 🕭︎🗄︎👓︎♎︎</string>
+    <string name="eh_settings_uploading_to_server_message">📫︎ ⬥︎♏︎♏︎🙵🖳︎ 🕭︎⌛︎👓︎♎︎</string>
+    <string name="eh_settings_out_of_slots_error">📫︎ ❍︎□︎■︎⧫︎♒︎🖳︎ 🕭︎🖮︎👓︎♎︎</string>
 
     <!-- EH Settings Login Activity -->
-    <string name="recheck_login_status">Recheck login status</string>
-    <string name="alternative_login_page">Alternative login page</string>
-    <string name="skip_page_restyling">Skip page restyling</string>
-    <string name="custom_igneous_cookie">Custom igneous cookie</string>
-    <string name="custom_igneous_cookie_message">Some users cannot access ExHentai the normal way, and have to pass in a specific igneous cookie value, this option is for those users.</string>
+    <string name="recheck_login_status">📫︎ ⍓︎♏︎♋︎❒︎🖳︎ 🕭︎🖰︎👓︎♎︎</string>
+    <string name="alternative_login_page">✌︎●︎⧫︎♏︎❒︎■︎♋︎⧫︎♓︎❖︎♏︎ ●︎□︎♑︎♓︎■︎ ◻︎♋︎♑︎♏︎</string>
+    <string name="skip_page_restyling">💧︎🙵♓︎◻︎ ◻︎♋︎♑︎♏︎ ❒︎♏︎⬧︎⧫︎⍓︎●︎♓︎■︎♑︎</string>
+    <string name="custom_igneous_cookie">👍︎◆︎⬧︎⧫︎□︎❍︎ ♓︎♑︎■︎♏︎□︎◆︎⬧︎ ♍︎□︎□︎🙵♓︎♏︎</string>
+    <string name="custom_igneous_cookie_message">💧︎□︎❍︎♏︎ ◆︎⬧︎♏︎❒︎⬧︎ ♍︎♋︎■︎■︎□︎⧫︎ ♋︎♍︎♍︎♏︎⬧︎⬧︎ ☜︎⌧︎☟︎♏︎■︎⧫︎♋︎♓︎ ⧫︎♒︎♏︎ ■︎□︎❒︎❍︎♋︎●︎ ⬥︎♋︎⍓︎📪︎ ♋︎■︎♎︎ ♒︎♋︎❖︎♏︎ ⧫︎□︎ ◻︎♋︎⬧︎⬧︎ ♓︎■︎ ♋︎ ⬧︎◻︎♏︎♍︎♓︎♐︎♓︎♍︎ ♓︎♑︎■︎♏︎□︎◆︎⬧︎ ♍︎□︎□︎🙵♓︎♏︎ ❖︎♋︎●︎◆︎♏︎📪︎ ⧫︎♒︎♓︎⬧︎ □︎◻︎⧫︎♓︎□︎■︎ ♓︎⬧︎ ♐︎□︎❒︎ ⧫︎♒︎□︎⬧︎♏︎ ◆︎⬧︎♏︎❒︎⬧︎📬︎</string>
 
     <!-- Advanced Settings -->
-    <string name="developer_tools">Developer tools</string>
-    <string name="toggle_hentai_features">Enable integrated hentai features</string>
-    <string name="toggle_hentai_features_summary">This is a experimental feature that will disable all hentai features if toggled off</string>
-    <string name="toggle_delegated_sources">Enable delegated sources</string>
-    <string name="toggle_delegated_sources_summary">Apply %1$s enhancements to the following sources if they are installed: %2$s</string>
-    <string name="log_level">Log level</string>
-    <string name="log_level_summary">Changing this can impact app performance. Force-restart app after changing. Current value: %s</string>
-    <string name="enable_source_blacklist">Enable source blacklist</string>
-    <string name="enable_source_blacklist_summary">Hide extensions/sources that are incompatible with %1$s. Force-restart app after changing.</string>
-    <string name="open_debug_menu">Open debug menu</string>
-    <string name="open_debug_menu_summary"><![CDATA[DO NOT TOUCH THIS MENU UNLESS YOU KNOW WHAT YOU ARE DOING! <font color=\'red\'>IT CAN CORRUPT YOUR LIBRARY!</font>]]></string>
-    <string name="starting_cleanup">Starting cleanup</string>
-    <string name="clean_up_downloaded_chapters">Clean up downloaded chapters</string>
+    <string name="developer_tools">👎︎♏︎❖︎♏︎●︎□︎◻︎♏︎❒︎ ⧫︎□︎□︎●︎⬧︎</string>
+    <string name="toggle_hentai_features">☜︎■︎♋︎♌︎●︎♏︎ ♓︎■︎⧫︎♏︎♑︎❒︎♋︎⧫︎♏︎♎︎ ♒︎♏︎■︎⧫︎♋︎♓︎ ♐︎♏︎♋︎⧫︎◆︎❒︎♏︎⬧︎</string>
+    <string name="toggle_hentai_features_summary">❄︎♒︎♓︎⬧︎ ♓︎⬧︎ ♋︎ ♏︎⌧︎◻︎♏︎❒︎♓︎❍︎♏︎■︎⧫︎♋︎●︎ ♐︎♏︎♋︎⧫︎◆︎❒︎♏︎ ⧫︎♒︎♋︎⧫︎ ⬥︎♓︎●︎●︎ ♎︎♓︎⬧︎♋︎♌︎●︎♏︎ ♋︎●︎●︎ ♒︎♏︎■︎⧫︎♋︎♓︎ ♐︎♏︎♋︎⧫︎◆︎❒︎♏︎⬧︎ ♓︎♐︎ ⧫︎□︎♑︎♑︎●︎♏︎♎︎ □︎♐︎♐︎</string>
+    <string name="toggle_delegated_sources">☜︎■︎♋︎♌︎●︎♏︎ ♎︎♏︎●︎♏︎♑︎♋︎⧫︎♏︎♎︎ ⬧︎□︎◆︎❒︎♍︎♏︎⬧︎</string>
+    <string name="toggle_delegated_sources_summary">✌︎◻︎◻︎●︎⍓︎ 🕭︎📂︎👓︎⬧︎ ♏︎■︎♒︎♋︎■︎♍︎♏︎❍︎♏︎■︎⧫︎⬧︎ ⧫︎□︎ ⧫︎♒︎♏︎ ♐︎□︎●︎●︎□︎⬥︎♓︎■︎♑︎ ⬧︎□︎◆︎❒︎♍︎♏︎⬧︎ ♓︎♐︎ ⧫︎♒︎♏︎⍓︎ ♋︎❒︎♏︎ ♓︎■︎⬧︎⧫︎♋︎●︎●︎♏︎♎︎🖳︎ 🕭︎📄︎👓︎⬧︎</string>
+    <string name="log_level">☹︎□︎♑︎ ●︎♏︎❖︎♏︎●︎</string>
+    <string name="log_level_summary">👍︎♒︎♋︎■︎♑︎♓︎■︎♑︎ ⧫︎♒︎♓︎⬧︎ ♍︎♋︎■︎ ♓︎❍︎◻︎♋︎♍︎⧫︎ ♋︎◻︎◻︎ ◻︎♏︎❒︎♐︎□︎❒︎❍︎♋︎■︎♍︎♏︎📬︎ ☞︎□︎❒︎♍︎♏︎📫︎❒︎♏︎⬧︎⧫︎♋︎❒︎⧫︎ ♋︎◻︎◻︎ ♋︎♐︎⧫︎♏︎❒︎ ♍︎♒︎♋︎■︎♑︎♓︎■︎♑︎📬︎ 👍︎◆︎❒︎❒︎♏︎■︎⧫︎ ❖︎♋︎●︎◆︎♏︎🖳︎ 🕭︎⬧︎</string>
+    <string name="enable_source_blacklist">☜︎■︎♋︎♌︎●︎♏︎ ⬧︎□︎◆︎❒︎♍︎♏︎ ♌︎●︎♋︎♍︎🙵●︎♓︎⬧︎⧫︎</string>
+    <string name="enable_source_blacklist_summary">☟︎♓︎♎︎♏︎ ♏︎⌧︎⧫︎♏︎■︎⬧︎♓︎□︎■︎⬧︎📭︎⬧︎□︎◆︎❒︎♍︎♏︎⬧︎ ⧫︎♒︎♋︎⧫︎ ♋︎❒︎♏︎ ♓︎■︎♍︎□︎❍︎◻︎♋︎⧫︎♓︎♌︎●︎♏︎ ⬥︎♓︎⧫︎♒︎ 🕭︎📂︎👓︎⬧︎📬︎ ☞︎□︎❒︎♍︎♏︎📫︎❒︎♏︎⬧︎⧫︎♋︎❒︎⧫︎ ♋︎◻︎◻︎ ♋︎♐︎⧫︎♏︎❒︎ ♍︎♒︎♋︎■︎♑︎♓︎■︎♑︎📬︎</string>
+    <string name="open_debug_menu">⚐︎◻︎♏︎■︎ ♎︎♏︎♌︎◆︎♑︎ ❍︎♏︎■︎◆︎</string>
+    <string name="open_debug_menu_summary">🖫︎✏︎☯︎👍︎👎︎✌︎❄︎✌︎☯︎👎︎⚐︎ ☠︎⚐︎❄︎ ❄︎⚐︎🕆︎👍︎☟︎ ❄︎☟︎✋︎💧︎ 💣︎☜︎☠︎🕆︎ 🕆︎☠︎☹︎☜︎💧︎💧︎ ✡︎⚐︎🕆︎ 😐︎☠︎⚐︎🕈︎ 🕈︎☟︎✌︎❄︎ ✡︎⚐︎🕆︎ ✌︎☼︎☜︎ 👎︎⚐︎✋︎☠︎☝︎✏︎ 🖫︎♐︎□︎■︎⧫︎ ♍︎□︎●︎□︎❒︎🖬︎ॐ︎🕯︎❒︎♏︎♎︎ॐ︎🕯︎✇︎✋︎❄︎ 👍︎✌︎☠︎ 👍︎⚐︎☼︎☼︎🕆︎🏱︎❄︎ ✡︎⚐︎🕆︎☼︎ ☹︎✋︎👌︎☼︎✌︎☼︎✡︎✏︎🖫︎📭︎♐︎□︎■︎⧫︎✇︎☸︎☸︎✇︎</string>
+    <string name="starting_cleanup">💧︎⧫︎♋︎❒︎⧫︎♓︎■︎♑︎ ♍︎●︎♏︎♋︎■︎◆︎◻︎</string>
+    <string name="clean_up_downloaded_chapters">👍︎●︎♏︎♋︎■︎ ◆︎◻︎ ♎︎□︎⬥︎■︎●︎□︎♋︎♎︎♏︎♎︎ ♍︎♒︎♋︎◻︎⧫︎♏︎❒︎⬧︎</string>
     <string name="delete_unused_chapters">Delete non-existent, partially downloaded, and read chapter folders</string>
     <string name="no_folders_to_cleanup">No folders to cleanup</string>
     <string name="clean_orphaned_downloads">Clean orphaned</string>
@@ -171,6 +170,7 @@
 
     <!-- General Settings -->
     <string name="theme_pure_red">Pure Red</string>
+    <string name="theme_pain">Pain</string>
     <string name="toggle_expand_search_filters">Expand all search filters by default</string>
     <string name="auto_solve_captchas">Automatically solve captcha</string>
     <string name="auto_solve_captchas_summary">Use HIGHLY EXPERIMENTAL automatic ReCAPTCHA solver. Will be grayed out if unsupported by your device.</string>

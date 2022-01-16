@@ -20,4 +20,21 @@
         <item name="android:textColorHint">@color/dark_red</item>
     </style>
 
+    <!--== Pain theme ==-->
+    <style name="Theme.Tachiyomi.Pain">
+        <!-- Theme colors -->
+        <item name="colorPrimary">@color/pain</item>
+        <item name="colorTertiary">@color/painal</item>
+        <item name="colorControlHighlight">@color/painful_anal</item>
+
+        <item name="colorOnPrimary">@color/painful_anal_sex</item>
+        <item name="colorOnTertiary">@color/painful_anal_sex</item>
+        <item name="colorOnSurface">@color/painful_anal_sex</item>
+
+        <item name="android:textColor">@color/painful_anal_sex</item>
+        <item name="android:textColorPrimary">@color/painful_anal_sex</item>
+        <item name="android:textColorSecondary">@color/painful_anal_sex</item>
+        <item name="android:textColorHint">@color/painful_anal_sex</item>
+    </style>
+
 </resources>

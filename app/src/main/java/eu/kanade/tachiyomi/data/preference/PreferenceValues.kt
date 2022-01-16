@@ -29,7 +29,8 @@ object PreferenceValues {
         MIDNIGHT_DUSK(R.string.theme_midnightdusk),
         STRAWBERRY_DAIQUIRI(R.string.theme_strawberrydaiquiri),
         YOTSUBA(R.string.theme_yotsuba),
-        PURE_RED(R.string.theme_pure_red)
+        PURE_RED(R.string.theme_pure_red),
+        PAIN(R.string.theme_pain)
     }
 
     enum class TappingInvertMode(val shouldInvertHorizontal: Boolean = false, val shouldInvertVertical: Boolean = false) {

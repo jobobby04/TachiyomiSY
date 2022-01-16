@@ -59,6 +59,9 @@ abstract class BaseThemedActivity : AppCompatActivity() {
                 PreferenceValues.AppTheme.PURE_RED -> {
                     resIds += R.style.Theme_Tachiyomi_PureRed
                 }
+                PreferenceValues.AppTheme.PAIN -> {
+                    resIds += R.style.Theme_Tachiyomi_Pain
+                }
             }
 
             if (preferences.themeDarkAmoled().get()) {
