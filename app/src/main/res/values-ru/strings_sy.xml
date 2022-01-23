@@ -176,8 +176,8 @@
 
     <!-- Appearance Settings -->
     <string name="pref_category_navbar">Панель навигации</string>
-    <string name="pref_hide_updates_button">Вкладка «Обновления» на панеле навигации</string>
-    <string name="pref_hide_history_button">Вкладка «История» на панеле навигации</string>
+    <string name="pref_hide_updates_button">Вкладка «Обновления» на панели навигации</string>
+    <string name="pref_hide_history_button">Вкладка «История» на панели навигации</string>
     <string name="pref_show_bottom_bar_labels">Названия вкладок на панели навигации</string>
 
     <!-- Library settings -->
@@ -196,7 +196,7 @@
     <string name="pref_source_source_filtering">Фильтровать источники по категориям</string>
     <string name="pref_source_source_filtering_summery">Фильтровать источники которые находятся в категориях, чтобы источники которые находятся в категориях, не попадали под языковую фильтрацию</string>
     <string name="pref_source_navigation">Убрать кнопку (Последняя)</string>
-    <string name="pref_source_navigation_summery">Убирает кнопку «Последняя» возле источников, взамен, при нажатии на источник, внутри показываются вкладки «Последняя» и «Поисковик»</string>
+    <string name="pref_source_navigation_summery">Убирает кнопку «Последняя» возле источников, взамен, при нажатии на источник отображаются вкладки «Последняя» и «Поисковик»</string>
     <string name="pref_local_source_hidden_folders">Просмотр скрытых папок</string>
     <string name="pref_local_source_hidden_folders_summery">Личный источник может просматривать скрытые папки</string>
 
