@@ -11,9 +11,6 @@ plugins {
     kotlin("plugin.parcelize")
     kotlin("plugin.serialization")
     id("com.github.zellius.shortcut-helper")
-    // Realm (EH)
-    kotlin("kapt")
-    id("realm-android")
 }
 
 if (!gradle.startParameter.taskRequests.toString().contains("Debug")) {
@@ -32,7 +29,7 @@ android {
         applicationId = "eu.kanade.tachiyomi.sy"
         minSdk = AndroidConfig.minSdk
         targetSdk = AndroidConfig.targetSdk
-        versionCode = 23
+        versionCode = 24
         versionName = "1.7.0"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
@@ -280,7 +277,7 @@ dependencies {
 
     // Firebase (EH)
     implementation("com.google.firebase:firebase-analytics-ktx:20.0.2")
-    implementation("com.google.firebase:firebase-crashlytics-ktx:18.2.6")
+    implementation("com.google.firebase:firebase-crashlytics-ktx:18.2.7")
 
     // Better logging (EH)
     implementation("com.elvishew:xlog:1.11.0")
