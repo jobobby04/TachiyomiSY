@@ -736,4 +736,20 @@
         <item quantity="other">%1$d секунд назад</item>
     </plurals>
     <string name="humanize_fallback">мгновение назад</string>
+    <!-- unknown string (external forks string) -->
+    <string name="update_3hour">Каждые 3 часа</string>
+
+    <string name="banner">Индикаторы</string>
+    <string name="pref_hide_banners">Скрыть баннеры</string>
+    <string name="pref_hide_banners_summary">Скрывает баннеры индикации «Только загруженные главы» и «Режим инкогнито»</string>
+
+    <string name="history_download_shortcut">Используйте вкладку «История» для быстрого доступа к загрузкам</string>
+    <string name="recents_shortcut">"Длительное нажатие по вкладкам"</string>
+    <string name="recents_shortcut_summary">Длительное нажатие на Обновления/История, чтобы открыть История/Обновления, когда одна из них скрыта</string>
+
+    <string name="pref_downloaded_only_off">Режим «Только загруженные главы» выключен</string>
+    <string name="pref_incognito_mode_off">Режим инкогнито выключен</string>
+
+
 </resources>
+
