@@ -115,14 +115,21 @@ class BrowseController :
     private inner class BrowseAdapter : RouterPagerAdapter(this@BrowseController) {
 
         // SY -->
+
         private val tabTitles = (
-            if (preferences.latestTabInFront().get()) {
+            if (preferences.latestTabInFront().get() && !preferences.hideLatest().get()) {
                 listOf(
                     R.string.latest,
                     R.string.label_sources,
                     R.string.label_extensions,
                     R.string.label_migration
 
+                )
+            } else if (preferences.hideLatest().get()) {
+                listOf(
+                    R.string.label_sources,
+                    R.string.label_extensions,
+                    R.string.label_migration
                 )
             } else {
                 listOf(

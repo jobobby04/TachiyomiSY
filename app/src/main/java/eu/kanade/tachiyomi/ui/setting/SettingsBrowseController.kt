@@ -62,9 +62,15 @@ class SettingsBrowseController : SettingsController() {
             titleRes = R.string.latest
 
             switchPreference {
+                bindTo(preferences.hideLatest())
+                titleRes = R.string.pref_hide_latest
+            }
+
+            switchPreference {
                 bindTo(preferences.latestTabInFront())
                 titleRes = R.string.pref_latest_position
                 summaryRes = R.string.pref_latest_position_summery
+                visibleIf(preferences.hideLatest()) { !it }
             }
         }
         // SY <--
