@@ -561,28 +561,23 @@
     <string name="cover_image_file_type">转换图像类型</string>
     <string name="thumbnail_image_file_type">缓存图像类型</string>
     <string name="scanlator">扫描仪</string>
-    <string name="url">Url</string>
-    <string name="alt_titles">Alt titles</string>
-    <string name="uploader_capital">Uploader Capitalized</string>
-    <string name="uploader">Uploader</string>
-    <string name="rating_string">Rating string</string>
-    <string name="collection">Collection</string>
+    <string name="alt_titles">其他标题</string>
+    <string name="uploader_capital">上传者名字</string>
+    <string name="uploader">上传者</string>
+    <string name="rating_string">评分字符串</string>
+    <string name="collection">集合</string>
     <string name="parodies">Parodies</string>
-    <string name="author">Author</string>
-    <string name="last_chapter_number">Last chapter number</string>
-    <string name="follow_status">Follow status</string>
-    <string name="anilist_id">Anilist id</string>
-    <string name="kitsu_id">Kitsu id</string>
-    <string name="mal_id">Mal id</string>
-    <string name="manga_updates_id">Manga updates id</string>
-    <string name="anime_planet_id">Anime planet id</string>
-    <string name="translated">Translated</string>
+    <string name="author">作者</string>
+    <string name="last_chapter_number">最后一章编号</string>
+    <string name="follow_status">关注状态</string>
+    <string name="manga_updates_id">Manga 更新 id</string>
+    <string name="translated">已翻译</string>
 
     <!-- Extra gallery info -->
     <plurals name="num_pages">
         <item quantity="other">%1$d 页</item>
     </plurals>
-    <string name="is_visible">Visible: %1$s</string>
+    <string name="is_visible">可见：%1$s</string>
     <string name="language_translated">%1$s TR</string>
 
     <!-- Enhanced E/ExHentai Browse View -->
@@ -591,73 +586,72 @@
     </plurals>
 
     <!-- Merged manga -->
-    <string name="merge_settings">Merge settings</string>
-    <string name="fetch_chapter_updates">Fetch chapter updates</string>
-    <string name="delete_merged_manga">Are you sure?</string>
-    <string name="delete_merged_manga_desc">This will remove the manga from the merge, using this will also lose any unsaved changes applied to the merged manga</string>
-    <string name="chapter_updates_merged_manga">Toggle chapter updates</string>
-    <string name="chapter_updates_merged_manga_desc">Toggling this will disable or enable chapter updates for this merged manga</string>
-    <string name="download_merged_manga">Toggle new chapter downloads</string>
-    <string name="download_merged_manga_desc">Toggling this will disable or enable chapter downloads for this merged manga</string>
-    <string name="merged_references_invalid">Merged references invalid</string>
-    <string name="merged_chapter_updates_error">Toggle chapter updates error</string>
-    <string name="merged_references">Merged references</string>
-    <string name="merged_toggle_chapter_updates_find_error">Could not find manga to toggle chapter updates</string>
-    <string name="merged_toggle_download_chapters_error">Toggle download chapters error</string>
-    <string name="merged_toggle_download_chapters_find_error">Could not find manga to toggle chapter downloads</string>
-    <string name="allow_deduplication">Allow deduplication:</string>
-    <string name="deduplication_mode">Dedupe mode:</string>
-    <string name="manga_info_manga">Info manga:</string>
-    <string name="toggle_dedupe">Toggle dedupe</string>
-    <string name="refresh_merge">Refresh to get proper info</string>
-    <string name="no_dedupe">No dedupe</string>
-    <string name="dedupe_priority">Dedupe by priority</string>
-    <string name="dedupe_most_chapters">Show source with most chapters</string>
-    <string name="dedupe_highest_chapter">Show source with highest chapter number</string>
+    <string name="merge_settings">合并设置</string>
+    <string name="fetch_chapter_updates">获取章节更新</string>
+    <string name="delete_merged_manga">你确定吗？</string>
+    <string name="delete_merged_manga_desc">这将从合并中删除该漫画，使用这个方法会丢失任何应用于合并后的漫画的未保存的修改。</string>
+    <string name="chapter_updates_merged_manga">切换章节更新</string>
+    <string name="chapter_updates_merged_manga_desc">更改此项将禁用或启用该合并漫画的章节更新</string>
+    <string name="download_merged_manga">切换新章节下载</string>
+    <string name="download_merged_manga_desc">更改此项将禁用或启用此合并漫画的章节下载</string>
+    <string name="merged_references_invalid">合并后的引用无效</string>
+    <string name="merged_chapter_updates_error">切换章节更新错误</string>
+    <string name="merged_references">引用已合并</string>
+    <string name="merged_toggle_chapter_updates_find_error">找不到漫画，无法切换章节更新</string>
+    <string name="merged_toggle_download_chapters_error">切换下载章节错误</string>
+    <string name="merged_toggle_download_chapters_find_error">找不到漫画来切换章节下载</string>
+    <string name="allow_deduplication">允许删除重复数据：</string>
+    <string name="deduplication_mode">去重模式：</string>
+    <string name="manga_info_manga">漫画信息：</string>
+    <string name="toggle_dedupe">切换去重</string>
+    <string name="refresh_merge">刷新以获取正确信息</string>
+    <string name="no_dedupe">无重复</string>
+    <string name="dedupe_priority">按优先级去重</string>
+    <string name="dedupe_most_chapters">显示有最多章节的来源</string>
+    <string name="dedupe_highest_chapter">显示章数最多的来源</string>
 
     <!-- MangaDex -->
-    <string name="mdlist">MDList</string>
-    <string name="md_follows_unfollowed">Unfollowed</string>
-    <string name="mangadex_specific_settings">MangaDex settings</string>
-    <string name="mangadex_sync_follows_to_library">Sync Mangadex manga to your library</string>
-    <string name="mangadex_sync_follows_to_library_summary">Pulls manga from MangaDex into your library if they are not already added.</string>
-    <string name="mangadex_preffered_source">Preferred MangaDex source</string>
-    <string name="mangadex_preffered_source_summary">Set your chosen mangadex source, this will be used for follows and a bunch more features around the app</string>
-    <string name="two_factor">2FA Code</string>
-    <string name="fields_cannot_be_blank">Fields cannot be blank</string>
-    <string name="mangadex_add_to_follows">Add to MangaDex follows</string>
-    <string name="mangadex_follows">MangaDex follows</string>
-    <string name="random">Random</string>
-    <string name="mangadex_push_favorites_to_mangadex">Sync library manga to MangaDex</string>
-    <string name="mangadex_push_favorites_to_mangadex_summary">Syncs any non MdList tracked manga to MangaDex as reading.</string>
-    <string name="mangadex_similar">MangaDex similar</string>
-    <string name="community_recommendations">Community recommendations</string>
+    <string name="md_follows_unfollowed">取消关注</string>
+    <string name="mangadex_specific_settings">MangaDex 设置</string>
+    <string name="mangadex_sync_follows_to_library">同步 Mangadex 中的漫画到书架</string>
+    <string name="mangadex_sync_follows_to_library_summary">如果未被添加则从 MangaDex 拉取漫画到你的书架</string>
+    <string name="mangadex_preffered_source">首选 MangaDex 来源</string>
+    <string name="mangadex_preffered_source_summary">设置你所选择的 mangadex 来源，这将用于关注和应用中一系列其他功能。</string>
+    <string name="two_factor">2FA 验证码</string>
+    <string name="fields_cannot_be_blank">字段不能为空</string>
+    <string name="mangadex_add_to_follows">添加到 MangaDex 关注</string>
+    <string name="mangadex_follows">MangaDex 关注</string>
+    <string name="random">随机</string>
+    <string name="mangadex_push_favorites_to_mangadex">同步书架中的漫画到 MangaDex</string>
+    <string name="mangadex_push_favorites_to_mangadex_summary">将任何 MdList 未跟踪的漫画同步到 MangaDex 用于阅读。</string>
+    <string name="mangadex_similar">MangaDex 相似</string>
+    <string name="community_recommendations">社区建议</string>
 
     <!-- Scanlator filters -->
-    <string name="select_scanlators">Scanlator groups to show</string>
+    <string name="select_scanlators">Scanlator 组展示</string>
 
     <!-- Similar -->
-    <string name="similar">Similar to %1$s</string>
-    <string name="similar_no_results">No Similar Manga found</string>
+    <string name="similar">与 %1$s 相似</string>
+    <string name="similar_no_results">未找到相似漫画</string>
 
     <!-- Mangadex relations-->
-    <string name="relation_similar">Similar</string>
-    <string name="relation_monochrome">Monochrome</string>
-    <string name="relation_main_story">Main story</string>
-    <string name="relation_adapted_from">Adapted from</string>
-    <string name="relation_based_on">Based on</string>
-    <string name="relation_prequel">Prequel</string>
-    <string name="relation_side_story">Side story</string>
-    <string name="relation_doujinshi">Doujinshi</string>
+    <string name="relation_similar">相似</string>
+    <string name="relation_monochrome">单色</string>
+    <string name="relation_main_story">主要故事</string>
+    <string name="relation_adapted_from">改编自</string>
+    <string name="relation_based_on">基于</string>
+    <string name="relation_prequel">前篇</string>
+    <string name="relation_side_story">外传</string>
+    <string name="relation_doujinshi">同人志</string>
     <string name="relation_same_franchise">Same franchise</string>
-    <string name="relation_shared_universe">Shared universe</string>
-    <string name="relation_sequel">Sequel</string>
+    <string name="relation_shared_universe">平行宇宙</string>
+    <string name="relation_sequel">续篇</string>
     <string name="relation_spin_off">Spin-off</string>
     <string name="relation_alternate_story">Alternate story</string>
     <string name="relation_preserialization">Pre-serialization</string>
-    <string name="relation_colored">Colored</string>
-    <string name="relation_serialization">Serialization</string>
-    <string name="relation_alternate_version">Alternate version</string>
+    <string name="relation_colored">全彩</string>
+    <string name="relation_serialization">系列</string>
+    <string name="relation_alternate_version">候补版本</string>
 
     <!-- Humanize time -->
     <plurals name="humanize_year">
