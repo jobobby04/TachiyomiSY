@@ -409,16 +409,16 @@
     <string name="no_chapters_found_for_migration">未找到章节，该漫画无法用于迁移</string>
     <string name="no_alternatives_found">未找到替代方案</string>
     <string name="stop_migrating">停止迁移？</string>
-    <pluralsplurals name="migrate_manga">
+    <plurals name="migrate_manga">
         <item quantity="other">迁移 %1$d%2$s 漫画？</item>
-    </pluralsplurals>
+    </plurals>
     <plurals name="copy_manga">
         <item quantity="other">复制 %1$d%2$s 漫画？</item>
     </plurals>
     <string name="skipping_">（跳过 %1$d）</string>
-    <pluralsplurals name="manga_migrated">
+    <plurals name="manga_migrated">
         <item quantity="other">%d 漫画已迁移</item>
-    </pluralsplurals>
+    </plurals>
 
     <!-- Library -->
     <!-- Library Actions -->
