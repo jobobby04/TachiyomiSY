@@ -220,7 +220,7 @@
     <string name="saturday">周六</string>
 
     <!-- Reader Settings -->
-    <string name="page_downloading">页面下载中</string>
+    <string name="page_downloading">页面下载</string>
     <string name="download_threads">下载线程</string>
     <string name="download_threads_summary">较高的值可以明显加快页面加载速度，同时容易触发封禁。推荐值为 2 或 3。现在的值为：%s</string>
     <string name="aggressively_load_pages">积极地加载页面</string>
@@ -301,7 +301,7 @@
     <string name="single_page">单页</string>
     <string name="automatic_orientation">自动（基于方向）</string>
     <string name="automatic_can_still_switch">在使用自动页面布局时，你仍然可以在阅读时切换布局，而不需要重设这一设置</string>
-    <string name="invert_double_pages">方向双页</string>
+    <string name="invert_double_pages">反向双页</string>
 
     <!-- Manga Page -->
     <!-- Manga Info -->
