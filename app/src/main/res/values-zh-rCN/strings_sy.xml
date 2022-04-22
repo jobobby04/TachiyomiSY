@@ -122,9 +122,9 @@
     <string name="toggle_delegated_sources">启用委托来源</string>
     <string name="toggle_delegated_sources_summary">应用 %1$s 增强到来源如果已安装: %2$s</string>
     <string name="log_level">日志级别</string>
-    <string name="log_level_summary">更改此选项会影响应用性能。变更后应用会强制重启。现在的值：%s</string>
+    <string name="log_level_summary">更改此选项会影响应用性能。变更在完全重启应用后生效。现在的值：%s</string>
     <string name="enable_source_blacklist">启用来源黑名单</string>
-    <string name="enable_source_blacklist_summary">隐藏扩展或来源如果与 %1$s 不兼容。变更后应用会强制重启。</string>
+    <string name="enable_source_blacklist_summary">隐藏扩展或来源如果与 %1$s 不兼容。变更在完全重启应用后生效。</string>
     <string name="open_debug_menu">打开 Debug 菜单</string>
     <string name="open_debug_menu_summary"><![CDATA[如果你不知道你在干什么不要点击此菜单！<font color=\'red\'>这会污染你的书架！</font>]]></string>
     <string name="starting_cleanup">开始清理</string>
@@ -361,7 +361,7 @@
     <string name="pref_tag_sorting">标签排序标签</string>
     <string name="tag_sorting">标签排序</string>
     <plurals name="pref_tag_sorting_desc">
-        <item quantity="other">%1$d 个标签在排序列表中。 这在图书馆中增加了一个选项，以基于优先级的标签列表进行排序，这意味着漫画将以你想要的标签优先的方式进行排序。</item>
+        <item quantity="other">%1$d 个标签在排序列表中。 这在书架中增加了一个选项，以基于优先级的标签列表进行排序，这意味着漫画将以你想要的标签优先的方式进行排序。</item>
     </plurals>
     <string name="action_add_tags_message">看这里！标签必须是精确的，不支持模糊匹配，你不能用类似 netorare 过滤 female:netorare！\n命名空间标签的风格是\n“female: sole female”\n不需要引号！\n支持添加同一标签的多个变体，所以随意为 NHentai 添加 \"tag: netorare\" 或者为 E-Hentai 添加 \"female: netorare\" ！</string>
     <string name="action_edit_tags">编辑标签</string>
