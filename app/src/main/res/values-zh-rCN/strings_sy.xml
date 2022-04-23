@@ -375,7 +375,7 @@
 
     <!-- Extension Repos -->
     <string name="information_empty_repos">你没有额外的仓库。点击加号按钮以创建一个用于添加外部扩展。</string>
-    <string name="action_add_repo">增加仓库</string>
+    <string name="action_add_repo">添加仓库</string>
     <string name="action_add_repo_message">在 Tachiyomi 中添加额外的仓库，仓库的格式是 \'username/repo\'，username是仓库所有者，repo是仓库名称。</string>
     <string name="action_edit_repos">编辑仓库</string>
     <plurals name="num_repos">
@@ -458,9 +458,9 @@
     <string name="favorites_sync_network_error">同步网络错误！</string>
     <string name="favorites_sync_removing_galleries">从远程服务器移除 %1$d 画廊</string>
     <string name="favorites_sync_unable_to_delete">无法从远程服务器上删除画廊！</string>
-    <string name="favorites_sync_adding_to_remote">增加 %1$d 个画廊（已完成 %2$d 个） 到远程服务器</string>
+    <string name="favorites_sync_adding_to_remote">添加 %1$d 个画廊（已完成 %2$d 个） 到远程服务器</string>
     <string name="favorites_sync_remove_from_local">从远程服务器移除 %1$d 个画廊（已移除 %2$d 个）</string>
-    <string name="favorites_sync_add_to_local">增加 %1$d 个画廊（已完成 %2$d 个） 到本地数据库</string>
+    <string name="favorites_sync_add_to_local">添加 %1$d 个画廊（已完成 %2$d 个） 到本地数据库</string>
     <string name="favorites_sync_remote_not_exist">远程画廊不存在，跳过：%1$s！</string>
     <string name="favorites_sync_failed_to_add_to_local">向本地数据库添加画廊失败：</string>
     <string name="favorites_sync_failed_to_add_to_local_error">\'%1$s\' %2$s</string>
@@ -476,7 +476,7 @@
 
     <!-- Gallery Adder -->
     <!-- Batch Add -->
-    <string name="eh_batch_add">批量添加</string>
+    <string name="eh_batch_add">批量导入</string>
     <string name="eh_batch_add_description">示例：\n\nhttp://e-hentai.org/g/12345/1a2b3c4e\nhttp://g.e-hentai.org/g/67890/6f7g8h9i\nhttp://exhentai.org/g/13579/1a3b5c7e\nhttps://exhentai.org/g/24680/2f4g6h8i\n\n它还支持 E-H 访问过的导出数据\n</string>
     <string name="eh_batch_add_title">输入要添加的画廊（每行一个）：</string>
     <string name="eh_batch_add_button">添加画廊</string>
@@ -484,7 +484,7 @@
     <string name="eh_batch_add_finish">完成</string>
     <string name="batch_add_no_valid_galleries">没有可添加的画廊！</string>
     <string name="batch_add_no_valid_galleries_message">你必须选择至少一个画廊以添加！</string>
-    <string name="batch_add">批量增加</string>
+    <string name="batch_add">批量导入</string>
     <string name="batch_add_summary">\n摘要：\n已添加：%1$d 个画廊\n失败：%2$d 个画廊</string>
     <string name="batch_add_success_log_message">已添加漫画：%1$s</string>
     <string name="batch_add_unknown_type_log_message">未知漫画类型的漫画：%1$s</string>
