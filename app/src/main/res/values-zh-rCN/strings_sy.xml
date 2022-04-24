@@ -522,13 +522,13 @@
 
 
     <!-- Gallery types -->
-    <string name="doujinshi">Doujinshi</string>
+    <string name="doujinshi">同人志</string>
     <string name="artist_cg">艺术 CG</string>
     <string name="game_cg">游戏 CG</string>
-    <string name="western">Western</string>
+    <string name="western">欧美</string>
     <string name="non_h">Non-H</string>
     <string name="image_set">图片集</string>
-    <string name="cosplay">Cosplay</string>
+    <string name="cosplay">角色扮演</string>
     <string name="asian_porn">亚洲色情</string>
     <string name="misc">杂项</string>
     <string name="artbook">Artbook</string>
