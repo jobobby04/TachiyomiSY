@@ -515,4 +515,6 @@ class PreferencesHelper(val context: Context) {
     fun pageLayout() = flowPrefs.getInt("page_layout", PagerConfig.PageLayout.AUTOMATIC)
 
     fun invertDoublePages() = flowPrefs.getBoolean("invert_double_pages", false)
+
+    fun addDoublePageCenterMargin() = flowPrefs.getBoolean("add_double_page_center_margin", false)
 }

@@ -67,6 +67,8 @@ class PagerConfig(
 
     var invertDoublePages = false
 
+    var addDoublePageCenterMargin = false
+
     var autoDoublePages = preferences.pageLayout().get() == PageLayout.AUTOMATIC
 
     @ColorInt
@@ -149,7 +151,8 @@ class PagerConfig(
                     reloadChapterListener?.invoke(doublePages)
                 },
             )
-
+        preferences.addDoublePageCenterMargin()
+            .register({ addDoublePageCenterMargin = it && dualPageSplit == false && imageCropBorders == false }, { imagePropertyChangedListener?.invoke() })
         preferences.invertDoublePages()
             .register({ invertDoublePages = it && dualPageSplit == false }, { imagePropertyChangedListener?.invoke() })
         // SY <--

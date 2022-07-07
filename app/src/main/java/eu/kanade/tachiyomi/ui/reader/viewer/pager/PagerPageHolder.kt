@@ -416,7 +416,10 @@ class PagerPageHolder(
 
         imageStream.close()
         imageStream2.close()
-        return ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, viewer.config.pageCanvasColor) {
+
+        val centerMargin = if (viewer.config.addDoublePageCenterMargin && !viewer.config.imageCropBorders) 96 / (Math.max(1, getHeight()) / Math.max(height, height2)) else 0
+
+        return ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, centerMargin, viewer.config.pageCanvasColor) {
             viewer.scope.launchUI {
                 if (it == 100) {
                     progressIndicator.hide()

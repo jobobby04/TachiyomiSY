@@ -508,6 +508,12 @@ class SettingsReaderController : SettingsController() {
                 titleRes = R.string.invert_double_pages
                 visibleIf(preferences.pageLayout()) { it != PagerConfig.PageLayout.SINGLE_PAGE }
             }
+
+            switchPreference {
+                bindTo(preferences.addDoublePageCenterMargin())
+                titleRes = R.string.add_double_page_center_margin
+                visibleIf(preferences.pageLayout()) { it != PagerConfig.PageLayout.SINGLE_PAGE }
+            }
         }
         // SY <--
     }

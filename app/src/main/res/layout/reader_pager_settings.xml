@@ -116,6 +116,15 @@
         android:textColor="?android:attr/textColorSecondary"
         android:text="@string/invert_double_pages" />
 
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/add_double_page_center_margin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/add_double_page_center_margin"
+        android:textColor="?android:attr/textColorSecondary" />
+
     <androidx.constraintlayout.widget.Group
         android:id="@+id/tapping_prefs_group"
         android:layout_width="wrap_content"
