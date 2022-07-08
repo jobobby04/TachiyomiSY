@@ -353,7 +353,17 @@ class PagerPageHolder(
     }
 
     private fun mergePages(imageStream: InputStream, imageStream2: InputStream?): InputStream {
-        imageStream2 ?: return imageStream
+        val shouldAddCenterMargin = viewer.config.addDoublePageCenterMargin && viewer.config.doublePages && !viewer.config.imageCropBorders
+
+        // Handle adding a center margin to wide images if requested.
+        if (imageStream2 == null) {
+            if (imageStream is BufferedInputStream && ImageUtil.isWideImage(imageStream) && shouldAddCenterMargin) {
+                return ImageUtil.AddHorizontalCenterMargin(imageStream, getHeight())
+            } else {
+                return imageStream
+            }
+        }
+
         if (page.fullPage) return imageStream
         if (ImageUtil.isAnimatedAndSupported(imageStream)) {
             page.fullPage = true
@@ -417,7 +427,7 @@ class PagerPageHolder(
         imageStream.close()
         imageStream2.close()
 
-        val centerMargin = if (viewer.config.addDoublePageCenterMargin && !viewer.config.imageCropBorders) 96 / (Math.max(1, getHeight()) / Math.max(height, height2)) else 0
+        val centerMargin = if (shouldAddCenterMargin) 96 / (Math.max(1, getHeight()) / Math.max(height, height2)) else 0
 
         return ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, centerMargin, viewer.config.pageCanvasColor) {
             viewer.scope.launchUI {
@@ -456,7 +466,11 @@ class PagerPageHolder(
             }
         }
 
-        return ImageUtil.splitInHalf(imageStream, side)
+        val sideMargin = if (viewer.config.addDoublePageCenterMargin && viewer.config.doublePages &&
+            !viewer.config.imageCropBorders
+        ) 48 else 0
+
+        return ImageUtil.splitInHalf(imageStream, side, sideMargin)
     }
 
     private fun onPageSplit(page: ReaderPage) {

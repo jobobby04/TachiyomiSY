@@ -121,16 +121,16 @@ object ImageUtil {
     /**
      * Extract the 'side' part from imageStream and return it as InputStream.
      */
-    fun splitInHalf(imageStream: InputStream, side: Side): InputStream {
+    fun splitInHalf(imageStream: InputStream, side: Side, sidePadding: Int): InputStream {
         val imageBytes = imageStream.readBytes()
 
         val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         val height = imageBitmap.height
         val width = imageBitmap.width
 
-        val singlePage = Rect(0, 0, width / 2, height)
+        val singlePage = Rect(0, 0, width / 2 + sidePadding, height)
 
-        val half = createBitmap(width / 2, height)
+        val half = createBitmap(width / 2 + sidePadding, height)
         val part = when (side) {
             Side.RIGHT -> Rect(width - width / 2, 0, width, height)
             Side.LEFT -> Rect(0, 0, width / 2, height)
@@ -145,7 +145,8 @@ object ImageUtil {
     }
 
     /**
-     * Split the image into left and right parts, then merge them into a new image.
+     * Split the image into left and right parts, then merge them into a
+     * new vertically-aligned image.
      */
     fun splitAndMerge(imageStream: InputStream, upperSide: Side): InputStream {
         val imageBytes = imageStream.readBytes()
@@ -179,6 +180,38 @@ object ImageUtil {
 
     enum class Side {
         RIGHT, LEFT
+    }
+
+    /**
+     * Split the image into left and right parts, then merge them into a
+     * new image with added center padding scaled relative to the height of the display view
+     * to compensate for scaling.
+     */
+
+    fun AddHorizontalCenterMargin(imageStream: InputStream, viewHeight: Int): InputStream {
+        val imageBytes = imageStream.readBytes()
+        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        val height = imageBitmap.height
+        val width = imageBitmap.width
+
+        val leftSourcePart = Rect(0, 0, width / 2, height)
+        val rightSourcePart = Rect(width / 2, 0, width, height)
+
+        val centerPadding = 96 / (Math.max(1, viewHeight) / height)
+
+        val leftTargetPart = Rect(0, 0, width / 2, height)
+        val rightTargetPart = Rect(width / 2 + centerPadding, 0, width + centerPadding, height)
+
+        val result = createBitmap(width + centerPadding, height)
+
+        result.applyCanvas {
+            drawBitmap(imageBitmap, leftSourcePart, leftTargetPart, null)
+            drawBitmap(imageBitmap, rightSourcePart, rightTargetPart, null)
+        }
+
+        val output = ByteArrayOutputStream()
+        result.compress(Bitmap.CompressFormat.JPEG, 100, output)
+        return ByteArrayInputStream(output.toByteArray())
     }
 
     /**
