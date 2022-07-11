@@ -181,38 +181,41 @@ object ImageUtil {
     enum class Side {
         RIGHT, LEFT
     }
-
+    // SY -->
     /**
      * Split the image into left and right parts, then merge them into a
      * new image with added center padding scaled relative to the height of the display view
      * to compensate for scaling.
      */
 
-    fun AddHorizontalCenterMargin(imageStream: InputStream, viewHeight: Int): InputStream {
+    fun AddHorizontalCenterMargin(imageStream: InputStream, viewHeight: Int, backgroundContext: Context): InputStream {
         val imageBytes = imageStream.readBytes()
         val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         val height = imageBitmap.height
         val width = imageBitmap.width
 
-        val leftSourcePart = Rect(0, 0, width / 2, height)
-        val rightSourcePart = Rect(width / 2, 0, width, height)
-
         val centerPadding = 96 / (Math.max(1, viewHeight) / height)
 
+        val leftSourcePart = Rect(0, 0, width / 2, height)
+        val rightSourcePart = Rect(width / 2, 0, width, height)
         val leftTargetPart = Rect(0, 0, width / 2, height)
         val rightTargetPart = Rect(width / 2 + centerPadding, 0, width + centerPadding, height)
 
+        val bgColor = chooseBackground(backgroundContext, imageStream)
+        bgColor.setBounds(width / 2, 0, width / 2 + centerPadding, height)
         val result = createBitmap(width + centerPadding, height)
 
         result.applyCanvas {
             drawBitmap(imageBitmap, leftSourcePart, leftTargetPart, null)
             drawBitmap(imageBitmap, rightSourcePart, rightTargetPart, null)
+            bgColor.draw(this)
         }
 
         val output = ByteArrayOutputStream()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output)
         return ByteArrayInputStream(output.toByteArray())
     }
+    // SY <--
 
     /**
      * Check whether the image is considered a tall image.

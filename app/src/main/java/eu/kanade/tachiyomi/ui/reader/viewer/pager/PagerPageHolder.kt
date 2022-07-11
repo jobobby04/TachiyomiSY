@@ -353,12 +353,15 @@ class PagerPageHolder(
     }
 
     private fun mergePages(imageStream: InputStream, imageStream2: InputStream?): InputStream {
-        val shouldAddCenterMargin = viewer.config.addDoublePageCenterMargin && viewer.config.doublePages && !viewer.config.imageCropBorders
+        // SY -->
 
-        // Handle adding a center margin to wide images if requested.
+        // Handle adding a center margin to wide images if requested
         if (imageStream2 == null) {
-            if (imageStream is BufferedInputStream && ImageUtil.isWideImage(imageStream) && shouldAddCenterMargin) {
-                return ImageUtil.AddHorizontalCenterMargin(imageStream, getHeight())
+            if (imageStream is BufferedInputStream && ImageUtil.isWideImage(imageStream) &&
+                viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0 &&
+                !viewer.config.imageCropBorders
+            ) {
+                return ImageUtil.AddHorizontalCenterMargin(imageStream, getHeight(), context)
             } else {
                 return imageStream
             }
@@ -427,7 +430,9 @@ class PagerPageHolder(
         imageStream.close()
         imageStream2.close()
 
-        val centerMargin = if (shouldAddCenterMargin) 96 / (Math.max(1, getHeight()) / Math.max(height, height2)) else 0
+        val centerMargin = if (viewer.config.centerMarginType and PagerConfig.CenterMarginType.DOUBLE_PAGE_CENTER_MARGIN > 0 &&
+            !viewer.config.imageCropBorders
+        ) 96 / (Math.max(1, getHeight()) / Math.max(height, height2)) else 0
 
         return ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, centerMargin, viewer.config.pageCanvasColor) {
             viewer.scope.launchUI {
@@ -466,8 +471,8 @@ class PagerPageHolder(
             }
         }
 
-        val sideMargin = if (viewer.config.addDoublePageCenterMargin && viewer.config.doublePages &&
-            !viewer.config.imageCropBorders
+        val sideMargin = if ((viewer.config.centerMarginType and PagerConfig.CenterMarginType.DOUBLE_PAGE_CENTER_MARGIN) > 0 &&
+            viewer.config.doublePages && !viewer.config.imageCropBorders
         ) 48 else 0
 
         return ImageUtil.splitInHalf(imageStream, side, sideMargin)

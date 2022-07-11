@@ -509,10 +509,16 @@ class SettingsReaderController : SettingsController() {
                 visibleIf(preferences.pageLayout()) { it != PagerConfig.PageLayout.SINGLE_PAGE }
             }
 
-            switchPreference {
-                bindTo(preferences.addDoublePageCenterMargin())
-                titleRes = R.string.add_double_page_center_margin
-                visibleIf(preferences.pageLayout()) { it != PagerConfig.PageLayout.SINGLE_PAGE }
+            intListPreference {
+                bindTo(preferences.centerMarginType())
+                titleRes = R.string.center_margin
+                entriesRes = arrayOf(
+                    R.string.center_margin_none,
+                    R.string.center_margin_double_page,
+                    R.string.center_margin_wide_page,
+                    R.string.center_margin_double_and_wide_page,
+                )
+                entryValues = arrayOf("0", "1", "2", "3")
             }
         }
         // SY <--
