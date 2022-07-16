@@ -1,5 +1,4 @@
 package eu.kanade.tachiyomi.util.system
-
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -189,12 +188,11 @@ object ImageUtil {
      */
 
     fun AddHorizontalCenterMargin(imageStream: InputStream, viewHeight: Int, backgroundContext: Context): InputStream {
-        val imageBytes = imageStream.readBytes()
-        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        val imageBitmap = ImageDecoder.newInstance(imageStream)?.decode()!!
         val height = imageBitmap.height
         val width = imageBitmap.width
 
-        val centerPadding = 96 / (Math.max(1, viewHeight) / height)
+        val centerPadding = 96 / (max(1, viewHeight) / height)
 
         val leftSourcePart = Rect(0, 0, width / 2, height)
         val rightSourcePart = Rect(width / 2, 0, width, height)

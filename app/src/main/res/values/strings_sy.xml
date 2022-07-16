@@ -320,6 +320,8 @@
     <string name="center_margin_double_page">Add to double Page</string>
     <string name="center_margin_wide_page">Add to wide Page</string>
     <string name="center_margin_double_and_wide_page">Add to both</string>
+    <string name="pref_center_margin">Center margin type</string>
+    <string name="pref_center_margin_summary">Insert spacer to accommodate deadspace on foldable devices.</string>
 
     <!-- Manga Page -->
     <!-- Manga Info -->

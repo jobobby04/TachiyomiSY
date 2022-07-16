@@ -1,8 +1,6 @@
 | Preview Builds | Release Builds | Tachiyomi Support Server |
 |-------|----------|----------|
 
-** This fork adds an experimental center padding option to dual page views to accomodate Surface Duo devices.
-
 # ![app icon](./.github/readme-images/app-icon.png)TachiyomiSY
 Tachiyomi is a free and open source manga reader for Android 6.0 and above. This version of Tachiyomi, TachiyomiSY was based off TachiyomiAZ. This version is meant to push forward in the ways of usability and features. TachiyomiSY tries to push forward where it can, but staying in a place where it can easily grab updates and features from the main app, it tries to make new features, or take features from other forks like J2K and Neko.
 
