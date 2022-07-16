@@ -1,5 +1,7 @@
 | Preview Builds | Release Builds | Tachiyomi Support Server |
 |-------|----------|----------|
+| [![Preview](https://github.com/jobobby04/TachiyomiSYPreview/workflows/Remote%20Dispatch%20Build%20App/badge.svg)](https://github.com/jobobby04/TachiyomiSYPreview/releases) | [![stable release](https://img.shields.io/github/release/jobobby04/tachiyomisy.svg?maxAge=3600&label=download)](https://github.com/jobobby04/tachiyomisy/releases/latest) | [![Discord](https://img.shields.io/discord/349436576037732353.svg?label=discord&labelColor=7289da&color=2c2f33&style=flat)](https://discord.gg/tachiyomi) |
+
 
 # ![app icon](./.github/readme-images/app-icon.png)TachiyomiSY
 Tachiyomi is a free and open source manga reader for Android 6.0 and above. This version of Tachiyomi, TachiyomiSY was based off TachiyomiAZ. This version is meant to push forward in the ways of usability and features. TachiyomiSY tries to push forward where it can, but staying in a place where it can easily grab updates and features from the main app, it tries to make new features, or take features from other forks like J2K and Neko.
@@ -83,8 +85,8 @@ Please make sure to read the full guidelines. Your issue may be closed without w
 <details><summary>Bugs</summary>
 
 * Include version (More → About → Version)
- * If not latest, try updating, it may have already been solved
- * Preview version is equal to the number of commits as seen in the main page
+* If not latest, try updating, it may have already been solved
+* Preview version is equal to the number of commits as seen in the main page
 * Include steps to reproduce (if not obvious from description)
 * Include screenshot (if needed)
 * If it could be device-dependent, try reproducing on another device (if possible)
