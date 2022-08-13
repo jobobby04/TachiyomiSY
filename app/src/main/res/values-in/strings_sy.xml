@@ -174,7 +174,9 @@
     <string name="auto_solve_captchas_summary">Fitur ini SANGAT EKSPERIMENTAL. Akan berwarna abu-abu jika tidak didukung oleh perangkat Anda.</string>
     <string name="put_recommends_in_overflow">Rekomendasi di tombol overflow</string>
     <string name="put_recommends_in_overflow_summary">Letakkan tombol rekomendasi di tombol overflow alih-alih di halaman info manga</string>
-    
+    <string name="put_merge_in_overflow">Merge in overflow</string>
+    <string name="put_merge_in_overflow_summary">Put the merge button in the overflow menu instead of on the manga page</string>
+
     <!-- Appearance Settings -->
     <string name="pref_category_navbar">Navbar</string>
     <string name="pref_hide_updates_button">Tampilkan menu Pembaruan di navbar</string>

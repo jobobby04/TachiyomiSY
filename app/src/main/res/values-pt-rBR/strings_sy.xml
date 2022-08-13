@@ -173,6 +173,8 @@
     <string name="auto_solve_captchas_summary">Use o Resolve-ReCAPTCHA automático ALTAMENTE EXPERIMENTAL. Ficará cinza se não suportado por seu celular.</string>
     <string name="put_recommends_in_overflow">Recomendações no menu kebab</string>
     <string name="put_recommends_in_overflow_summary">Põe o botão Recomendações no menu flutuante em vez de na página do mangá</string>
+    <string name="put_merge_in_overflow">Merge in overflow</string>
+    <string name="put_merge_in_overflow_summary">Put the merge button in the overflow menu instead of on the manga page</string>
     <string name="pref_hide_updates_button">Mover Botão Atualizações para a navegação</string>
     <string name="pref_hide_history_button">Mover Botão Histórico para a navegação</string>
     <string name="pref_show_bottom_bar_labels">Sempre mostrar rótulos na navegação</string>

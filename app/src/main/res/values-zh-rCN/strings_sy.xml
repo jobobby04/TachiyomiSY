@@ -166,6 +166,8 @@
     <string name="auto_solve_captchas_summary">使用高度实验性的自动 ReCAPTCHA 解决器。如果您的设备不支持，则会显示为灰色。</string>
     <string name="put_recommends_in_overflow">在菜单显示推荐</string>
     <string name="put_recommends_in_overflow_summary">将推荐按钮放在弹出菜单而不是漫画页面</string>
+    <string name="put_merge_in_overflow">Merge in overflow</string>
+    <string name="put_merge_in_overflow_summary">Put the merge button in the overflow menu instead of on the manga page</string>
 
     <!-- Appearance Settings -->
     <string name="pref_category_navbar">导航栏</string>

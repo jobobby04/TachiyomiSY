@@ -171,6 +171,8 @@
     <string name="auto_solve_captchas_summary">Использовать (ОЧЕНЬ ЭКСПЕРЕМЕНТАЛЬНО) автоматическое прохождение ReCAPTCHA. Если устройство не поддерживается, это меню будет выделено серым цветом.</string>
     <string name="put_recommends_in_overflow">Рекомендации в выпадающем меню</string>
     <string name="put_recommends_in_overflow_summary">Поместить кнопку «Рекомендации» в выпадающее меню вместо размещения на сведеньях серии</string>
+    <string name="put_merge_in_overflow">Merge in overflow</string>
+    <string name="put_merge_in_overflow_summary">Put the merge button in the overflow menu instead of on the manga page</string>
 
     <!-- Appearance Settings -->
     <string name="pref_category_navbar">Панель навигации</string>

@@ -167,6 +167,8 @@
     <string name="auto_solve_captchas_summary">Utilisez le solveur automatique ReCAPTCHA HAUTEMENT EXPÉRIMENTAL. Sera grisé s\'il n\'est pas pris en charge par votre appareil.</string>
     <string name="put_recommends_in_overflow">Afficher les Recommandations</string>
     <string name="put_recommends_in_overflow_summary">Met le bouton de recommandations dans le menu à déroulant de la page du manga</string>
+    <string name="put_merge_in_overflow">Merge in overflow</string>
+    <string name="put_merge_in_overflow_summary">Put the merge button in the overflow menu instead of on the manga page</string>
 
     <!-- Library settings -->
     <string name="pref_sorting_settings">Paramètres de tri</string>

@@ -300,8 +300,10 @@ private fun MangaScreenSmallImpl(
                 onEditInfoClicked = onEditInfoClicked,
                 showRecommends = state.showRecommendationsInOverflow,
                 onRecommendClicked = onRecommendClicked,
+                showMerge = state.showMergeInOverflow,
                 showMergeSettings = state.manga.source == MERGED_SOURCE_ID,
                 onMergedSettingsClicked = onMergedSettingsClicked,
+                onMergeClicked = onMergeClicked,
                 // SY <--
                 actionModeCounter = chapters.count { it.selected },
                 onSelectAll = { onAllChapterSelected(true) },
@@ -405,6 +407,7 @@ private fun MangaScreenSmallImpl(
                             onEditCategory = onEditCategoryClicked,
                             // SY -->
                             onMergeClicked = onMergeClicked,
+                            showMergeButton = !state.showMergeInOverflow,
                             // SY <--
                         )
                     }
@@ -595,8 +598,10 @@ fun MangaScreenLargeImpl(
                     onEditInfoClicked = onEditInfoClicked,
                     showRecommends = state.showRecommendationsInOverflow,
                     onRecommendClicked = onRecommendClicked,
+                    showMerge = state.showMergeInOverflow,
                     showMergeSettings = state.manga.source == MERGED_SOURCE_ID,
                     onMergedSettingsClicked = onMergedSettingsClicked,
+                    onMergeClicked = onMergeClicked,
                     // SY <--
                     actionModeCounter = chapters.count { it.selected },
                     onSelectAll = { onAllChapterSelected(true) },
@@ -679,6 +684,7 @@ fun MangaScreenLargeImpl(
                         onEditCategory = onEditCategoryClicked,
                         // SY -->
                         onMergeClicked = onMergeClicked,
+                        showMergeButton = !state.showMergeInOverflow,
                         // SY <--
                     )
                     // SY -->
