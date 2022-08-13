@@ -260,9 +260,10 @@
                                 android:id="@+id/page_slider_vert"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:rotation="90"
                                 android:layout_gravity="center"
-                                app:layout_constraintDimensionRatio="1:1" />
+                                android:rotation="90"
+                                app:layout_constraintDimensionRatio="1:1"
+                                app:tickVisible="true" />
 
                         </FrameLayout>
 
@@ -368,7 +369,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:maxHeight="?attr/actionBarSize"
-                        android:minHeight="?attr/actionBarSize" />
+                        android:minHeight="?attr/actionBarSize"
+                        app:tickVisible="true" />
 
                     <TextView
                         android:id="@+id/right_page_text"
