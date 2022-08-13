@@ -350,6 +350,7 @@ class MangaPresenter(
                                     meta = raiseMetadata(flatMetadata, source),
                                     mergedData = mergedData,
                                     showRecommendationsInOverflow = preferences.recommendsInOverflow().get(),
+                                    showMergeInOverflow = preferences.mergeInOverflow().get(),
                                     showMergeWithAnother = smartSearched,
                                     pagePreviewsState = if (source.getMainSource() is PagePreviewSource) {
                                         getPagePreviews(manga, source)
@@ -1539,6 +1540,7 @@ sealed class MangaScreenState {
         val meta: RaisedSearchMetadata?,
         val mergedData: MergedMangaData?,
         val showRecommendationsInOverflow: Boolean,
+        val showMergeInOverflow: Boolean,
         val showMergeWithAnother: Boolean,
         val pagePreviewsState: PagePreviewState,
         // SY <--
