@@ -273,6 +273,7 @@ class MangaPresenter(
                     isDownloadedOnlyMode = downloadedOnlyMode,
                     // SY -->
                     showRecommendationsInOverflow = preferences.recommendsInOverflow().get(),
+                    showMergeInOverflow = preferences.mergeInOverflow().get(),
                     showMergeWithAnother = smartSearched,
                     mergedData = null,
                     meta = null,
@@ -1542,6 +1543,7 @@ sealed class MangaScreenState {
         val meta: RaisedSearchMetadata?,
         val mergedData: MergedMangaData?,
         val showRecommendationsInOverflow: Boolean,
+        val showMergeInOverflow: Boolean,
         val showMergeWithAnother: Boolean,
         val pagePreviewsState: PagePreviewState,
         // SY <--
