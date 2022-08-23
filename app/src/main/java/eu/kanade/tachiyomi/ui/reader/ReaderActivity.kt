@@ -1305,11 +1305,6 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         // SY -->
         binding.abovePageText.text = currentPage
         binding.belowPageText.text = "${pages.size}"
-
-        if(hasExtraPage) {
-            binding.pageSlider.stepSize = 2f
-            binding.pageSliderVert.stepSize = 2f
-        }
         // SY <--
     }
 
