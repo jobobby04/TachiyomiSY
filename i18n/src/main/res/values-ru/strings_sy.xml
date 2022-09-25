@@ -654,7 +654,7 @@
     <string name="merge_settings">Настройки объединения</string>
     <string name="fetch_chapter_updates">Получить обновления глав</string>
     <string name="delete_merged_manga">Вы уверены?</string>
-    <string name="delete_merged_manga_desc">Это приведет к удалению серии из объединения, а также потеряет все несохранённые изменения, применённые к объединённой серии</string>
+    <string name="delete_merged_manga_desc">Это приведёт к удалению серии из объединения, а также будут утеряны все несохранённые изменения, применённые к объединённой серии</string>
     <string name="chapter_updates_merged_manga">Переключатель обновлений глав</string>
     <string name="chapter_updates_merged_manga_desc">Переключение этого параметра отключит/включит обновления глав для этой объеденённой серии</string>
     <string name="download_merged_manga">Переключатель загрузки глав</string>
