@@ -171,8 +171,8 @@
     <string name="auto_solve_captchas_summary">Использовать (ОЧЕНЬ ЭКСПЕРЕМЕНТАЛЬНО) автоматическое прохождение ReCAPTCHA. Если устройство не поддерживается, это меню будет выделено серым цветом.</string>
     <string name="put_recommends_in_overflow">Рекомендации в выпадающем меню</string>
     <string name="put_recommends_in_overflow_summary">Поместить кнопку «Рекомендации» в выпадающее меню вместо размещения на сведеньях серии</string>
-    <string name="put_merge_in_overflow">Слияние в выпадающем меню</string>
-    <string name="put_merge_in_overflow_summary">Поместить кнопку «Слияние» в выпадающее меню вместо размещения на сведеньях серии</string>
+    <string name="put_merge_in_overflow">Объединение в выпадающем меню</string>
+    <string name="put_merge_in_overflow_summary">Поместить кнопку «Объединение» в выпадающее меню вместо размещения на сведеньях серии</string>
 
     <!-- Appearance Settings -->
     <string name="pref_category_navbar">Панель навигации</string>
@@ -326,13 +326,13 @@
     <!-- Manga Page -->
     <!-- Manga Info -->
     <string name="az_recommends">Рекомендации</string>
-    <string name="merge">Слияние</string>
-    <string name="merge_with_another_source">Слиться</string>
-    <string name="manga_merged">Серия слита!</string>
-    <string name="failed_merge">Ошибка слияния серии: %1$s</string>
+    <string name="merge">Объединение</string>
+    <string name="merge_with_another_source">Объединиться</string>
+    <string name="manga_merged">Серия объеденена!</string>
+    <string name="failed_merge">Ошибка объединения серии: %1$s</string>
     <string name="merge_unknown_manga">Неизвестный ID серии: %1$d</string>
-    <string name="merged_already">Эта серия уже слита с текущей серией!</string>
-    <string name="merge_duplicate">Эта слитая серия является дубликатом!</string>
+    <string name="merged_already">Эта серия уже объеденена с текущей серией!</string>
+    <string name="merge_duplicate">Эта объеденённая серия является дубликатом!</string>
 
     <!-- Manga Info Edit -->
     <string name="reset_tags">Сбросить тэги</string>
@@ -651,17 +651,17 @@
     </plurals>
 
     <!-- Merged manga -->
-    <string name="merge_settings">Настройки слияния</string>
+    <string name="merge_settings">Настройки объединения</string>
     <string name="fetch_chapter_updates">Получить обновления глав</string>
     <string name="delete_merged_manga">Вы уверены?</string>
-    <string name="delete_merged_manga_desc">Это приведет к удалению серии из слияния, а также потеряет все несохранённые изменения, применённые к слитой серии</string>
+    <string name="delete_merged_manga_desc">Это приведет к удалению серии из объединения, а также потеряет все несохранённые изменения, применённые к объединённой серии</string>
     <string name="chapter_updates_merged_manga">Переключатель обновлений глав</string>
-    <string name="chapter_updates_merged_manga_desc">Переключение этого параметра отключит/включит обновления глав для этой слитой серии</string>
+    <string name="chapter_updates_merged_manga_desc">Переключение этого параметра отключит/включит обновления глав для этой объеденённой серии</string>
     <string name="download_merged_manga">Переключатель загрузки глав</string>
-    <string name="download_merged_manga_desc">Переключение этого параметра отключит/включит загрузку глав для этой слитой серии</string>
-    <string name="merged_references_invalid">Недействительные слитые ссылки</string>
+    <string name="download_merged_manga_desc">Переключение этого параметра отключит/включит загрузку глав для этой объеденённой серии</string>
+    <string name="merged_references_invalid">Недействительные объеденённые ссылки</string>
     <string name="merged_chapter_updates_error">Ошибка переключения обновлений глав</string>
-    <string name="merged_references">Слитые ссылки</string>
+    <string name="merged_references">Объеденённые ссылки</string>
     <string name="merged_toggle_chapter_updates_find_error">Не удалось найти серию для переключения обновлений глав</string>
     <string name="merged_toggle_download_chapters_error">Ошибка переключения загрузки глав</string>
     <string name="merged_toggle_download_chapters_find_error">Не удалось найти серию для переключения загрузки глав</string>
