@@ -5,7 +5,7 @@
     <string name="action_sort_drag_and_drop">Перетаскивание</string>
     <string name="action_sort_enabled">Включено</string>
     <string name="action_skip_manga">Не переносить</string>
-    <string name="action_search_manually">Поиск вручную</string>
+    <string name="action_search_manually">Искать вручную</string>
     <string name="action_migrate_now">Перенести сейчас</string>
     <string name="action_copy_now">Копировать сейчас</string>
     <string name="action_clean_titles">Очистить названия</string>
