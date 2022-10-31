@@ -31,7 +31,7 @@
     <!-- Subsections -->
     <string name="pref_category_all_sources">所有来源</string>
     <string name="pref_category_fork">分支特色设置</string>
-    <string name="pref_ehentai_summary">E-Hentai、ExHentai 登录，画廊同步</string>
+    <string name="pref_ehentai_summary">E-Hentai、ExHentai 登录、画廊同步</string>
     <string name="pref_mangadex_summary">MangaDex 登录、关注同步</string>
 
     <!-- EH Settings -->
