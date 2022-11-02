@@ -664,18 +664,18 @@
     <string name="relation_main_story">主要故事</string>
     <string name="relation_adapted_from">改编自</string>
     <string name="relation_based_on">基于</string>
-    <string name="relation_prequel">前篇</string>
+    <string name="relation_prequel">前传</string>
     <string name="relation_side_story">外传</string>
     <string name="relation_doujinshi">同人志</string>
     <string name="relation_same_franchise">同一系列</string>
     <string name="relation_shared_universe">平行宇宙</string>
     <string name="relation_sequel">续篇</string>
     <string name="relation_spin_off">衍生作品</string>
-    <string name="relation_alternate_story">架空历史</string>
+    <string name="relation_alternate_story">备用故事</string>
     <string name="relation_preserialization">预连载</string>
     <string name="relation_colored">全彩</string>
     <string name="relation_serialization">系列</string>
-    <string name="relation_alternate_version">候补版本</string>
+    <string name="relation_alternate_version">不同演绎</string>
 
     <!-- Humanize time -->
     <plurals name="humanize_year">
