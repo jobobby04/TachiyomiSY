@@ -21,6 +21,7 @@ import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.ui.category.CategoryController
 import eu.kanade.tachiyomi.ui.download.DownloadController
 import eu.kanade.tachiyomi.ui.history.HistoryController
+import eu.kanade.tachiyomi.ui.more.stats.StatsController
 import eu.kanade.tachiyomi.ui.setting.SettingsMainController
 import eu.kanade.tachiyomi.ui.updates.UpdatesController
 import eu.kanade.tachiyomi.util.lang.launchIO
@@ -56,6 +57,7 @@ object MoreScreen : Screen {
             onClickCategories = { router.pushController(CategoryController()) },
             onClickBackupAndRestore = { router.pushController(SettingsMainController.toBackupScreen()) },
             onClickSettings = { router.pushController(SettingsMainController()) },
+            onClickAbout = { router.pushController(StatsController()) },
             onClickAbout = { router.pushController(SettingsMainController.toAboutScreen()) },
             // SY -->
             onClickBatchAdd = { router.pushController(BatchAddController()) },

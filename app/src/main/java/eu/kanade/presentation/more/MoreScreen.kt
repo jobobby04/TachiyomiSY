@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Label
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.PlaylistAdd
 import androidx.compose.material.icons.outlined.Settings
@@ -53,6 +54,7 @@ fun MoreScreen(
     onClickAbout: () -> Unit,
     onClickBatchAdd: () -> Unit,
     onClickUpdates: () -> Unit,
+    onClickStats: () -> Unit,
     onClickHistory: () -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -170,6 +172,13 @@ fun MoreScreen(
                 onPreferenceClick = onClickBackupAndRestore,
             )
         }
+	item {
+	    TextPreferenceWidget(
+	        title = stringResource(R.string.label_stats),
+		icon = Icons.Outlined.List,
+		onPreferenceClick = onClickStats,
+	    )
+	}
         // SY -->
         item {
             TextPreferenceWidget(

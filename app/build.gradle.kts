@@ -317,6 +317,9 @@ dependencies {
     // RatingBar (SY)
     implementation(sylibs.ratingbar)
     implementation(sylibs.composeRatingbar)
+
+    // Android Chart
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
 
 androidComponents {
