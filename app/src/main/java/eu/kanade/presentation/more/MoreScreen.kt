@@ -172,13 +172,13 @@ fun MoreScreen(
                 onPreferenceClick = onClickBackupAndRestore,
             )
         }
-	item {
-	    TextPreferenceWidget(
-	        title = stringResource(R.string.label_stats),
-		icon = Icons.Outlined.List,
-		onPreferenceClick = onClickStats,
-	    )
-	}
+        item {
+            TextPreferenceWidget(
+                title = stringResource(R.string.label_stats),
+                icon = Icons.Outlined.List,
+                onPreferenceClick = onClickStats,
+            )
+        }
         // SY -->
         item {
             TextPreferenceWidget(
