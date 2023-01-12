@@ -31,7 +31,7 @@ interface DataSaver {
 }
 
 fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
-    return if (preferences.dataSaver().get() && source.id.toString() !in preferences.dataSaverExcludedSources().get()) {
+    return if (preferences.dataSaver().get() != 0 && source.id.toString() !in preferences.dataSaverExcludedSources().get()) {
         return DataSaverImpl(preferences)
     } else {
         DataSaver.NoOp
@@ -39,6 +39,7 @@ fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
 }
 
 private class DataSaverImpl(preferences: SourcePreferences) : DataSaver {
+    private val dataSaver = preferences.dataSaver().get()
     private val dataSavedServer = preferences.dataSaverServer().get().trimEnd('/')
 
     private val ignoreJpg = preferences.dataSaverIgnoreJpeg().get()
@@ -49,7 +50,7 @@ private class DataSaverImpl(preferences: SourcePreferences) : DataSaver {
     private val colorBW = preferences.dataSaverColorBW().toIntRepresentation()
 
     override fun compress(imageUrl: String): String {
-        return if (dataSavedServer.isNotBlank() && !imageUrl.contains(dataSavedServer)) {
+        return if (dataSaver == 2 || (dataSaver == 1 && dataSavedServer.isNotBlank() && !imageUrl.contains(dataSavedServer))) {
             when {
                 imageUrl.contains(".jpeg", true) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
                 imageUrl.contains(".gif", true) -> if (ignoreGif) imageUrl else getUrl(imageUrl)
@@ -61,7 +62,23 @@ private class DataSaverImpl(preferences: SourcePreferences) : DataSaver {
     }
 
     private fun getUrl(imageUrl: String): String {
-        return "$dataSavedServer/?jpg=$format&l=$quality&bw=$colorBW&url=$imageUrl"
+        if (dataSaver == 1) {
+            return "$dataSavedServer/?jpg=$format&l=$quality&bw=$colorBW&url=$imageUrl"
+        } else {
+            if (imageUrl.contains(".webp", true) || imageUrl.contains(".gif", true)) {
+                if (format.toInt() == 0) {
+                    return "https://wsrv.nl/?url=$imageUrl&q=$quality&n=-1"
+                } else {
+                    return "https://wsrv.nl/?url=$imageUrl&output=jpg&q=$quality&n=-1"
+                }
+            } else {
+                if (format.toInt() == 1) {
+                    return "https://wsrv.nl/?url=$imageUrl&output=jpg&q=$quality"
+                } else {
+                    return "https://wsrv.nl/?url=$imageUrl&output=webp&q=$quality"
+                }
+            }
+        }
     }
 
     private fun Preference<Boolean>.toIntRepresentation() = if (get()) "1" else "0"
