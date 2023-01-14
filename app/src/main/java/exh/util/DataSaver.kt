@@ -63,12 +63,16 @@ private class DataSaverImpl(preferences: SourcePreferences) : DataSaver {
 
     private fun getUrl(imageUrl: String): String {
         if (dataSaver == 1) {
+            // Network Request sent for the Bandwidth Hero Proxy server
             return "$dataSavedServer/?jpg=$format&l=$quality&bw=$colorBW&url=$imageUrl"
         } else {
+            // Network Request sent to wsrv
             if (imageUrl.contains(".webp", true) || imageUrl.contains(".gif", true)) {
                 if (format.toInt() == 0) {
+                    // Preserve output image extension for animated images(.webp and .gif)
                     return "https://wsrv.nl/?url=$imageUrl&q=$quality&n=-1"
                 } else {
+                    // Do not preserve output Extension if User asked to convert into Jpeg
                     return "https://wsrv.nl/?url=$imageUrl&output=jpg&q=$quality&n=-1"
                 }
             } else {
