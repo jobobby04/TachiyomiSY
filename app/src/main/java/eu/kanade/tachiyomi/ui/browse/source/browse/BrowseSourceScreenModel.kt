@@ -314,6 +314,7 @@ open class BrowseSourceScreenModel(
             it.copy(
                 filters = defaultFilters,
                 listing = listing,
+                toolbarQuery = listing.query,
             )
         }
     }
@@ -501,7 +502,9 @@ open class BrowseSourceScreenModel(
                     }
 
                     if (search.filterList == null && state.filters.isNotEmpty()) {
-                        context.toast(R.string.save_search_invalid)
+                        withUIContext {
+                            context.toast(R.string.save_search_invalid)
+                        }
                         return@launchIO
                     }
 

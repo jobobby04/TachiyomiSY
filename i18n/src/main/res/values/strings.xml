@@ -306,6 +306,7 @@
     <string name="ext_installer_shizuku" translatable="false">Shizuku</string>
     <string name="ext_installer_shizuku_stopped">Shizuku is not running</string>
     <string name="ext_installer_shizuku_unavailable_dialog">Install and start Shizuku to use Shizuku as extension installer.</string>
+    <string name="ext_miui_warning">Installing extensions may not work if MIUI Optimization is enabled. Try disabling it or installing from the website instead.</string>
 
       <!-- Reader section -->
     <string name="pref_fullscreen">Fullscreen</string>
@@ -538,6 +539,7 @@
     <string name="pref_tablet_ui_mode">Tablet UI</string>
     <string name="pref_verbose_logging">Verbose logging</string>
     <string name="pref_verbose_logging_summary">Print verbose logs to system log (reduces app performance)</string>
+    <string name="pref_worker_info">Worker info</string>
 
       <!-- About section -->
     <string name="website">Website</string>
@@ -634,6 +636,7 @@
         <item quantity="other">%1$s chapters</item>
     </plurals>
     <string name="delete_downloads_for_manga">Delete downloaded chapters?</string>
+    <string name="copied_to_clipboard_plain">Copied to clipboard</string>
     <string name="copied_to_clipboard">Copied to clipboard:\n%1$s</string>
     <string name="clipboard_copy_error">Failed to copy to clipboard</string>
     <string name="source_not_installed">Source not installed: %1$s</string>
