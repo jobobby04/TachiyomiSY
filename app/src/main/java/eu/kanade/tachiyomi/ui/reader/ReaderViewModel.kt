@@ -278,6 +278,9 @@ class ReaderViewModel(
      * to persist the current progress of the active chapter.
      */
     fun onSaveInstanceStateNonConfigurationChange() {
+        // SY -->
+        onSave()
+        // SY <--
         val currentChapter = getCurrentChapter() ?: return
         viewModelScope.launchNonCancellable {
             saveChapterProgress(currentChapter)
