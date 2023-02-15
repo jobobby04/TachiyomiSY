@@ -284,6 +284,12 @@ class ReaderActivity : BaseActivity() {
             .filterNotNull()
             .onEach(::setChapters)
             .launchIn(lifecycleScope)
+        // SY -->
+        val viewerChapters = viewModel.state.value.viewerChapters
+        viewerChapters?.currChapter?.let { currChapter ->
+            currChapter.requestedPage = currChapter.chapter.last_page_read
+        }
+        // SY <--
 
         viewModel.eventFlow
             .onEach { event ->
@@ -358,6 +364,11 @@ class ReaderActivity : BaseActivity() {
         if (!isChangingConfigurations) {
             viewModel.onSaveInstanceStateNonConfigurationChange()
         }
+        // SY -->
+        else {
+            viewModel.onSave()
+        }
+        // SY <--
         super.onSaveInstanceState(outState)
     }
 

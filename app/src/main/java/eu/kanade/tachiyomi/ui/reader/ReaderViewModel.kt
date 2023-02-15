@@ -284,6 +284,15 @@ class ReaderViewModel(
         }
     }
 
+    // SY -->
+    fun onSave() {
+        val currentChapter = getCurrentChapter()
+        if (currentChapter != null) {
+            currentChapter.requestedPage = currentChapter.chapter.last_page_read
+        }
+    }
+    // SY <--
+
     /**
      * Whether this presenter is initialized yet.
      */
