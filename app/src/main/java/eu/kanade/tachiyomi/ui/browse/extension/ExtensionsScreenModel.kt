@@ -6,23 +6,25 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import eu.kanade.domain.extension.interactor.GetExtensionsByType
 import eu.kanade.domain.source.service.SourcePreferences
+import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
 import eu.kanade.tachiyomi.source.online.HttpSource
-import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import rx.Observable
+import tachiyomi.core.util.lang.launchIO
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.seconds
@@ -33,14 +35,11 @@ class ExtensionsScreenModel(
     private val getExtensions: GetExtensionsByType = Injekt.get(),
 ) : StateScreenModel<ExtensionsState>(ExtensionsState()) {
 
-    private val _query: MutableStateFlow<String?> = MutableStateFlow(null)
-    val query: StateFlow<String?> = _query.asStateFlow()
-
     private var _currentDownloads = MutableStateFlow<Map<String, InstallStep>>(hashMapOf())
 
     init {
         val context = Injekt.get<Application>()
-        val extensionMapper: (Map<String, InstallStep>) -> ((Extension) -> ExtensionUiModel) = { map ->
+        val extensionMapper: (Map<String, InstallStep>) -> ((Extension) -> ExtensionUiModel.Item) = { map ->
             {
                 ExtensionUiModel.Item(it, map[it.pkgName] ?: InstallStep.Idle)
             }
@@ -74,44 +73,37 @@ class ExtensionsScreenModel(
 
         coroutineScope.launchIO {
             combine(
-                _query,
+                state.map { it.searchQuery }.distinctUntilChanged().debounce(SEARCH_DEBOUNCE_MILLIS),
                 _currentDownloads,
                 getExtensions.subscribe(),
             ) { query, downloads, (_updates, _installed, _available, _untrusted) ->
                 val searchQuery = query ?: ""
 
-                val languagesWithExtensions = _available
-                    .filter(queryFilter(searchQuery))
-                    .groupBy { it.lang }
-                    .toSortedMap(LocaleHelper.comparator)
-                    .flatMap { (lang, exts) ->
-                        listOf(
-                            ExtensionUiModel.Header.Text(LocaleHelper.getSourceDisplayName(lang, context)),
-                            *exts.map(extensionMapper(downloads)).toTypedArray(),
-                        )
-                    }
-
-                val items = mutableListOf<ExtensionUiModel>()
+                val itemsGroups: ItemGroups = mutableMapOf()
 
                 val updates = _updates.filter(queryFilter(searchQuery)).map(extensionMapper(downloads))
                 if (updates.isNotEmpty()) {
-                    items.add(ExtensionUiModel.Header.Resource(R.string.ext_updates_pending))
-                    items.addAll(updates)
+                    itemsGroups[ExtensionUiModel.Header.Resource(R.string.ext_updates_pending)] = updates
                 }
 
                 val installed = _installed.filter(queryFilter(searchQuery)).map(extensionMapper(downloads))
                 val untrusted = _untrusted.filter(queryFilter(searchQuery)).map(extensionMapper(downloads))
                 if (installed.isNotEmpty() || untrusted.isNotEmpty()) {
-                    items.add(ExtensionUiModel.Header.Resource(R.string.ext_installed))
-                    items.addAll(installed)
-                    items.addAll(untrusted)
+                    itemsGroups[ExtensionUiModel.Header.Resource(R.string.ext_installed)] = installed + untrusted
                 }
 
+                val languagesWithExtensions = _available
+                    .filter(queryFilter(searchQuery))
+                    .groupBy { it.lang }
+                    .toSortedMap(LocaleHelper.comparator)
+                    .map { (lang, exts) ->
+                        ExtensionUiModel.Header.Text(LocaleHelper.getSourceDisplayName(lang, context)) to exts.map(extensionMapper(downloads))
+                    }
                 if (languagesWithExtensions.isNotEmpty()) {
-                    items.addAll(languagesWithExtensions)
+                    itemsGroups.putAll(languagesWithExtensions)
                 }
 
-                items
+                itemsGroups
             }
                 .collectLatest {
                     mutableState.update { state ->
@@ -131,8 +123,8 @@ class ExtensionsScreenModel(
     }
 
     fun search(query: String?) {
-        coroutineScope.launchIO {
-            _query.emit(query)
+        mutableState.update {
+            it.copy(searchQuery = query)
         }
     }
 
@@ -140,10 +132,10 @@ class ExtensionsScreenModel(
         coroutineScope.launchIO {
             with(state.value) {
                 if (isEmpty) return@launchIO
-                items
+                items.values
+                    .flatten()
                     .mapNotNull {
                         when {
-                            it !is ExtensionUiModel.Item -> null
                             it.extension !is Extension.Installed -> null
                             !it.extension.hasUpdate -> null
                             else -> it.extension
@@ -216,14 +208,17 @@ class ExtensionsScreenModel(
 data class ExtensionsState(
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
-    val items: List<ExtensionUiModel> = emptyList(),
+    val items: ItemGroups = mutableMapOf(),
     val updates: Int = 0,
+    val searchQuery: String? = null,
 ) {
     val isEmpty = items.isEmpty()
 }
 
-sealed interface ExtensionUiModel {
-    sealed interface Header : ExtensionUiModel {
+typealias ItemGroups = MutableMap<ExtensionUiModel.Header, List<ExtensionUiModel.Item>>
+
+object ExtensionUiModel {
+    sealed interface Header {
         data class Resource(@StringRes val textRes: Int) : Header
         data class Text(val text: String) : Header
     }
@@ -231,5 +226,5 @@ sealed interface ExtensionUiModel {
     data class Item(
         val extension: Extension,
         val installStep: InstallStep,
-    ) : ExtensionUiModel
+    )
 }

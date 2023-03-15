@@ -12,13 +12,11 @@ import androidx.fragment.app.FragmentActivity
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.UnsortedPreferences
-import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.util.collectAsState
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.extension.ExtensionUpdateJob
 import eu.kanade.tachiyomi.ui.category.repos.RepoScreen
 import eu.kanade.tachiyomi.ui.category.sources.SourceCategoryScreen
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
@@ -36,7 +34,6 @@ object SettingsBrowseScreen : SearchableSettings {
     override fun getPreferences(): List<Preference> {
         val context = LocalContext.current
         val sourcePreferences = remember { Injekt.get<SourcePreferences>() }
-        val preferences = remember { Injekt.get<BasePreferences>() }
         // SY -->
         val uiPreferences = remember { Injekt.get<UiPreferences>() }
         val unsortedPreferences = remember { Injekt.get<UnsortedPreferences>() }
@@ -84,19 +81,9 @@ object SettingsBrowseScreen : SearchableSettings {
                     ),
                 ),
             ),
-            // SY <--
             Preference.PreferenceGroup(
                 title = stringResource(R.string.label_extensions),
                 preferenceItems = listOf(
-                    Preference.PreferenceItem.SwitchPreference(
-                        pref = preferences.automaticExtUpdates(),
-                        title = stringResource(R.string.pref_enable_automatic_extension_updates),
-                        onValueChanged = {
-                            ExtensionUpdateJob.setupTask(context, it)
-                            true
-                        },
-                    ),
-                    // SY -->
                     kotlin.run {
                         val navigator = LocalNavigator.currentOrThrow
                         val count by unsortedPreferences.extensionRepos().collectAsState()
@@ -108,15 +95,19 @@ object SettingsBrowseScreen : SearchableSettings {
                             },
                         )
                     },
-                    // SY <--
                 ),
             ),
+            // SY <--
             Preference.PreferenceGroup(
-                title = stringResource(R.string.action_global_search),
+                title = stringResource(R.string.label_sources),
                 preferenceItems = listOf(
                     Preference.PreferenceItem.SwitchPreference(
                         pref = sourcePreferences.searchPinnedSourcesOnly(),
                         title = stringResource(R.string.pref_search_pinned_sources_only),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        pref = sourcePreferences.hideInLibraryItems(),
+                        title = stringResource(R.string.pref_hide_in_library_items),
                     ),
                 ),
             ),

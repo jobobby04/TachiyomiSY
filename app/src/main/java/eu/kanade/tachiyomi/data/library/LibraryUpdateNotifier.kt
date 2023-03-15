@@ -9,12 +9,9 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import coil.imageLoader
 import coil.request.ImageRequest
 import coil.transform.CircleCropTransformation
-import eu.kanade.domain.chapter.model.Chapter
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.download.Downloader
@@ -23,10 +20,13 @@ import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.lang.chop
-import eu.kanade.tachiyomi.util.lang.launchUI
 import eu.kanade.tachiyomi.util.system.notification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notificationManager
+import tachiyomi.core.Constants
+import tachiyomi.core.util.lang.launchUI
+import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.injectLazy
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -157,47 +157,45 @@ class LibraryUpdateNotifier(private val context: Context) {
      * @param updates a list of manga with new updates.
      */
     fun showUpdateNotifications(updates: List<Pair<Manga, Array<Chapter>>>) {
-        NotificationManagerCompat.from(context).apply {
-            // Parent group notification
-            notify(
-                Notifications.ID_NEW_CHAPTERS,
-                context.notification(Notifications.CHANNEL_NEW_CHAPTERS) {
-                    setContentTitle(context.getString(R.string.notification_new_chapters))
-                    if (updates.size == 1 && !preferences.hideNotificationContent().get()) {
-                        setContentText(updates.first().first.title.chop(NOTIF_TITLE_MAX_LEN))
-                    } else {
-                        setContentText(context.resources.getQuantityString(R.plurals.notification_new_chapters_summary, updates.size, updates.size))
+        // Parent group notification
+        context.notificationManager.notify(
+            Notifications.ID_NEW_CHAPTERS,
+            context.notification(Notifications.CHANNEL_NEW_CHAPTERS) {
+                setContentTitle(context.getString(R.string.notification_new_chapters))
+                if (updates.size == 1 && !preferences.hideNotificationContent().get()) {
+                    setContentText(updates.first().first.title.chop(NOTIF_TITLE_MAX_LEN))
+                } else {
+                    setContentText(context.resources.getQuantityString(R.plurals.notification_new_chapters_summary, updates.size, updates.size))
 
-                        if (!preferences.hideNotificationContent().get()) {
-                            setStyle(
-                                NotificationCompat.BigTextStyle().bigText(
-                                    updates.joinToString("\n") {
-                                        it.first.title.chop(NOTIF_TITLE_MAX_LEN)
-                                    },
-                                ),
-                            )
-                        }
+                    if (!preferences.hideNotificationContent().get()) {
+                        setStyle(
+                            NotificationCompat.BigTextStyle().bigText(
+                                updates.joinToString("\n") {
+                                    it.first.title.chop(NOTIF_TITLE_MAX_LEN)
+                                },
+                            ),
+                        )
                     }
+                }
 
-                    setSmallIcon(R.drawable.ic_tachi)
-                    setLargeIcon(notificationBitmap)
+                setSmallIcon(R.drawable.ic_tachi)
+                setLargeIcon(notificationBitmap)
 
-                    setGroup(Notifications.GROUP_NEW_CHAPTERS)
-                    setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
-                    setGroupSummary(true)
-                    priority = NotificationCompat.PRIORITY_HIGH
+                setGroup(Notifications.GROUP_NEW_CHAPTERS)
+                setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+                setGroupSummary(true)
+                priority = NotificationCompat.PRIORITY_HIGH
 
-                    setContentIntent(getNotificationIntent())
-                    setAutoCancel(true)
-                },
-            )
+                setContentIntent(getNotificationIntent())
+                setAutoCancel(true)
+            },
+        )
 
-            // Per-manga notification
-            if (!preferences.hideNotificationContent().get()) {
-                launchUI {
-                    updates.forEach { (manga, chapters) ->
-                        notify(manga.id.hashCode(), createNewChaptersNotification(manga, chapters))
-                    }
+        // Per-manga notification
+        if (!preferences.hideNotificationContent().get()) {
+            launchUI {
+                updates.forEach { (manga, chapters) ->
+                    context.notificationManager.notify(manga.id.hashCode(), createNewChaptersNotification(manga, chapters))
                 }
             }
         }
@@ -333,7 +331,7 @@ class LibraryUpdateNotifier(private val context: Context) {
     private fun getNotificationIntent(): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            action = MainActivity.SHORTCUT_UPDATES
+            action = Constants.SHORTCUT_UPDATES
         }
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }

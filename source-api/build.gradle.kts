@@ -1,45 +1,38 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
+    kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.android.library")
+    id("com.github.ben-manes.versions")
+}
+
+kotlin {
+    android()
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                api(kotlinx.serialization.json)
+                api(libs.injekt.core)
+                api(libs.rxjava)
+                api(libs.jsoup)
+                // SY -->
+                api(project(":i18n"))
+                api(kotlinx.reflect)
+                // SY <--
+            }
+        }
+        val androidMain by getting {
+            dependencies {
+                implementation(project(":core"))
+                api(libs.preferencektx)
+            }
+        }
+    }
 }
 
 android {
     namespace = "eu.kanade.tachiyomi.source"
-    compileSdk = AndroidConfig.compileSdk
 
     defaultConfig {
-        minSdk = AndroidConfig.minSdk
-        targetSdk = AndroidConfig.targetSdk
         consumerProguardFile("consumer-proguard.pro")
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
-    }
-}
-
-dependencies {
-
-    implementation(project(":core"))
-
-    api(kotlinx.serialization.json)
-
-    api(libs.rxjava)
-
-    api(libs.preferencektx)
-
-    api(libs.jsoup)
-
-    implementation(androidx.corektx)
-
-    // SY -->
-    implementation(project(":i18n"))
-    implementation(kotlinx.reflect)
-    // SY <--
 }

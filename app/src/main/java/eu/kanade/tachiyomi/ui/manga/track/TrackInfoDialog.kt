@@ -28,42 +28,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithTrackServiceTwoWay
-import eu.kanade.domain.manga.interactor.GetManga
-import eu.kanade.domain.manga.interactor.GetMangaWithChapters
-import eu.kanade.domain.track.interactor.DeleteTrack
-import eu.kanade.domain.track.interactor.GetTracks
-import eu.kanade.domain.track.interactor.InsertTrack
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.track.model.toDomainTrack
 import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.presentation.components.AlertDialogContent
-import eu.kanade.presentation.manga.TrackChapterSelector
-import eu.kanade.presentation.manga.TrackDateSelector
-import eu.kanade.presentation.manga.TrackInfoDialogHome
-import eu.kanade.presentation.manga.TrackScoreSelector
-import eu.kanade.presentation.manga.TrackServiceSearch
-import eu.kanade.presentation.manga.TrackStatusSelector
+import eu.kanade.presentation.track.TrackChapterSelector
+import eu.kanade.presentation.track.TrackDateSelector
+import eu.kanade.presentation.track.TrackInfoDialogHome
+import eu.kanade.presentation.track.TrackScoreSelector
+import eu.kanade.presentation.track.TrackServiceSearch
+import eu.kanade.presentation.track.TrackStatusSelector
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.EnhancedTrackService
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.util.lang.launchNonCancellable
-import eu.kanade.tachiyomi.util.lang.withIOContext
-import eu.kanade.tachiyomi.util.lang.withUIContext
-import eu.kanade.tachiyomi.util.system.logcat
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.catch
@@ -73,17 +61,32 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import tachiyomi.core.util.lang.launchNonCancellable
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.util.lang.withUIContext
+import tachiyomi.core.util.system.logcat
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.interactor.GetMangaWithChapters
+import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.domain.track.interactor.DeleteTrack
+import tachiyomi.domain.track.interactor.GetTracks
+import tachiyomi.domain.track.interactor.InsertTrack
+import tachiyomi.presentation.core.components.material.AlertDialogContent
+import tachiyomi.presentation.core.components.material.padding
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 
 data class TrackInfoDialogHomeScreen(
     private val mangaId: Long,
     private val mangaTitle: String,
     private val sourceId: Long,
-) : Screen {
+) : Screen() {
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -174,27 +177,8 @@ data class TrackInfoDialogHomeScreen(
     ) : StateScreenModel<Model.State>(State()) {
 
         init {
-            // Refresh data
             coroutineScope.launch {
-                try {
-                    val trackItems = getTracks.await(mangaId).mapToTrackItem()
-                    val insertTrack = Injekt.get<InsertTrack>()
-                    val getMangaWithChapters = Injekt.get<GetMangaWithChapters>()
-                    val syncTwoWayService = Injekt.get<SyncChaptersWithTrackServiceTwoWay>()
-                    trackItems.forEach {
-                        val track = it.track ?: return@forEach
-                        val domainTrack = it.service.refresh(track).toDomainTrack() ?: return@forEach
-                        insertTrack.await(domainTrack)
-
-                        if (it.service is EnhancedTrackService) {
-                            val allChapters = getMangaWithChapters.awaitChapters(mangaId)
-                            syncTwoWayService.await(allChapters, domainTrack, it.service)
-                        }
-                    }
-                } catch (e: Exception) {
-                    logcat(LogPriority.ERROR, e) { "Failed to refresh track data mangaId=$mangaId" }
-                    withUIContext { Injekt.get<Application>().toast(e.message) }
-                }
+                refreshTrackers()
             }
 
             coroutineScope.launch {
@@ -223,7 +207,47 @@ data class TrackInfoDialogHomeScreen(
             coroutineScope.launchNonCancellable { deleteTrack.await(mangaId, serviceId) }
         }
 
-        private fun List<eu.kanade.domain.track.model.Track>.mapToTrackItem(): List<TrackItem> {
+        private suspend fun refreshTrackers() {
+            val insertTrack = Injekt.get<InsertTrack>()
+            val getMangaWithChapters = Injekt.get<GetMangaWithChapters>()
+            val syncTwoWayService = Injekt.get<SyncChaptersWithTrackServiceTwoWay>()
+            val context = Injekt.get<Application>()
+
+            try {
+                val trackItems = getTracks.await(mangaId).mapToTrackItem()
+                for (trackItem in trackItems) {
+                    try {
+                        val track = trackItem.track ?: continue
+                        val domainTrack = trackItem.service.refresh(track).toDomainTrack() ?: continue
+                        insertTrack.await(domainTrack)
+
+                        if (trackItem.service is EnhancedTrackService) {
+                            val allChapters = getMangaWithChapters.awaitChapters(mangaId)
+                            syncTwoWayService.await(allChapters, domainTrack, trackItem.service)
+                        }
+                    } catch (e: Exception) {
+                        logcat(
+                            LogPriority.ERROR,
+                            e,
+                        ) { "Failed to refresh track data mangaId=$mangaId for service ${trackItem.service.id}" }
+                        withUIContext {
+                            context.toast(
+                                context.getString(
+                                    R.string.track_error,
+                                    context.getString(trackItem.service.nameRes()),
+                                    e.message,
+                                ),
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Failed to refresh track data mangaId=$mangaId" }
+                withUIContext { context.toast(e.message) }
+            }
+        }
+
+        private fun List<tachiyomi.domain.track.model.Track>.mapToTrackItem(): List<TrackItem> {
             val dbTracks = map { it.toDbTrack() }
             val loggedServices = Injekt.get<TrackManager>().services.filter { it.isLogged }
             val source = Injekt.get<SourceManager>().getOrStub(sourceId)
@@ -243,7 +267,7 @@ data class TrackInfoDialogHomeScreen(
 private data class TrackStatusSelectorScreen(
     private val track: Track,
     private val serviceId: Long,
-) : Screen {
+) : Screen() {
 
     @Composable
     override fun Content() {
@@ -269,7 +293,7 @@ private data class TrackStatusSelectorScreen(
         private val service: TrackService,
     ) : StateScreenModel<Model.State>(State(track.status)) {
 
-        fun getSelections(): Map<Int, String> {
+        fun getSelections(): Map<Int, Int?> {
             return service.getStatusList().associateWith { service.getStatus(it) }
         }
 
@@ -292,7 +316,7 @@ private data class TrackStatusSelectorScreen(
 private data class TrackChapterSelectorScreen(
     private val track: Track,
     private val serviceId: Long,
-) : Screen {
+) : Screen() {
 
     @Composable
     override fun Content() {
@@ -347,7 +371,7 @@ private data class TrackChapterSelectorScreen(
 private data class TrackScoreSelectorScreen(
     private val track: Track,
     private val serviceId: Long,
-) : Screen {
+) : Screen() {
 
     @Composable
     override fun Content() {
@@ -398,7 +422,7 @@ private data class TrackDateSelectorScreen(
     private val track: Track,
     private val serviceId: Long,
     private val start: Boolean,
-) : Screen {
+) : Screen() {
 
     @Composable
     override fun Content() {
@@ -410,7 +434,6 @@ private data class TrackDateSelectorScreen(
                 start = start,
             )
         }
-        val state by sm.state.collectAsState()
 
         val canRemove = if (start) {
             track.started_reading_date > 0
@@ -423,9 +446,35 @@ private data class TrackDateSelectorScreen(
             } else {
                 stringResource(R.string.track_finished_reading_date)
             },
-            selection = state.selection,
-            onSelectionChange = sm::setSelection,
-            onConfirm = { sm.setDate(); navigator.pop() },
+            initialSelectedDateMillis = sm.initialSelection,
+            dateValidator = { utcMillis ->
+                val dateToCheck = Instant.ofEpochMilli(utcMillis)
+                    .atZone(ZoneOffset.systemDefault())
+                    .toLocalDate()
+
+                if (dateToCheck > LocalDate.now()) {
+                    // Disallow future dates
+                    return@TrackDateSelector false
+                }
+
+                if (start && track.finished_reading_date > 0) {
+                    // Disallow start date to be set later than finish date
+                    val dateFinished = Instant.ofEpochMilli(track.finished_reading_date)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    dateToCheck <= dateFinished
+                } else if (!start && track.started_reading_date > 0) {
+                    // Disallow end date to be set earlier than start date
+                    val dateStarted = Instant.ofEpochMilli(track.started_reading_date)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    dateToCheck >= dateStarted
+                } else {
+                    // Nothing set before
+                    true
+                }
+            },
+            onConfirm = { sm.setDate(it); navigator.pop() },
             onRemove = { sm.confirmRemoveDate(navigator) }.takeIf { canRemove },
             onDismissRequest = navigator::pop,
         )
@@ -435,32 +484,26 @@ private data class TrackDateSelectorScreen(
         private val track: Track,
         private val service: TrackService,
         private val start: Boolean,
-    ) : StateScreenModel<Model.State>(
-        State(
-            (if (start) track.started_reading_date else track.finished_reading_date)
-                .takeIf { it != 0L }
-                ?.let {
-                    Instant.ofEpochMilli(it)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                }
-                ?: LocalDate.now(),
-        ),
-    ) {
+    ) : ScreenModel {
 
-        fun setSelection(selection: LocalDate) {
-            mutableState.update { it.copy(selection = selection) }
-        }
+        // In UTC
+        val initialSelection: Long
+            get() {
+                val millis = (if (start) track.started_reading_date else track.finished_reading_date)
+                    .takeIf { it != 0L }
+                    ?: Instant.now().toEpochMilli()
+                return convertEpochMillisZone(millis, ZoneOffset.systemDefault(), ZoneOffset.UTC)
+            }
 
-        fun setDate() {
+        // In UTC
+        fun setDate(millis: Long) {
+            // Convert to local time
+            val localMillis = convertEpochMillisZone(millis, ZoneOffset.UTC, ZoneOffset.systemDefault())
             coroutineScope.launchNonCancellable {
-                val millis = state.value.selection.atStartOfDay(ZoneId.systemDefault())
-                    .toInstant()
-                    .toEpochMilli()
                 if (start) {
-                    service.setRemoteStartDate(track, millis)
+                    service.setRemoteStartDate(track, localMillis)
                 } else {
-                    service.setRemoteFinishDate(track, millis)
+                    service.setRemoteFinishDate(track, localMillis)
                 }
             }
         }
@@ -468,10 +511,19 @@ private data class TrackDateSelectorScreen(
         fun confirmRemoveDate(navigator: Navigator) {
             navigator.push(TrackDateRemoverScreen(track, service.id, start))
         }
+    }
 
-        data class State(
-            val selection: LocalDate,
-        )
+    companion object {
+        private fun convertEpochMillisZone(
+            localMillis: Long,
+            from: ZoneId,
+            to: ZoneId,
+        ): Long {
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(localMillis), from)
+                .atZone(to)
+                .toInstant()
+                .toEpochMilli()
+        }
     }
 }
 
@@ -479,7 +531,7 @@ private data class TrackDateRemoverScreen(
     private val track: Track,
     private val serviceId: Long,
     private val start: Boolean,
-) : Screen {
+) : Screen() {
 
     @Composable
     override fun Content() {
@@ -518,7 +570,7 @@ private data class TrackDateRemoverScreen(
             buttons = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small, Alignment.End),
                 ) {
                     TextButton(onClick = navigator::pop) {
                         Text(text = stringResource(android.R.string.cancel))
@@ -562,7 +614,7 @@ data class TrackServiceSearchScreen(
     private val initialQuery: String,
     private val currentUrl: String?,
     private val serviceId: Long,
-) : Screen {
+) : Screen() {
 
     @Composable
     override fun Content() {

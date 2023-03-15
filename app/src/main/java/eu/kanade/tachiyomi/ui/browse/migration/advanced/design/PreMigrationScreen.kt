@@ -36,22 +36,21 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.ExtendedFloatingActionButton
 import eu.kanade.presentation.components.OverflowMenu
-import eu.kanade.presentation.components.Scaffold
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.PreMigrationListBinding
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.process.MigrationListScreen
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.process.MigrationProcedureConfig
+import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
+import tachiyomi.presentation.core.components.material.Scaffold
 import kotlin.math.roundToInt
 
-class PreMigrationScreen(val mangaIds: List<Long>) : Screen {
-
+class PreMigrationScreen(val mangaIds: List<Long>) : Screen() {
     @Composable
     override fun Content() {
         val screenModel = rememberScreenModel { PreMigrationScreenModel() }

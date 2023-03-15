@@ -1,26 +1,17 @@
 package eu.kanade.tachiyomi.source.online.all
 
-import eu.kanade.domain.category.interactor.GetCategories
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
-import eu.kanade.domain.chapter.model.Chapter
-import eu.kanade.domain.download.service.DownloadPreferences
-import eu.kanade.domain.manga.interactor.GetManga
-import eu.kanade.domain.manga.interactor.GetMergedReferencesById
-import eu.kanade.domain.manga.interactor.NetworkToLocalManga
 import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.Manga
+import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.copy
 import eu.kanade.tachiyomi.source.online.HttpSource
-import eu.kanade.tachiyomi.util.lang.withIOContext
 import eu.kanade.tachiyomi.util.shouldDownloadNewChapters
-import exh.merged.sql.models.MergedMangaReference
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -29,6 +20,16 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import okhttp3.Response
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.interactor.GetMergedReferencesById
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.manga.model.MergedMangaReference
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.injectLazy
 
 class MergedSource : HttpSource() {
@@ -61,6 +62,7 @@ class MergedSource : HttpSource() {
     override fun fetchChapterList(manga: SManga) = throw UnsupportedOperationException()
     override suspend fun getChapterList(manga: SManga) = throw UnsupportedOperationException()
     override fun fetchImage(page: Page) = throw UnsupportedOperationException()
+    override suspend fun getImage(page: Page): Response = throw UnsupportedOperationException()
     override fun fetchImageUrl(page: Page) = throw UnsupportedOperationException()
 
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getPageList"))

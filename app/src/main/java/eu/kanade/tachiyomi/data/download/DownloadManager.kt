@@ -2,23 +2,29 @@ package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
 import com.hippo.unifile.UniFile
-import eu.kanade.domain.category.interactor.GetCategories
-import eu.kanade.domain.chapter.model.Chapter
-import eu.kanade.domain.download.service.DownloadPreferences
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.model.Download
-import eu.kanade.tachiyomi.data.download.model.DownloadQueue
 import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.Page
-import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import eu.kanade.tachiyomi.util.system.logcat
 import exh.log.xLogE
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
-import rx.Observable
+import tachiyomi.core.util.lang.launchIO
+import tachiyomi.core.util.system.logcat
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -46,28 +52,21 @@ class DownloadManager(
      */
     private val pendingDeleter = DownloadPendingDeleter(context)
 
-    /**
-     * Downloads queue, where the pending chapters are stored.
-     */
-    val queue: DownloadQueue
-        get() = downloader.queue
+    val queueState
+        get() = downloader.queueState
+
+    // For use by DownloadService only
+    fun downloaderStart() = downloader.start()
+    fun downloaderStop(reason: String? = null) = downloader.stop(reason)
+
+    val isDownloaderRunning
+        get() = DownloadService.isRunning
 
     /**
      * Tells the downloader to begin downloads.
-     *
-     * @return true if it's started, false otherwise (empty queue).
      */
-    fun startDownloads(): Boolean {
-        return downloader.start()
-    }
-
-    /**
-     * Tells the downloader to stop downloads.
-     *
-     * @param reason an optional reason for being stopped, used to notify the user.
-     */
-    fun stopDownloads(reason: String? = null) {
-        downloader.stop(reason)
+    fun startDownloads() {
+        DownloadService.start(context)
     }
 
     /**
@@ -75,15 +74,15 @@ class DownloadManager(
      */
     fun pauseDownloads() {
         downloader.pause()
+        downloader.stop()
     }
 
     /**
      * Empties the download queue.
-     *
-     * @param isNotification value that determines if status is set (needed for view updates)
      */
-    fun clearQueue(isNotification: Boolean = false) {
-        downloader.clearQueue(isNotification)
+    fun clearQueue() {
+        downloader.clearQueue()
+        downloader.stop()
     }
 
     /**
@@ -93,7 +92,7 @@ class DownloadManager(
      * @param chapterId the chapter to check.
      */
     fun getQueuedDownloadOrNull(chapterId: Long): Download? {
-        return queue.find { it.chapter.id == chapterId }
+        return queueState.value.find { it: Download -> it.chapter.id == chapterId }
     }
 
     fun startDownloadNow(chapterId: Long?) {
@@ -101,11 +100,11 @@ class DownloadManager(
         val download = getQueuedDownloadOrNull(chapterId)
         // If not in queue try to start a new download
         val toAdd = download ?: runBlocking { Download.fromChapterId(chapterId) } ?: return
-        val queue = queue.toMutableList()
+        val queue = queueState.value.toMutableList()
         download?.let { queue.remove(it) }
         queue.add(0, toAdd)
         reorderQueue(queue)
-        if (downloader.isPaused()) {
+        if (!downloader.isRunning) {
             if (DownloadService.isRunning(context)) {
                 downloader.start()
             } else {
@@ -120,21 +119,7 @@ class DownloadManager(
      * @param downloads value to set the download queue to
      */
     fun reorderQueue(downloads: List<Download>) {
-        val wasRunning = downloader.isRunning
-
-        if (downloads.isEmpty()) {
-            DownloadService.stop(context)
-            queue.clear()
-            return
-        }
-
-        downloader.pause()
-        queue.clear()
-        queue.addAll(downloads)
-
-        if (wasRunning) {
-            downloader.start()
-        }
+        downloader.updateQueue(downloads)
     }
 
     /**
@@ -155,7 +140,7 @@ class DownloadManager(
      */
     fun addDownloadsToStartOfQueue(downloads: List<Download>) {
         if (downloads.isEmpty()) return
-        queue.toMutableList().apply {
+        queueState.value.toMutableList().apply {
             addAll(0, downloads)
             reorderQueue(this)
         }
@@ -168,23 +153,21 @@ class DownloadManager(
      * @param source the source of the chapter.
      * @param manga the manga of the chapter.
      * @param chapter the downloaded chapter.
-     * @return an observable containing the list of pages from the chapter.
+     * @return the list of pages from the chapter.
      */
-    fun buildPageList(source: Source, manga: Manga, chapter: Chapter): Observable<List<Page>> {
+    fun buildPageList(source: Source, manga: Manga, chapter: Chapter): List<Page> {
         val chapterDir = provider.findChapterDir(chapter.name, chapter.scanlator, /* SY --> */ manga.ogTitle /* SY <-- */, source)
-        return Observable.fromCallable {
-            val files = chapterDir?.listFiles().orEmpty()
-                .filter { "image" in it.type.orEmpty() }
+        val files = chapterDir?.listFiles().orEmpty()
+            .filter { "image" in it.type.orEmpty() }
 
-            if (files.isEmpty()) {
-                throw Exception(context.getString(R.string.page_list_empty_error))
-            }
-
-            files.sortedBy { it.name }
-                .mapIndexed { i, file ->
-                    Page(i, uri = file.uri).apply { status = Page.State.READY }
-                }
+        if (files.isEmpty()) {
+            throw Exception(context.getString(R.string.page_list_empty_error))
         }
+
+        return files.sortedBy { it.name }
+            .mapIndexed { i, file ->
+                Page(i, uri = file.uri).apply { status = Page.State.READY }
+            }
     }
 
     /**
@@ -261,7 +244,7 @@ class DownloadManager(
     fun deleteManga(manga: Manga, source: Source, removeQueued: Boolean = true) {
         launchIO {
             if (removeQueued) {
-                queue.remove(manga)
+                downloader.removeFromQueue(manga)
             }
             provider.findMangaDir(/* SY --> */ manga.ogTitle /* SY <-- */, source)?.delete()
             cache.removeManga(manga)
@@ -281,13 +264,12 @@ class DownloadManager(
             downloader.pause()
         }
 
-        queue.remove(chapters)
+        downloader.removeFromQueue(chapters)
 
         if (wasRunning) {
-            if (queue.isEmpty()) {
-                DownloadService.stop(context)
+            if (queueState.value.isEmpty()) {
                 downloader.stop()
-            } else if (queue.isNotEmpty()) {
+            } else if (queueState.value.isNotEmpty()) {
                 downloader.start()
             }
         }
@@ -437,6 +419,35 @@ class DownloadManager(
             chapters
         }
     }
+
+    fun statusFlow(): Flow<Download> = queueState
+        .flatMapLatest { downloads ->
+            downloads
+                .map { download ->
+                    download.statusFlow.drop(1).map { download }
+                }
+                .merge()
+        }
+        .onStart {
+            emitAll(
+                queueState.value.filter { download -> download.status == Download.State.DOWNLOADING }.asFlow(),
+            )
+        }
+
+    fun progressFlow(): Flow<Download> = queueState
+        .flatMapLatest { downloads ->
+            downloads
+                .map { download ->
+                    download.progressFlow.drop(1).map { download }
+                }
+                .merge()
+        }
+        .onStart {
+            emitAll(
+                queueState.value.filter { download -> download.status == Download.State.DOWNLOADING }
+                    .asFlow(),
+            )
+        }
 
     fun renameMangaDir(oldTitle: String, newTitle: String, source: Long) {
         val sourceDir = provider.findSourceDir(sourceManager.getOrStub(source)) ?: return

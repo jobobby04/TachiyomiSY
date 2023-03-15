@@ -10,6 +10,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import eu.kanade.presentation.more.settings.Preference
-import eu.kanade.presentation.util.minimumTouchTargetSize
 import eu.kanade.tachiyomi.R
 
 @Composable
@@ -69,7 +69,7 @@ fun MultiSelectListPreferenceWidget(
                                         selected = isSelected,
                                         onClick = { onSelectionChanged() },
                                     )
-                                    .minimumTouchTargetSize()
+                                    .minimumInteractiveComponentSize()
                                     .fillMaxWidth(),
                             ) {
                                 Checkbox(

@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import eu.kanade.domain.library.model.LibraryDisplayMode
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.AppBarTitle
@@ -21,30 +20,32 @@ import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.components.RadioMenuItem
 import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.ConfigurableSource
-import eu.kanade.tachiyomi.source.LocalSource
+import eu.kanade.tachiyomi.source.Source
 import exh.source.anyIs
+import tachiyomi.domain.library.model.LibraryDisplayMode
+import tachiyomi.source.local.LocalSource
 
 @Composable
 fun BrowseSourceToolbar(
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
-    source: CatalogueSource?,
+    source: Source?,
     displayMode: LibraryDisplayMode?,
     onDisplayModeChange: (LibraryDisplayMode) -> Unit,
     navigateUp: () -> Unit,
     onWebViewClick: () -> Unit,
     onHelpClick: () -> Unit,
-    onSearch: (String) -> Unit,
-    // SY -->
     onSettingsClick: () -> Unit,
-    // SY <--
+    onSearch: (String) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     // Avoid capturing unstable source in actions lambda
     val title = source?.name
     val isLocalSource = source is LocalSource
+    val isConfigurableSource = source?.anyIs<ConfigurableSource>() == true
+
+    var selectingDisplayMode by remember { mutableStateOf(false) }
 
     SearchToolbar(
         navigateUp = navigateUp,
@@ -54,9 +55,6 @@ fun BrowseSourceToolbar(
         onSearch = onSearch,
         onClickCloseSearch = navigateUp,
         actions = {
-            var selectingDisplayMode by remember { mutableStateOf(false) }
-            // SY -->
-            val isConfigurableSource = source?.anyIs<ConfigurableSource>() == true
             AppBarActions(
                 actions = listOfNotNull(
                     AppBar.Action(
@@ -91,17 +89,14 @@ fun BrowseSourceToolbar(
                             )
                         }
                     },
-                    if (isConfigurableSource) {
-                        AppBar.OverflowAction(
-                            title = stringResource(R.string.action_settings),
-                            onClick = onSettingsClick,
-                        )
-                    } else {
-                        null
-                    },
                     // SY <--
+                    AppBar.OverflowAction(
+                        title = stringResource(R.string.action_settings),
+                        onClick = onSettingsClick,
+                    ).takeIf { isConfigurableSource },
                 ),
             )
+
             DropdownMenu(
                 expanded = selectingDisplayMode,
                 onDismissRequest = { selectingDisplayMode = false },

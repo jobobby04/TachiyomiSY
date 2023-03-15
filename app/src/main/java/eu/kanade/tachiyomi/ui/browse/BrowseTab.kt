@@ -12,17 +12,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import cafe.adriel.voyager.core.model.rememberScreenModel
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import eu.kanade.core.prefs.asState
+import eu.kanade.core.preference.asState
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.TabbedScreen
+import eu.kanade.presentation.extensions.RequestStoragePermission
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsScreenModel
 import eu.kanade.tachiyomi.ui.browse.extension.extensionsTab
 import eu.kanade.tachiyomi.ui.browse.feed.feedTab
 import eu.kanade.tachiyomi.ui.browse.migration.sources.migrateSourceTab
+import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.browse.source.sourcesTab
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.storage.DiskUtil
@@ -45,6 +48,10 @@ data class BrowseTab(
             )
         }
 
+    override suspend fun onReselect(navigator: Navigator) {
+        navigator.push(GlobalSearchScreen())
+    }
+
     @Composable
     override fun Content() {
         val context = LocalContext.current
@@ -57,7 +64,7 @@ data class BrowseTab(
 
         // Hoisted for extensions tab's search bar
         val extensionsScreenModel = rememberScreenModel { ExtensionsScreenModel() }
-        val extensionsQuery by extensionsScreenModel.query.collectAsState()
+        val extensionsState by extensionsScreenModel.state.collectAsState()
 
         TabbedScreen(
             titleRes = R.string.browse,
@@ -79,7 +86,7 @@ data class BrowseTab(
             },
             startIndex = 2.takeIf { toExtensions },
             // SY <--
-            searchQuery = extensionsQuery,
+            searchQuery = extensionsState.searchQuery,
             onChangeSearchQuery = extensionsScreenModel::search,
         )
 

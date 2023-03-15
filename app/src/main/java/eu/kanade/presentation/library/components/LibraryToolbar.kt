@@ -22,10 +22,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.OverflowMenu
-import eu.kanade.presentation.components.Pill
 import eu.kanade.presentation.components.SearchToolbar
-import eu.kanade.presentation.theme.active
 import eu.kanade.tachiyomi.R
+import tachiyomi.presentation.core.components.Pill
+import tachiyomi.presentation.core.theme.active
 
 @Composable
 fun LibraryToolbar(
@@ -37,6 +37,7 @@ fun LibraryToolbar(
     onClickInvertSelection: () -> Unit,
     onClickFilter: () -> Unit,
     onClickRefresh: () -> Unit,
+    onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
     // SY -->
     onClickSyncExh: (() -> Unit)?,
@@ -58,6 +59,7 @@ fun LibraryToolbar(
         onSearchQueryChange = onSearchQueryChange,
         onClickFilter = onClickFilter,
         onClickRefresh = onClickRefresh,
+        onClickGlobalUpdate = onClickGlobalUpdate,
         onClickOpenRandomManga = onClickOpenRandomManga,
         // SY -->
         onClickSyncExh = onClickSyncExh,
@@ -67,13 +69,14 @@ fun LibraryToolbar(
 }
 
 @Composable
-fun LibraryRegularToolbar(
+private fun LibraryRegularToolbar(
     title: LibraryToolbarTitle,
     hasFilters: Boolean,
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
     onClickFilter: () -> Unit,
     onClickRefresh: () -> Unit,
+    onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
     // SY -->
     onClickSyncExh: (() -> Unit)?,
@@ -111,6 +114,13 @@ fun LibraryRegularToolbar(
                 DropdownMenuItem(
                     text = { Text(text = stringResource(R.string.pref_category_library_update)) },
                     onClick = {
+                        onClickGlobalUpdate()
+                        closeMenu()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.action_update_category)) },
+                    onClick = {
                         onClickRefresh()
                         closeMenu()
                     },
@@ -140,7 +150,7 @@ fun LibraryRegularToolbar(
 }
 
 @Composable
-fun LibrarySelectionToolbar(
+private fun LibrarySelectionToolbar(
     selectedCount: Int,
     onClickUnselectAll: () -> Unit,
     onClickSelectAll: () -> Unit,

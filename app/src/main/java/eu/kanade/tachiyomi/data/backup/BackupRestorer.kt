@@ -9,19 +9,17 @@ import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.models.BackupMergedMangaReference
 import eu.kanade.tachiyomi.data.backup.models.BackupSavedSearch
-import eu.kanade.tachiyomi.data.backup.models.BackupSerializer
 import eu.kanade.tachiyomi.data.backup.models.BackupSource
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.library.CustomMangaManager
+import eu.kanade.tachiyomi.util.BackupUtil
 import eu.kanade.tachiyomi.util.system.createFileInCacheDir
 import exh.EXHMigrations
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.Job
-import okio.buffer
-import okio.gzip
 import okio.source
+import tachiyomi.domain.manga.model.CustomMangaInfo
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,8 +83,7 @@ class BackupRestorer(
 
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun performRestore(uri: Uri): Boolean {
-        val backupString = context.contentResolver.openInputStream(uri)!!.source().gzip().buffer().use { it.readByteArray() }
-        val backup = backupManager.parser.decodeFromByteArray(BackupSerializer, backupString)
+        val backup = BackupUtil.decodeBackup(context, uri)
 
         restoreAmount = backup.backupManga.size + 1 /* SY --> */ + 1 /* SY <-- */ // +1 for categories, +1 for saved searches
 
@@ -190,7 +187,7 @@ class BackupRestorer(
         // SY -->
         mergedMangaReferences: List<BackupMergedMangaReference>,
         flatMetadata: BackupFlatMetadata?,
-        customManga: CustomMangaManager.MangaJson?,
+        customManga: CustomMangaInfo?,
         // SY <--
     ) {
         val fetchedManga = backupManager.restoreNewManga(manga)
@@ -210,7 +207,7 @@ class BackupRestorer(
         // SY -->
         mergedMangaReferences: List<BackupMergedMangaReference>,
         flatMetadata: BackupFlatMetadata?,
-        customManga: CustomMangaManager.MangaJson?,
+        customManga: CustomMangaInfo?,
         // SY <--
     ) {
         backupManager.restoreChapters(backupManga, chapters)
@@ -226,7 +223,7 @@ class BackupRestorer(
         // SY -->
         mergedMangaReferences: List<BackupMergedMangaReference>,
         flatMetadata: BackupFlatMetadata?,
-        customManga: CustomMangaManager.MangaJson?,
+        customManga: CustomMangaInfo?,
         // SY <--
     ) {
         backupManager.restoreCategories(manga, categories, backupCategories)
@@ -235,8 +232,7 @@ class BackupRestorer(
         // SY -->
         backupManager.restoreMergedMangaReferencesForManga(manga.id!!, mergedMangaReferences)
         flatMetadata?.let { backupManager.restoreFlatMetadata(manga.id!!, it) }
-        customManga?.id = manga.id!!
-        backupManager.restoreEditedInfo(customManga)
+        backupManager.restoreEditedInfo(customManga?.copy(id = manga.id!!))
         // SY <--
     }
 

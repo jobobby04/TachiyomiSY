@@ -9,11 +9,11 @@ import eu.kanade.domain.source.interactor.DeleteSourceCategory
 import eu.kanade.domain.source.interactor.GetSourceCategories
 import eu.kanade.domain.source.interactor.RenameSourceCategory
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.util.lang.launchIO
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import tachiyomi.core.util.lang.launchIO
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -25,7 +25,7 @@ class SourceCategoryScreenModel(
 ) : StateScreenModel<SourceCategoryScreenState>(SourceCategoryScreenState.Loading) {
 
     private val _events: Channel<SourceCategoryEvent> = Channel(Int.MAX_VALUE)
-    val events = _events.consumeAsFlow()
+    val events = _events.receiveAsFlow()
 
     init {
         coroutineScope.launchIO {
@@ -48,7 +48,6 @@ class SourceCategoryScreenModel(
     fun createCategory(name: String) {
         coroutineScope.launchIO {
             when (createSourceCategory.await(name)) {
-                is CreateSourceCategory.Result.CategoryExists -> _events.send(SourceCategoryEvent.CategoryExists)
                 is CreateSourceCategory.Result.InvalidName -> _events.send(SourceCategoryEvent.InvalidName)
                 else -> {}
             }
@@ -75,7 +74,6 @@ class SourceCategoryScreenModel(
     fun renameCategory(categoryOld: String, categoryNew: String) {
         coroutineScope.launchIO {
             when (renameSourceCategory.await(categoryOld, categoryNew)) {
-                is CreateSourceCategory.Result.CategoryExists -> _events.send(SourceCategoryEvent.CategoryExists)
                 is CreateSourceCategory.Result.InvalidName -> _events.send(SourceCategoryEvent.InvalidName)
                 else -> {}
             }
@@ -103,7 +101,6 @@ class SourceCategoryScreenModel(
 
 sealed class SourceCategoryEvent {
     sealed class LocalizedMessage(@StringRes val stringRes: Int) : SourceCategoryEvent()
-    object CategoryExists : LocalizedMessage(R.string.error_category_exists)
     object InvalidName : LocalizedMessage(R.string.invalid_category_name)
     object InternalError : LocalizedMessage(R.string.internal_error)
 }

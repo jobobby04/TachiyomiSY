@@ -43,30 +43,30 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import eu.kanade.core.prefs.PreferenceMutableState
+import eu.kanade.core.preference.PreferenceMutableState
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.Divider
-import eu.kanade.presentation.components.LoadingScreen
-import eu.kanade.presentation.components.Scaffold
-import eu.kanade.presentation.components.ScrollbarLazyColumn
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.TrailingWidgetBuffer
-import eu.kanade.presentation.util.plus
-import eu.kanade.presentation.util.topSmallPaddingValues
+import eu.kanade.presentation.util.Screen
 import exh.util.capitalize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import tachiyomi.presentation.core.components.ScrollbarLazyColumn
+import tachiyomi.presentation.core.components.material.Divider
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.topSmallPaddingValues
+import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.util.plus
 import java.util.Locale
 import kotlin.reflect.KFunction
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredFunctions
 
-class SettingsDebugScreen : Screen {
+class SettingsDebugScreen : Screen() {
 
     data class DebugToggle(val name: String, val pref: PreferenceMutableState<Boolean>, val default: Boolean)
 

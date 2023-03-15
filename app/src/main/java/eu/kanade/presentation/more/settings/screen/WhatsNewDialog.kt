@@ -21,16 +21,17 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.components.Divider
-import eu.kanade.presentation.components.LazyColumn
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.util.lang.withIOContext
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.AndroidXmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.serialization.XmlValue
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.presentation.core.components.LazyColumn
+import tachiyomi.presentation.core.components.material.Divider
+import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun WhatsNewDialog(onDismissRequest: () -> Unit) {
@@ -60,7 +61,7 @@ fun WhatsNewDialog(onDismissRequest: () -> Unit) {
                 }
                 if (changelog != null) {
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.medium),
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         items(changelog.orEmpty()) { changelog ->
@@ -73,7 +74,7 @@ fun WhatsNewDialog(onDismissRequest: () -> Unit) {
                                 )
                                 Divider(Modifier.padding(vertical = 8.dp))
                                 Column(
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
                                 ) {
                                     changelog.changelog.forEach {
                                         Text(text = it, style = MaterialTheme.typography.bodySmall)

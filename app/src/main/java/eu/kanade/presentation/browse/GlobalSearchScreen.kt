@@ -8,20 +8,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.presentation.browse.components.GlobalSearchCardRow
 import eu.kanade.presentation.browse.components.GlobalSearchErrorResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchLoadingResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchToolbar
-import eu.kanade.presentation.components.LazyColumn
-import eu.kanade.presentation.components.Scaffold
-import eu.kanade.presentation.util.padding
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchState
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchItemResult
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.presentation.core.components.LazyColumn
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun GlobalSearchScreen(
@@ -59,7 +59,7 @@ fun GlobalSearchScreen(
 }
 
 @Composable
-fun GlobalSearchContent(
+private fun GlobalSearchContent(
     items: Map<CatalogueSource, SearchItemResult>,
     contentPadding: PaddingValues,
     getManga: @Composable (CatalogueSource, Manga) -> State<Manga>,
@@ -71,16 +71,13 @@ fun GlobalSearchContent(
         contentPadding = contentPadding,
     ) {
         items.forEach { (source, result) ->
-            item {
+            item(key = source.id) {
                 GlobalSearchResultItem(
                     title = source.name,
                     subtitle = LocaleHelper.getDisplayName(source.lang),
                     onClick = { onClickSource(source) },
                 ) {
                     when (result) {
-                        is SearchItemResult.Error -> {
-                            GlobalSearchErrorResultItem(message = result.throwable.message)
-                        }
                         SearchItemResult.Loading -> {
                             GlobalSearchLoadingResultItem()
                         }
@@ -103,6 +100,9 @@ fun GlobalSearchContent(
                                 onClick = onClickItem,
                                 onLongClick = onLongClickItem,
                             )
+                        }
+                        is SearchItemResult.Error -> {
+                            GlobalSearchErrorResultItem(message = result.throwable.message)
                         }
                     }
                 }

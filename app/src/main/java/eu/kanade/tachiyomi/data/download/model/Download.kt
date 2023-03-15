@@ -1,13 +1,20 @@
 package eu.kanade.tachiyomi.data.download.model
 
-import eu.kanade.domain.chapter.interactor.GetChapter
-import eu.kanade.domain.chapter.model.Chapter
-import eu.kanade.domain.manga.interactor.GetManga
-import eu.kanade.domain.manga.model.Manga
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
-import rx.subjects.PublishSubject
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import tachiyomi.domain.chapter.interactor.GetChapter
+import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -18,28 +25,37 @@ data class Download(
     var pages: List<Page>? = null,
 ) {
 
-    @Volatile
-    @Transient
-    var totalProgress: Int = 0
+    val totalProgress: Int
+        get() = pages?.sumOf(Page::progress) ?: 0
 
-    @Volatile
-    @Transient
-    var downloadedImages: Int = 0
+    val downloadedImages: Int
+        get() = pages?.count { it.status == Page.State.READY } ?: 0
 
-    @Volatile
     @Transient
-    var status: State = State.NOT_DOWNLOADED
+    private val _statusFlow = MutableStateFlow(State.NOT_DOWNLOADED)
+
+    @Transient
+    val statusFlow = _statusFlow.asStateFlow()
+    var status: State
+        get() = _statusFlow.value
         set(status) {
-            field = status
-            statusSubject?.onNext(this)
-            statusCallback?.invoke(this)
+            _statusFlow.value = status
         }
 
     @Transient
-    var statusSubject: PublishSubject<Download>? = null
+    val progressFlow = flow {
+        if (pages == null) {
+            emit(0)
+            while (pages == null) {
+                delay(50)
+            }
+        }
 
-    @Transient
-    var statusCallback: ((Download) -> Unit)? = null
+        val progressFlows = pages!!.map(Page::progressFlow)
+        emitAll(combine(progressFlows) { it.average().toInt() })
+    }
+        .distinctUntilChanged()
+        .debounce(50)
 
     val progress: Int
         get() {

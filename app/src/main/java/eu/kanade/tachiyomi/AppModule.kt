@@ -7,29 +7,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import data.Categories
-import data.History
-import data.Mangas
-import eu.kanade.data.AndroidDatabaseHandler
-import eu.kanade.data.DatabaseHandler
-import eu.kanade.data.dateAdapter
-import eu.kanade.data.listOfLongsAdapter
-import eu.kanade.data.listOfStringsAdapter
-import eu.kanade.data.listOfStringsAndAdapter
-import eu.kanade.data.updateStrategyAdapter
 import eu.kanade.domain.UnsortedPreferences
-import eu.kanade.domain.backup.service.BackupPreferences
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.download.service.DownloadPreferences
-import eu.kanade.domain.library.service.LibraryPreferences
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.domain.track.store.DelayedTrackingStore
 import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.tachiyomi.core.preference.AndroidPreferenceStore
-import eu.kanade.tachiyomi.core.preference.PreferenceStore
-import eu.kanade.tachiyomi.core.provider.AndroidBackupFolderProvider
-import eu.kanade.tachiyomi.core.provider.AndroidDownloadFolderProvider
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
@@ -37,14 +20,13 @@ import eu.kanade.tachiyomi.data.cache.PagePreviewCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
-import eu.kanade.tachiyomi.data.library.CustomMangaManager
 import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.network.JavaScriptEngine
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
-import eu.kanade.tachiyomi.source.SourceManager
+import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.system.isDevFlavor
 import exh.eh.EHentaiUpdateHelper
@@ -55,6 +37,28 @@ import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.serialization.UnknownChildHandler
 import nl.adaptivity.xmlutil.serialization.XML
+import tachiyomi.core.preference.AndroidPreferenceStore
+import tachiyomi.core.preference.PreferenceStore
+import tachiyomi.core.provider.AndroidBackupFolderProvider
+import tachiyomi.core.provider.AndroidDownloadFolderProvider
+import tachiyomi.data.AndroidDatabaseHandler
+import tachiyomi.data.Categories
+import tachiyomi.data.Database
+import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.History
+import tachiyomi.data.Mangas
+import tachiyomi.data.dateAdapter
+import tachiyomi.data.listOfLongsAdapter
+import tachiyomi.data.listOfStringsAdapter
+import tachiyomi.data.listOfStringsAndAdapter
+import tachiyomi.data.updateStrategyAdapter
+import tachiyomi.domain.backup.service.BackupPreferences
+import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
+import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.source.local.image.LocalCoverManager
+import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addSingleton
@@ -133,10 +137,10 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { ChapterCache(app) }
         addSingletonFactory { CoverCache(app) }
 
-        addSingletonFactory { NetworkHelper(app) }
+        addSingletonFactory { NetworkHelper(app, get()) }
         addSingletonFactory { JavaScriptEngine(app) }
 
-        addSingletonFactory { SourceManager(app, get(), get()) }
+        addSingletonFactory<SourceManager> { AndroidSourceManager(app, get(), get()) }
         addSingletonFactory { ExtensionManager(app) }
 
         addSingletonFactory { DownloadProvider(app) }
@@ -148,9 +152,10 @@ class AppModule(val app: Application) : InjektModule {
 
         addSingletonFactory { ImageSaver(app) }
 
-        // SY -->
-        addSingletonFactory { CustomMangaManager(app) }
+        addSingletonFactory { LocalSourceFileSystem(app) }
+        addSingletonFactory { LocalCoverManager(app, get()) }
 
+        // SY -->
         addSingletonFactory { EHentaiUpdateHelper(app) }
 
         addSingletonFactory { PagePreviewCache(app) }
@@ -167,7 +172,7 @@ class AppModule(val app: Application) : InjektModule {
             get<DownloadManager>()
 
             // SY -->
-            get<CustomMangaManager>()
+            get<GetCustomMangaInfo>()
             // SY <--
         }
     }

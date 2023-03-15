@@ -3,7 +3,7 @@
     <string name="name">Navn</string>
     <string name="categories">Kategorier</string>
     <string name="manga">Bibliotekoppføringer</string>
-    <string name="chapters">Kapittel</string>
+    <string name="chapters">Kapitler</string>
     <string name="history">Historikk</string>
     <string name="label_settings">Innstillinger</string>
     <string name="label_download_queue">Nedlastingskø</string>
@@ -20,7 +20,7 @@
     <string name="action_filter_unread">Ulest</string>
     <string name="action_filter_empty">Fjern filter</string>
     <string name="action_sort_alpha">Alfabetisk</string>
-    <string name="action_sort_total">Totale kapittel</string>
+    <string name="action_sort_total">Totale kapitler</string>
     <string name="action_sort_last_read">Sist lest</string>
     <string name="action_search">Søk</string>
     <string name="action_select_all">Velg alt</string>
@@ -106,7 +106,7 @@
     <string name="pref_crop_borders">Beskjær kanter</string>
     <string name="pref_custom_brightness">Egendefinert lysstyrke</string>
     <string name="pref_custom_color_filter">Egendefinert fargefilter</string>
-    <string name="pref_skip_read_chapters">Hopp over kapittel markert som leste</string>
+    <string name="pref_skip_read_chapters">Hopp over kapitler markert som lest</string>
     <string name="pref_read_with_volume_keys">Lydstyrkejusteringstaster</string>
     <string name="pref_read_with_volume_keys_inverted">Inverter lydstyrketaster</string>
     <string name="pref_read_with_long_tap">Vis ved langt trykk</string>
@@ -200,7 +200,7 @@
     <string name="remove_from_library">Fjern fra bibliotek</string>
     <string name="manga_added_library">Lagt til i biblioteket</string>
     <string name="manga_removed_library">Fjernet fra bibliotek</string>
-    <string name="delete_downloads_for_manga">Slett nedlastede kapittel\?</string>
+    <string name="delete_downloads_for_manga">Slett nedlastede kapitler\?</string>
     <string name="copied_to_clipboard">Kopiert til utklippstavle:
 \n%1$s</string>
     <string name="source_not_installed">Kilde ikke installert: %1$s</string>
@@ -213,11 +213,6 @@
     <string name="sort_by_source">Etter kilde</string>
     <string name="sort_by_number">Etter kapittelnummer</string>
     <string name="manga_download">Last ned</string>
-    <string name="custom_download">Last ned egendefinert mengde</string>
-    <string name="download_1">Neste kapittel</string>
-    <string name="download_5">Neste fem kapittel</string>
-    <string name="download_10">Neste ti kapittel</string>
-    <string name="download_custom">Egendefinert</string>
     <string name="download_all">Alle</string>
     <string name="download_unread">Ulest</string>
     <string name="confirm_delete_chapters">Er du sikker på at du vil slette de valgte kapitlene\?</string>
@@ -236,7 +231,7 @@
     <string name="error_category_exists">En kategori ved dette navnet finnes allerede!</string>
     <string name="snack_categories_deleted">Kategorier slettet</string>
     <string name="dialog_with_checkbox_remove_description">Lesningsdato for dette kapittelet vil bli fjernet. Er du sikker\?</string>
-    <string name="dialog_with_checkbox_reset">Tilbakestill alle kapittel for denne oppføringen</string>
+    <string name="dialog_with_checkbox_reset">Tilbakestill alle kapitler for denne oppføringen</string>
     <string name="snack_add_to_library">Legg til i bibliotek\?</string>
     <string name="picture_saved">Bilde lagret</string>
     <string name="custom_filter">Egendefinert filter</string>
@@ -254,7 +249,7 @@
     <string name="transition_pages_loading">Laster inn sider…</string>
     <string name="transition_pages_error">Klarte ikke å laste inn sider: %1$s</string>
     <string name="migration_dialog_what_to_include">Velg data å inkludere</string>
-    <string name="migrate">Migrer</string>
+    <string name="migrate">Flytt</string>
     <string name="copy">Kopier</string>
     <string name="notification_new_chapters">Nye kapitler funnet</string>
     <string name="notification_cover_update_failed">Klarte ikke å oppdatere omslag</string>
@@ -299,7 +294,7 @@
     <string name="filter_mode_lighten">Unngå / lysne</string>
     <string name="filter_mode_darken">Brenn / mørkere</string>
     <string name="no_results_found">Resultatløst</string>
-    <string name="migration_selection_prompt">Velg en kilde å migrere fra</string>
+    <string name="migration_selection_prompt">Velg en kilde å flytte fra</string>
     <string name="action_webview_back">Tilbake</string>
     <string name="action_webview_forward">Fram</string>
     <string name="action_webview_refresh">Gjenoppfrisk</string>
@@ -320,7 +315,7 @@
     <string name="theme_dark">På</string>
     <string name="theme_system">System</string>
     <string name="pref_manage_notifications">Håndter merknader</string>
-    <string name="pref_category_security">Sikkerhet</string>
+    <string name="pref_category_security">Sikkerhet og personvern</string>
     <string name="lock_with_biometrics">Krev opplåsning</string>
     <string name="lock_when_idle">Lås ved lediggang</string>
     <string name="lock_always">Alltid</string>
@@ -361,8 +356,7 @@
     <string name="pref_category_reading">Leser</string>
     <string name="pref_always_show_chapter_transition">Alltid vis kapittelovergang</string>
     <string name="vertical_plus_viewer">Kontinuerlig loddrett</string>
-    <string name="pref_skip_filtered_chapters">Hopp over filtrerte kapittel</string>
-    <string name="pref_enable_automatic_extension_updates">Se etter oppdateringer for utvidelser</string>
+    <string name="pref_skip_filtered_chapters">Hopp over filtrerte kapitler</string>
     <string name="hide_notification_content">Skjul merknadsinnhold</string>
     <string name="secure_screen_summary">Sikker skjerm skjuler programinnhold ved bytting av programmer og blokker skjermavbildninger</string>
     <string name="pref_confirm_exit">Bekreft avslutning</string>
@@ -386,7 +380,7 @@
     </plurals>
     <string name="action_display_show_tabs">Vis kategorifaner</string>
     <string name="action_display_comfortable_grid">Komfortabelt rutenett</string>
-    <string name="action_migrate">Migrer</string>
+    <string name="action_migrate">Flytt</string>
     <string name="action_start">Start</string>
     <string name="tapping_inverted_both">Begge</string>
     <string name="tapping_inverted_vertical">loddrett</string>
@@ -430,11 +424,10 @@
         <item quantity="one">Gjort på %1$s med %2$s feil</item>
         <item quantity="other">Gjort på %1$s med %2$s feil</item>
     </plurals>
-    <string name="pref_search_pinned_sources_only">Inkluder bare festede kilder</string>
+    <string name="pref_search_pinned_sources_only">Søk kun festede kilder i globalt søk</string>
     <string name="pref_show_reading_mode">Vis lesemodus</string>
     <string name="unofficial_extension_message">Denne utvidelsen kommer ikke fra den offisielle Tachiyomi-utvidelseslisten.</string>
     <string name="action_disable">deaktivere</string>
-    <string name="action_display_unread_badge">Uleste kapitler</string>
     <string name="action_disable_all">deaktiver alle</string>
     <string name="action_enable_all">aktiver alle</string>
     <string name="action_sort_latest_chapter">Siste kapittel</string>
@@ -457,7 +450,7 @@
     <string name="no_pinned_sources">Du har ingen festede kilder</string>
     <string name="channel_progress">Framdrift</string>
     <string name="pref_remove_bookmarked_chapters">Tillat sletting av bokmerkede kapitler</string>
-    <string name="pref_category_delete_chapters">Slett kapittel</string>
+    <string name="pref_category_delete_chapters">Slett kapitler</string>
     <string name="ext_nsfw_warning">Kan inneholde innhold for 18+</string>
     <string name="ext_nsfw_short">18+</string>
     <string name="parental_controls_info">Dette forhindrer ikke uoffisielle eller potensielt feilaktig kategoriserte tillegg fra å vise innhold for 18+ i appen.</string>
@@ -504,7 +497,7 @@
     <string name="spen_previous_page">Forrige side</string>
     <string name="channel_crash_logs">Feillogg</string>
     <string name="file_picker_error">Ingen app for filvelging funnet</string>
-    <string name="migration_help_guide">Veiledning for kildemigrering</string>
+    <string name="migration_help_guide">Veiledning for kilde-flytting</string>
     <string name="clear_history_confirmation">Er du sikker\? All historikk vil gå tapt.</string>
     <string name="clear_history_completed">Historikken er slettet</string>
     <string name="pref_clear_history">Slett historikk</string>
@@ -655,9 +648,6 @@
     <string name="database_clean">Ingenting å fjerne</string>
     <string name="skipped_reason_not_caught_up">Hoppet over fordi det er uleste kapitler</string>
     <string name="skipped_reason_completed">Hoppet over fordi serien er fullført</string>
-    <string name="confirm_manga_add_duplicate">Du har en oppføring i biblioteket ditt med samme navn, men fra en annen kilde (%1$s).
-\n
-\nVil du fortsette allikevel\?</string>
     <string name="download_queue_size_warning">Advarsel: store bulknedlastinger kan føre til at kilder blir tregere og/eller blokkerer Tachiyomi. Trykk for å lære mer.</string>
     <string name="library_errors_help">For hjelp til å fikse bibliotekoppdateringsfeil, se %1$s</string>
     <string name="action_display_cover_only_grid">Kun omslags-rutenett</string>
@@ -676,7 +666,7 @@
     <string name="channel_skipped">Hoppet over</string>
     <string name="disabled_nav">Deaktivert</string>
     <string name="empty_backup_error">Ingen bibliotekoppføringer å sikkerhetskopiere</string>
-    <string name="update_check_fdroid_migration_info">En ny versjon er tilgjengelig gjennom offisielle kanaler. Trykk for å lære hvordan du kan migrere fra den uoffisielle F-Droid varianten.</string>
+    <string name="update_check_fdroid_migration_info">En ny versjon er tilgjengelig gjennom offisielle kanaler. Trykk for å lære hvordan du kan flytte over fra den uoffisielle F-Droid varianten.</string>
     <string name="error_saving_picture">Feil ved lagring av bilde</string>
     <string name="update_check_open">Åpne på GitHub</string>
     <string name="action_close">Lukk</string>
@@ -757,8 +747,7 @@
     <string name="source_filter_empty_screen">Ingen installert kilde funnet</string>
     <string name="not_installed">Ikke installert</string>
     <string name="updates_last_update_info_just_now">Akkurat nå</string>
-    <string name="download_notifier_cache_renewal">Indeksering av nedlastinger</string>
-    <string name="channel_downloader_cache">Indeksering</string>
+    <string name="download_notifier_cache_renewal">Sjekker nedlastinger</string>
     <string name="fdroid_warning">F-Droid-bygg er ikke offisielt støttet.
 \nTrykk for å finne ut mer.</string>
     <string name="information_no_entries_found">Fant ingen oppføringer i denne kategorien</string>
@@ -769,7 +758,6 @@
     <string name="track_remove_start_date_conf_text">Dette vil fjerne den tidligere valgte startdatoen fra %s</string>
     <string name="track_remove_finish_date_conf_text">Dette vil fjerne den tidligere valgte sluttdatoen fra %s</string>
     <string name="pref_invalidate_download_cache">Rydd ut nedlastingsindeksen</string>
-    <string name="enhanced_tracking_warning">Denne trackeren er kun kompatibel med %1$s-kilden.</string>
     <string name="pref_invalidate_download_cache_summary">Tving appen til å sjekke nedlastede kapitler på nytt</string>
     <string name="label_started">Startet</string>
     <string name="label_completed_titles">Fullførte oppføringer</string>
@@ -796,5 +784,18 @@
     <string name="pref_library_update_show_tab_badge">Vis antall uleste på oppdateringsikonet</string>
     <string name="pref_worker_info">Arbeider info</string>
     <string name="copied_to_clipboard_plain">Kopiert til utklippstavlen</string>
-    <string name="ext_miui_warning">Hvis MIUI-optimalisering er aktivert, kan det hende at installasjon av utvidelser ikke fungerer. Prøv å deaktivere MIUI-optimalisering eller installer fra nettstedet i stedet.</string>
+    <string name="enhanced_services_not_installed">Tilgjengelig, men kilden er ikke installert: %s</string>
+    <string name="confirm_add_duplicate_manga">Du har en oppføring i biblioteket med samme navn.
+\n
+\nØnsker du å fortsette likevel\?</string>
+    <string name="pref_skip_dupe_chapters">Hopp over dupliserte kapitler</string>
+    <string name="track_error">%1$s feil: %2$s</string>
+    <string name="information_required_plain">*påkrevd</string>
+    <plurals name="download_amount">
+        <item quantity="one">Neste kapittel</item>
+        <item quantity="other">Neste %d kapitler</item>
+    </plurals>
+    <string name="pref_hide_in_library_items">Skjul oppføringer som allerede er i biblioteket</string>
+    <string name="action_copy_to_clipboard">Kopier til utklippstavle</string>
+    <string name="action_update_category">Oppdater kategori</string>
 </resources>

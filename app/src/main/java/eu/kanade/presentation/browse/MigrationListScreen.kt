@@ -24,18 +24,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.presentation.browse.components.MigrationActionIcon
 import eu.kanade.presentation.browse.components.MigrationItem
 import eu.kanade.presentation.browse.components.MigrationItemResult
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.Scaffold
-import eu.kanade.presentation.components.ScrollbarLazyColumn
-import eu.kanade.presentation.util.plus
-import eu.kanade.presentation.util.topSmallPaddingValues
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.process.MigratingManga
-import eu.kanade.tachiyomi.util.lang.withIOContext
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.presentation.core.components.ScrollbarLazyColumn
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.topSmallPaddingValues
+import tachiyomi.presentation.core.util.plus
 
 @Composable
 fun MigrationListScreen(

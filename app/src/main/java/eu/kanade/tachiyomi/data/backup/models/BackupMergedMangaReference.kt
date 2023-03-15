@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.data.backup.models
 
-import exh.merged.sql.models.MergedMangaReference
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import tachiyomi.domain.manga.model.MergedMangaReference
 
 /*
 * SY merged manga backup class
@@ -30,7 +30,7 @@ data class BackupMergedMangaReference(
             mangaSourceId = mangaSourceId,
             mergeId = null,
             mangaId = null,
-            id = null,
+            id = -1,
         )
     }
 }

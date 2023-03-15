@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAll
+import androidx.compose.ui.util.fastAny
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -29,28 +30,19 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import eu.kanade.domain.UnsortedPreferences
-import eu.kanade.domain.category.model.Category
-import eu.kanade.domain.library.model.LibraryGroup
-import eu.kanade.domain.library.model.LibraryManga
-import eu.kanade.domain.library.model.display
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.domain.manga.model.isLocal
-import eu.kanade.presentation.components.ChangeCategoryDialog
-import eu.kanade.presentation.components.DeleteLibraryMangaDialog
-import eu.kanade.presentation.components.EmptyScreen
-import eu.kanade.presentation.components.EmptyScreenAction
-import eu.kanade.presentation.components.LibraryBottomActionMenu
-import eu.kanade.presentation.components.LoadingScreen
-import eu.kanade.presentation.components.Scaffold
+import eu.kanade.presentation.category.components.ChangeCategoryDialog
+import eu.kanade.presentation.library.DeleteLibraryMangaDialog
+import eu.kanade.presentation.library.LibrarySettingsDialog
 import eu.kanade.presentation.library.components.LibraryContent
 import eu.kanade.presentation.library.components.LibraryToolbar
 import eu.kanade.presentation.library.components.SyncFavoritesConfirmDialog
 import eu.kanade.presentation.library.components.SyncFavoritesProgressDialog
 import eu.kanade.presentation.library.components.SyncFavoritesWarningDialog
-import eu.kanade.presentation.manga.components.DownloadCustomAmountDialog
+import eu.kanade.presentation.manga.components.LibraryBottomActionMenu
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.library.LibraryUpdateService
+import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.PreMigrationScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
@@ -58,7 +50,6 @@ import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
-import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.system.toast
 import exh.favorites.FavoritesSyncStatus
 import exh.source.MERGED_SOURCE_ID
@@ -66,6 +57,16 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import tachiyomi.core.util.lang.launchIO
+import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.library.model.LibraryGroup
+import tachiyomi.domain.library.model.LibraryManga
+import tachiyomi.domain.library.model.display
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.screens.EmptyScreen
+import tachiyomi.presentation.core.screens.EmptyScreenAction
+import tachiyomi.presentation.core.screens.LoadingScreen
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -95,32 +96,34 @@ object LibraryTab : Tab {
         val haptic = LocalHapticFeedback.current
 
         val screenModel = rememberScreenModel { LibraryScreenModel() }
+        val settingsScreenModel = rememberScreenModel { LibrarySettingsScreenModel() }
         val state by screenModel.state.collectAsState()
 
         val snackbarHostState = remember { SnackbarHostState() }
 
-        val onClickRefresh: (Category?) -> Boolean = {
+        val onClickRefresh: (Category?) -> Boolean = { category ->
             // SY -->
-            val started = LibraryUpdateService.start(
+            val started = LibraryUpdateJob.startNow(
                 context = context,
-                category = if (state.groupType == LibraryGroup.BY_DEFAULT) it else null,
+                category = if (state.groupType == LibraryGroup.BY_DEFAULT) category else null,
                 group = state.groupType,
                 groupExtra = when (state.groupType) {
                     LibraryGroup.BY_DEFAULT -> null
-                    LibraryGroup.BY_SOURCE, LibraryGroup.BY_TRACK_STATUS -> it?.id?.toString()
-                    LibraryGroup.BY_STATUS -> it?.id?.minus(1)?.toString()
+                    LibraryGroup.BY_SOURCE, LibraryGroup.BY_TRACK_STATUS -> category?.id?.toString()
+                    LibraryGroup.BY_STATUS -> category?.id?.minus(1)?.toString()
                     else -> null
                 },
             )
             // SY <--
             scope.launch {
-                val msgRes = if (started) R.string.updating_category else R.string.update_already_running
+                val msgRes = when {
+                    !started -> R.string.update_already_running
+                    category != null -> R.string.updating_category
+                    else -> R.string.updating_library
+                }
                 snackbarHostState.showSnackbar(context.getString(msgRes))
             }
             started
-        }
-        val onClickFilter: () -> Unit = {
-            scope.launch { sendSettingsSheetIntent(state.categories[screenModel.activeCategoryIndex]) }
         }
 
         Scaffold(
@@ -138,8 +141,9 @@ object LibraryTab : Tab {
                     onClickUnselectAll = screenModel::clearSelection,
                     onClickSelectAll = { screenModel.selectAll(screenModel.activeCategoryIndex) },
                     onClickInvertSelection = { screenModel.invertSelection(screenModel.activeCategoryIndex) },
-                    onClickFilter = onClickFilter,
-                    onClickRefresh = { onClickRefresh(null) },
+                    onClickFilter = { screenModel.showSettingsDialog() },
+                    onClickRefresh = { onClickRefresh(state.categories[screenModel.activeCategoryIndex]) },
+                    onClickGlobalUpdate = { onClickRefresh(null) },
                     onClickOpenRandomManga = {
                         scope.launch {
                             val randomItem = screenModel.getRandomLibraryItemForCurrentCategory()
@@ -247,6 +251,14 @@ object LibraryTab : Tab {
 
         val onDismissRequest = screenModel::closeDialog
         when (val dialog = state.dialog) {
+            is LibraryScreenModel.Dialog.SettingsSheet -> LibrarySettingsDialog(
+                onDismissRequest = onDismissRequest,
+                screenModel = settingsScreenModel,
+                category = state.categories[screenModel.activeCategoryIndex],
+                // SY -->
+                hasCategories = state.categories.fastAny { !it.isSystemCategory },
+                // SY <--
+            )
             is LibraryScreenModel.Dialog.ChangeCategory -> {
                 ChangeCategoryDialog(
                     initialSelection = dialog.initialSelection,
@@ -267,16 +279,6 @@ object LibraryTab : Tab {
                     onDismissRequest = onDismissRequest,
                     onConfirm = { deleteManga, deleteChapter ->
                         screenModel.removeMangas(dialog.manga, deleteManga, deleteChapter)
-                        screenModel.clearSelection()
-                    },
-                )
-            }
-            is LibraryScreenModel.Dialog.DownloadCustomAmount -> {
-                DownloadCustomAmountDialog(
-                    maxAmount = dialog.max,
-                    onDismissRequest = onDismissRequest,
-                    onConfirm = { amount ->
-                        screenModel.downloadUnreadChapters(dialog.manga, amount)
                         screenModel.clearSelection()
                     },
                 )
@@ -317,8 +319,8 @@ object LibraryTab : Tab {
             }
         }
 
-        LaunchedEffect(state.selectionMode) {
-            HomeScreen.showBottomNav(!state.selectionMode)
+        LaunchedEffect(state.selectionMode, state.dialog) {
+            HomeScreen.showBottomNav(!state.selectionMode && state.dialog !is LibraryScreenModel.Dialog.SettingsSheet)
         }
 
         LaunchedEffect(state.isLoading) {
@@ -329,7 +331,7 @@ object LibraryTab : Tab {
 
         LaunchedEffect(Unit) {
             launch { queryEvent.receiveAsFlow().collect(screenModel::search) }
-            launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest { onClickFilter() } }
+            launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest { screenModel.showSettingsDialog() } }
         }
     }
 
@@ -339,8 +341,5 @@ object LibraryTab : Tab {
 
     // For opening settings sheet in LibraryController
     private val requestSettingsSheetEvent = Channel<Unit>()
-    private val openSettingsSheetEvent_ = Channel<Category>()
-    val openSettingsSheetEvent = openSettingsSheetEvent_.receiveAsFlow()
-    private suspend fun sendSettingsSheetIntent(category: Category) = openSettingsSheetEvent_.send(category)
-    suspend fun requestOpenSettingsSheet() = requestSettingsSheetEvent.send(Unit)
+    private suspend fun requestOpenSettingsSheet() = requestSettingsSheetEvent.send(Unit)
 }

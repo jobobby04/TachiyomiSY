@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
@@ -32,7 +31,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -46,26 +44,24 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.EmptyScreen
-import eu.kanade.presentation.components.ExtendedFloatingActionButton
 import eu.kanade.presentation.components.OverflowMenu
-import eu.kanade.presentation.components.Pill
-import eu.kanade.presentation.components.Scaffold
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.download.DownloadService
 import eu.kanade.tachiyomi.databinding.DownloadListBinding
-import eu.kanade.tachiyomi.util.lang.launchUI
+import tachiyomi.core.util.lang.launchUI
+import tachiyomi.presentation.core.components.Pill
+import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.screens.EmptyScreen
 import kotlin.math.roundToInt
 
-object DownloadQueueScreen : Screen {
+object DownloadQueueScreen : Screen() {
 
     @Composable
     override fun Content() {
-        val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val screenModel = rememberScreenModel { DownloadQueueScreenModel() }
@@ -183,7 +179,7 @@ object DownloadQueueScreen : Screen {
                                 androidx.compose.material3.DropdownMenuItem(
                                     text = { Text(text = stringResource(R.string.action_cancel_all)) },
                                     onClick = {
-                                        screenModel.clearQueue(context)
+                                        screenModel.clearQueue()
                                         closeMenu()
                                     },
                                 )
@@ -199,7 +195,7 @@ object DownloadQueueScreen : Screen {
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
-                    val isRunning by DownloadService.isRunning.collectAsState()
+                    val isRunning by screenModel.isDownloaderRunning.collectAsState()
                     ExtendedFloatingActionButton(
                         text = {
                             val id = if (isRunning) {
@@ -219,14 +215,12 @@ object DownloadQueueScreen : Screen {
                         },
                         onClick = {
                             if (isRunning) {
-                                DownloadService.stop(context)
                                 screenModel.pauseDownloads()
                             } else {
-                                DownloadService.start(context)
+                                screenModel.startDownloads()
                             }
                         },
                         expanded = fabExpanded,
-                        modifier = Modifier.navigationBarsPadding(),
                     )
                 }
             },

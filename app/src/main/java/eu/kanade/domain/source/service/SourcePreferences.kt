@@ -1,10 +1,10 @@
 package eu.kanade.domain.source.service
 
-import eu.kanade.domain.library.model.LibraryDisplayMode
 import eu.kanade.domain.source.interactor.SetMigrateSorting
-import eu.kanade.tachiyomi.core.preference.PreferenceStore
-import eu.kanade.tachiyomi.core.preference.getEnum
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import tachiyomi.core.preference.PreferenceStore
+import tachiyomi.core.preference.getEnum
+import tachiyomi.domain.library.model.LibraryDisplayMode
 
 class SourcePreferences(
     private val preferenceStore: PreferenceStore,
@@ -17,8 +17,6 @@ class SourcePreferences(
     fun disabledSources() = preferenceStore.getStringSet("hidden_catalogues", emptySet())
 
     fun pinnedSources() = preferenceStore.getStringSet("pinned_catalogues", emptySet())
-
-    fun duplicatePinnedSources() = preferenceStore.getBoolean("duplicate_pinned_sources", false)
 
     fun lastUsedSource() = preferenceStore.getLong("last_catalogue_source", -1)
 
@@ -33,6 +31,8 @@ class SourcePreferences(
     fun trustedSignatures() = preferenceStore.getStringSet("trusted_signatures", emptySet())
 
     fun searchPinnedSourcesOnly() = preferenceStore.getBoolean("search_pinned_sources_only", false)
+
+    fun hideInLibraryItems() = preferenceStore.getBoolean("browse_hide_in_library_items", false)
 
     // SY -->
     fun enableSourceBlacklist() = preferenceStore.getBoolean("eh_enable_source_blacklist", true)

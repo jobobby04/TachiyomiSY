@@ -8,15 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
-import eu.kanade.domain.library.model.LibraryManga
-import eu.kanade.domain.manga.model.MangaCover
-import eu.kanade.presentation.components.FastScrollLazyColumn
-import eu.kanade.presentation.components.MangaListItem
-import eu.kanade.presentation.util.plus
 import eu.kanade.tachiyomi.ui.library.LibraryItem
+import tachiyomi.domain.library.model.LibraryManga
+import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.presentation.core.components.FastScrollLazyColumn
+import tachiyomi.presentation.core.util.plus
 
 @Composable
-fun LibraryList(
+internal fun LibraryList(
     items: List<LibraryItem>,
     contentPadding: PaddingValues,
     selection: List<LibraryManga>,
@@ -56,8 +55,8 @@ fun LibraryList(
                     lastModified = manga.coverLastModified,
                 ),
                 badge = {
-                    DownloadsBadge(count = libraryItem.downloadCount.toInt())
-                    UnreadBadge(count = libraryItem.unreadCount.toInt())
+                    DownloadsBadge(count = libraryItem.downloadCount)
+                    UnreadBadge(count = libraryItem.unreadCount)
                     LanguageBadge(
                         isLocal = libraryItem.isLocal,
                         sourceLanguage = libraryItem.sourceLanguage,
@@ -65,7 +64,7 @@ fun LibraryList(
                 },
                 onLongClick = { onLongClick(libraryItem.libraryManga) },
                 onClick = { onClick(libraryItem.libraryManga) },
-                onClickContinueReading = if (onClickContinueReading != null) {
+                onClickContinueReading = if (onClickContinueReading != null && libraryItem.unreadCount > 0) {
                     { onClickContinueReading(libraryItem.libraryManga) }
                 } else {
                     null

@@ -2,24 +2,21 @@ package exh.debug
 
 import android.app.Application
 import androidx.work.WorkManager
-import eu.kanade.data.DatabaseHandler
-import eu.kanade.domain.backup.service.BackupPreferences
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.library.service.LibraryPreferences
 import eu.kanade.domain.manga.interactor.GetAllManga
 import eu.kanade.domain.manga.interactor.GetExhFavoriteMangaWithMetadata
-import eu.kanade.domain.manga.interactor.GetFavorites
 import eu.kanade.domain.manga.interactor.GetFlatMetadataById
 import eu.kanade.domain.manga.interactor.GetSearchMetadata
 import eu.kanade.domain.manga.interactor.InsertFlatMetadata
 import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.tachiyomi.core.preference.PreferenceStore
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.backup.models.Backup
+import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.network.NetworkPreferences
-import eu.kanade.tachiyomi.source.SourceManager
+import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.source.online.all.NHentai
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import exh.EXHMigrations
@@ -32,6 +29,12 @@ import exh.source.nHentaiSourceIds
 import exh.util.jobScheduler
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator
+import tachiyomi.core.preference.PreferenceStore
+import tachiyomi.data.DatabaseHandler
+import tachiyomi.domain.backup.service.BackupPreferences
+import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.domain.manga.interactor.GetFavorites
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.injectLazy
 import java.util.UUID
 
@@ -48,6 +51,7 @@ object DebugFunctions {
     val libraryPrefs: LibraryPreferences by injectLazy()
     val readerPrefs: ReaderPreferences by injectLazy()
     val backupPrefs: BackupPreferences by injectLazy()
+    val trackManager: TrackManager by injectLazy()
     val sourceManager: SourceManager by injectLazy()
     val updateManga: UpdateManga by injectLazy()
     val getFavorites: GetFavorites by injectLazy()
@@ -60,13 +64,13 @@ object DebugFunctions {
     fun forceUpgradeMigration() {
         val lastVersionCode = prefsStore.getInt("eh_last_version_code", 0)
         lastVersionCode.set(1)
-        EXHMigrations.upgrade(app, prefsStore, basePrefs, uiPrefs, networkPrefs, sourcePrefs, securityPrefs, libraryPrefs, readerPrefs, backupPrefs)
+        EXHMigrations.upgrade(app, prefsStore, basePrefs, uiPrefs, networkPrefs, sourcePrefs, securityPrefs, libraryPrefs, readerPrefs, backupPrefs, trackManager)
     }
 
     fun forceSetupJobs() {
         val lastVersionCode = prefsStore.getInt("eh_last_version_code", 0)
         lastVersionCode.set(0)
-        EXHMigrations.upgrade(app, prefsStore, basePrefs, uiPrefs, networkPrefs, sourcePrefs, securityPrefs, libraryPrefs, readerPrefs, backupPrefs)
+        EXHMigrations.upgrade(app, prefsStore, basePrefs, uiPrefs, networkPrefs, sourcePrefs, securityPrefs, libraryPrefs, readerPrefs, backupPrefs, trackManager)
     }
 
     fun resetAgedFlagInEXHManga() {
@@ -81,7 +85,7 @@ object DebugFunctions {
     }
     private val throttleManager = EHentaiThrottleManager()
 
-    fun getDelegatedSourceList(): String = SourceManager.currentDelegatedSources.map { it.value.sourceName + " : " + it.value.sourceId + " : " + it.value.factory }.joinToString(separator = "\n")
+    fun getDelegatedSourceList(): String = AndroidSourceManager.currentDelegatedSources.map { it.value.sourceName + " : " + it.value.sourceId + " : " + it.value.factory }.joinToString(separator = "\n")
 
     fun resetEHGalleriesForUpdater() {
         throttleManager.resetThrottle()

@@ -13,22 +13,22 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.paging.compose.collectAsLazyPagingItems
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.components.BrowseSourceSimpleToolbar
 import eu.kanade.presentation.browse.components.RemoveMangaDialog
-import eu.kanade.presentation.components.ChangeCategoryDialog
-import eu.kanade.presentation.components.DuplicateMangaDialog
-import eu.kanade.presentation.components.Scaffold
+import eu.kanade.presentation.category.components.ChangeCategoryDialog
+import eu.kanade.presentation.manga.DuplicateMangaDialog
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
-import eu.kanade.tachiyomi.util.lang.launchIO
+import tachiyomi.core.util.lang.launchIO
+import tachiyomi.presentation.core.components.material.Scaffold
 
-class MangaDexFollowsScreen(private val sourceId: Long) : Screen {
+class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
 
     @Composable
     override fun Content() {
@@ -97,7 +97,6 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen {
                     onDismissRequest = onDismissRequest,
                     onConfirm = { screenModel.addFavorite(dialog.manga) },
                     onOpenManga = { navigator.push(MangaScreen(dialog.duplicate.id)) },
-                    duplicateFrom = screenModel.getSourceOrStub(dialog.duplicate),
                 )
             }
             is BrowseSourceScreenModel.Dialog.RemoveManga -> {

@@ -11,7 +11,6 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import eu.kanade.domain.source.interactor.GetRemoteManga
 import eu.kanade.presentation.browse.FeedAddDialog
 import eu.kanade.presentation.browse.FeedAddSearchDialog
 import eu.kanade.presentation.browse.FeedDeleteConfirmDialog
@@ -23,12 +22,17 @@ import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import tachiyomi.domain.source.interactor.GetRemoteManga
 
 @Composable
 fun Screen.feedTab(): TabContent {
     val navigator = LocalNavigator.currentOrThrow
     val screenModel = rememberScreenModel { FeedScreenModel() }
     val state by screenModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        screenModel.init()
+    }
 
     return TabContent(
         titleRes = R.string.feed,
@@ -68,6 +72,7 @@ fun Screen.feedTab(): TabContent {
                 onClickManga = { manga ->
                     navigator.push(MangaScreen(manga.id, true))
                 },
+                onRefresh = screenModel::refresh,
                 getMangaState = { manga, source -> screenModel.getManga(initialManga = manga, source = source) },
             )
 

@@ -8,31 +8,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
-import eu.kanade.core.prefs.asState
+import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
-import eu.kanade.domain.chapter.interactor.GetChapter
 import eu.kanade.domain.chapter.interactor.SetReadStatus
-import eu.kanade.domain.chapter.interactor.UpdateChapter
-import eu.kanade.domain.chapter.model.ChapterUpdate
-import eu.kanade.domain.library.service.LibraryPreferences
-import eu.kanade.domain.manga.interactor.GetManga
 import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.domain.updates.interactor.GetUpdates
-import eu.kanade.domain.updates.model.UpdatesWithRelations
-import eu.kanade.presentation.components.ChapterDownloadAction
+import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.updates.UpdatesUiModel
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadService
 import eu.kanade.tachiyomi.data.download.model.Download
-import eu.kanade.tachiyomi.data.library.LibraryUpdateService
-import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.util.lang.launchIO
-import eu.kanade.tachiyomi.util.lang.launchNonCancellable
+import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.lang.toDateKey
 import eu.kanade.tachiyomi.util.lang.toRelativeString
-import eu.kanade.tachiyomi.util.system.logcat
+import exh.source.EH_SOURCE_ID
+import exh.source.EXH_SOURCE_ID
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -44,9 +35,19 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import tachiyomi.core.util.lang.launchIO
+import tachiyomi.core.util.lang.launchNonCancellable
+import tachiyomi.core.util.system.logcat
+import tachiyomi.domain.chapter.interactor.GetChapter
+import tachiyomi.domain.chapter.interactor.UpdateChapter
+import tachiyomi.domain.chapter.model.ChapterUpdate
+import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.domain.updates.interactor.GetUpdates
+import tachiyomi.domain.updates.model.UpdatesWithRelations
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
 
@@ -62,15 +63,20 @@ class UpdatesScreenModel(
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
     uiPreferences: UiPreferences = Injekt.get(),
+    // SY -->
+    readerPreferences: ReaderPreferences = Injekt.get(),
+    // SY <--
 ) : StateScreenModel<UpdatesState>(UpdatesState()) {
 
     private val _events: Channel<Event> = Channel(Int.MAX_VALUE)
     val events: Flow<Event> = _events.receiveAsFlow()
 
     val lastUpdated by libraryPreferences.libraryUpdateLastTimestamp().asState(coroutineScope)
+    val relativeTime by uiPreferences.relativeTime().asState(coroutineScope)
 
-    val relativeTime: Int by uiPreferences.relativeTime().asState(coroutineScope)
-    val dateFormat: DateFormat by mutableStateOf(UiPreferences.dateFormat(uiPreferences.dateFormat().get()))
+    // SY -->
+    val preserveReadingPosition by readerPreferences.preserveReadingPosition().asState(coroutineScope)
+    // SY <--
 
     // First and last selected index in list
     private val selectedPositions: Array<Int> = arrayOf(-1, -1)
@@ -103,22 +109,22 @@ class UpdatesScreenModel(
         }
 
         coroutineScope.launchIO {
-            merge(downloadManager.queue.statusFlow(), downloadManager.queue.progressFlow())
+            merge(downloadManager.statusFlow(), downloadManager.progressFlow())
                 .catch { logcat(LogPriority.ERROR, it) }
                 .collect(this@UpdatesScreenModel::updateDownloadState)
         }
     }
 
     private fun List<UpdatesWithRelations>.toUpdateItems(): List<UpdatesItem> {
-        return this.map {
-            val activeDownload = downloadManager.getQueuedDownloadOrNull(it.chapterId)
+        return this.map { update ->
+            val activeDownload = downloadManager.getQueuedDownloadOrNull(update.chapterId)
             val downloaded = downloadManager.isChapterDownloaded(
-                it.chapterName,
-                it.scanlator,
+                update.chapterName,
+                update.scanlator,
                 // SY -->
-                it.ogMangaTitle,
+                update.ogMangaTitle,
                 // SY <--
-                it.sourceId,
+                update.sourceId,
             )
             val downloadState = when {
                 activeDownload != null -> activeDownload.status
@@ -126,16 +132,16 @@ class UpdatesScreenModel(
                 else -> Download.State.NOT_DOWNLOADED
             }
             UpdatesItem(
-                update = it,
+                update = update,
                 downloadStateProvider = { downloadState },
                 downloadProgressProvider = { activeDownload?.progress ?: 0 },
-                selected = it.chapterId in selectedChapterIds,
+                selected = update.chapterId in selectedChapterIds,
             )
         }
     }
 
     fun updateLibrary(): Boolean {
-        val started = LibraryUpdateService.start(Injekt.get<Application>())
+        val started = LibraryUpdateJob.startNow(Injekt.get<Application>())
         coroutineScope.launch {
             _events.send(Event.LibraryUpdateTriggered(started))
         }
@@ -173,7 +179,7 @@ class UpdatesScreenModel(
                 ChapterDownloadAction.START -> {
                     downloadChapters(items)
                     if (items.any { it.downloadStateProvider() == Download.State.ERROR }) {
-                        DownloadService.start(Injekt.get<Application>())
+                        downloadManager.startDownloads()
                     }
                 }
                 ChapterDownloadAction.START_NOW -> {
@@ -392,7 +398,8 @@ data class UpdatesState(
     val selectionMode = selected.isNotEmpty()
 
     fun getUiModel(context: Context, relativeTime: Int): List<UpdatesUiModel> {
-        val dateFormat = UiPreferences.dateFormat(Injekt.get<UiPreferences>().dateFormat().get())
+        val dateFormat by mutableStateOf(UiPreferences.dateFormat(Injekt.get<UiPreferences>().dateFormat().get()))
+
         return items
             .map { UpdatesUiModel.Item(it) }
             .insertSeparators { before, after ->
@@ -420,4 +427,10 @@ data class UpdatesItem(
     val downloadStateProvider: () -> Download.State,
     val downloadProgressProvider: () -> Int,
     val selected: Boolean = false,
-)
+) {
+    // SY -->
+    fun isEhBasedUpdate(): Boolean {
+        return update.sourceId == EH_SOURCE_ID || update.sourceId == EXH_SOURCE_ID
+    }
+    // SY <--
+}

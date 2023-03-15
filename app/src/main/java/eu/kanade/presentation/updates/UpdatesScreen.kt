@@ -24,19 +24,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.ChapterDownloadAction
-import eu.kanade.presentation.components.EmptyScreen
-import eu.kanade.presentation.components.FastScrollLazyColumn
-import eu.kanade.presentation.components.LoadingScreen
-import eu.kanade.presentation.components.MangaBottomActionMenu
-import eu.kanade.presentation.components.PullRefresh
-import eu.kanade.presentation.components.Scaffold
+import eu.kanade.presentation.manga.components.ChapterDownloadAction
+import eu.kanade.presentation.manga.components.MangaBottomActionMenu
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
 import eu.kanade.tachiyomi.ui.updates.UpdatesState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import tachiyomi.presentation.core.components.FastScrollLazyColumn
+import tachiyomi.presentation.core.components.material.PullRefresh
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.screens.EmptyScreen
+import tachiyomi.presentation.core.screens.LoadingScreen
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -45,6 +45,9 @@ fun UpdateScreen(
     snackbarHostState: SnackbarHostState,
     lastUpdated: Long,
     relativeTime: Int,
+    // SY -->
+    preserveReadingPosition: Boolean,
+    // SY <--
     onClickCover: (UpdatesItem) -> Unit,
     onSelectAll: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
@@ -117,6 +120,9 @@ fun UpdateScreen(
                         updatesUiItems(
                             uiModels = state.getUiModel(context, relativeTime),
                             selectionMode = state.selectionMode,
+                            // SY -->
+                            preserveReadingPosition = preserveReadingPosition,
+                            // SY <--
                             onUpdateSelected = onUpdateSelected,
                             onClickCover = onClickCover,
                             onClickUpdate = onOpenChapter,
@@ -193,7 +199,7 @@ private fun UpdatesBottomBar(
         }.takeIf { selected.fastAny { !it.update.read } },
         onMarkAsUnreadClicked = {
             onMultiMarkAsReadClicked(selected, false)
-        }.takeIf { selected.fastAny { it.update.read } },
+        }.takeIf { selected.fastAny { it.update.read || it.update.lastPageRead > 0L } },
         onDownloadClicked = {
             onDownloadChapter(selected, ChapterDownloadAction.START)
         }.takeIf {

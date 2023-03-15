@@ -3,19 +3,19 @@ package exh.md.handlers
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.track.mdlist.MdList
 import eu.kanade.tachiyomi.network.GET
-import eu.kanade.tachiyomi.network.asObservableSuccess
+import eu.kanade.tachiyomi.network.newCachelessCallWithProgress
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
-import eu.kanade.tachiyomi.util.lang.withIOContext
 import exh.log.xLogD
 import exh.md.dto.AtHomeDto
 import exh.md.service.MangaDexService
 import exh.md.utils.MdApi
 import exh.md.utils.MdUtil
+import okhttp3.Call
 import okhttp3.Headers
-import okhttp3.Response
 import rx.Observable
+import tachiyomi.core.util.lang.withIOContext
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.isAccessible
 
@@ -103,30 +103,25 @@ class PageHandler(
         }
     }
 
-    fun fetchImage(page: Page, superMethod: (Page) -> Observable<Response>): Observable<Response> {
+    fun getImageCall(page: Page): Call? {
         xLogD(page.imageUrl)
         return when {
             page.imageUrl?.contains("mangaplus", true) == true -> {
-                mangaPlusHandler.client.newCall(GET(page.imageUrl!!, headers))
-                    .asObservableSuccess()
+                mangaPlusHandler.client.newCachelessCallWithProgress(GET(page.imageUrl!!, headers), page)
             }
             page.imageUrl?.contains("comikey", true) == true -> {
-                comikeyHandler.client.newCall(GET(page.imageUrl!!, comikeyHandler.headers))
-                    .asObservableSuccess()
+                comikeyHandler.client.newCachelessCallWithProgress(GET(page.imageUrl!!, comikeyHandler.headers), page)
             }
             page.imageUrl?.contains("/bfs/comic/", true) == true -> {
-                bilibiliHandler.client.newCall(GET(page.imageUrl!!, bilibiliHandler.headers))
-                    .asObservableSuccess()
+                bilibiliHandler.client.newCachelessCallWithProgress(GET(page.imageUrl!!, bilibiliHandler.headers), page)
             }
             page.imageUrl?.contains("azuki", true) == true -> {
-                azukiHandler.client.newCall(GET(page.imageUrl!!, azukiHandler.headers))
-                    .asObservableSuccess()
+                azukiHandler.client.newCachelessCallWithProgress(GET(page.imageUrl!!, azukiHandler.headers), page)
             }
             page.imageUrl?.contains("mangahot", true) == true -> {
-                mangaHotHandler.client.newCall(GET(page.imageUrl!!, mangaHotHandler.headers))
-                    .asObservableSuccess()
+                mangaHotHandler.client.newCachelessCallWithProgress(GET(page.imageUrl!!, mangaHotHandler.headers), page)
             }
-            else -> superMethod(page)
+            else -> null
         }
     }
 

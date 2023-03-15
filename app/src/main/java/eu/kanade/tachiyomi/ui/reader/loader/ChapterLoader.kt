@@ -2,23 +2,22 @@ package eu.kanade.tachiyomi.ui.reader.loader
 
 import android.content.Context
 import com.github.junrar.exception.UnsupportedRarV5Exception
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
-import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
-import eu.kanade.tachiyomi.util.system.logcat
 import exh.debug.DebugFunctions.readerPrefs
-import exh.merged.sql.models.MergedMangaReference
-import rx.Completable
-import rx.Observable
-import rx.android.schedulers.AndroidSchedulers
-import rx.schedulers.Schedulers
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.util.system.logcat
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.manga.model.MergedMangaReference
+import tachiyomi.domain.source.model.StubSource
+import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.source.local.LocalSource
+import tachiyomi.source.local.io.Format
 
 /**
  * Loader used to retrieve the [PageLoader] for a given chapter.
@@ -37,35 +36,27 @@ class ChapterLoader(
 ) {
 
     /**
-     * Returns a completable that assigns the page loader and loads the its pages. It just
-     * completes if the chapter is already loaded.
+     * Assigns the chapter's page loader and loads the its pages. Returns immediately if the chapter
+     * is already loaded.
      */
-    fun loadChapter(chapter: ReaderChapter /* SY --> */, page: Int? = null/* SY <-- */): Completable {
+    suspend fun loadChapter(chapter: ReaderChapter /* SY --> */, page: Int? = null/* SY <-- */) {
         if (chapterIsReady(chapter)) {
-            return Completable.complete()
+            return
         }
 
-        return Observable.just(chapter)
-            .doOnNext { chapter.state = ReaderChapter.State.Loading }
-            .observeOn(Schedulers.io())
-            .flatMap { readerChapter ->
-                logcat { "Loading pages for ${chapter.chapter.name}" }
+        chapter.state = ReaderChapter.State.Loading
+        withIOContext {
+            logcat { "Loading pages for ${chapter.chapter.name}" }
+            try {
+                val loader = getPageLoader(chapter)
+                chapter.pageLoader = loader
 
-                val loader = getPageLoader(readerChapter)
+                val pages = loader.getPages()
+                    .onEach { it.chapter = chapter }
 
-                loader.getPages().take(1).doOnNext { pages ->
-                    pages.forEach { it.chapter = chapter }
-                }.map { pages -> loader to pages }
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnError { chapter.state = ReaderChapter.State.Error(it) }
-            .doOnNext { (loader, pages) ->
                 if (pages.isEmpty()) {
                     throw Exception(context.getString(R.string.page_list_empty_error))
                 }
-
-                chapter.pageLoader = loader // Assign here to fix race with unref
-                chapter.state = ReaderChapter.State.Loaded(pages)
 
                 // If the chapter is partially read, set the starting page to the last the user read
                 // otherwise use the requested page.
@@ -75,8 +66,13 @@ class ChapterLoader(
                 ) {
                     chapter.requestedPage = /* SY --> */ page ?: /* SY <-- */ chapter.chapter.last_page_read
                 }
+
+                chapter.state = ReaderChapter.State.Loaded(pages)
+            } catch (e: Throwable) {
+                chapter.state = ReaderChapter.State.Error(e)
+                throw e
             }
-            .toCompletable()
+        }
     }
 
     /**
@@ -104,10 +100,14 @@ class ChapterLoader(
                     source is HttpSource -> HttpPageLoader(chapter, source)
                     source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
                         when (format) {
-                            is LocalSource.Format.Directory -> DirectoryPageLoader(format.file)
-                            is LocalSource.Format.Zip -> ZipPageLoader(format.file)
-                            is LocalSource.Format.Rar -> RarPageLoader(format.file)
-                            is LocalSource.Format.Epub -> EpubPageLoader(format.file)
+                            is Format.Directory -> DirectoryPageLoader(format.file)
+                            is Format.Zip -> ZipPageLoader(format.file)
+                            is Format.Rar -> try {
+                                RarPageLoader(format.file)
+                            } catch (e: UnsupportedRarV5Exception) {
+                                error(context.getString(R.string.loader_rar5_error))
+                            }
+                            is Format.Epub -> EpubPageLoader(format.file)
                         }
                     }
                     else -> error(context.getString(R.string.loader_not_implemented_error))
@@ -118,17 +118,17 @@ class ChapterLoader(
             source is HttpSource -> HttpPageLoader(chapter, source)
             source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
                 when (format) {
-                    is LocalSource.Format.Directory -> DirectoryPageLoader(format.file)
-                    is LocalSource.Format.Zip -> ZipPageLoader(format.file)
-                    is LocalSource.Format.Rar -> try {
+                    is Format.Directory -> DirectoryPageLoader(format.file)
+                    is Format.Zip -> ZipPageLoader(format.file)
+                    is Format.Rar -> try {
                         RarPageLoader(format.file)
                     } catch (e: UnsupportedRarV5Exception) {
                         error(context.getString(R.string.loader_rar5_error))
                     }
-                    is LocalSource.Format.Epub -> EpubPageLoader(format.file)
+                    is Format.Epub -> EpubPageLoader(format.file)
                 }
             }
-            source is SourceManager.StubSource -> throw source.getSourceNotInstalledException()
+            source is StubSource -> error(context.getString(R.string.source_not_installed, source.toString()))
             else -> error(context.getString(R.string.loader_not_implemented_error))
         }
     }

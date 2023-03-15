@@ -1,13 +1,16 @@
 package eu.kanade.presentation.library.components
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import eu.kanade.presentation.components.Badge
-import eu.kanade.tachiyomi.R
+import eu.kanade.presentation.theme.TachiyomiTheme
+import tachiyomi.presentation.core.components.Badge
+import tachiyomi.presentation.core.util.ThemePreviews
 
 @Composable
-fun DownloadsBadge(count: Int) {
+internal fun DownloadsBadge(count: Long) {
     if (count > 0) {
         Badge(
             text = "$count",
@@ -18,22 +21,22 @@ fun DownloadsBadge(count: Int) {
 }
 
 @Composable
-fun UnreadBadge(count: Int) {
+internal fun UnreadBadge(count: Long) {
     if (count > 0) {
         Badge(text = "$count")
     }
 }
 
 @Composable
-fun LanguageBadge(
+internal fun LanguageBadge(
     isLocal: Boolean,
     sourceLanguage: String,
 ) {
     if (isLocal) {
         Badge(
-            text = stringResource(R.string.label_local),
+            imageVector = Icons.Outlined.Folder,
             color = MaterialTheme.colorScheme.tertiary,
-            textColor = MaterialTheme.colorScheme.onTertiary,
+            iconColor = MaterialTheme.colorScheme.onTertiary,
         )
     } else if (sourceLanguage.isNotEmpty()) {
         Badge(
@@ -41,5 +44,18 @@ fun LanguageBadge(
             color = MaterialTheme.colorScheme.tertiary,
             textColor = MaterialTheme.colorScheme.onTertiary,
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun BadgePreview() {
+    TachiyomiTheme {
+        Column {
+            DownloadsBadge(count = 10)
+            UnreadBadge(count = 10)
+            LanguageBadge(isLocal = true, sourceLanguage = "EN")
+            LanguageBadge(isLocal = false, sourceLanguage = "EN")
+        }
     }
 }

@@ -1,7 +1,7 @@
 package eu.kanade.domain.source.interactor
 
 import eu.kanade.domain.source.service.SourcePreferences
-import eu.kanade.tachiyomi.core.preference.getAndSet
+import tachiyomi.core.preference.getAndSet
 
 class RenameSourceCategory(
     private val preferences: SourcePreferences,
@@ -10,7 +10,6 @@ class RenameSourceCategory(
 
     fun await(categoryOld: String, categoryNew: String): CreateSourceCategory.Result {
         when (val result = createSourceCategory.await(categoryNew)) {
-            CreateSourceCategory.Result.CategoryExists -> return result
             CreateSourceCategory.Result.InvalidName -> return result
             CreateSourceCategory.Result.Success -> {}
         }

@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,12 +23,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.components.Divider
-import eu.kanade.presentation.components.ScrollbarLazyColumn
-import eu.kanade.presentation.util.isScrolledToEnd
-import eu.kanade.presentation.util.isScrolledToStart
-import eu.kanade.presentation.util.minimumTouchTargetSize
 import eu.kanade.tachiyomi.R
+import tachiyomi.presentation.core.components.ScrollbarLazyColumn
+import tachiyomi.presentation.core.components.material.Divider
+import tachiyomi.presentation.core.util.isScrolledToEnd
+import tachiyomi.presentation.core.util.isScrolledToStart
 
 @Composable
 fun <T> ListPreferenceWidget(
@@ -97,7 +97,7 @@ private fun DialogRow(
                 onClick = { if (!isSelected) onSelected() },
             )
             .fillMaxWidth()
-            .minimumTouchTargetSize(),
+            .minimumInteractiveComponentSize(),
     ) {
         RadioButton(
             selected = isSelected,

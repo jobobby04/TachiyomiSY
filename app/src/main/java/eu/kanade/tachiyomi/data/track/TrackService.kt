@@ -6,25 +6,25 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.chapter.interactor.GetChapterByMangaId
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithTrackServiceTwoWay
-import eu.kanade.domain.track.interactor.InsertTrack
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.track.model.toDomainTrack
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.NetworkHelper
-import eu.kanade.tachiyomi.util.lang.withIOContext
-import eu.kanade.tachiyomi.util.lang.withUIContext
-import eu.kanade.tachiyomi.util.system.logcat
 import eu.kanade.tachiyomi.util.system.toast
 import logcat.LogPriority
 import okhttp3.OkHttpClient
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.util.lang.withUIContext
+import tachiyomi.core.util.system.logcat
+import tachiyomi.domain.chapter.interactor.GetChapterByMangaId
+import tachiyomi.domain.track.interactor.InsertTrack
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
-import eu.kanade.domain.track.model.Track as DomainTrack
+import tachiyomi.domain.track.model.Track as DomainTrack
 
 abstract class TrackService(val id: Long) {
 
@@ -50,7 +50,8 @@ abstract class TrackService(val id: Long) {
 
     abstract fun getStatusList(): List<Int>
 
-    abstract fun getStatus(status: Int): String
+    @StringRes
+    abstract fun getStatus(status: Int): Int?
 
     abstract fun getReadingStatus(): Int
 

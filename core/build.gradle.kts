@@ -2,24 +2,17 @@ plugins {
     id("com.android.library")
     kotlin("android")
     kotlin("plugin.serialization")
+    id("com.github.ben-manes.versions")
 }
 
 android {
     namespace = "eu.kanade.tachiyomi.core"
-    compileSdk = AndroidConfig.compileSdk
-
-    defaultConfig {
-        minSdk = AndroidConfig.minSdk
-        targetSdk = AndroidConfig.targetSdk
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        freeCompilerArgs += listOf(
+            "-Xcontext-receivers",
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+        )
     }
 }
 
@@ -35,15 +28,20 @@ dependencies {
     api(libs.okhttp.dnsoverhttps)
     api(libs.okio)
 
+    implementation(libs.image.decoder)
+
+    implementation(libs.unifile)
+
     api(kotlinx.coroutines.core)
     api(kotlinx.serialization.json)
     api(kotlinx.serialization.json.okio)
 
-    api(libs.injekt.core)
-
     api(libs.preferencektx)
 
-    implementation(androidx.corektx)
+    implementation(libs.jsoup)
+
+    // Sort
+    implementation(libs.natural.comparator)
 
     // JavaScript engine
     implementation(libs.bundles.js.engine)

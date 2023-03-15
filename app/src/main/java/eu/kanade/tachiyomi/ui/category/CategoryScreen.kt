@@ -6,23 +6,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.util.fastMap
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.category.CategoryScreen
 import eu.kanade.presentation.category.components.CategoryCreateDialog
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
 import eu.kanade.presentation.category.components.CategoryRenameDialog
-import eu.kanade.presentation.components.LoadingScreen
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.collectLatest
+import tachiyomi.presentation.core.screens.LoadingScreen
 
-class CategoryScreen : Screen {
-
-    override val key = uniqueScreenKey
+class CategoryScreen : Screen() {
 
     @Composable
     override fun Content() {
@@ -54,8 +52,9 @@ class CategoryScreen : Screen {
             CategoryDialog.Create -> {
                 CategoryCreateDialog(
                     onDismissRequest = screenModel::dismissDialog,
-                    onCreate = { screenModel.createCategory(it) },
+                    onCreate = screenModel::createCategory,
                     // SY -->
+                    categories = successState.categories.fastMap { it.name },
                     title = stringResource(R.string.action_add_category),
                     // SY <--
                 )
@@ -65,6 +64,7 @@ class CategoryScreen : Screen {
                     onDismissRequest = screenModel::dismissDialog,
                     onRename = { screenModel.renameCategory(dialog.category, it) },
                     // SY -->
+                    categories = successState.categories.fastMap { it.name },
                     category = dialog.category.name,
                     // SY <--
                 )

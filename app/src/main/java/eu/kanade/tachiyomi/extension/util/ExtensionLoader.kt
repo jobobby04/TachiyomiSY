@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.content.pm.PackageInfoCompat
 import dalvik.system.PathClassLoader
 import eu.kanade.domain.source.service.SourcePreferences
@@ -14,10 +15,10 @@ import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceFactory
 import eu.kanade.tachiyomi.util.lang.Hash
 import eu.kanade.tachiyomi.util.system.getApplicationIcon
-import eu.kanade.tachiyomi.util.system.logcat
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
+import tachiyomi.core.util.system.logcat
 import uy.kohesive.injekt.injectLazy
 
 /**
@@ -37,7 +38,7 @@ internal object ExtensionLoader {
     private const val METADATA_NSFW = "tachiyomi.extension.nsfw"
     private const val METADATA_HAS_README = "tachiyomi.extension.hasReadme"
     private const val METADATA_HAS_CHANGELOG = "tachiyomi.extension.hasChangelog"
-    const val LIB_VERSION_MIN = 1.2
+    const val LIB_VERSION_MIN = 1.3
     const val LIB_VERSION_MAX = 1.4
 
     private const val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or PackageManager.GET_SIGNATURES
@@ -57,7 +58,14 @@ internal object ExtensionLoader {
      */
     fun loadExtensions(context: Context): List<LoadResult> {
         val pkgManager = context.packageManager
-        val installedPkgs = pkgManager.getInstalledPackages(PACKAGE_FLAGS)
+
+        @Suppress("DEPRECATION")
+        val installedPkgs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pkgManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(PACKAGE_FLAGS.toLong()))
+        } else {
+            pkgManager.getInstalledPackages(PACKAGE_FLAGS)
+        }
+
         val extPkgs = installedPkgs.filter { isPackageAnExtension(it) }
 
         if (extPkgs.isEmpty()) return emptyList()
@@ -113,24 +121,21 @@ internal object ExtensionLoader {
         val versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo)
 
         if (versionName.isNullOrEmpty()) {
-            val exception = Exception("Missing versionName for extension $extName")
-            logcat(LogPriority.WARN, exception)
+            logcat(LogPriority.WARN) { "Missing versionName for extension $extName" }
             return LoadResult.Error
         }
 
         // Validate lib version
-        val libVersion = versionName.substringBeforeLast('.').toDouble()
-        if (libVersion < LIB_VERSION_MIN || libVersion > LIB_VERSION_MAX) {
-            val exception = Exception(
+        val libVersion = versionName.substringBeforeLast('.').toDoubleOrNull()
+        if (libVersion == null || libVersion < LIB_VERSION_MIN || libVersion > LIB_VERSION_MAX) {
+            logcat(LogPriority.WARN) {
                 "Lib version is $libVersion, while only versions " +
-                    "$LIB_VERSION_MIN to $LIB_VERSION_MAX are allowed",
-            )
-            logcat(LogPriority.WARN, exception)
+                    "$LIB_VERSION_MIN to $LIB_VERSION_MAX are allowed"
+            }
             return LoadResult.Error
         }
 
         val signatureHash = getSignatureHash(pkgInfo)
-
         if (signatureHash == null) {
             logcat(LogPriority.WARN) { "Package $pkgName isn't signed" }
             return LoadResult.Error

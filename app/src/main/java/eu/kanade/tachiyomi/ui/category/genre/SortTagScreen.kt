@@ -7,18 +7,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.category.components.CategoryCreateDialog
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
-import eu.kanade.presentation.components.LoadingScreen
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.collectLatest
+import tachiyomi.presentation.core.screens.LoadingScreen
 
-class SortTagScreen : Screen {
-
+class SortTagScreen : Screen() {
     @Composable
     override fun Content() {
         val context = LocalContext.current
@@ -49,8 +48,10 @@ class SortTagScreen : Screen {
                 CategoryCreateDialog(
                     onDismissRequest = screenModel::dismissDialog,
                     onCreate = { screenModel.createTag(it) },
+                    categories = successState.tags,
                     title = stringResource(R.string.add_tag),
                     extraMessage = stringResource(R.string.action_add_tags_message),
+                    alreadyExistsError = R.string.error_tag_exists,
                 )
             }
             is SortTagDialog.Delete -> {

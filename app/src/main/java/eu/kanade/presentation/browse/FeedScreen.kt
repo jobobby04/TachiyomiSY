@@ -1,35 +1,24 @@
 package eu.kanade.presentation.browse
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,27 +26,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import eu.kanade.domain.manga.model.Manga
-import eu.kanade.presentation.components.Badge
-import eu.kanade.presentation.components.BadgeGroup
-import eu.kanade.presentation.components.EmptyScreen
-import eu.kanade.presentation.components.LoadingScreen
-import eu.kanade.presentation.components.MangaCover
-import eu.kanade.presentation.components.ScrollbarLazyColumn
-import eu.kanade.presentation.util.plus
-import eu.kanade.presentation.util.topSmallPaddingValues
+import eu.kanade.presentation.browse.components.GlobalSearchCardRow
+import eu.kanade.presentation.browse.components.GlobalSearchErrorResultItem
+import eu.kanade.presentation.browse.components.GlobalSearchLoadingResultItem
+import eu.kanade.presentation.browse.components.GlobalSearchResultItem
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.ui.browse.feed.FeedScreenState
-import exh.savedsearches.models.FeedSavedSearch
-import exh.savedsearches.models.SavedSearch
-import eu.kanade.domain.manga.model.MangaCover as MangaCoverData
+import kotlinx.coroutines.delay
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.source.model.FeedSavedSearch
+import tachiyomi.domain.source.model.SavedSearch
+import tachiyomi.presentation.core.components.ScrollbarLazyColumn
+import tachiyomi.presentation.core.components.material.PullRefresh
+import tachiyomi.presentation.core.components.material.topSmallPaddingValues
+import tachiyomi.presentation.core.screens.EmptyScreen
+import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.util.plus
+import kotlin.time.Duration.Companion.seconds
 
 data class FeedItemUI(
     val feed: FeedSavedSearch,
@@ -76,6 +65,7 @@ fun FeedScreen(
     onClickSource: (CatalogueSource) -> Unit,
     onClickDelete: (FeedSavedSearch) -> Unit,
     onClickManga: (Manga) -> Unit,
+    onRefresh: () -> Unit,
     getMangaState: @Composable (Manga, CatalogueSource?) -> State<Manga>,
 ) {
     when {
@@ -85,96 +75,50 @@ fun FeedScreen(
             modifier = Modifier.padding(contentPadding),
         )
         else -> {
-            ScrollbarLazyColumn(
-                contentPadding = contentPadding + topSmallPaddingValues,
-            ) {
-                items(
-                    state.items.orEmpty(),
-                    key = { it.feed.id },
-                ) { item ->
-                    FeedItem(
-                        modifier = Modifier.animateItemPlacement(),
-                        item = item,
-                        getMangaState = { getMangaState(it, item.source) },
-                        onClickSavedSearch = onClickSavedSearch,
-                        onClickSource = onClickSource,
-                        onClickDelete = onClickDelete,
-                        onClickManga = onClickManga,
-                    )
+            var refreshing by remember { mutableStateOf(false) }
+            LaunchedEffect(refreshing) {
+                if (refreshing) {
+                    delay(1.seconds)
+                    refreshing = false
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun FeedItem(
-    modifier: Modifier,
-    item: FeedItemUI,
-    getMangaState: @Composable ((Manga) -> State<Manga>),
-    onClickSavedSearch: (SavedSearch, CatalogueSource) -> Unit,
-    onClickSource: (CatalogueSource) -> Unit,
-    onClickDelete: (FeedSavedSearch) -> Unit,
-    onClickManga: (Manga) -> Unit,
-) {
-    Column(
-        modifier then Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onLongClick = {
-                        onClickDelete(item.feed)
-                    },
-                    onClick = {
-                        if (item.savedSearch != null && item.source != null) {
-                            onClickSavedSearch(item.savedSearch, item.source)
-                        } else if (item.source != null) {
-                            onClickSource(item.source)
-                        }
-                    },
-                ),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.padding(start = 16.dp)) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = item.subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 12.sp,
-                    color = LocalContentColor.current.copy(alpha = ContentAlpha.high),
-                )
-            }
-            Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = stringResource(R.string.label_more),
-                modifier = Modifier.padding(16.dp),
-            )
-        }
-        when {
-            item.results == null -> {
-                CircularProgressIndicator()
-            }
-            item.results.isEmpty() -> {
-                Text(stringResource(R.string.no_results_found), modifier = Modifier.padding(bottom = 16.dp))
-            }
-            else -> {
-                LazyRow(
-                    Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 12.dp),
+            PullRefresh(
+                refreshing = refreshing && state.isLoadingItems,
+                onRefresh = {
+                    refreshing = true
+                    onRefresh()
+                },
+                enabled = !state.isLoadingItems,
+            ) {
+                ScrollbarLazyColumn(
+                    contentPadding = contentPadding + topSmallPaddingValues,
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(item.results) {
-                        val manga by getMangaState(it)
-                        FeedCardItem(
-                            manga = manga,
-                            onClickManga = onClickManga,
-                        )
+                    items(
+                        state.items.orEmpty(),
+                        key = { it.feed.id },
+                    ) { item ->
+                        GlobalSearchResultItem(
+                            modifier = Modifier.animateItemPlacement(),
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            onLongClick = {
+                                onClickDelete(item.feed)
+                            },
+                            onClick = {
+                                if (item.savedSearch != null && item.source != null) {
+                                    onClickSavedSearch(item.savedSearch, item.source)
+                                } else if (item.source != null) {
+                                    onClickSource(item.source)
+                                }
+                            },
+                        ) {
+                            FeedItem(
+                                item = item,
+                                getMangaState = { getMangaState(it, item.source) },
+                                onClickManga = onClickManga,
+                            )
+                        }
                     }
                 }
             }
@@ -183,56 +127,26 @@ fun FeedItem(
 }
 
 @Composable
-fun FeedCardItem(
-    modifier: Modifier = Modifier,
-    manga: Manga,
+fun FeedItem(
+    item: FeedItemUI,
+    getMangaState: @Composable ((Manga) -> State<Manga>),
     onClickManga: (Manga) -> Unit,
 ) {
-    Column(
-        modifier
-            .padding(vertical = 4.dp)
-            .width(112.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .clickable(onClick = { onClickManga(manga) })
-            .padding(4.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(MangaCover.Book.ratio),
-        ) {
-            MangaCover.Book(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(
-                        if (manga.favorite) 0.3f else 1.0f,
-                    ),
-                data = MangaCoverData(
-                    manga.id,
-                    manga.source,
-                    manga.favorite,
-                    manga.thumbnailUrl,
-                    manga.coverLastModified,
-                ),
-            )
-            BadgeGroup(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .align(Alignment.TopStart),
-            ) {
-                if (manga.favorite) {
-                    Badge(text = stringResource(R.string.in_library))
-                }
-            }
+    when {
+        item.results == null -> {
+            GlobalSearchLoadingResultItem()
         }
-
-        Text(
-            modifier = Modifier.padding(4.dp),
-            text = manga.title,
-            fontSize = 12.sp,
-            maxLines = 2,
-            style = MaterialTheme.typography.titleSmall,
-        )
+        item.results.isEmpty() -> {
+            GlobalSearchErrorResultItem(message = stringResource(R.string.no_results_found))
+        }
+        else -> {
+            GlobalSearchCardRow(
+                titles = item.results,
+                getManga = getMangaState,
+                onClick = onClickManga,
+                onLongClick = onClickManga,
+            )
+        }
     }
 }
 

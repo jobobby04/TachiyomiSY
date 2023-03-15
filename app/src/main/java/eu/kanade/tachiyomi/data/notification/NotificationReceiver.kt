@@ -8,24 +8,13 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import eu.kanade.domain.chapter.interactor.GetChapter
-import eu.kanade.domain.chapter.interactor.UpdateChapter
-import eu.kanade.domain.chapter.model.Chapter
-import eu.kanade.domain.chapter.model.toChapterUpdate
-import eu.kanade.domain.download.service.DownloadPreferences
-import eu.kanade.domain.manga.interactor.GetManga
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.backup.BackupRestoreService
 import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadService
-import eu.kanade.tachiyomi.data.library.LibraryUpdateService
+import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.updater.AppUpdateService
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
-import eu.kanade.tachiyomi.util.Constants
-import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.getParcelableExtraCompat
@@ -33,6 +22,16 @@ import eu.kanade.tachiyomi.util.system.notificationManager
 import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.runBlocking
+import tachiyomi.core.Constants
+import tachiyomi.core.util.lang.launchIO
+import tachiyomi.domain.chapter.interactor.GetChapter
+import tachiyomi.domain.chapter.interactor.UpdateChapter
+import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.chapter.model.toChapterUpdate
+import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -56,14 +55,11 @@ class NotificationReceiver : BroadcastReceiver() {
             // Dismiss notification
             ACTION_DISMISS_NOTIFICATION -> dismissNotification(context, intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
             // Resume the download service
-            ACTION_RESUME_DOWNLOADS -> DownloadService.start(context)
+            ACTION_RESUME_DOWNLOADS -> downloadManager.startDownloads()
             // Pause the download service
-            ACTION_PAUSE_DOWNLOADS -> {
-                DownloadService.stop(context)
-                downloadManager.pauseDownloads()
-            }
+            ACTION_PAUSE_DOWNLOADS -> downloadManager.pauseDownloads()
             // Clear the download queue
-            ACTION_CLEAR_DOWNLOADS -> downloadManager.clearQueue(true)
+            ACTION_CLEAR_DOWNLOADS -> downloadManager.clearQueue()
             // Launch share activity and dismiss notification
             ACTION_SHARE_IMAGE ->
                 shareImage(
@@ -91,7 +87,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1),
             )
             // Cancel library update and dismiss notification
-            ACTION_CANCEL_LIBRARY_UPDATE -> cancelLibraryUpdate(context, Notifications.ID_LIBRARY_PROGRESS)
+            ACTION_CANCEL_LIBRARY_UPDATE -> cancelLibraryUpdate(context)
             // Cancel downloading app update
             ACTION_CANCEL_APP_UPDATE_DOWNLOAD -> cancelDownloadAppUpdate(context)
             // Open reader activity
@@ -221,11 +217,9 @@ class NotificationReceiver : BroadcastReceiver() {
      * Method called when user wants to stop a library update
      *
      * @param context context of application
-     * @param notificationId id of notification
      */
-    private fun cancelLibraryUpdate(context: Context, notificationId: Int) {
-        LibraryUpdateService.stop(context)
-        ContextCompat.getMainExecutor(context).execute { dismissNotification(context, notificationId) }
+    private fun cancelLibraryUpdate(context: Context) {
+        LibraryUpdateJob.stop(context)
     }
 
     private fun cancelDownloadAppUpdate(context: Context) {
@@ -455,7 +449,7 @@ class NotificationReceiver : BroadcastReceiver() {
          */
         internal fun openChapterPendingActivity(context: Context, manga: Manga, groupId: Int): PendingIntent {
             val newIntent =
-                Intent(context, MainActivity::class.java).setAction(MainActivity.SHORTCUT_MANGA)
+                Intent(context, MainActivity::class.java).setAction(Constants.SHORTCUT_MANGA)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     .putExtra(Constants.MANGA_EXTRA, manga.id)
                     .putExtra("notificationId", manga.id.hashCode())
@@ -538,7 +532,7 @@ class NotificationReceiver : BroadcastReceiver() {
          */
         internal fun openExtensionsPendingActivity(context: Context): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
-                action = MainActivity.SHORTCUT_EXTENSIONS
+                action = Constants.SHORTCUT_EXTENSIONS
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
             return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

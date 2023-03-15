@@ -40,10 +40,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.UnsortedPreferences
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.chapter.interactor.GetChapterByMangaId
-import eu.kanade.domain.library.service.LibraryPreferences
 import eu.kanade.domain.manga.interactor.GetAllManga
-import eu.kanade.domain.manga.repository.MangaRepository
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.util.collectAsState
@@ -52,7 +49,7 @@ import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.PagePreviewCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.library.LibraryUpdateService
+import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.network.NetworkHelper
@@ -69,14 +66,10 @@ import eu.kanade.tachiyomi.network.PREF_DOH_NJALLA
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD101
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.network.PREF_DOH_SHECAN
-import eu.kanade.tachiyomi.source.SourceManager
+import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.util.CrashLogUtil
-import eu.kanade.tachiyomi.util.lang.launchNonCancellable
-import eu.kanade.tachiyomi.util.lang.withUIContext
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import eu.kanade.tachiyomi.util.system.DeviceUtil
-import eu.kanade.tachiyomi.util.system.isPackageInstalled
-import eu.kanade.tachiyomi.util.system.logcat
+import eu.kanade.tachiyomi.util.system.isShizukuInstalled
 import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.setDefaultSettings
 import eu.kanade.tachiyomi.util.system.toast
@@ -91,7 +84,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import logcat.LogPriority
 import okhttp3.Headers
-import rikka.sui.Sui
+import tachiyomi.core.util.lang.launchNonCancellable
+import tachiyomi.core.util.lang.withUIContext
+import tachiyomi.core.util.system.logcat
+import tachiyomi.domain.chapter.interactor.GetChapterByMangaId
+import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.domain.manga.repository.MangaRepository
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
@@ -283,7 +282,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_clear_cookies),
                     onClick = {
-                        networkHelper.cookieManager.removeAll()
+                        networkHelper.cookieJar.removeAll()
                         context.toast(R.string.cookies_cleared)
                     },
                 ),
@@ -334,10 +333,6 @@ object SettingsAdvancedScreen : SearchableSettings {
                     pref = userAgentPref,
                     title = stringResource(R.string.pref_user_agent_string),
                     onValueChanged = {
-                        if (it.isBlank()) {
-                            context.toast(R.string.error_user_agent_string_blank)
-                            return@EditTextPreference false
-                        }
                         try {
                             // OkHttp checks for valid values internally
                             Headers.Builder().add("User-Agent", it)
@@ -345,7 +340,6 @@ object SettingsAdvancedScreen : SearchableSettings {
                             context.toast(R.string.error_user_agent_string_invalid)
                             return@EditTextPreference false
                         }
-                        context.toast(R.string.requires_app_restart)
                         true
                     },
                 ),
@@ -372,13 +366,13 @@ object SettingsAdvancedScreen : SearchableSettings {
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_refresh_library_covers),
-                    onClick = { LibraryUpdateService.start(context, target = LibraryUpdateService.Target.COVERS) },
+                    onClick = { LibraryUpdateJob.startNow(context, target = LibraryUpdateJob.Target.COVERS) },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_refresh_library_tracking),
                     subtitle = stringResource(R.string.pref_refresh_library_tracking_summary),
                     enabled = trackManager.hasLoggedServices(),
-                    onClick = { LibraryUpdateService.start(context, target = LibraryUpdateService.Target.TRACKING) },
+                    onClick = { LibraryUpdateJob.startNow(context, target = LibraryUpdateJob.Target.TRACKING) },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_reset_viewer_flags),
@@ -407,6 +401,7 @@ object SettingsAdvancedScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
         val uriHandler = LocalUriHandler.current
+        val extensionInstallerPref = basePreferences.extensionInstaller()
         var shizukuMissing by rememberSaveable { mutableStateOf(false) }
 
         if (shizukuMissing) {
@@ -436,19 +431,13 @@ object SettingsAdvancedScreen : SearchableSettings {
             title = stringResource(R.string.label_extensions),
             preferenceItems = listOf(
                 Preference.PreferenceItem.ListPreference(
-                    pref = basePreferences.extensionInstaller(),
+                    pref = extensionInstallerPref,
                     title = stringResource(R.string.ext_installer_pref),
-                    entries = PreferenceValues.ExtensionInstaller.values()
-                        .run {
-                            if (DeviceUtil.isMiui) {
-                                filter { it != PreferenceValues.ExtensionInstaller.PACKAGEINSTALLER }
-                            } else {
-                                toList()
-                            }
-                        }.associateWith { stringResource(it.titleResId) },
+                    entries = extensionInstallerPref.entries
+                        .associateWith { stringResource(it.titleResId) },
                     onValueChanged = {
                         if (it == PreferenceValues.ExtensionInstaller.SHIZUKU &&
-                            !(context.isPackageInstalled("moe.shizuku.privileged.api") || Sui.isSui())
+                            !context.isShizukuInstalled
                         ) {
                             shizukuMissing = true
                             false
@@ -705,7 +694,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                     subtitle = stringResource(
                         R.string.toggle_delegated_sources_summary,
                         stringResource(R.string.app_name),
-                        SourceManager.DELEGATED_SOURCES.values.map { it.sourceName }.distinct()
+                        AndroidSourceManager.DELEGATED_SOURCES.values.map { it.sourceName }.distinct()
                             .joinToString(),
                     ),
                 ),

@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.mdlist.MdList
 import eu.kanade.tachiyomi.network.asObservableSuccess
+import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.MetadataMangasPage
 import eu.kanade.tachiyomi.source.model.Page
@@ -20,7 +21,6 @@ import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.NamespaceSource
 import eu.kanade.tachiyomi.source.online.RandomMangaSource
 import eu.kanade.tachiyomi.source.online.UrlImportableSource
-import eu.kanade.tachiyomi.util.lang.runAsObservable
 import exh.md.dto.MangaDto
 import exh.md.dto.StatisticsMangaDto
 import exh.md.handlers.ApiMangaParser
@@ -46,6 +46,7 @@ import exh.source.DelegatedHttpSource
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import rx.Observable
+import tachiyomi.core.util.lang.runAsObservable
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -111,16 +112,16 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         MangaPlusHandler(network.client)
     }
     private val comikeyHandler by lazy {
-        ComikeyHandler(network.cloudflareClient, network.defaultUserAgent)
+        ComikeyHandler(network.cloudflareClient, network.defaultUserAgentProvider())
     }
     private val bilibiliHandler by lazy {
         BilibiliHandler(network.cloudflareClient)
     }
     private val azukHandler by lazy {
-        AzukiHandler(network.client, network.defaultUserAgent)
+        AzukiHandler(network.client, network.defaultUserAgentProvider())
     }
     private val mangaHotHandler by lazy {
-        MangaHotHandler(network.client, network.defaultUserAgent)
+        MangaHotHandler(network.client, network.defaultUserAgentProvider())
     }
     private val pageHandler by lazy {
         PageHandler(
@@ -194,9 +195,13 @@ class MangaDex(delegate: HttpSource, val context: Context) :
     }
 
     override fun fetchImage(page: Page): Observable<Response> {
-        return pageHandler.fetchImage(page) {
-            super.fetchImage(it)
-        }
+        val call = pageHandler.getImageCall(page)
+        return call?.asObservableSuccess() ?: super.fetchImage(page)
+    }
+
+    override suspend fun getImage(page: Page): Response {
+        val call = pageHandler.getImageCall(page)
+        return call?.awaitSuccess() ?: super.getImage(page)
     }
 
     override fun fetchImageUrl(page: Page): Observable<String> {

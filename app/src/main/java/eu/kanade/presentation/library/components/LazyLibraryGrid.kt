@@ -8,12 +8,11 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.components.CommonMangaItemDefaults
-import eu.kanade.presentation.components.FastScrollLazyVerticalGrid
-import eu.kanade.presentation.util.plus
+import tachiyomi.presentation.core.components.FastScrollLazyVerticalGrid
+import tachiyomi.presentation.core.util.plus
 
 @Composable
-fun LazyLibraryGrid(
+internal fun LazyLibraryGrid(
     modifier: Modifier = Modifier,
     columns: Int,
     contentPadding: PaddingValues,
@@ -29,7 +28,7 @@ fun LazyLibraryGrid(
     )
 }
 
-fun LazyGridScope.globalSearchItem(
+internal fun LazyGridScope.globalSearchItem(
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
 ) {

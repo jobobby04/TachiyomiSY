@@ -3,13 +3,13 @@ package eu.kanade.tachiyomi.ui.browse.feed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.util.fastAny
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
-import eu.kanade.domain.manga.interactor.GetManga
-import eu.kanade.domain.manga.interactor.NetworkToLocalManga
 import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.manga.model.copyFrom
 import eu.kanade.domain.manga.model.toDomainManga
-import eu.kanade.domain.manga.model.toMangaUpdate
+import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.interactor.CountFeedSavedSearchGlobal
 import eu.kanade.domain.source.interactor.DeleteFeedSavedSearchById
 import eu.kanade.domain.source.interactor.GetFeedSavedSearchGlobal
@@ -19,18 +19,11 @@ import eu.kanade.domain.source.interactor.InsertFeedSavedSearch
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.browse.FeedItemUI
 import eu.kanade.tachiyomi.source.CatalogueSource
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.FilterList
-import eu.kanade.tachiyomi.util.lang.awaitSingle
-import eu.kanade.tachiyomi.util.lang.launchIO
-import eu.kanade.tachiyomi.util.lang.launchNonCancellable
-import eu.kanade.tachiyomi.util.lang.withIOContext
-import eu.kanade.tachiyomi.util.lang.withNonCancellableContext
 import eu.kanade.tachiyomi.util.system.LocaleHelper
-import eu.kanade.tachiyomi.util.system.logcat
-import exh.savedsearches.models.FeedSavedSearch
-import exh.savedsearches.models.SavedSearch
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -44,11 +37,25 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import tachiyomi.core.util.lang.awaitSingle
+import tachiyomi.core.util.lang.launchIO
+import tachiyomi.core.util.lang.launchNonCancellable
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.util.lang.withNonCancellableContext
+import tachiyomi.core.util.system.logcat
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
+import tachiyomi.domain.manga.model.toMangaUpdate
+import tachiyomi.domain.source.model.FeedSavedSearch
+import tachiyomi.domain.source.model.SavedSearch
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 import java.util.concurrent.Executors
-import eu.kanade.domain.manga.model.Manga as DomainManga
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import tachiyomi.domain.manga.model.Manga as DomainManga
 
 /**
  * Presenter of [feedTab]
@@ -71,6 +78,7 @@ open class FeedScreenModel(
     val events = _events.receiveAsFlow()
 
     private val coroutineDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
+    var lastRefresh = System.currentTimeMillis().milliseconds
 
     init {
         getFeedSavedSearchGlobal.subscribe()
@@ -93,6 +101,24 @@ open class FeedScreenModel(
             }
             .catch { _events.send(Event.FailedFetchingSources) }
             .launchIn(coroutineScope)
+    }
+
+    fun init() {
+        if (lastRefresh - System.currentTimeMillis().milliseconds > 30.seconds) return
+        refresh()
+    }
+
+    fun refresh() {
+        lastRefresh = System.currentTimeMillis().milliseconds
+        coroutineScope.launchIO {
+            val newItems = state.value.items?.map { it.copy(results = null) } ?: return@launchIO
+            mutableState.update { state ->
+                state.copy(
+                    items = newItems,
+                )
+            }
+            getFeed(newItems)
+        }
     }
 
     fun openAddDialog() {
@@ -205,41 +231,43 @@ open class FeedScreenModel(
      */
     private fun getFeed(feedSavedSearch: List<FeedItemUI>) {
         coroutineScope.launch {
-            feedSavedSearch.forEach { itemUI ->
-                val page = try {
-                    if (itemUI.source != null) {
-                        withContext(coroutineDispatcher) {
-                            if (itemUI.savedSearch == null) {
-                                itemUI.source.fetchLatestUpdates(1)
-                            } else {
-                                itemUI.source.fetchSearchManga(
-                                    1,
-                                    itemUI.savedSearch.query.orEmpty(),
-                                    getFilterList(itemUI.savedSearch, itemUI.source),
-                                )
-                            }.awaitSingle()
-                        }.mangas
-                    } else {
+            feedSavedSearch.map { itemUI ->
+                async {
+                    val page = try {
+                        if (itemUI.source != null) {
+                            withContext(coroutineDispatcher) {
+                                if (itemUI.savedSearch == null) {
+                                    itemUI.source.fetchLatestUpdates(1)
+                                } else {
+                                    itemUI.source.fetchSearchManga(
+                                        1,
+                                        itemUI.savedSearch.query.orEmpty(),
+                                        getFilterList(itemUI.savedSearch, itemUI.source),
+                                    )
+                                }.awaitSingle()
+                            }.mangas
+                        } else {
+                            emptyList()
+                        }
+                    } catch (e: Exception) {
                         emptyList()
                     }
-                } catch (e: Exception) {
-                    emptyList()
-                }
 
-                val result = itemUI.copy(
-                    results = page.map {
-                        withIOContext {
-                            networkToLocalManga.await(it.toDomainManga(itemUI.source!!.id))
-                        }
-                    },
-                )
+                    val result = withIOContext {
+                        itemUI.copy(
+                            results = page.map {
+                                networkToLocalManga.await(it.toDomainManga(itemUI.source!!.id))
+                            },
+                        )
+                    }
 
-                mutableState.update { state ->
-                    state.copy(
-                        items = state.items?.map { if (it.feed.id == result.feed.id) result else it },
-                    )
+                    mutableState.update { state ->
+                        state.copy(
+                            items = state.items?.map { if (it.feed.id == result.feed.id) result else it },
+                        )
+                    }
                 }
-            }
+            }.awaitAll()
         }
     }
 
@@ -321,4 +349,7 @@ data class FeedScreenState(
 
     val isEmpty
         get() = items.isNullOrEmpty()
+
+    val isLoadingItems
+        get() = items?.fastAny { it.results == null } != false
 }

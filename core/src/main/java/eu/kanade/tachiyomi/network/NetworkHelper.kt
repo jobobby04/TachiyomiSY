@@ -1,37 +1,43 @@
 package eu.kanade.tachiyomi.network
 
 import android.content.Context
-import eu.kanade.tachiyomi.i18n.BuildConfig
+import eu.kanade.tachiyomi.core.BuildConfig
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
+import eu.kanade.tachiyomi.network.interceptor.UncaughtExceptionInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.concurrent.TimeUnit
 
 /* SY --> */
-open /* SY <-- */ class NetworkHelper(context: Context) {
-
-    private val preferences: NetworkPreferences by injectLazy()
+open /* SY <-- */ class NetworkHelper(
+    context: Context,
+    private val preferences: NetworkPreferences,
+) {
 
     private val cacheDir = File(context.cacheDir, "network_cache")
     private val cacheSize = 5L * 1024 * 1024 // 5 MiB
 
     /* SY --> */
-    open /* SY <-- */val cookieManager = AndroidCookieJar()
+    open /* SY <-- */val cookieJar = AndroidCookieJar()
 
-    private val userAgentInterceptor by lazy { UserAgentInterceptor() }
-    private val cloudflareInterceptor by lazy { CloudflareInterceptor(context) }
+    private val userAgentInterceptor by lazy {
+        UserAgentInterceptor(::defaultUserAgentProvider)
+    }
+    private val cloudflareInterceptor by lazy {
+        CloudflareInterceptor(context, cookieJar, ::defaultUserAgentProvider)
+    }
 
     private val baseClientBuilder: OkHttpClient.Builder
         get() {
             val builder = OkHttpClient.Builder()
-                .cookieJar(cookieManager)
+                .cookieJar(cookieJar)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .callTimeout(2, TimeUnit.MINUTES)
+                .addInterceptor(UncaughtExceptionInterceptor())
                 .addInterceptor(userAgentInterceptor)
 
             if (BuildConfig.DEBUG) {
@@ -69,7 +75,5 @@ open /* SY <-- */ class NetworkHelper(context: Context) {
             .build()
     }
 
-    val defaultUserAgent by lazy {
-        preferences.defaultUserAgent().get().trim()
-    }
+    fun defaultUserAgentProvider() = preferences.defaultUserAgent().get().trim()
 }

@@ -1,10 +1,10 @@
 package eu.kanade.tachiyomi.ui.reader.setting
 
-import eu.kanade.tachiyomi.core.preference.PreferenceStore
-import eu.kanade.tachiyomi.core.preference.getEnum
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
 import eu.kanade.tachiyomi.util.system.isReleaseBuildType
+import tachiyomi.core.preference.PreferenceStore
+import tachiyomi.core.preference.getEnum
 
 class ReaderPreferences(
     private val preferenceStore: PreferenceStore,
@@ -64,6 +64,8 @@ class ReaderPreferences(
     fun skipRead() = preferenceStore.getBoolean("skip_read", false)
 
     fun skipFiltered() = preferenceStore.getBoolean("skip_filtered", true)
+
+    fun skipDupe() = preferenceStore.getBoolean("skip_dupe", false)
 
     // endregion
 

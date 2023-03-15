@@ -1,16 +1,23 @@
 package eu.kanade.presentation.browse.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import eu.kanade.domain.manga.model.Manga
-import eu.kanade.domain.manga.model.asMangaCover
-import eu.kanade.presentation.util.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import eu.kanade.presentation.library.components.CommonMangaItemDefaults
+import eu.kanade.presentation.library.components.MangaComfortableGridItem
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.domain.manga.model.asMangaCover
+import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun GlobalSearchCardRow(
@@ -20,14 +27,11 @@ fun GlobalSearchCardRow(
     onLongClick: (Manga) -> Unit,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(
-            horizontal = MaterialTheme.padding.medium,
-            vertical = MaterialTheme.padding.small,
-        ),
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+        contentPadding = PaddingValues(MaterialTheme.padding.small),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.tiny),
     ) {
-        items(titles) { title ->
-            val title by getManga(title)
+        items(titles) {
+            val title by getManga(it)
             GlobalSearchCard(
                 title = title.title,
                 cover = title.asMangaCover(),
@@ -36,5 +40,27 @@ fun GlobalSearchCardRow(
                 onLongClick = { onLongClick(title) },
             )
         }
+    }
+}
+
+@Composable
+private fun GlobalSearchCard(
+    title: String,
+    cover: MangaCover,
+    isFavorite: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
+    Box(modifier = Modifier.width(96.dp)) {
+        MangaComfortableGridItem(
+            title = title,
+            coverData = cover,
+            coverBadgeStart = {
+                InLibraryBadge(enabled = isFavorite)
+            },
+            coverAlpha = if (isFavorite) CommonMangaItemDefaults.BrowseFavoriteCoverAlpha else 1f,
+            onClick = onClick,
+            onLongClick = onLongClick,
+        )
     }
 }

@@ -19,21 +19,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.EmptyScreen
-import eu.kanade.presentation.components.LoadingScreen
-import eu.kanade.presentation.components.Scaffold
-import eu.kanade.presentation.components.ScrollbarLazyColumn
-import eu.kanade.presentation.util.clickableNoIndication
-import eu.kanade.presentation.util.plus
-import eu.kanade.presentation.util.topSmallPaddingValues
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.copyToClipboard
+import tachiyomi.presentation.core.components.ScrollbarLazyColumn
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.topSmallPaddingValues
+import tachiyomi.presentation.core.screens.EmptyScreen
+import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.util.clickableNoIndication
+import tachiyomi.presentation.core.util.plus
 
-class MetadataViewScreen(private val mangaId: Long, private val sourceId: Long) : Screen {
+class MetadataViewScreen(private val mangaId: Long, private val sourceId: Long) : Screen() {
 
     @Composable
     override fun Content() {

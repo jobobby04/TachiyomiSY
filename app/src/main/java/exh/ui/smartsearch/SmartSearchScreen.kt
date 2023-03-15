@@ -18,18 +18,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.Scaffold
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.util.system.toast
+import tachiyomi.presentation.core.components.material.Scaffold
 
-class SmartSearchScreen(private val sourceId: Long, private val smartSearchConfig: SourcesScreen.SmartSearchConfig) : Screen {
+class SmartSearchScreen(
+    private val sourceId: Long,
+    private val smartSearchConfig: SourcesScreen.SmartSearchConfig,
+) : Screen() {
 
     @Composable
     override fun Content() {

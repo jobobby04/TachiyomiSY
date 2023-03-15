@@ -12,15 +12,15 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.UnsortedPreferences
-import eu.kanade.domain.manga.interactor.GetFavorites
 import eu.kanade.presentation.browse.MigrateSourceScreen
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.TabContent
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.PreMigrationScreen
 import eu.kanade.tachiyomi.ui.browse.migration.manga.MigrationMangaScreen
-import eu.kanade.tachiyomi.util.lang.launchIO
-import eu.kanade.tachiyomi.util.lang.withUIContext
+import tachiyomi.core.util.lang.launchIO
+import tachiyomi.core.util.lang.withUIContext
+import tachiyomi.domain.manga.interactor.GetFavorites
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 

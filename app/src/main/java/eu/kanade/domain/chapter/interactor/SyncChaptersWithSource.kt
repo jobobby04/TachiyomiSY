@@ -1,20 +1,26 @@
 package eu.kanade.domain.chapter.interactor
 
-import eu.kanade.data.chapter.CleanupChapterName
-import eu.kanade.data.chapter.NoChaptersException
-import eu.kanade.domain.chapter.model.Chapter
-import eu.kanade.domain.chapter.model.toChapterUpdate
-import eu.kanade.domain.chapter.repository.ChapterRepository
+import eu.kanade.domain.chapter.model.copyFromSChapter
+import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.Manga
+import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.isLocal
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.online.HttpSource
-import eu.kanade.tachiyomi.util.chapter.ChapterRecognition
 import exh.source.isEhBasedManga
+import tachiyomi.data.chapter.ChapterSanitizer
+import tachiyomi.domain.chapter.interactor.GetChapterByMangaId
+import tachiyomi.domain.chapter.interactor.ShouldUpdateDbChapter
+import tachiyomi.domain.chapter.interactor.UpdateChapter
+import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.chapter.model.NoChaptersException
+import tachiyomi.domain.chapter.model.toChapterUpdate
+import tachiyomi.domain.chapter.repository.ChapterRepository
+import tachiyomi.domain.chapter.service.ChapterRecognition
+import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.lang.Long.max
@@ -53,7 +59,7 @@ class SyncChaptersWithSource(
             .mapIndexed { i, sChapter ->
                 Chapter.create()
                     .copyFromSChapter(sChapter)
-                    .copy(name = CleanupChapterName.await(sChapter.name, manga.title))
+                    .copy(name = with(ChapterSanitizer) { sChapter.name.sanitize(manga.title) })
                     .copy(mangaId = manga.id, sourceOrder = i.toLong())
             }
 

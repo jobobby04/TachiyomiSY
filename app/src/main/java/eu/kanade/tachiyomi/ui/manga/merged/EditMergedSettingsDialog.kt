@@ -23,13 +23,13 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.EditMergedSettingsDialogBinding
 import eu.kanade.tachiyomi.ui.manga.MergedMangaData
 import eu.kanade.tachiyomi.util.system.toast
-import exh.merged.sql.models.MergedMangaReference
 import exh.source.MERGED_SOURCE_ID
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.manga.model.MergedMangaReference
 
 @Stable
 class EditMergedSettingsState(
@@ -71,10 +71,12 @@ class EditMergedSettingsState(
 
     override fun onItemReleased(position: Int) {
         val mergedMangaAdapter = mergedMangaAdapter ?: return
-        mergedMangas.onEach { mergedManga ->
-            mergedManga.second.chapterPriority = mergedMangaAdapter.currentItems.indexOfFirst {
-                mergedManga.second.id == it.mergedMangaReference.id
-            }
+        mergedMangas = mergedMangas.map { (manga, reference) ->
+            manga to reference.copy(
+                chapterPriority = mergedMangaAdapter.currentItems.indexOfFirst {
+                    reference.id == it.mergedMangaReference.id
+                },
+            )
         }
     }
 
@@ -106,15 +108,19 @@ class EditMergedSettingsState(
 
     private fun toggleChapterUpdates(position: Int) {
         val adapterReference = mergedMangaAdapter?.currentItems?.getOrNull(position)?.mergedMangaReference
-        mergedMangas.firstOrNull { it.second.id != null && it.second.id == adapterReference?.id }?.apply {
-            second.getChapterUpdates = !second.getChapterUpdates
+            ?: return
+        mergedMangas = mergedMangas.map { pair ->
+            val (manga, reference) = pair
+            if (reference.id != adapterReference.id) return@map pair
 
-            mergedMangaAdapter?.allBoundViewHolders?.firstOrNull { it is EditMergedMangaHolder && it.reference.id == second.id }?.let {
+            mergedMangaAdapter?.allBoundViewHolders?.firstOrNull { it is EditMergedMangaHolder && it.reference.id == reference.id }?.let {
                 if (it is EditMergedMangaHolder) {
-                    it.updateChapterUpdatesIcon(second.getChapterUpdates)
+                    it.updateChapterUpdatesIcon(!reference.getChapterUpdates)
                 }
             } ?: context.toast(R.string.merged_chapter_updates_error)
-        } ?: context.toast(R.string.merged_toggle_chapter_updates_find_error)
+
+            manga to reference.copy(getChapterUpdates = !reference.getChapterUpdates)
+        }
     }
 
     override fun onToggleChapterDownloadsClicked(position: Int) {
@@ -130,15 +136,19 @@ class EditMergedSettingsState(
 
     private fun toggleChapterDownloads(position: Int) {
         val adapterReference = mergedMangaAdapter?.currentItems?.getOrNull(position)?.mergedMangaReference
-        mergedMangas.firstOrNull { it.second.id != null && it.second.id == adapterReference?.id }?.apply {
-            second.downloadChapters = !second.downloadChapters
+            ?: return
+        mergedMangas = mergedMangas.map { pair ->
+            val (manga, reference) = pair
+            if (reference.id != adapterReference.id) return@map pair
 
-            mergedMangaAdapter?.allBoundViewHolders?.firstOrNull { it is EditMergedMangaHolder && it.reference.id == second.id }?.let {
+            mergedMangaAdapter?.allBoundViewHolders?.firstOrNull { it is EditMergedMangaHolder && it.reference.id == reference.id }?.let {
                 if (it is EditMergedMangaHolder) {
-                    it.updateDownloadChaptersIcon(second.downloadChapters)
+                    it.updateDownloadChaptersIcon(!reference.downloadChapters)
                 }
             } ?: context.toast(R.string.merged_toggle_download_chapters_error)
-        } ?: context.toast(R.string.merged_toggle_download_chapters_find_error)
+
+            manga to reference.copy(downloadChapters = !reference.downloadChapters)
+        }
     }
 
     fun onPositiveButtonClick() {

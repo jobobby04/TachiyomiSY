@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.data.track.mdlist
 import android.content.Context
 import android.graphics.Color
 import androidx.annotation.StringRes
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.TrackManager
@@ -11,16 +10,17 @@ import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.util.lang.awaitSingle
-import eu.kanade.tachiyomi.util.lang.runAsObservable
-import eu.kanade.tachiyomi.util.lang.withIOContext
 import exh.md.network.MangaDexAuthInterceptor
 import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
+import tachiyomi.core.util.lang.awaitSingle
+import tachiyomi.core.util.lang.runAsObservable
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MdList(private val context: Context, id: Long) : TrackService(id) {
+class MdList(id: Long) : TrackService(id) {
 
     private val mdex by lazy { MdUtil.getEnabledMangaDex(Injekt.get()) }
 
@@ -41,8 +41,17 @@ class MdList(private val context: Context, id: Long) : TrackService(id) {
         return FollowStatus.values().map { it.int }
     }
 
-    override fun getStatus(status: Int): String =
-        context.resources.getStringArray(R.array.md_follows_options).asList()[status]
+    @StringRes
+    override fun getStatus(status: Int): Int? = when (status) {
+        0 -> R.string.md_follows_unfollowed
+        1 -> R.string.reading
+        2 -> R.string.completed
+        3 -> R.string.on_hold
+        4 -> R.string.plan_to_read
+        5 -> R.string.dropped
+        6 -> R.string.repeating
+        else -> null
+    }
 
     override fun getScoreList() = IntRange(0, 10).map(Int::toString)
 

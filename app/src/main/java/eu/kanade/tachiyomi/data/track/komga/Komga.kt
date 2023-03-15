@@ -3,19 +3,18 @@ package eu.kanade.tachiyomi.data.track.komga
 import android.content.Context
 import android.graphics.Color
 import androidx.annotation.StringRes
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.EnhancedTrackService
-import eu.kanade.tachiyomi.data.track.NoLoginTrackService
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.source.Source
 import okhttp3.Dns
 import okhttp3.OkHttpClient
-import eu.kanade.domain.track.model.Track as DomainTrack
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Komga(private val context: Context, id: Long) : TrackService(id), EnhancedTrackService, NoLoginTrackService {
+class Komga(private val context: Context, id: Long) : TrackService(id), EnhancedTrackService {
 
     companion object {
         const val UNREAD = 1
@@ -39,13 +38,12 @@ class Komga(private val context: Context, id: Long) : TrackService(id), Enhanced
 
     override fun getStatusList() = listOf(UNREAD, READING, COMPLETED)
 
-    override fun getStatus(status: Int): String = with(context) {
-        when (status) {
-            UNREAD -> getString(R.string.unread)
-            READING -> getString(R.string.reading)
-            COMPLETED -> getString(R.string.completed)
-            else -> ""
-        }
+    @StringRes
+    override fun getStatus(status: Int): Int? = when (status) {
+        UNREAD -> R.string.unread
+        READING -> R.string.reading
+        COMPLETED -> R.string.completed
+        else -> null
     }
 
     override fun getReadingStatus(): Int = READING

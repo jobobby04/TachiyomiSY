@@ -2,7 +2,7 @@ package exh.md.handlers
 
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.asObservableSuccess
-import eu.kanade.tachiyomi.network.await
+import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.interceptor.rateLimit
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.model.Page
@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import exh.log.xLogD
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
@@ -21,6 +22,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import rx.Observable
+import uy.kohesive.injekt.injectLazy
 import java.util.concurrent.TimeUnit
 
 class BilibiliHandler(currentClient: OkHttpClient) {
@@ -34,6 +36,8 @@ class BilibiliHandler(currentClient: OkHttpClient) {
     val client: OkHttpClient = currentClient.newBuilder()
         .rateLimit(1, 1, TimeUnit.SECONDS)
         .build()
+
+    val json by injectLazy<Json>()
 
     suspend fun fetchPageList(externalUrl: String, chapterNumber: String): List<Page> {
         // Sometimes the urls direct it to the manga page instead, so we try to find the correct chapter
@@ -92,12 +96,12 @@ class BilibiliHandler(currentClient: OkHttpClient) {
     }
 
     suspend fun getChapterList(mangaUrl: String): List<SChapter> {
-        val response = client.newCall(mangaDetailsApiRequest(mangaUrl)).await()
+        val response = client.newCall(mangaDetailsApiRequest(mangaUrl)).awaitSuccess()
         return chapterListParse(response)
     }
 
     fun chapterListParse(response: Response): List<SChapter> {
-        val result = response.parseAs<BilibiliResultDto<BilibiliComicDto>>()
+        val result = with(json) { response.parseAs<BilibiliResultDto<BilibiliComicDto>>() }
 
         if (result.code != 0) {
             return emptyList()
@@ -115,7 +119,7 @@ class BilibiliHandler(currentClient: OkHttpClient) {
     )
 
     private suspend fun fetchPageList(chapterUrl: String): List<Page> {
-        val response = client.newCall(pageListRequest(chapterUrl)).await()
+        val response = client.newCall(pageListRequest(chapterUrl)).awaitSuccess()
         return pageListParse(response)
     }
 
@@ -140,7 +144,7 @@ class BilibiliHandler(currentClient: OkHttpClient) {
     }
 
     private fun pageListParse(response: Response): List<Page> {
-        val result = response.parseAs<BilibiliResultDto<BilibiliReader>>()
+        val result = with(json) { response.parseAs<BilibiliResultDto<BilibiliReader>>() }
 
         if (result.code != 0) {
             return emptyList()
@@ -177,7 +181,9 @@ class BilibiliHandler(currentClient: OkHttpClient) {
     }
 
     private fun imageUrlParse(response: Response): String {
-        val result = response.parseAs<BilibiliResultDto<List<BilibiliPageDto>>>()
+        val result = with(json) {
+            response.parseAs<BilibiliResultDto<List<BilibiliPageDto>>>()
+        }
         val page = result.data!![0]
 
         return "${page.url}?token=${page.token}"

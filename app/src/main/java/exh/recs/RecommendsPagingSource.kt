@@ -1,21 +1,17 @@
 package exh.recs
 
-import eu.kanade.data.source.NoResultsException
-import eu.kanade.data.source.SourcePagingSource
-import eu.kanade.domain.manga.model.Manga
-import eu.kanade.domain.track.interactor.GetTracks
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.POST
-import eu.kanade.tachiyomi.network.await
+import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.util.system.logcat
 import exh.util.MangaType
 import exh.util.mangaType
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -29,6 +25,11 @@ import logcat.LogPriority
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import tachiyomi.core.util.system.logcat
+import tachiyomi.data.source.NoResultsException
+import tachiyomi.data.source.SourcePagingSource
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.track.interactor.GetTracks
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -37,6 +38,7 @@ abstract class API(val endpoint: String) {
     val client by lazy {
         Injekt.get<NetworkHelper>().client
     }
+    val json by injectLazy<Json>()
 
     abstract suspend fun getRecsBySearch(search: String): List<SManga>
 
@@ -52,7 +54,7 @@ class MyAnimeList : API("https://api.jikan.moe/v4/") {
             .addPathSegment("recommendations")
             .build()
 
-        val data = client.newCall(GET(apiUrl)).await().parseAs<JsonObject>()
+        val data = with(json) { client.newCall(GET(apiUrl)).awaitSuccess().parseAs<JsonObject>() }
         return data["data"]!!.jsonArray
             .map { it.jsonObject["entry"]!!.jsonObject }
             .map { rec ->
@@ -88,8 +90,10 @@ class MyAnimeList : API("https://api.jikan.moe/v4/") {
             .addQueryParameter("q", search)
             .build()
 
-        val data = client.newCall(GET(url)).await()
-            .parseAs<JsonObject>()
+        val data = with(json) {
+            client.newCall(GET(url)).awaitSuccess()
+                .parseAs<JsonObject>()
+        }
         return getRecsById(data["data"]!!.jsonArray.first().jsonObject["mal_id"]!!.jsonPrimitive.content)
     }
 }
@@ -137,8 +141,10 @@ class Anilist : API("https://graphql.anilist.co/") {
         }
         val payloadBody = payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
 
-        val data = client.newCall(POST(endpoint, body = payloadBody)).await()
-            .parseAs<JsonObject>()
+        val data = with(json) {
+            client.newCall(POST(endpoint, body = payloadBody)).awaitSuccess()
+                .parseAs<JsonObject>()
+        }
 
         val media = data["data"]!!
             .jsonObject["Page"]!!

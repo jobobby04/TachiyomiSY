@@ -7,19 +7,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.category.SourceCategoryScreen
 import eu.kanade.presentation.category.components.CategoryCreateDialog
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
 import eu.kanade.presentation.category.components.CategoryRenameDialog
-import eu.kanade.presentation.components.LoadingScreen
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.collectLatest
+import tachiyomi.presentation.core.screens.LoadingScreen
 
-class SourceCategoryScreen : Screen {
+class SourceCategoryScreen : Screen() {
 
     @Composable
     override fun Content() {
@@ -51,6 +51,7 @@ class SourceCategoryScreen : Screen {
                     onDismissRequest = screenModel::dismissDialog,
                     onCreate = { screenModel.createCategory(it) },
                     // SY -->
+                    categories = successState.categories,
                     title = stringResource(R.string.action_add_category),
                     // SY <--
                 )
@@ -60,6 +61,7 @@ class SourceCategoryScreen : Screen {
                     onDismissRequest = screenModel::dismissDialog,
                     onRename = { screenModel.renameCategory(dialog.category, it) },
                     // SY -->
+                    categories = successState.categories,
                     category = dialog.category,
                     // SY <--
                 )

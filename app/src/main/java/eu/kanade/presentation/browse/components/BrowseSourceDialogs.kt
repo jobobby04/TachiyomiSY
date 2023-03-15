@@ -15,9 +15,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.DialogProperties
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.toast
+import tachiyomi.domain.manga.model.Manga
 
 @Composable
 fun RemoveMangaDialog(
@@ -47,26 +47,6 @@ fun RemoveMangaDialog(
         },
         text = {
             Text(text = stringResource(R.string.remove_manga, mangaToRemove.title))
-        },
-    )
-}
-
-@Composable
-fun FailedToLoadSavedSearchDialog(
-    onDismissRequest: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(text = stringResource(android.R.string.ok))
-            }
-        },
-        title = {
-            Text(text = stringResource(R.string.save_search_failed_to_load))
-        },
-        text = {
-            Text(text = stringResource(R.string.save_search_failed_to_load_message))
         },
     )
 }

@@ -2,10 +2,11 @@ package eu.kanade.presentation.manga.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LocalMinimumTouchTargetEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
@@ -19,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.flowlayout.FlowRow
 import eu.kanade.presentation.components.ChipBorder
 import eu.kanade.presentation.components.SuggestionChip
 import eu.kanade.presentation.components.SuggestionChipDefaults
@@ -98,25 +98,23 @@ value class SearchMetadataChips(
 fun NamespaceTags(
     tags: SearchMetadataChips,
     onClick: (item: String) -> Unit,
-    onLongClick: (item: String) -> Unit,
 ) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         tags.tags.forEach { (namespace, tags) ->
             Row(Modifier.padding(start = 16.dp)) {
                 if (namespace.isNotEmpty()) {
-                    TagsChip(namespace, onClick = null, onLongClick = null)
+                    TagsChip(text = namespace, onClick = null, onLongClick = null)
                 }
                 FlowRow(
                     modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                    mainAxisSpacing = 4.dp,
-                    crossAxisSpacing = 8.dp,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     tags.forEach { (_, text, search, border) ->
                         val borderDp = border?.dp
                         TagsChip(
+                            modifier = Modifier.padding(vertical = 4.dp),
                             text = text,
                             onClick = { onClick(search) },
-                            onLongClick = { onLongClick(search) },
                             border = borderDp?.let {
                                 SuggestionChipDefaults.suggestionChipBorder(borderWidth = it)
                             },
@@ -133,16 +131,18 @@ fun NamespaceTags(
 
 @Composable
 fun TagsChip(
+    modifier: Modifier = Modifier,
     text: String,
     onClick: (() -> Unit)?,
-    onLongClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)? = null,
     border: ChipBorder? = null,
     borderM3: ChipBorderM3? = null,
 ) {
-    CompositionLocalProvider(LocalMinimumTouchTargetEnforcement provides false) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
         if (onClick != null) {
             if (onLongClick != null) {
                 SuggestionChip(
+                    modifier = modifier,
                     onClick = onClick,
                     onLongClick = onLongClick,
                     label = {
@@ -161,6 +161,7 @@ fun TagsChip(
                 )
             } else {
                 SuggestionChip(
+                    modifier = modifier,
                     onClick = onClick,
                     label = {
                         Text(
@@ -179,6 +180,7 @@ fun TagsChip(
             }
         } else {
             SuggestionChip(
+                modifier = modifier,
                 label = {
                     Text(
                         text = text,
@@ -243,7 +245,6 @@ fun NamespaceTagsPreview() {
                     }.let { SearchMetadataChips(it, EHentai(EXH_SOURCE_ID, true, context), emptyList()) }!!
                 },
                 onClick = {},
-                onLongClick = {},
             )
         }
     }

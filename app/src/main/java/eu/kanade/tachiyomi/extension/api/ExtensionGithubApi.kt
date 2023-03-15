@@ -3,8 +3,6 @@ package eu.kanade.tachiyomi.extension.api
 import android.content.Context
 import eu.kanade.domain.UnsortedPreferences
 import eu.kanade.domain.source.service.SourcePreferences
-import eu.kanade.tachiyomi.core.preference.Preference
-import eu.kanade.tachiyomi.core.preference.PreferenceStore
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.AvailableSources
 import eu.kanade.tachiyomi.extension.model.Extension
@@ -12,25 +10,30 @@ import eu.kanade.tachiyomi.extension.model.LoadResult
 import eu.kanade.tachiyomi.extension.util.ExtensionLoader
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
-import eu.kanade.tachiyomi.network.await
+import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
-import eu.kanade.tachiyomi.util.lang.withIOContext
-import eu.kanade.tachiyomi.util.system.logcat
 import exh.source.BlacklistedSources
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import tachiyomi.core.preference.Preference
+import tachiyomi.core.preference.PreferenceStore
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.util.system.logcat
 import uy.kohesive.injekt.injectLazy
 import java.util.Date
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.days
 
 internal class ExtensionGithubApi {
 
     private val networkService: NetworkHelper by injectLazy()
     private val preferenceStore: PreferenceStore by injectLazy()
+    private val extensionManager: ExtensionManager by injectLazy()
+    private val json: Json by injectLazy()
+
     private val lastExtCheck: Preference<Long> by lazy {
         preferenceStore.getLong("last_ext_check", 0)
     }
-    private val extensionManager: ExtensionManager by injectLazy()
 
     // SY -->
     private val sourcePreferences: SourcePreferences by injectLazy()
@@ -47,7 +50,7 @@ internal class ExtensionGithubApi {
                 try {
                     networkService.client
                         .newCall(GET("${REPO_URL_PREFIX}index.min.json"))
-                        .await()
+                        .awaitSuccess()
                 } catch (e: Throwable) {
                     logcat(LogPriority.ERROR, e) { "Failed to get extensions from GitHub" }
                     requiresFallbackSource = true
@@ -58,26 +61,28 @@ internal class ExtensionGithubApi {
             val response = githubResponse ?: run {
                 networkService.client
                     .newCall(GET("${FALLBACK_REPO_URL_PREFIX}index.min.json"))
-                    .await()
+                    .awaitSuccess()
             }
 
-            val extensions = response
-                .parseAs<List<ExtensionJsonObject>>()
-                .toExtensions() /* SY --> */ + unsortedPreferences.extensionRepos()
-                .get()
-                .flatMap { repoPath ->
-                    val url = if (requiresFallbackSource) {
-                        "$FALLBACK_BASE_URL$repoPath@repo/"
-                    } else {
-                        "$BASE_URL$repoPath/repo/"
+            val extensions = with(json) {
+                response
+                    .parseAs<List<ExtensionJsonObject>>()
+                    .toExtensions() /* SY --> */ + unsortedPreferences.extensionRepos()
+                    .get()
+                    .flatMap { repoPath ->
+                        val url = if (requiresFallbackSource) {
+                            "$FALLBACK_BASE_URL$repoPath@repo/"
+                        } else {
+                            "$BASE_URL$repoPath/repo/"
+                        }
+                        networkService.client
+                            .newCall(GET("${url}index.min.json"))
+                            .awaitSuccess()
+                            .parseAs<List<ExtensionJsonObject>>()
+                            .toExtensions(url, repoSource = true)
                     }
-                    networkService.client
-                        .newCall(GET("${url}index.min.json"))
-                        .await()
-                        .parseAs<List<ExtensionJsonObject>>()
-                        .toExtensions(url, repoSource = true)
-                }
-            // SY <--
+                // SY <--
+            }
 
             // Sanity check - a small number of extensions probably means something broke
             // with the repo generator
@@ -91,7 +96,7 @@ internal class ExtensionGithubApi {
 
     suspend fun checkForUpdates(context: Context, fromAvailableExtensionList: Boolean = false): List<Extension.Installed>? {
         // Limit checks to once a day at most
-        if (fromAvailableExtensionList.not() && Date().time < lastExtCheck.get() + TimeUnit.DAYS.toMillis(1)) {
+        if (!fromAvailableExtensionList && Date().time < lastExtCheck.get() + 1.days.inWholeMilliseconds) {
             return null
         }
 
@@ -122,6 +127,10 @@ internal class ExtensionGithubApi {
             if (hasUpdate) {
                 extensionsWithUpdate.add(installedExt)
             }
+        }
+
+        if (extensionsWithUpdate.isNotEmpty()) {
+            ExtensionUpdateNotifier(context).promptUpdates(extensionsWithUpdate.map { it.name })
         }
 
         return extensionsWithUpdate

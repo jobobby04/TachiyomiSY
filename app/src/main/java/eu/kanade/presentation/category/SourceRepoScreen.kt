@@ -10,13 +10,13 @@ import androidx.compose.ui.res.stringResource
 import eu.kanade.presentation.category.components.CategoryFloatingActionButton
 import eu.kanade.presentation.category.components.repo.SourceRepoContent
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.EmptyScreen
-import eu.kanade.presentation.components.Scaffold
-import eu.kanade.presentation.util.padding
-import eu.kanade.presentation.util.plus
-import eu.kanade.presentation.util.topSmallPaddingValues
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.category.repos.RepoScreenState
+import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.components.material.topSmallPaddingValues
+import tachiyomi.presentation.core.screens.EmptyScreen
+import tachiyomi.presentation.core.util.plus
 
 @Composable
 fun SourceRepoScreen(

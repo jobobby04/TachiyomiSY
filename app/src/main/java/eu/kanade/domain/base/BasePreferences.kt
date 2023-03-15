@@ -1,12 +1,9 @@
 package eu.kanade.domain.base
 
 import android.content.Context
-import eu.kanade.tachiyomi.core.preference.PreferenceStore
-import eu.kanade.tachiyomi.core.preference.getEnum
-import eu.kanade.tachiyomi.data.preference.PreferenceValues
-import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import eu.kanade.tachiyomi.util.system.isReleaseBuildType
+import tachiyomi.core.preference.PreferenceStore
 
 class BasePreferences(
     val context: Context,
@@ -19,12 +16,7 @@ class BasePreferences(
 
     fun incognitoMode() = preferenceStore.getBoolean("incognito_mode", false)
 
-    fun automaticExtUpdates() = preferenceStore.getBoolean("automatic_ext_updates", true)
-
-    fun extensionInstaller() = preferenceStore.getEnum(
-        "extension_installer",
-        if (DeviceUtil.isMiui) PreferenceValues.ExtensionInstaller.LEGACY else PreferenceValues.ExtensionInstaller.PACKAGEINSTALLER,
-    )
+    fun extensionInstaller() = ExtensionInstallerPreference(context, preferenceStore)
 
     fun acraEnabled() = preferenceStore.getBoolean("acra.enable", isPreviewBuildType || isReleaseBuildType)
 }

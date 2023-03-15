@@ -13,16 +13,15 @@ import eu.kanade.tachiyomi.extension.installer.PackageInstallerInstaller
 import eu.kanade.tachiyomi.extension.installer.ShizukuInstaller
 import eu.kanade.tachiyomi.extension.util.ExtensionInstaller.Companion.EXTRA_DOWNLOAD_ID
 import eu.kanade.tachiyomi.util.system.getSerializableExtraCompat
-import eu.kanade.tachiyomi.util.system.logcat
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import logcat.LogPriority
+import tachiyomi.core.util.system.logcat
 
 class ExtensionInstallService : Service() {
 
     private var installer: Installer? = null
 
     override fun onCreate() {
-        super.onCreate()
         val notification = notificationBuilder(Notifications.CHANNEL_EXTENSIONS_UPDATE) {
             setSmallIcon(R.drawable.ic_tachi)
             setAutoCancel(false)
@@ -59,7 +58,6 @@ class ExtensionInstallService : Service() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         installer?.onDestroy()
         installer = null
     }

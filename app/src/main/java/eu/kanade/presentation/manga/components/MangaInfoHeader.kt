@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -69,15 +71,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.google.accompanist.flowlayout.FlowRow
-import eu.kanade.domain.manga.model.Manga
-import eu.kanade.presentation.components.MangaCover
-import eu.kanade.presentation.components.TextButton
-import eu.kanade.presentation.util.clickableNoIndication
-import eu.kanade.presentation.util.secondaryItemAlpha
+import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.system.copyToClipboard
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.presentation.core.components.material.TextButton
+import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.util.clickableNoIndication
+import tachiyomi.presentation.core.util.secondaryItemAlpha
 import kotlin.math.roundToInt
 
 private val whitespaceLineRegex = Regex("[\\r\\n]{2,}", setOf(RegexOption.MULTILINE))
@@ -220,7 +222,8 @@ fun ExpandableMangaDescription(
     defaultExpandState: Boolean,
     description: String?,
     tagsProvider: () -> List<String>?,
-    onTagClicked: (String) -> Unit,
+    onTagSearch: (String) -> Unit,
+    onCopyTagToClipboard: (tag: String) -> Unit,
     // SY -->
     searchMetadataChips: SearchMetadataChips?,
     doSearch: (query: String, global: Boolean) -> Unit,
@@ -254,44 +257,77 @@ fun ExpandableMangaDescription(
                     .padding(vertical = 12.dp)
                     .animateContentSize(),
             ) {
+                var showMenu by remember { mutableStateOf(false) }
+                var tagSelected by remember { mutableStateOf("") }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.action_search)) },
+                        onClick = {
+                            onTagSearch(tagSelected)
+                            showMenu = false
+                        },
+                    )
+                    // SY -->
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.action_global_search)) },
+                        onClick = {
+                            doSearch(tagSelected, true)
+                            showMenu = false
+                        },
+                    )
+                    // SY <--
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.action_copy_to_clipboard)) },
+                        onClick = {
+                            onCopyTagToClipboard(tagSelected)
+                            showMenu = false
+                        },
+                    )
+                }
                 if (expanded) {
                     // SY -->
                     if (searchMetadataChips != null) {
                         NamespaceTags(
                             tags = searchMetadataChips,
-                            onClick = onTagClicked,
-                            onLongClick = { doSearch(it, true) },
+                            onClick = {
+                                tagSelected = it
+                                showMenu = true
+                            },
                         )
                     } else {
                         // SY <--
                         FlowRow(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            mainAxisSpacing = 4.dp,
-                            crossAxisSpacing = 8.dp,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             tags.forEach {
                                 TagsChip(
+                                    modifier = Modifier.padding(vertical = 4.dp),
                                     text = it,
-                                    onClick = { onTagClicked(it) },
-                                    // SY -->
-                                    onLongClick = { doSearch(it, true) },
-                                    // SY <--
+                                    onClick = {
+                                        tagSelected = it
+                                        showMenu = true
+                                    },
                                 )
                             }
                         }
                     }
                 } else {
                     LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        contentPadding = PaddingValues(horizontal = MaterialTheme.padding.medium),
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.tiny),
                     ) {
                         items(items = tags) {
                             TagsChip(
+                                modifier = Modifier.padding(vertical = 4.dp),
                                 text = it,
-                                onClick = { onTagClicked(it) },
-                                // SY -->
-                                onLongClick = { doSearch(it, true) },
-                                // SY <--
+                                onClick = {
+                                    tagSelected = it
+                                    showMenu = true
+                                },
                             )
                         }
                     }

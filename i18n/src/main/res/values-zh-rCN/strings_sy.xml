@@ -598,9 +598,7 @@
     <string name="download_merged_entry_desc">更改此项将禁用或启用此合并项目的章节下载</string>
     <string name="merged_references_invalid">合并后的引用无效</string>
     <string name="merged_chapter_updates_error">更改章节更新错误</string>
-    <string name="merged_toggle_chapter_updates_find_error">找不到项目，无法更改章节更新</string>
     <string name="merged_toggle_download_chapters_error">更改下载章节错误</string>
-    <string name="merged_toggle_download_chapters_find_error">找不到项目用于更改章节下载</string>
     <string name="allow_deduplication">允许删除重复数据：</string>
     <string name="deduplication_mode">去重模式：</string>
     <string name="deduplication_entry_info">项目信息：</string>

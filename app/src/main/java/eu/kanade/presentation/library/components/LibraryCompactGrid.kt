@@ -6,13 +6,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.util.fastAny
-import eu.kanade.domain.library.model.LibraryManga
-import eu.kanade.domain.manga.model.MangaCover
-import eu.kanade.presentation.components.MangaCompactGridItem
 import eu.kanade.tachiyomi.ui.library.LibraryItem
+import tachiyomi.domain.library.model.LibraryManga
+import tachiyomi.domain.manga.model.MangaCover
 
 @Composable
-fun LibraryCompactGrid(
+internal fun LibraryCompactGrid(
     items: List<LibraryItem>,
     showTitle: Boolean,
     columns: Int,
@@ -47,8 +46,8 @@ fun LibraryCompactGrid(
                     lastModified = manga.coverLastModified,
                 ),
                 coverBadgeStart = {
-                    DownloadsBadge(count = libraryItem.downloadCount.toInt())
-                    UnreadBadge(count = libraryItem.unreadCount.toInt())
+                    DownloadsBadge(count = libraryItem.downloadCount)
+                    UnreadBadge(count = libraryItem.unreadCount)
                 },
                 coverBadgeEnd = {
                     LanguageBadge(
@@ -58,7 +57,7 @@ fun LibraryCompactGrid(
                 },
                 onLongClick = { onLongClick(libraryItem.libraryManga) },
                 onClick = { onClick(libraryItem.libraryManga) },
-                onClickContinueReading = if (onClickContinueReading != null) {
+                onClickContinueReading = if (onClickContinueReading != null && libraryItem.unreadCount > 0) {
                     { onClickContinueReading(libraryItem.libraryManga) }
                 } else {
                     null

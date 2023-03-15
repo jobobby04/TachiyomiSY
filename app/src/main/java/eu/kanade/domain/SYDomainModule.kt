@@ -1,14 +1,8 @@
 package eu.kanade.domain
 
-import eu.kanade.data.manga.FavoritesEntryRepositoryImpl
-import eu.kanade.data.manga.MangaMergeRepositoryImpl
-import eu.kanade.data.manga.MangaMetadataRepositoryImpl
-import eu.kanade.data.source.FeedSavedSearchRepositoryImpl
-import eu.kanade.data.source.SavedSearchRepositoryImpl
+import android.app.Application
 import eu.kanade.domain.chapter.interactor.DeleteChapters
 import eu.kanade.domain.chapter.interactor.GetChapterByUrl
-import eu.kanade.domain.chapter.interactor.GetMergedChapterByMangaId
-import eu.kanade.domain.history.interactor.GetHistoryByMangaId
 import eu.kanade.domain.manga.interactor.CreateSortTag
 import eu.kanade.domain.manga.interactor.DeleteByMergeId
 import eu.kanade.domain.manga.interactor.DeleteFavoriteEntries
@@ -20,12 +14,10 @@ import eu.kanade.domain.manga.interactor.GetExhFavoriteMangaWithMetadata
 import eu.kanade.domain.manga.interactor.GetFavoriteEntries
 import eu.kanade.domain.manga.interactor.GetFlatMetadataById
 import eu.kanade.domain.manga.interactor.GetIdsOfFavoriteMangaWithMetadata
-import eu.kanade.domain.manga.interactor.GetManga
 import eu.kanade.domain.manga.interactor.GetMangaBySource
 import eu.kanade.domain.manga.interactor.GetMergedManga
 import eu.kanade.domain.manga.interactor.GetMergedMangaById
 import eu.kanade.domain.manga.interactor.GetMergedMangaForDownloading
-import eu.kanade.domain.manga.interactor.GetMergedReferencesById
 import eu.kanade.domain.manga.interactor.GetPagePreviews
 import eu.kanade.domain.manga.interactor.GetSearchMetadata
 import eu.kanade.domain.manga.interactor.GetSearchTags
@@ -37,9 +29,6 @@ import eu.kanade.domain.manga.interactor.InsertMergedReference
 import eu.kanade.domain.manga.interactor.ReorderSortTag
 import eu.kanade.domain.manga.interactor.SetMangaFilteredScanlators
 import eu.kanade.domain.manga.interactor.UpdateMergedSettings
-import eu.kanade.domain.manga.repository.FavoritesEntryRepository
-import eu.kanade.domain.manga.repository.MangaMergeRepository
-import eu.kanade.domain.manga.repository.MangaMetadataRepository
 import eu.kanade.domain.source.interactor.CountFeedSavedSearchBySourceId
 import eu.kanade.domain.source.interactor.CountFeedSavedSearchGlobal
 import eu.kanade.domain.source.interactor.CreateSourceCategory
@@ -63,10 +52,27 @@ import eu.kanade.domain.source.interactor.InsertSavedSearch
 import eu.kanade.domain.source.interactor.RenameSourceCategory
 import eu.kanade.domain.source.interactor.SetSourceCategories
 import eu.kanade.domain.source.interactor.ToggleExcludeFromDataSaver
-import eu.kanade.domain.source.repository.FeedSavedSearchRepository
-import eu.kanade.domain.source.repository.SavedSearchRepository
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import exh.search.SearchEngine
+import tachiyomi.data.manga.CustomMangaRepositoryImpl
+import tachiyomi.data.manga.FavoritesEntryRepositoryImpl
+import tachiyomi.data.manga.MangaMergeRepositoryImpl
+import tachiyomi.data.manga.MangaMetadataRepositoryImpl
+import tachiyomi.data.source.FeedSavedSearchRepositoryImpl
+import tachiyomi.data.source.SavedSearchRepositoryImpl
+import tachiyomi.domain.chapter.interactor.GetMergedChapterByMangaId
+import tachiyomi.domain.history.interactor.GetHistoryByMangaId
+import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.interactor.GetMergedReferencesById
+import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
+import tachiyomi.domain.manga.repository.CustomMangaRepository
+import tachiyomi.domain.manga.repository.FavoritesEntryRepository
+import tachiyomi.domain.manga.repository.MangaMergeRepository
+import tachiyomi.domain.manga.repository.MangaMetadataRepository
+import tachiyomi.domain.source.repository.FeedSavedSearchRepository
+import tachiyomi.domain.source.repository.SavedSearchRepository
+import tachiyomi.domain.track.interactor.IsTrackUnfollowed
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addFactory
@@ -101,6 +107,7 @@ class SYDomainModule : InjektModule {
         addFactory { ReorderSortTag(get(), get()) }
         addFactory { GetPagePreviews(get(), get()) }
         addFactory { SearchEngine() }
+        addFactory { IsTrackUnfollowed() }
 
         // Required for [MetadataSource]
         addFactory<MetadataSource.GetMangaId> { GetManga(get()) }
@@ -148,5 +155,9 @@ class SYDomainModule : InjektModule {
         addFactory { CountFeedSavedSearchBySourceId(get()) }
         addFactory { GetSavedSearchGlobalFeed(get()) }
         addFactory { GetSavedSearchBySourceIdFeed(get()) }
+
+        addSingletonFactory<CustomMangaRepository> { CustomMangaRepositoryImpl(get<Application>()) }
+        addFactory { GetCustomMangaInfo(get()) }
+        addFactory { SetCustomMangaInfo(get()) }
     }
 }

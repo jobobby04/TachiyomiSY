@@ -8,11 +8,11 @@ import eu.kanade.domain.source.interactor.CreateSourceRepo
 import eu.kanade.domain.source.interactor.DeleteSourceRepos
 import eu.kanade.domain.source.interactor.GetSourceRepos
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.util.lang.launchIO
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import tachiyomi.core.util.lang.launchIO
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -23,7 +23,7 @@ class RepoScreenModel(
 ) : StateScreenModel<RepoScreenState>(RepoScreenState.Loading) {
 
     private val _events: Channel<RepoEvent> = Channel(Int.MAX_VALUE)
-    val events = _events.consumeAsFlow()
+    val events = _events.receiveAsFlow()
 
     init {
         coroutineScope.launchIO {
@@ -46,7 +46,6 @@ class RepoScreenModel(
     fun createRepo(name: String) {
         coroutineScope.launchIO {
             when (createSourceRepo.await(name)) {
-                is CreateSourceRepo.Result.RepoExists -> _events.send(RepoEvent.RepoExists)
                 is CreateSourceRepo.Result.InvalidName -> _events.send(RepoEvent.InvalidName)
                 else -> {}
             }
@@ -85,7 +84,6 @@ class RepoScreenModel(
 
 sealed class RepoEvent {
     sealed class LocalizedMessage(@StringRes val stringRes: Int) : RepoEvent()
-    object RepoExists : LocalizedMessage(R.string.error_repo_exists)
     object InvalidName : LocalizedMessage(R.string.invalid_repo_name)
     object InternalError : LocalizedMessage(R.string.internal_error)
 }

@@ -1,24 +1,11 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    id("com.github.ben-manes.versions")
 }
 
 android {
-    namespace = "eu.kanade.tachiyomi.i18n"
-    compileSdk = AndroidConfig.compileSdk
-
-    defaultConfig {
-        minSdk = AndroidConfig.minSdk
-        targetSdk = AndroidConfig.targetSdk
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
-    }
+    namespace = "tachiyomi.i18n"
 
     lint {
         disable.addAll(listOf("MissingTranslation", "ExtraTranslation"))

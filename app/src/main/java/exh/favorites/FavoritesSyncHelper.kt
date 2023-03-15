@@ -4,30 +4,17 @@ import android.content.Context
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import eu.kanade.domain.UnsortedPreferences
-import eu.kanade.domain.category.interactor.CreateCategoryWithName
-import eu.kanade.domain.category.interactor.GetCategories
-import eu.kanade.domain.category.interactor.SetMangaCategories
-import eu.kanade.domain.category.interactor.UpdateCategory
-import eu.kanade.domain.category.model.Category
-import eu.kanade.domain.category.model.CategoryUpdate
-import eu.kanade.domain.manga.interactor.GetLibraryManga
-import eu.kanade.domain.manga.interactor.GetManga
 import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.Manga
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.await
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.all.EHentai
-import eu.kanade.tachiyomi.util.lang.withIOContext
-import eu.kanade.tachiyomi.util.lang.withUIContext
 import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.toast
 import exh.GalleryAddEvent
 import exh.GalleryAdder
 import exh.eh.EHentaiThrottleManager
 import exh.eh.EHentaiUpdateWorker
-import exh.favorites.sql.models.FavoriteEntry
 import exh.log.xLog
 import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
@@ -40,6 +27,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.FormBody
 import okhttp3.Request
+import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.util.lang.withUIContext
+import tachiyomi.domain.category.interactor.CreateCategoryWithName
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.interactor.SetMangaCategories
+import tachiyomi.domain.category.interactor.UpdateCategory
+import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.category.model.CategoryUpdate
+import tachiyomi.domain.manga.interactor.GetLibraryManga
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.model.FavoriteEntry
+import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -206,7 +206,6 @@ class FavoritesSyncHelper(val context: Context) {
             val local = localCategories.getOrElse(index) {
                 when (val createCategoryWithNameResult = createCategoryWithName.await(remote)) {
                     is CreateCategoryWithName.Result.InternalError -> throw createCategoryWithNameResult.error
-                    CreateCategoryWithName.Result.NameAlreadyExistsError -> throw IllegalStateException("Category $remote already exists")
                     is CreateCategoryWithName.Result.Success -> createCategoryWithNameResult.category
                 }
             }
