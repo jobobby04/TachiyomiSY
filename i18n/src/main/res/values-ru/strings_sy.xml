@@ -146,8 +146,8 @@
     <string name="data_saver_image_format_summary_on">Размер файла JPEG значительно меньше, чем WebP(Это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в JPEG</string>
     <string name="data_saver_image_format_summary_off">Размер файла JPEG значительно меньше, чем WebP(Это означает, что сохраняется больше данных), но из-за этого изображения также теряют больше качества.\nВ текущий момент сжимается в WebP</string>
     <string name="data_saver_color_bw">Преобразование в чернобелое</string>
-    <string name="bandwidth_hero">Bandwidth Hero (Требуется прокси сервер Bandwidth Hero)</string>
-    <string name="bandwidth_data_saver_server">Прокси сервер Bandwidth Hero</string>
+    <string name="bandwidth_hero">Bandwidth Hero (Требуется прокси-сервер Bandwidth Hero)</string>
+    <string name="bandwidth_data_saver_server">Прокси-сервер Bandwidth Hero</string>
     <string name="data_saver_server_summary">Поместите в эту область URL-адрес прокси-сервера Bandwidth Hero</string>
     <string name="clear_db_exclude_read">Оставлять серии с прочитанными главами</string>
 
