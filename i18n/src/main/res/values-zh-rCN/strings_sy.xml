@@ -142,7 +142,7 @@
     <string name="data_saver_color_bw">转换为黑白</string>
     <string name="bandwidth_hero">Bandwidth Hero（需要一个 Bandwidth Hero 代理服务器）</string>
     <string name="bandwidth_data_saver_server">Bandwidth Hero 代理服务器</string>
-    <string name="data_saver_server_summary">填写 Bandwidth Hero 代理服务器 URL 到此</string>
+    <string name="data_saver_server_summary">填写 Bandwidth Hero 代理服务器地址到此</string>
     <string name="clear_db_exclude_read">保留有已阅读章节的项目</string>
 
     <!-- Log Level -->
