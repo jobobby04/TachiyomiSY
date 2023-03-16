@@ -130,7 +130,7 @@
         <item quantity="other">清理完成。清理了 %d 个文件夹</item>
     </plurals>
     <string name="data_saver">流量节省程序</string>
-    <string name="data_saver_summary">在阅读器下载图像前压缩，需要一个 Bandwidth Hero 代理服务器</string>
+    <string name="data_saver_summary">在阅读器下载图像前压缩</string>
     <string name="data_saver_downloader">在下载器中使用流量节省程序</string>
     <string name="data_saver_ignore_jpeg">忽略 JPEG 图像</string>
     <string name="data_saver_ignore_gif">忽略 Gif 动画</string>
@@ -140,7 +140,8 @@
     <string name="data_saver_image_format_summary_on">JPEG 文件的大小要比 Webp 小得多（意味着节省了更多的流量），但它也会使图像损失更多的质量。\n目前压缩为 JPEG</string>
     <string name="data_saver_image_format_summary_off">JPEG 文件的大小要比 Webp 小得多（意味着节省了更多的流量），但它也会使图像损失更多的质量。\n目前压缩为 Webp</string>
     <string name="data_saver_color_bw">转换为黑白</string>
-    <string name="data_saver_server">Bandwidth Hero 代理服务器</string>
+    <string name="bandwidth_hero">Bandwidth Hero（需要一个 Bandwidth Hero 代理服务器）</string>
+    <string name="bandwidth_data_saver_server">Bandwidth Hero 代理服务器</string>
     <string name="data_saver_server_summary">填写 Bandwidth Hero 代理服务器 URL 到此</string>
     <string name="clear_db_exclude_read">保留有已阅读章节的项目</string>
 
@@ -243,6 +244,7 @@
     <string name="pref_left_handed_vertical_seekbar_summary">更改进度条的方位</string>
     <string name="pref_force_horz_seekbar">强制使用水平进度条</string>
     <string name="pref_force_horz_seekbar_summary">完全删除垂直进度条，改用水平进度条。</string>
+    <string name="pref_smooth_scroll">平滑自动翻页</string>
 
     <!-- Reader -->
     <!-- Reader Actions -->
