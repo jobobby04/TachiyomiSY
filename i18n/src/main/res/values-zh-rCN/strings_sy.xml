@@ -125,7 +125,7 @@
     <string name="no_folders_to_cleanup">没有可清理的文件夹</string>
     <string name="clean_orphaned_downloads">清理孤立的下载</string>
     <string name="clean_read_downloads">清理已读</string>
-    <string name="clean_read_entries_not_in_library">清理不在书架中的项目</string>
+    <string name="clean_read_entries_not_in_library">清理不在书架中的作品</string>
     <plurals name="cleanup_done">
         <item quantity="other">清理完成。清理了 %d 个文件夹</item>
     </plurals>
@@ -143,7 +143,7 @@
     <string name="bandwidth_hero">Bandwidth Hero（需要一个 Bandwidth Hero 代理服务器）</string>
     <string name="bandwidth_data_saver_server">Bandwidth Hero 代理服务器</string>
     <string name="data_saver_server_summary">填写 Bandwidth Hero 代理服务器地址到此</string>
-    <string name="clear_db_exclude_read">保留有已阅读章节的项目</string>
+    <string name="clear_db_exclude_read">保留有已阅读章节的作品</string>
 
     <!-- Log Level -->
     <string name="log_minimal">最小</string>
@@ -171,7 +171,7 @@
     <string name="pref_skip_pre_migration_summary">使用最后保存的预迁移偏好和来源进行大规模迁移</string>
     <string name="library_group_updates">书架动态目录更新</string>
     <string name="library_group_updates_global">总是加载全局更新</string>
-    <string name="library_group_updates_all_but_ungrouped">仅为未分组的项目加载全局更新，为其他加载目录更新</string>
+    <string name="library_group_updates_all_but_ungrouped">仅为未分组的作品加载全局更新，为其他加载目录更新</string>
     <string name="library_group_updates_all">每次启动后加载目录更新</string>
 
     <!-- Browse settings -->
@@ -186,7 +186,7 @@
 
     <!-- Backup settings -->
     <string name="custom_entry_info">自定义项目信息</string>
-    <string name="all_read_entries">所有已阅读的项目</string>
+    <string name="all_read_entries">所有已阅读的作品</string>
 
     <!-- Security settings -->
     <string name="biometric_lock_times">生物识别锁定时间表</string>
@@ -229,7 +229,7 @@
     <string name="reader_preload_amount_summary">要预读的的页面数量。更高的值将带来更流畅的阅读体验，但代价是更高的缓存使用量，建议在使用更大的值时增加你分配的缓存量。</string>
     <string name="reader_cache_size">阅读器缓存大小</string>
     <string name="reader_cache_size_summary">阅读时保存在设备上的图像量。更高的值将带来更流畅的阅读体验，但代价是更高的存储空间使用率。</string>
-    <string name="preserve_reading_position">保留已阅读项目的阅读位置</string>
+    <string name="preserve_reading_position">保留已阅读作品的阅读位置</string>
     <string name="auto_webtoon_mode">自动 Webtoon 模式</string>
     <string name="auto_webtoon_mode_summary">检测到可能为长条形格式的项目时自动使用 Webtoon 模式</string>
     <string name="enable_zoom_out">启用缩放功能</string>
@@ -435,7 +435,7 @@
     <string name="sync_favorites">同步 EH 收藏夹</string>
     <string name="favorites_sync_error">收藏夹同步错误</string>
     <string name="show_gallery">展示画廊</string>
-    <string name="favorites_sync_bad_library_state">%1$s 直到画廊属于一个分类同步将不会开始</string>
+    <string name="favorites_sync_bad_library_state">%1$s 直到画廊只属于一个类别，才会开始同步。</string>
     <string name="favorites_syncing">收藏夹同步中</string>
     <string name="favorites_sync_error_string">同步过程中出现问题：%1$s</string>
     <string name="favorites_sync_done_errors">收藏品同步完成，但有错误</string>
@@ -593,7 +593,7 @@
     <string name="merge_settings">合并设置</string>
     <string name="fetch_chapter_updates">获取章节更新</string>
     <string name="delete_merged_entry">你确定吗？</string>
-    <string name="delete_merged_entry_desc">这将从合并中删除此项目，使用这个选项会丢失任何应用于合并后的项目的未保存的变更。</string>
+    <string name="delete_merged_entry_desc">这将从合并中删除此作品，使用这个选项会丢失任何应用于合并后的项目的未保存的变更。</string>
     <string name="chapter_updates_merged_entry">变更章节更新</string>
     <string name="chapter_updates_merged_entry_desc">更改此项将禁用或启用此已合并的漫画的章节更新</string>
     <string name="download_merged_entry">变更新章节下载</string>
@@ -603,7 +603,7 @@
     <string name="merged_toggle_download_chapters_error">更改下载章节错误</string>
     <string name="allow_deduplication">允许删除重复数据：</string>
     <string name="deduplication_mode">去重模式：</string>
-    <string name="deduplication_entry_info">项目信息：</string>
+    <string name="deduplication_entry_info">作品信息：</string>
     <string name="no_dedupe">无重复</string>
     <string name="dedupe_priority">按优先级去重</string>
     <string name="dedupe_most_chapters">显示有最多章节的来源</string>
@@ -611,8 +611,8 @@
 
     <!-- MangaDex -->
     <string name="md_follows_unfollowed">取消关注</string>
-    <string name="mangadex_sync_follows_to_library">同步 MangaDex 中的项目到书架</string>
-    <string name="mangadex_sync_follows_to_library_summary">从 MangaDex 拉取未添加的项目到你的书架</string>
+    <string name="mangadex_sync_follows_to_library">同步 MangaDex 中的作品到书架</string>
+    <string name="mangadex_sync_follows_to_library_summary">从 MangaDex 拉取未添加的作品到你的书架</string>
     <string name="mangadex_preffered_source">首选 MangaDex 来源</string>
     <string name="mangadex_preffered_source_summary">设置你所选择的 MangaDex 来源，这将用于关注和应用中一系列其他功能。</string>
     <string name="mangadex_add_to_follows">添加到 MangaDex 关注</string>
@@ -628,7 +628,7 @@
 
     <!-- Similar -->
     <string name="similar">与 %1$s 相似</string>
-    <string name="similar_no_results">相似项目未找到</string>
+    <string name="similar_no_results">相似作品未找到</string>
 
     <!-- MangaDex relations-->
     <string name="relation_similar">相似</string>
