@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import eu.kanade.tachiyomi.databinding.ReaderErrorBinding
@@ -13,6 +14,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
+import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -155,58 +157,74 @@ class PagerPageHolder(
      * Called when the page is ready.
      */
     private suspend fun setImage() {
-        if (extraPage == null) {
-            progressIndicator.setProgress(0)
-        } else {
-            progressIndicator.setProgress(95)
-        }
-        errorLayout?.root?.isVisible = false
+        // SY -->
+        try {
+            // SY <--
+            if (extraPage == null) {
+                progressIndicator.setProgress(0)
+            } else {
+                progressIndicator.setProgress(95)
+            }
+            errorLayout?.root?.isVisible = false
 
-        val streamFn = page.stream ?: return
-        val streamFn2 = extraPage?.stream
+            val streamFn = page.stream ?: return
+            val streamFn2 = extraPage?.stream
 
-        val (bais, isAnimated, background) = withIOContext {
-            streamFn().buffered(16).use { stream ->
-                // SY -->
-                (if (extraPage != null) streamFn2?.invoke()?.buffered(16) else null).use { stream2 ->
-                    if (viewer.config.dualPageSplit) {
-                        process(item.first, stream)
-                    } else {
-                        mergePages(stream, stream2)
-                    }.use { itemStream ->
-                        // SY <--
-                        val bais = ByteArrayInputStream(itemStream.readBytes())
-                        val isAnimated = ImageUtil.isAnimatedAndSupported(bais)
-                        bais.reset()
-                        val background = if (!isAnimated && viewer.config.automaticBackground) {
-                            ImageUtil.chooseBackground(context, bais)
+            val (bais, isAnimated, background) = withIOContext {
+                streamFn().buffered(16).use { stream ->
+                    // SY -->
+                    (
+                        if (extraPage != null) {
+                            streamFn2?.invoke()
+                                ?.buffered(16)
                         } else {
                             null
                         }
-                        bais.reset()
-                        Triple(bais, isAnimated, background)
+                        ).use { stream2 ->
+                        if (viewer.config.dualPageSplit) {
+                            process(item.first, stream)
+                        } else {
+                            mergePages(stream, stream2)
+                        }.use { itemStream ->
+                            // SY <--
+                            val bais = ByteArrayInputStream(itemStream.readBytes())
+                            val isAnimated = ImageUtil.isAnimatedAndSupported(bais)
+                            bais.reset()
+                            val background = if (!isAnimated && viewer.config.automaticBackground) {
+                                ImageUtil.chooseBackground(context, bais)
+                            } else {
+                                null
+                            }
+                            bais.reset()
+                            Triple(bais, isAnimated, background)
+                        }
                     }
                 }
             }
-        }
-        withUIContext {
-            bais.use {
-                setImage(
-                    it,
-                    isAnimated,
-                    Config(
-                        zoomDuration = viewer.config.doubleTapAnimDuration,
-                        minimumScaleType = viewer.config.imageScaleType,
-                        cropBorders = viewer.config.imageCropBorders,
-                        zoomStartPosition = viewer.config.imageZoomType,
-                        landscapeZoom = viewer.config.landscapeZoom,
-                    ),
-                )
-                if (!isAnimated) {
-                    pageBackground = background
+            withUIContext {
+                bais.use {
+                    setImage(
+                        it,
+                        isAnimated,
+                        Config(
+                            zoomDuration = viewer.config.doubleTapAnimDuration,
+                            minimumScaleType = viewer.config.imageScaleType,
+                            cropBorders = viewer.config.imageCropBorders,
+                            zoomStartPosition = viewer.config.imageZoomType,
+                            landscapeZoom = viewer.config.landscapeZoom,
+                        ),
+                    )
+                    if (!isAnimated) {
+                        pageBackground = background
+                    }
                 }
             }
+            // SY -->
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e)
+            context.toast(e.toString(), Toast.LENGTH_SHORT)
         }
+        // SY <--
     }
 
     private fun process(page: ReaderPage, imageStream: BufferedInputStream): InputStream {
@@ -218,7 +236,13 @@ class PagerPageHolder(
             return splitInHalf(imageStream)
         }
 
-        val isDoublePage = ImageUtil.isWideImage(imageStream)
+        val isDoublePage = ImageUtil.isWideImage(
+            imageStream,
+            // SY -->
+            page.zip4jFile,
+            page.zip4jEntry,
+            // SY <--
+        )
         if (!isDoublePage) {
             return imageStream
         }
@@ -231,7 +255,13 @@ class PagerPageHolder(
     private fun mergePages(imageStream: InputStream, imageStream2: InputStream?): InputStream {
         // Handle adding a center margin to wide images if requested
         if (imageStream2 == null) {
-            return if (imageStream is BufferedInputStream && ImageUtil.isWideImage(imageStream) &&
+            return if (imageStream is BufferedInputStream && ImageUtil.isWideImage(
+                    imageStream,
+                    // SY -->
+                    page.zip4jFile,
+                    page.zip4jEntry,
+                    // SY <--
+                ) &&
                 viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0 &&
                 !viewer.config.imageCropBorders
             ) {

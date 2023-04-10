@@ -1,28 +1,43 @@
 package eu.kanade.presentation.more.settings.screen
 
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.fragment.app.FragmentActivity
@@ -34,10 +49,15 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.category.biometric.BiometricTimesScreen
+import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.isAuthenticationSupported
+import eu.kanade.tachiyomi.util.system.toast
+import logcat.LogPriority
+import tachiyomi.core.util.system.logcat
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.io.File
 
 object SettingsSecurityScreen : SearchableSettings {
 
@@ -96,6 +116,74 @@ object SettingsSecurityScreen : SearchableSettings {
                     .associateWith { stringResource(it.titleResId) },
             ),
             // SY -->
+            Preference.PreferenceItem.SwitchPreference(
+                pref = securityPreferences.passwordProtectDownloads(),
+                title = stringResource(R.string.password_protect_downloads),
+                subtitle = stringResource(R.string.password_protect_downloads_summary),
+                enabled = CbzCrypto.isPasswordSet(),
+            ),
+            kotlin.run {
+                var dialogOpen by remember { mutableStateOf(false) }
+                if (dialogOpen) {
+                    PasswordDialog(
+                        onDismissRequest = { dialogOpen = false },
+                        onReturnPassword = { password ->
+                            dialogOpen = false
+
+                            CbzCrypto.deleteKey()
+                            securityPreferences.zipPassword().set(CbzCrypto.encrypt(password.replace("\n", "")))
+                        },
+                    )
+                }
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(R.string.set_cbz_zip_password),
+                    onClick = {
+                        dialogOpen = true
+                    },
+                )
+            },
+            Preference.PreferenceItem.TextPreference(
+                title = stringResource(R.string.delete_cbz_archive_password),
+                onClick = {
+                    CbzCrypto.deleteKey()
+                    securityPreferences.zipPassword().set("")
+                    context.toast(R.string.password_successfully_deleted, Toast.LENGTH_SHORT).show()
+                },
+                enabled = CbzCrypto.isPasswordSet(),
+            ),
+            Preference.PreferenceItem.ListPreference(
+                pref = securityPreferences.localCoverLocation(),
+                title = stringResource(R.string.save_local_manga_covers),
+                entries = SecurityPreferences.CoverCacheLocation.values()
+                    .associateWith { stringResource(it.titleResId) },
+                enabled = securityPreferences.passwordProtectDownloads().get(),
+                onValueChanged = {
+                    try {
+                        CbzCrypto.deleteLocalCoverCache(context)
+                        CbzCrypto.deleteLocalCoverSystemFiles(context)
+                        true
+                    } catch (e: Exception) {
+                        logcat(LogPriority.ERROR, e)
+                        context.toast(e.toString(), Toast.LENGTH_SHORT).show()
+                        false
+                    }
+                },
+            ),
+            Preference.PreferenceItem.TextPreference(
+                title = stringResource(R.string.delete_cached_local_source_covers),
+                subtitle = stringResource(R.string.delete_cached_local_source_covers_subtitle),
+                onClick = {
+                    try {
+                        CbzCrypto.deleteLocalCoverCache(context)
+                        CbzCrypto.deleteLocalCoverSystemFiles(context)
+                        context.toast(R.string.successfully_deleted_all_locally_cached_covers, Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        logcat(LogPriority.ERROR, e)
+                        context.toast(R.string.something_went_wrong_deleting_your_cover_images, Toast.LENGTH_LONG).show()
+                    }
+                },
+                enabled = context.getExternalFilesDir("covers/local")?.absolutePath?.let { File(it).listFiles()?.isNotEmpty() } == true,
+            ),
             kotlin.run {
                 val navigator = LocalNavigator.currentOrThrow
                 val count by securityPreferences.authenticatorTimeRanges().collectAsState()
@@ -203,6 +291,83 @@ object SettingsSecurityScreen : SearchableSettings {
                                 i or day.day
                             },
                         )
+                    },
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissRequest) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+
+    @Composable
+    fun PasswordDialog(
+        onDismissRequest: () -> Unit,
+        onReturnPassword: (String) -> Unit,
+    ) {
+        var password by rememberSaveable { mutableStateOf("") }
+        var passwordVisibility by remember { mutableStateOf(false) }
+
+        val icon = if (passwordVisibility) {
+            painterResource(id = R.drawable.design_ic_visibility)
+        } else {
+            painterResource(id = R.drawable.design_ic_visibility_off)
+        }
+        AlertDialog(
+            onDismissRequest = onDismissRequest,
+
+            title = { Text(text = stringResource(R.string.cbz_archive_password)) },
+            text = {
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+
+                    maxLines = 1,
+                    placeholder = { Text(text = stringResource(R.string.password)) },
+                    label = { Text(text = stringResource(R.string.password)) },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                passwordVisibility = !passwordVisibility
+                            },
+                        ) {
+                            Icon(
+                                painter = icon,
+                                contentDescription = "visibility Icon",
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { onReturnPassword(password) },
+                    ),
+                    modifier = Modifier.onKeyEvent {
+                        if (it.key == Key.Enter) {
+                            return@onKeyEvent true
+                        }
+                        false
+                    },
+                    visualTransformation = if (passwordVisibility) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                )
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = true,
+            ),
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onReturnPassword(password)
                     },
                 ) {
                     Text(text = stringResource(android.R.string.ok))
