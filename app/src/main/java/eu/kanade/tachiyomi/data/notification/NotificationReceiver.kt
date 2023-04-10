@@ -16,6 +16,7 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.getUriCompat
+import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.getParcelableExtraCompat
 import eu.kanade.tachiyomi.util.system.notificationManager
 import eu.kanade.tachiyomi.util.system.toShareIntent
@@ -118,14 +119,6 @@ class NotificationReceiver : BroadcastReceiver() {
                     downloadChapters(urls, mangaId)
                 }
             }
-            // Share crash dump file
-            ACTION_SHARE_CRASH_LOG ->
-                shareFile(
-                    context,
-                    intent.getParcelableExtraCompat(EXTRA_URI)!!,
-                    "text/plain",
-                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1),
-                )
         }
     }
 
@@ -135,7 +128,7 @@ class NotificationReceiver : BroadcastReceiver() {
      * @param notificationId the id of the notification
      */
     private fun dismissNotification(context: Context, notificationId: Int) {
-        context.notificationManager.cancel(notificationId)
+        context.cancelNotification(notificationId)
     }
 
     /**
@@ -271,8 +264,6 @@ class NotificationReceiver : BroadcastReceiver() {
 
         private const val ACTION_SHARE_BACKUP = "$ID.$NAME.SEND_BACKUP"
 
-        private const val ACTION_SHARE_CRASH_LOG = "$ID.$NAME.SEND_CRASH_LOG"
-
         private const val ACTION_CANCEL_RESTORE = "$ID.$NAME.CANCEL_RESTORE"
 
         private const val ACTION_CANCEL_LIBRARY_UPDATE = "$ID.$NAME.CANCEL_LIBRARY_UPDATE"
@@ -380,13 +371,13 @@ class NotificationReceiver : BroadcastReceiver() {
                     }
 
                     if (notifications.size == 2) {
-                        context.notificationManager.cancel(groupId)
+                        context.cancelNotification(groupId)
                         return
                     }
                 }
             }
 
-            context.notificationManager.cancel(notificationId)
+            context.cancelNotification(notificationId)
         }
 
         /**
@@ -563,23 +554,6 @@ class NotificationReceiver : BroadcastReceiver() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
             }
             return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        }
-
-        /**
-         * Returns [PendingIntent] that starts a share activity for a crash log dump file.
-         *
-         * @param context context of application
-         * @param uri uri of file
-         * @param notificationId id of notification
-         * @return [PendingIntent]
-         */
-        internal fun shareCrashLogPendingBroadcast(context: Context, uri: Uri, notificationId: Int): PendingIntent {
-            val intent = Intent(context, NotificationReceiver::class.java).apply {
-                action = ACTION_SHARE_CRASH_LOG
-                putExtra(EXTRA_URI, uri)
-                putExtra(EXTRA_NOTIFICATION_ID, notificationId)
-            }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**

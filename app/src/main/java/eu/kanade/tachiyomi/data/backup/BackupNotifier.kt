@@ -9,8 +9,9 @@ import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.storage.getUriCompat
+import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
-import eu.kanade.tachiyomi.util.system.notificationManager
+import eu.kanade.tachiyomi.util.system.notify
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -34,7 +35,7 @@ class BackupNotifier(private val context: Context) {
     }
 
     private fun NotificationCompat.Builder.show(id: Int) {
-        context.notificationManager.notify(id, build())
+        context.notify(id, build())
     }
 
     fun showBackupProgress(): NotificationCompat.Builder {
@@ -50,7 +51,7 @@ class BackupNotifier(private val context: Context) {
     }
 
     fun showBackupError(error: String?) {
-        context.notificationManager.cancel(Notifications.ID_BACKUP_PROGRESS)
+        context.cancelNotification(Notifications.ID_BACKUP_PROGRESS)
 
         with(completeNotificationBuilder) {
             setContentTitle(context.getString(R.string.creating_backup_error))
@@ -61,7 +62,7 @@ class BackupNotifier(private val context: Context) {
     }
 
     fun showBackupComplete(unifile: UniFile) {
-        context.notificationManager.cancel(Notifications.ID_BACKUP_PROGRESS)
+        context.cancelNotification(Notifications.ID_BACKUP_PROGRESS)
 
         with(completeNotificationBuilder) {
             setContentTitle(context.getString(R.string.backup_created))
@@ -103,7 +104,7 @@ class BackupNotifier(private val context: Context) {
     }
 
     fun showRestoreError(error: String?) {
-        context.notificationManager.cancel(Notifications.ID_RESTORE_PROGRESS)
+        context.cancelNotification(Notifications.ID_RESTORE_PROGRESS)
 
         with(completeNotificationBuilder) {
             setContentTitle(context.getString(R.string.restoring_backup_error))
@@ -114,7 +115,7 @@ class BackupNotifier(private val context: Context) {
     }
 
     fun showRestoreComplete(time: Long, errorCount: Int, path: String?, file: String?) {
-        context.notificationManager.cancel(Notifications.ID_RESTORE_PROGRESS)
+        context.cancelNotification(Notifications.ID_RESTORE_PROGRESS)
 
         val timeString = context.getString(
             R.string.restore_duration,

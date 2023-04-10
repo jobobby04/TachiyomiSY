@@ -7,9 +7,7 @@ import androidx.compose.ui.util.fastAny
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.coroutineScope
 import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.copyFrom
 import eu.kanade.domain.manga.model.toDomainManga
-import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.browse.FeedItemUI
 import eu.kanade.tachiyomi.source.CatalogueSource
@@ -30,16 +28,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import logcat.LogPriority
 import tachiyomi.core.util.lang.awaitSingle
 import tachiyomi.core.util.lang.launchIO
 import tachiyomi.core.util.lang.launchNonCancellable
 import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.lang.withNonCancellableContext
-import tachiyomi.core.util.system.logcat
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
-import tachiyomi.domain.manga.model.toMangaUpdate
 import tachiyomi.domain.source.interactor.CountFeedSavedSearchGlobal
 import tachiyomi.domain.source.interactor.DeleteFeedSavedSearchById
 import tachiyomi.domain.source.interactor.GetFeedSavedSearchGlobal
@@ -53,8 +47,6 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 import java.util.concurrent.Executors
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import tachiyomi.domain.manga.model.Manga as DomainManga
 
 /**
@@ -78,7 +70,7 @@ open class FeedScreenModel(
     val events = _events.receiveAsFlow()
 
     private val coroutineDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
-    var lastRefresh = System.currentTimeMillis().milliseconds
+    var pushed: Boolean = false
 
     init {
         getFeedSavedSearchGlobal.subscribe()
@@ -104,12 +96,7 @@ open class FeedScreenModel(
     }
 
     fun init() {
-        if (lastRefresh - System.currentTimeMillis().milliseconds > 30.seconds) return
-        refresh()
-    }
-
-    fun refresh() {
-        lastRefresh = System.currentTimeMillis().milliseconds
+        pushed = false
         coroutineScope.launchIO {
             val newItems = state.value.items?.map { it.copy(results = null) } ?: return@launchIO
             mutableState.update { state ->
@@ -291,34 +278,10 @@ open class FeedScreenModel(
             getManga.subscribe(initialManga.url, initialManga.source)
                 .collectLatest { manga ->
                     if (manga == null) return@collectLatest
-                    withIOContext {
-                        initializeManga(source, manga)
-                    }
                     value = manga
                 }
         }
     }
-
-    /**
-     * Initialize a manga.
-     *
-     * @param manga to initialize.
-     */
-    private suspend fun initializeManga(source: CatalogueSource?, manga: DomainManga) {
-        if (source == null || manga.thumbnailUrl != null || manga.initialized) return
-        withNonCancellableContext {
-            try {
-                val networkManga = source.getMangaDetails(manga.toSManga())
-                val updatedManga = manga.copyFrom(networkManga)
-                    .copy(initialized = true)
-
-                updateManga.await(updatedManga.toMangaUpdate())
-            } catch (e: Exception) {
-                logcat(LogPriority.ERROR, e)
-            }
-        }
-    }
-
     override fun onDispose() {
         super.onDispose()
         coroutineDispatcher.close()

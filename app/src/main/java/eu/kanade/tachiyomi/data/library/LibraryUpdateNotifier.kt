@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import coil.imageLoader
 import coil.request.ImageRequest
 import coil.transform.CircleCropTransformation
@@ -20,8 +21,8 @@ import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.lang.chop
+import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
-import eu.kanade.tachiyomi.util.system.notificationManager
 import eu.kanade.tachiyomi.util.system.notify
 import tachiyomi.core.Constants
 import tachiyomi.core.util.lang.launchUI
@@ -82,7 +83,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                 .setStyle(NotificationCompat.BigTextStyle().bigText(updatingText))
         }
 
-        context.notificationManager.notify(
+        context.notify(
             Notifications.ID_LIBRARY_PROGRESS,
             progressNotificationBuilder
                 .setProgress(total, current, false)
@@ -190,9 +191,11 @@ class LibraryUpdateNotifier(private val context: Context) {
         // Per-manga notification
         if (!preferences.hideNotificationContent().get()) {
             launchUI {
-                updates.forEach { (manga, chapters) ->
-                    context.notificationManager.notify(manga.id.hashCode(), createNewChaptersNotification(manga, chapters))
-                }
+                context.notify(
+                    updates.map { (manga, chapters) ->
+                        NotificationManagerCompat.NotificationWithIdAndTag(manga.id.hashCode(), createNewChaptersNotification(manga, chapters))
+                    },
+                )
             }
         }
     }
@@ -262,7 +265,7 @@ class LibraryUpdateNotifier(private val context: Context) {
      * Cancels the progress notification.
      */
     fun cancelProgressNotification() {
-        context.notificationManager.cancel(Notifications.ID_LIBRARY_PROGRESS)
+        context.cancelNotification(Notifications.ID_LIBRARY_PROGRESS)
     }
 
     private suspend fun getMangaIcon(manga: Manga): Bitmap? {

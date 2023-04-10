@@ -15,13 +15,12 @@ import cafe.adriel.voyager.core.model.coroutineScope
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithTrackServiceTwoWay
 import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.copyFrom
 import eu.kanade.domain.manga.model.toDomainManga
-import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.interactor.GetExhSavedSearch
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.model.toDomainTrack
 import eu.kanade.domain.ui.UiPreferences
+import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.track.EnhancedTrackService
@@ -43,7 +42,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -61,8 +59,6 @@ import tachiyomi.core.preference.CheckboxState
 import tachiyomi.core.preference.mapAsCheckboxState
 import tachiyomi.core.util.lang.launchIO
 import tachiyomi.core.util.lang.launchNonCancellable
-import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.lang.withNonCancellableContext
 import tachiyomi.core.util.lang.withUIContext
 import tachiyomi.core.util.system.logcat
 import tachiyomi.domain.UnsortedPreferences
@@ -74,6 +70,7 @@ import tachiyomi.domain.chapter.interactor.SetMangaDefaultChapterFlags
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFlatMetadataById
+import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.toMangaUpdate
@@ -108,6 +105,7 @@ open class BrowseSourceScreenModel(
     private val getChapterByMangaId: GetChapterByMangaId = Injekt.get(),
     private val setMangaCategories: SetMangaCategories = Injekt.get(),
     private val setMangaDefaultChapterFlags: SetMangaDefaultChapterFlags = Injekt.get(),
+    private val getManga: GetManga = Injekt.get(),
     private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
     private val updateManga: UpdateManga = Injekt.get(),
     private val insertTrack: InsertTrack = Injekt.get(),
@@ -199,26 +197,24 @@ open class BrowseSourceScreenModel(
                 createSourcePagingSource(listing.query ?: "", listing.filters)
                 // SY <--
             }.flow.map { pagingData ->
-                pagingData
-                    .map { (it, metadata) ->
-                        flow {
-                            val localManga = withIOContext { networkToLocalManga.await(it.toDomainManga(sourceId)) }
-                            emit(localManga)
+                pagingData.map { (it, metadata) ->
+                    networkToLocalManga.await(it.toDomainManga(sourceId))
+                        .let { localManga ->
+                            getManga.subscribe(localManga.url, localManga.source)
                         }
-                            .filterNotNull()
-                            .filter {
-                                !sourcePreferences.hideInLibraryItems().get() || !it.favorite
-                            }
-                            .onEach(::initializeManga)
-                            // SY -->
-                            .combineMetadata(metadata)
-                            // SY <--
-                            .stateIn(coroutineScope)
-                    }
+                        .filterNotNull()
+                        .filter { localManga ->
+                            !sourcePreferences.hideInLibraryItems().get() || !localManga.favorite
+                        }
+                        // SY -->
+                        .combineMetadata(metadata)
+                        // SY <--
+                        .stateIn(ioCoroutineScope)
+                }
             }
-                .cachedIn(coroutineScope)
+                .cachedIn(ioCoroutineScope)
         }
-        .stateIn(coroutineScope, SharingStarted.Lazily, emptyFlow())
+        .stateIn(ioCoroutineScope, SharingStarted.Lazily, emptyFlow())
 
     fun getColumnsPreference(orientation: Int): GridCells {
         val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -329,26 +325,6 @@ open class BrowseSourceScreenModel(
                 listing = listing,
                 toolbarQuery = listing.query,
             )
-        }
-    }
-
-    /**
-     * Initialize a manga.
-     *
-     * @param manga to initialize.
-     */
-    private suspend fun initializeManga(manga: Manga) {
-        if (manga.thumbnailUrl != null || manga.initialized) return
-        withNonCancellableContext {
-            try {
-                val networkManga = source.getMangaDetails(manga.toSManga())
-                val updatedManga = manga.copyFrom(networkManga)
-                    .copy(initialized = true)
-
-                updateManga.await(updatedManga.toMangaUpdate())
-            } catch (e: Exception) {
-                logcat(LogPriority.ERROR, e)
-            }
         }
     }
 
