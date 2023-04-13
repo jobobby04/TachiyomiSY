@@ -23,7 +23,7 @@ class SecurityPreferences(
 
     fun passwordProtectDownloads() = preferenceStore.getBoolean("password_protect_downloads", false)
 
-    fun zipPassword() = this.preferenceStore.getString("Zip/CBZ Password", "")
+    fun cbzPassword() = this.preferenceStore.getString("cbz_password", "")
 
     fun localCoverLocation() = this.preferenceStore.getEnum("local_cover_location", CoverCacheLocation.IN_MANGA_DIRECTORY)
 

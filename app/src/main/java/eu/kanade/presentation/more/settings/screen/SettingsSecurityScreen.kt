@@ -131,7 +131,7 @@ object SettingsSecurityScreen : SearchableSettings {
                             dialogOpen = false
 
                             CbzCrypto.deleteKey()
-                            securityPreferences.zipPassword().set(CbzCrypto.encrypt(password.replace("\n", "")))
+                            securityPreferences.cbzPassword().set(CbzCrypto.encrypt(password.replace("\n", "")))
                         },
                     )
                 }
@@ -146,7 +146,7 @@ object SettingsSecurityScreen : SearchableSettings {
                 title = stringResource(R.string.delete_cbz_archive_password),
                 onClick = {
                     CbzCrypto.deleteKey()
-                    securityPreferences.zipPassword().set("")
+                    securityPreferences.cbzPassword().set("")
                     context.toast(R.string.password_successfully_deleted, Toast.LENGTH_SHORT).show()
                 },
                 enabled = CbzCrypto.isPasswordSet(),

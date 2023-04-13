@@ -112,7 +112,7 @@ object CbzCrypto {
     }
 
     fun getDecryptedPassword(): CharArray {
-        return decrypt(securityPreferences.zipPassword().get()).toCharArray()
+        return decrypt(securityPreferences.cbzPassword().get()).toCharArray()
     }
 
     /** Function that returns true when the supplied password
@@ -136,7 +136,7 @@ object CbzCrypto {
     }
 
     fun isPasswordSet(): Boolean {
-        return securityPreferences.zipPassword().get().isNotEmpty()
+        return securityPreferences.cbzPassword().get().isNotEmpty()
     }
 
     fun getPasswordProtectDlPref(): Boolean {
@@ -146,7 +146,7 @@ object CbzCrypto {
     fun createComicInfoPadding(): String? {
         return if (getPasswordProtectDlPref()) {
             val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-            List((32..124).random()) { charPool.random() }.joinToString("")
+            List((48..144).random()) { charPool.random() }.joinToString("")
         } else {
             null
         }
