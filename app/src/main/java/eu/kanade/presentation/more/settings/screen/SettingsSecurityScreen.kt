@@ -330,8 +330,12 @@ object SettingsSecurityScreen : SearchableSettings {
                             },
                         ) {
                             Icon(
-                                painter = icon,
-                                contentDescription = "visibility Icon",
+                                imageVector = if (passwordVisibility) {
+                                            Icons.Default.Visibility
+                                        } else {
+                                            Icons.Default.VisibilityOff
+                                        },
+                                contentDescription = null,
                             )
                         }
                     },
