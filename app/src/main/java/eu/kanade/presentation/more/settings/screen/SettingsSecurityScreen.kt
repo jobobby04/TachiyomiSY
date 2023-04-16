@@ -311,12 +311,6 @@ object SettingsSecurityScreen : SearchableSettings {
     ) {
         var password by rememberSaveable { mutableStateOf("") }
         var passwordVisibility by remember { mutableStateOf(false) }
-
-        val icon = if (passwordVisibility) {
-            painterResource(id = R.drawable.design_ic_visibility)
-        } else {
-            painterResource(id = R.drawable.design_ic_visibility_off)
-        }
         AlertDialog(
             onDismissRequest = onDismissRequest,
 
