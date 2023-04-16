@@ -269,13 +269,15 @@ class PagerPageHolder(
     private fun mergePages(imageStream: InputStream, imageStream2: InputStream?): InputStream {
         // Handle adding a center margin to wide images if requested
         if (imageStream2 == null) {
-            return if (imageStream is BufferedInputStream && ImageUtil.isWideImage(
-                    imageStream,
-                    // SY -->
-                    page.zip4jFile,
-                    page.zip4jEntry,
-                    // SY <--
-                ) &&
+            return if (imageStream is BufferedInputStream &&
+                !ImageUtil.isAnimatedAndSupported(imageStream) &&
+                ImageUtil.isWideImage(
+                  imageStream,
+                  // SY -->
+                  page.zip4jFile,
+                  page.zip4jEntry,
+                  // SY <--
+               ) &&
                 viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0 &&
                 !viewer.config.imageCropBorders
             ) {
@@ -357,7 +359,7 @@ class PagerPageHolder(
         imageStream2.close()
 
         val centerMargin = if (viewer.config.centerMarginType and PagerConfig.CenterMarginType.DOUBLE_PAGE_CENTER_MARGIN > 0 && !viewer.config.imageCropBorders) {
-            96 / (getHeight().coerceAtLeast(1) / max(height, height2).coerceAtLeast(1)).coerceAtLeast(1)
+            96 / (this.height.coerceAtLeast(1) / max(height, height2).coerceAtLeast(1)).coerceAtLeast(1)
         } else {
             0
         }

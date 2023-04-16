@@ -12,7 +12,7 @@ richtext = "0.16.0"
 [libraries]
 desugar = "com.android.tools:desugar_jdk_libs:2.0.3"
 android-shortcut-gradle = "com.github.zellius:android-shortcut-gradle-plugin:0.1.2"
-google-services-gradle = "com.google.gms:google-services:4.3.10"
+google-services-gradle = "com.google.gms:google-services:4.3.15"
 
 rxandroid = "io.reactivex:rxandroid:1.2.1"
 rxjava = "io.reactivex:rxjava:1.3.8"
@@ -63,7 +63,7 @@ photoview = "com.github.chrisbanes:PhotoView:2.3.0"
 directionalviewpager = "com.github.tachiyomiorg:DirectionalViewPager:1.0.0"
 insetter = "dev.chrisbanes.insetter:insetter:0.6.1"
 compose-cascade = "me.saket.cascade:cascade-compose:2.0.0-rc02"
-compose-materialmotion = "io.github.fornewid:material-motion-compose-core:0.11.1"
+compose-materialmotion = "io.github.fornewid:material-motion-compose-core:0.11.2"
 compose-simpleicons = "br.com.devsrsouza.compose.icons.android:simple-icons:1.0.0"
 
 logcat = "com.squareup.logcat:logcat:0.1"
@@ -86,6 +86,7 @@ sqldelight-android-paging = { module = "com.squareup.sqldelight:android-paging3-
 sqldelight-gradle = { module = "com.squareup.sqldelight:gradle-plugin", version.ref = "sqldelight" }
 
 junit = "org.junit.jupiter:junit-jupiter:5.9.2"
+kotest-assertions = "io.kotest:kotest-assertions-core:5.5.5"
 
 voyager-navigator = { module = "ca.gosyer:voyager-navigator", version.ref = "voyager" }
 voyager-tab-navigator = { module = "ca.gosyer:voyager-tab-navigator", version.ref = "voyager" }
@@ -102,3 +103,4 @@ coil = ["coil-core", "coil-gif", "coil-compose"]
 shizuku = ["shizuku-api", "shizuku-provider"]
 voyager = ["voyager-navigator", "voyager-tab-navigator", "voyager-transitions"]
 richtext = ["richtext-commonmark", "richtext-m3"]
+test = ["junit", "kotest-assertions"]
