@@ -184,7 +184,11 @@ object SettingsSecurityScreen : SearchableSettings {
                         context.toast(R.string.something_went_wrong_deleting_your_cover_images, Toast.LENGTH_LONG).show()
                     }
                 },
-                enabled = context.getExternalFilesDir("covers/local")?.absolutePath?.let { File(it).listFiles()?.isNotEmpty() } == true,
+enabled = produceState(false) {
+    withIOContext {
+        value = context.getExternalFilesDir("covers/local")?.absolutePath?.let { File(it).listFiles()?.isNotEmpty() } == true
+    }
+}.value
             ),
             kotlin.run {
                 val navigator = LocalNavigator.currentOrThrow
