@@ -6,6 +6,11 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import eu.kanade.tachiyomi.core.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.AesKeyStrength
@@ -137,6 +142,12 @@ object CbzCrypto {
 
     fun isPasswordSet(): Boolean {
         return securityPreferences.cbzPassword().get().isNotEmpty()
+    }
+
+    fun isPasswordSetState(scope: CoroutineScope): StateFlow<Boolean> {
+        return securityPreferences.cbzPassword().changes()
+            .map { it.isNotEmpty() }
+            .stateIn(scope, SharingStarted.Eagerly, false)
     }
 
     fun getPasswordProtectDlPref(): Boolean {

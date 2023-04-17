@@ -22,10 +22,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
@@ -80,6 +82,10 @@ object SettingsSecurityScreen : SearchableSettings {
 
         val useAuth by useAuthPref.collectAsState()
 
+        val scope = rememberCoroutineScope()
+        val isCbzPasswordSet by remember { CbzCrypto.isPasswordSetState(scope) }.collectAsState()
+        val passwordProtectDownloads by securityPreferences.passwordProtectDownloads().collectAsState()
+
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
                 pref = useAuthPref,
@@ -124,7 +130,7 @@ object SettingsSecurityScreen : SearchableSettings {
                 pref = securityPreferences.passwordProtectDownloads(),
                 title = stringResource(R.string.password_protect_downloads),
                 subtitle = stringResource(R.string.password_protect_downloads_summary),
-                enabled = CbzCrypto.isPasswordSet(),
+                enabled = isCbzPasswordSet,
             ),
             kotlin.run {
                 var dialogOpen by remember { mutableStateOf(false) }
@@ -153,14 +159,14 @@ object SettingsSecurityScreen : SearchableSettings {
                     securityPreferences.cbzPassword().set("")
                     context.toast(R.string.password_successfully_deleted, Toast.LENGTH_SHORT).show()
                 },
-                enabled = CbzCrypto.isPasswordSet(),
+                enabled = isCbzPasswordSet,
             ),
             Preference.PreferenceItem.ListPreference(
                 pref = securityPreferences.localCoverLocation(),
                 title = stringResource(R.string.save_local_manga_covers),
                 entries = SecurityPreferences.CoverCacheLocation.values()
                     .associateWith { stringResource(it.titleResId) },
-                enabled = securityPreferences.passwordProtectDownloads().get(),
+                enabled = passwordProtectDownloads,
                 onValueChanged = {
                     try {
                         CbzCrypto.deleteLocalCoverCache(context)
@@ -190,7 +196,7 @@ object SettingsSecurityScreen : SearchableSettings {
                     withIOContext {
                         value = context.getExternalFilesDir("covers/local")?.absolutePath?.let { File(it).listFiles()?.isNotEmpty() } == true
                     }
-                }.value
+                }.value,
             ),
             kotlin.run {
                 val navigator = LocalNavigator.currentOrThrow
