@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -56,6 +57,7 @@ import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.isAuthenticationSupported
 import eu.kanade.tachiyomi.util.system.toast
 import logcat.LogPriority
+import tachiyomi.core.util.lang.withIOContext
 import tachiyomi.core.util.system.logcat
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -184,11 +186,11 @@ object SettingsSecurityScreen : SearchableSettings {
                         context.toast(R.string.something_went_wrong_deleting_your_cover_images, Toast.LENGTH_LONG).show()
                     }
                 },
-enabled = produceState(false) {
-    withIOContext {
-        value = context.getExternalFilesDir("covers/local")?.absolutePath?.let { File(it).listFiles()?.isNotEmpty() } == true
-    }
-}.value
+                enabled = produceState(false) {
+                    withIOContext {
+                        value = context.getExternalFilesDir("covers/local")?.absolutePath?.let { File(it).listFiles()?.isNotEmpty() } == true
+                    }
+                }.value
             ),
             kotlin.run {
                 val navigator = LocalNavigator.currentOrThrow
