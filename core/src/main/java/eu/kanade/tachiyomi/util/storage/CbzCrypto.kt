@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import logcat.LogPriority
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.AesKeyStrength
@@ -124,7 +125,7 @@ object CbzCrypto {
      * can Successfully decrypt the supplied zip archive */
     // not very elegant but this is the solution recommended by the maintainer for checking passwords
     // a real password check will likely be implemented in the future though
-    fun checkCbzPassword(zip4j: ZipFile, password: CharArray, fileName: String? = null): Boolean {
+    fun checkCbzPassword(zip4j: ZipFile, password: CharArray): Boolean {
         try {
             zip4j.setPassword(password)
             zip4j.use { zip ->
@@ -132,10 +133,7 @@ object CbzCrypto {
             }
             return true
         } catch (e: Exception) {
-            when (fileName) {
-                null -> logcat { "Wrong CBZ password" }
-                else -> logcat { "Wrong CBZ password for $fileName" }
-            }
+            logcat(LogPriority.WARN) { "Wrong CBZ archive password for: ${zip4j.file.name} in: ${zip4j.file.parentFile?.name}" }
         }
         return false
     }

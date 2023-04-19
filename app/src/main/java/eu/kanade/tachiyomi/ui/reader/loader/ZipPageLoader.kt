@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.ui.reader.loader
 
+import android.content.Context
 import android.os.Build
+import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
@@ -13,13 +15,27 @@ import java.nio.charset.StandardCharsets
 /**
  * Loader used to load a chapter from a .zip or .cbz file.
  */
-class ZipPageLoader(file: File) : PageLoader() {
+class ZipPageLoader(
+    file: File,
+    // SY -->
+    context: Context,
+    // SY <--
+) : PageLoader() {
 
     /**
      * The zip file to load pages from.
      */
     // SY -->
     private var zip4j = ZipFile(file)
+
+    init {
+        if (zip4j.isEncrypted) {
+            if (!CbzCrypto.checkCbzPassword(zip4j, CbzCrypto.getDecryptedPassword())) {
+                this.recycle()
+                throw Exception(context.getString(R.string.wrong_cbz_archive_password))
+            }
+        }
+    }
 
     private val zip: java.util.zip.ZipFile? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

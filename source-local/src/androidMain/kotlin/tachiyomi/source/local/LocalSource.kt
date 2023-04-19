@@ -264,7 +264,7 @@ actual class LocalSource(
                 is Format.Zip -> {
                     ZipFile(chapter).use { zip: ZipFile ->
                         // SY -->
-                        if (zip.isEncrypted && !CbzCrypto.checkCbzPassword(zip, CbzCrypto.getDecryptedPassword(), zip.file.name)
+                        if (zip.isEncrypted && !CbzCrypto.checkCbzPassword(zip, CbzCrypto.getDecryptedPassword())
                         ) {
                             return null
                         } else if (zip.isEncrypted && CbzCrypto.checkCbzPassword(zip, CbzCrypto.getDecryptedPassword())

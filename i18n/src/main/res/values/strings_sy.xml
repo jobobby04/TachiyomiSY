@@ -234,7 +234,7 @@
     <string name="successfully_deleted_all_locally_cached_covers">Successfully deleted all locally cached covers</string>
     <string name="something_went_wrong_deleting_your_cover_images">Something went wrong deleting your cover images: </string>
     <string name="cbz_archive_password">CBZ archive password</string>
-
+    <string name="wrong_cbz_archive_password">Wrong CBZ archive password</string>
 
     <!-- Reader Settings -->
     <string name="page_downloading">Page Downloading</string>
