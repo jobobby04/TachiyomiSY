@@ -169,8 +169,10 @@ object SettingsSecurityScreen : SearchableSettings {
                 enabled = passwordProtectDownloads,
                 onValueChanged = {
                     try {
-                        CbzCrypto.deleteLocalCoverCache(context)
-                        CbzCrypto.deleteLocalCoverSystemFiles(context)
+                        withIOContext {
+                            CbzCrypto.deleteLocalCoverCache(context)
+                            CbzCrypto.deleteLocalCoverSystemFiles(context)
+                        }
                         true
                     } catch (e: Exception) {
                         logcat(LogPriority.ERROR, e)
