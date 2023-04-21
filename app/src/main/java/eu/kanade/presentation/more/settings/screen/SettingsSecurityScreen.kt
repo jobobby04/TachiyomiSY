@@ -132,6 +132,14 @@ object SettingsSecurityScreen : SearchableSettings {
                 subtitle = stringResource(R.string.password_protect_downloads_summary),
                 enabled = isCbzPasswordSet,
             ),
+            Preference.PreferenceItem.ListPreference(
+                pref = securityPreferences.encryptionType(),
+                title = stringResource(R.string.encryption_type),
+                entries = SecurityPreferences.EncryptionType.values()
+                    .associateWith { stringResource(it.titleResId) },
+                enabled = passwordProtectDownloads,
+
+            ),
             kotlin.run {
                 var dialogOpen by remember { mutableStateOf(false) }
                 if (dialogOpen) {

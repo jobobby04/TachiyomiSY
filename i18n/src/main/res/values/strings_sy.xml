@@ -235,6 +235,12 @@
     <string name="something_went_wrong_deleting_your_cover_images">Something went wrong deleting your cover images: </string>
     <string name="cbz_archive_password">CBZ archive password</string>
     <string name="wrong_cbz_archive_password">Wrong CBZ archive password</string>
+    <string name="encryption_type">Encryption type</string>
+    <string name="aes_256">AES 256</string>
+    <string name="aes_192">AES 192</string>
+    <string name="aes_128">AES 128</string>
+    <string name="standard_zip_encryption">Standard zip encryption (fast but insecure)</string>
+
 
     <!-- Reader Settings -->
     <string name="page_downloading">Page Downloading</string>

@@ -23,6 +23,8 @@ class SecurityPreferences(
 
     fun passwordProtectDownloads() = preferenceStore.getBoolean("password_protect_downloads", false)
 
+    fun encryptionType() = this.preferenceStore.getEnum("encryption_type", EncryptionType.AES_256)
+
     fun cbzPassword() = this.preferenceStore.getString("cbz_password", "")
 
     fun localCoverLocation() = this.preferenceStore.getEnum("local_cover_location", CoverCacheLocation.IN_MANGA_DIRECTORY)
@@ -42,6 +44,12 @@ class SecurityPreferences(
     }
 
     // SY -->
+    enum class EncryptionType(val titleResId: Int) {
+        AES_256(R.string.aes_256),
+        AES_192(R.string.aes_192),
+        AES_128(R.string.aes_128),
+        ZIP_STANDARD(R.string.standard_zip_encryption),
+    }
     enum class CoverCacheLocation(val titleResId: Int) {
         IN_MANGA_DIRECTORY(R.string.save_in_manga_directory),
         INTERNAL(R.string.save_internally),

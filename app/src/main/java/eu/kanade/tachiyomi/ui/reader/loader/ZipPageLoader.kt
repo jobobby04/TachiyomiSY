@@ -78,18 +78,10 @@ class ZipPageLoader(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 zip4j.charset = StandardCharsets.ISO_8859_1
             }
-            zip4j.setPassword(
-                CbzCrypto.getDecryptedPassword(),
-            )
+            zip4j.setPassword(CbzCrypto.getDecryptedPassword())
 
             return zip4j.fileHeaders.asSequence()
-                .filter {
-                    !it.isDirectory && ImageUtil.isImage(it.fileName) {
-                        zip4j.getInputStream(
-                            it,
-                        )
-                    }
-                }
+                .filter { !it.isDirectory && ImageUtil.isImage(it.fileName) { zip4j.getInputStream(it) } }
                 .sortedWith { f1, f2 -> f1.fileName.compareToCaseInsensitiveNaturalOrder(f2.fileName) }
                 .mapIndexed { i, entry ->
                     ReaderPage(i).apply {

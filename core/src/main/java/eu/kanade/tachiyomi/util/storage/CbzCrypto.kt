@@ -163,8 +163,24 @@ object CbzCrypto {
 
     fun setZipParametersEncrypted(zipParameters: ZipParameters) {
         zipParameters.isEncryptFiles = true
-        zipParameters.encryptionMethod = EncryptionMethod.AES
-        zipParameters.aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
+
+        when (securityPreferences.encryptionType().get()) {
+            SecurityPreferences.EncryptionType.AES_256 -> {
+                zipParameters.encryptionMethod = EncryptionMethod.AES
+                zipParameters.aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
+            }
+            SecurityPreferences.EncryptionType.AES_192 -> {
+                zipParameters.encryptionMethod = EncryptionMethod.AES
+                zipParameters.aesKeyStrength = AesKeyStrength.KEY_STRENGTH_192
+            }
+            SecurityPreferences.EncryptionType.AES_128 -> {
+                zipParameters.encryptionMethod = EncryptionMethod.AES
+                zipParameters.aesKeyStrength = AesKeyStrength.KEY_STRENGTH_128
+            }
+            SecurityPreferences.EncryptionType.ZIP_STANDARD -> {
+                zipParameters.encryptionMethod = EncryptionMethod.ZIP_STANDARD
+            }
+        }
     }
 
     fun deleteLocalCoverCache(context: Context) {
