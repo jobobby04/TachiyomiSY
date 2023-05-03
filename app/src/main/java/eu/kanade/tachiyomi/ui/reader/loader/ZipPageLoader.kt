@@ -30,7 +30,7 @@ class ZipPageLoader(
 
     init {
         if (zip4j.isEncrypted) {
-            if (!CbzCrypto.checkCbzPassword(zip4j, CbzCrypto.getDecryptedPassword())) {
+            if (!CbzCrypto.checkCbzPassword(zip4j, CbzCrypto.getDecryptedPasswordCbz())) {
                 this.recycle()
                 throw Exception(context.getString(R.string.wrong_cbz_archive_password))
             }
@@ -78,7 +78,7 @@ class ZipPageLoader(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 zip4j.charset = StandardCharsets.ISO_8859_1
             }
-            zip4j.setPassword(CbzCrypto.getDecryptedPassword())
+            zip4j.setPassword(CbzCrypto.getDecryptedPasswordCbz())
 
             return zip4j.fileHeaders.asSequence()
                 .filter { !it.isDirectory && ImageUtil.isImage(it.fileName) { zip4j.getInputStream(it) } }

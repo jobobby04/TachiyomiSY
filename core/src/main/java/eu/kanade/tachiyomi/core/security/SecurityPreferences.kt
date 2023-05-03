@@ -1,11 +1,13 @@
 package eu.kanade.tachiyomi.core.security
 
+import android.content.Context
 import eu.kanade.tachiyomi.core.R
 import tachiyomi.core.preference.PreferenceStore
 import tachiyomi.core.preference.getEnum
 
 class SecurityPreferences(
     private val preferenceStore: PreferenceStore,
+    private val context: Context,
 ) {
 
     fun useAuthenticator() = preferenceStore.getBoolean("use_biometric_lock", false)
@@ -20,6 +22,10 @@ class SecurityPreferences(
     fun authenticatorTimeRanges() = this.preferenceStore.getStringSet("biometric_time_ranges", mutableSetOf())
 
     fun authenticatorDays() = this.preferenceStore.getInt("biometric_days", 0x7F)
+
+    fun encryptDatabase() = this.preferenceStore.getBoolean("encrypt_database", !context.getDatabasePath("tachiyomi.db").exists())
+
+    fun sqlPassword() = this.preferenceStore.getString("sql_password", "")
 
     fun passwordProtectDownloads() = preferenceStore.getBoolean("password_protect_downloads", false)
 

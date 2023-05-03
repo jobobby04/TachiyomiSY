@@ -592,7 +592,7 @@ class Downloader(
             CbzCrypto.isPasswordSet()
         ) {
             CbzCrypto.setZipParametersEncrypted(zipParameters)
-            zip.setPassword(CbzCrypto.getDecryptedPassword())
+            zip.setPassword(CbzCrypto.getDecryptedPasswordCbz())
 
             tmpDir.filePath?.let { addPaddingToImage(File(it)) }
         }

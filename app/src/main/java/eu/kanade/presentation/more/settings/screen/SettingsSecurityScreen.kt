@@ -127,6 +127,11 @@ object SettingsSecurityScreen : SearchableSettings {
             ),
             // SY -->
             Preference.PreferenceItem.SwitchPreference(
+                title = stringResource(R.string.encrypt_database),
+                pref = securityPreferences.encryptDatabase(),
+                subtitle = stringResource(R.string.encrypt_database_subtitle),
+            ),
+            Preference.PreferenceItem.SwitchPreference(
                 pref = securityPreferences.passwordProtectDownloads(),
                 title = stringResource(R.string.password_protect_downloads),
                 subtitle = stringResource(R.string.password_protect_downloads_summary),
@@ -148,8 +153,8 @@ object SettingsSecurityScreen : SearchableSettings {
                         onReturnPassword = { password ->
                             dialogOpen = false
 
-                            CbzCrypto.deleteKey()
-                            securityPreferences.cbzPassword().set(CbzCrypto.encrypt(password.replace("\n", "")))
+                            CbzCrypto.deleteKeyCbz()
+                            securityPreferences.cbzPassword().set(CbzCrypto.encryptCbz(password.replace("\n", "")))
                         },
                     )
                 }
@@ -163,9 +168,8 @@ object SettingsSecurityScreen : SearchableSettings {
             Preference.PreferenceItem.TextPreference(
                 title = stringResource(R.string.delete_cbz_archive_password),
                 onClick = {
-                    CbzCrypto.deleteKey()
+                    CbzCrypto.deleteKeyCbz()
                     securityPreferences.cbzPassword().set("")
-                    context.toast(R.string.password_successfully_deleted, Toast.LENGTH_SHORT).show()
                 },
                 enabled = isCbzPasswordSet,
             ),

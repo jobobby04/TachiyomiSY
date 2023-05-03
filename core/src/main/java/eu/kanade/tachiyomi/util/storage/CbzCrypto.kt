@@ -17,12 +17,12 @@ import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import tachiyomi.core.util.system.logcat
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.injectLazy
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.KeyStore
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -31,42 +31,51 @@ import javax.crypto.spec.IvParameterSpec
 // SY -->
 /**
  * object used to En/Decrypt and Base64 en/decode
- * CBZ file passwords before storing
+ * passwords before storing
  * them in Shared Preferences
  */
 object CbzCrypto {
-    private val securityPreferences: SecurityPreferences = Injekt.get()
+    const val DATABASE_NAME = "tachiyomiEncrypted.db"
+    private val securityPreferences: SecurityPreferences by injectLazy()
     private val keyStore = KeyStore.getInstance(KEYSTORE).apply {
         load(null)
     }
 
-    private val encryptionCipher
+    private val encryptionCipherCbz
         get() = Cipher.getInstance(CRYPTO_SETTINGS).apply {
             init(
                 Cipher.ENCRYPT_MODE,
-                getKey(),
+                getKey(ALIAS_CBZ),
             )
         }
 
-    private fun getDecryptCipher(iv: ByteArray): Cipher {
+    private val encryptionCipherSql
+        get() = Cipher.getInstance(CRYPTO_SETTINGS).apply {
+            init(
+                Cipher.ENCRYPT_MODE,
+                getKey(ALIAS_SQL),
+            )
+        }
+
+    private fun getDecryptCipher(iv: ByteArray, alias: String): Cipher {
         return Cipher.getInstance(CRYPTO_SETTINGS).apply {
             init(
                 Cipher.DECRYPT_MODE,
-                getKey(),
+                getKey(alias),
                 IvParameterSpec(iv),
             )
         }
     }
 
-    private fun getKey(): SecretKey {
-        val loadedKey = keyStore.getEntry(ALIAS, null) as? KeyStore.SecretKeyEntry
-        return loadedKey?.secretKey ?: generateKey()
+    private fun getKey(alias: String): SecretKey {
+        val loadedKey = keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry
+        return loadedKey?.secretKey ?: generateKey(alias)
     }
 
-    private fun generateKey(): SecretKey {
+    private fun generateKey(alias: String): SecretKey {
         return KeyGenerator.getInstance(ALGORITHM).apply {
             init(
-                KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                     .setKeySize(KEY_SIZE)
                     .setBlockModes(BLOCK_MODE)
                     .setEncryptionPaddings(PADDING)
@@ -77,8 +86,7 @@ object CbzCrypto {
         }.generateKey()
     }
 
-    fun encrypt(password: String): String {
-        val cipher = encryptionCipher
+    private fun encrypt(password: String, cipher: Cipher): String {
         val outputStream = ByteArrayOutputStream()
         outputStream.use { output ->
             output.write(cipher.iv)
@@ -94,12 +102,12 @@ object CbzCrypto {
         return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
     }
 
-    private fun decrypt(encryptedPassword: String): String {
+    private fun decrypt(encryptedPassword: String, alias: String): String {
         val inputStream = Base64.decode(encryptedPassword, Base64.DEFAULT).inputStream()
         return inputStream.use { input ->
             val iv = ByteArray(IV_SIZE)
             input.read(iv)
-            val cipher = getDecryptCipher(iv)
+            val cipher = getDecryptCipher(iv, alias)
             ByteArrayOutputStream().use { output ->
                 val buffer = ByteArray(BUFFER_SIZE)
                 while (inputStream.available() > BUFFER_SIZE) {
@@ -112,13 +120,30 @@ object CbzCrypto {
         }
     }
 
-    fun deleteKey() {
-        keyStore.deleteEntry(ALIAS)
-        generateKey()
+    fun deleteKeyCbz() {
+        keyStore.deleteEntry(ALIAS_CBZ)
+        generateKey(ALIAS_CBZ)
     }
 
-    fun getDecryptedPassword(): CharArray {
-        return decrypt(securityPreferences.cbzPassword().get()).toCharArray()
+    fun encryptCbz(password: String): String {
+        return encrypt(password, encryptionCipherCbz)
+    }
+
+    fun getDecryptedPasswordCbz(): CharArray {
+        return decrypt(securityPreferences.cbzPassword().get(), ALIAS_CBZ).toCharArray()
+    }
+
+    private fun generateAndEncryptSqlPw() {
+        val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        val password = (1..32).map {
+            charPool[SecureRandom().nextInt(charPool.size)]
+        }.joinToString("", transform = { it.toString() })
+        securityPreferences.sqlPassword().set(encrypt(password, encryptionCipherSql))
+    }
+
+    fun getDecryptedPasswordSql(): ByteArray {
+        if (securityPreferences.sqlPassword().get().isBlank()) generateAndEncryptSqlPw()
+        return decrypt(securityPreferences.sqlPassword().get(), ALIAS_SQL).toByteArray()
     }
 
     /** Function that returns true when the supplied password
@@ -203,7 +228,7 @@ object CbzCrypto {
     }
 }
 
-private const val BUFFER_SIZE = 8192
+private const val BUFFER_SIZE = 2048
 private const val KEY_SIZE = 256
 private const val IV_SIZE = 16
 
@@ -211,8 +236,10 @@ private const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
 private const val BLOCK_MODE = KeyProperties.BLOCK_MODE_CBC
 private const val PADDING = KeyProperties.ENCRYPTION_PADDING_PKCS7
 private const val CRYPTO_SETTINGS = "$ALGORITHM/$BLOCK_MODE/$PADDING"
+
 private const val KEYSTORE = "AndroidKeyStore"
-private const val ALIAS = "cbzPw"
+private const val ALIAS_CBZ = "cbzPw"
+private const val ALIAS_SQL = "sqlPw"
 
 private const val LOCAL_CACHE_DIR = "covers/local"
 

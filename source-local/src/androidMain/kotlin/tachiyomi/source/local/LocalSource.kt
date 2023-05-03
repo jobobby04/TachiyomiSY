@@ -205,8 +205,8 @@ actual class LocalSource(
                     val comicInfoArchive = ZipFile(comicInfoArchiveFile)
                     noXmlFile?.delete()
 
-                    if (CbzCrypto.checkCbzPassword(comicInfoArchive, CbzCrypto.getDecryptedPassword())) {
-                        comicInfoArchive.setPassword(CbzCrypto.getDecryptedPassword())
+                    if (CbzCrypto.checkCbzPassword(comicInfoArchive, CbzCrypto.getDecryptedPasswordCbz())) {
+                        comicInfoArchive.setPassword(CbzCrypto.getDecryptedPasswordCbz())
                         val comicInfoEntry = comicInfoArchive.fileHeaders.firstOrNull { it.fileName == COMIC_INFO_FILE }
                         setMangaDetailsFromComicInfoFile(comicInfoArchive.getInputStream(comicInfoEntry), manga)
                     }
@@ -240,7 +240,7 @@ actual class LocalSource(
                         setMangaDetailsFromComicInfoFile(copiedFile.inputStream(), manga)
                     } else if (copiedFile != null && copiedFile.name == COMIC_INFO_ARCHIVE) {
                         val comicInfoArchive = ZipFile(copiedFile)
-                        comicInfoArchive.setPassword(CbzCrypto.getDecryptedPassword())
+                        comicInfoArchive.setPassword(CbzCrypto.getDecryptedPasswordCbz())
                         val comicInfoEntry = comicInfoArchive.fileHeaders.firstOrNull { it.fileName == COMIC_INFO_FILE }
 
                         setMangaDetailsFromComicInfoFile(comicInfoArchive.getInputStream(comicInfoEntry), manga)
@@ -264,12 +264,12 @@ actual class LocalSource(
                 is Format.Zip -> {
                     ZipFile(chapter).use { zip: ZipFile ->
                         // SY -->
-                        if (zip.isEncrypted && !CbzCrypto.checkCbzPassword(zip, CbzCrypto.getDecryptedPassword())
+                        if (zip.isEncrypted && !CbzCrypto.checkCbzPassword(zip, CbzCrypto.getDecryptedPasswordCbz())
                         ) {
                             return null
-                        } else if (zip.isEncrypted && CbzCrypto.checkCbzPassword(zip, CbzCrypto.getDecryptedPassword())
+                        } else if (zip.isEncrypted && CbzCrypto.checkCbzPassword(zip, CbzCrypto.getDecryptedPasswordCbz())
                         ) {
-                            zip.setPassword(CbzCrypto.getDecryptedPassword())
+                            zip.setPassword(CbzCrypto.getDecryptedPasswordCbz())
                         }
                         zip.getFileHeader(COMIC_INFO_FILE)?.let { comicInfoFile ->
                             // SY <--
@@ -305,7 +305,7 @@ actual class LocalSource(
             zipParameters.fileNameInZip = COMIC_INFO_FILE
 
             val zipEncrypted = ZipFile("$folderPath/$COMIC_INFO_ARCHIVE")
-            zipEncrypted.setPassword(CbzCrypto.getDecryptedPassword())
+            zipEncrypted.setPassword(CbzCrypto.getDecryptedPasswordCbz())
             zipEncrypted.addStream(comicInfoFileStream, zipParameters)
             return zipEncrypted.file
         } else {
@@ -390,7 +390,7 @@ actual class LocalSource(
                 is Format.Zip -> {
                     ZipFile(format.file).use { zip ->
                         // SY -->
-                        if (zip.isEncrypted) zip.setPassword(CbzCrypto.getDecryptedPassword())
+                        if (zip.isEncrypted) zip.setPassword(CbzCrypto.getDecryptedPasswordCbz())
                         val entry = zip.fileHeaders.toList()
                             .sortedWith { f1, f2 -> f1.fileName.compareToCaseInsensitiveNaturalOrder(f2.fileName) }
                             .find { !it.isDirectory && ImageUtil.isImage(it.fileName) { zip.getInputStream(it) } }

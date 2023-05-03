@@ -166,6 +166,9 @@ dependencies {
     implementation(androidx.paging.compose)
 
     implementation(libs.bundles.sqlite)
+    // SY -->
+    implementation(libs.sqlcipher)
+    // SY <--
 
     implementation(kotlinx.reflect)
 

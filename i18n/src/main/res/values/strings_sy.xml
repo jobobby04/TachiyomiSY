@@ -220,11 +220,12 @@
     <string name="thursday">Thursday</string>
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
+    <string name="encrypt_database">Encrypt database</string>
+    <string name="encrypt_database_subtitle">Requires app restart to take effect \nClearing app data and loading a backup is highly recommended</string>
     <string name="set_cbz_zip_password">Set CBZ archive password</string>
     <string name="password_protect_downloads">Password protect downloads</string>
     <string name="password_protect_downloads_summary">Encrypts CBZ archive downloads with the given password.\nWARNING: DATA INSIDE THE ARCHIVES WILL BE LOST FOREVER IF YOU FORGET THE PASSWORD</string>
     <string name="delete_cbz_archive_password">Delete CBZ archive password</string>
-    <string name="password_successfully_deleted">PASSWORD SUCCESSFULLY DELETED</string>
     <string name="save_in_manga_directory">In manga directory</string>
     <string name="save_internally">Internally</string>
     <string name="save_never">Never (local source manga won\'t have covers)</string>
