@@ -180,7 +180,7 @@ object CbzCrypto {
     fun createComicInfoPadding(): String? {
         return if (getPasswordProtectDlPref()) {
             val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-            List((48..144).random()) { charPool.random() }.joinToString("")
+            List(SecureRandom().nextInt(100) + 42) { charPool.random() }.joinToString("")
         } else {
             null
         }

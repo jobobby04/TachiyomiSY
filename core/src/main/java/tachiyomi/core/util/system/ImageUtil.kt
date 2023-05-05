@@ -36,6 +36,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.net.URLConnection
+import java.security.SecureRandom
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -726,7 +727,7 @@ object ImageUtil {
     fun addPaddingToImageExif(imageFile: File) {
         try {
             val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-            val padding = List((16384..32768).random()) { charPool.random() }.joinToString("")
+            val padding = List(SecureRandom().nextInt(16384) + 16384) { charPool.random() }.joinToString("")
             val exif = ExifInterface(imageFile.absolutePath)
             exif.setAttribute("UserComment", padding)
             exif.saveAttributes()
