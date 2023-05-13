@@ -57,13 +57,13 @@ internal class ZipPageLoader(file: File) : PageLoader() {
         }
     }
 
+    // SY <--
     override fun recycle() {
         super.recycle()
         zip?.close()
         // SY -->
         zip4j.close()
         tmpDir.deleteRecursively()
-        // SY <--
     }
     private fun unzip() {
         tmpDir.mkdirs()
