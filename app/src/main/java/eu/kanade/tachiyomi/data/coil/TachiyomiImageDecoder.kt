@@ -26,11 +26,13 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
         var zip4j: ZipFile? = null
         var entry: FileHeader? = null
 
-        if (resources.sourceOrNull()?.use { CbzCrypto.detectCoverImageArchive(it.inputStream()) } == true) {
-            zip4j = ZipFile(resources.file().toFile().absolutePath)
-            entry = zip4j.fileHeaders.firstOrNull { it.fileName.equals(CbzCrypto.DEFAULT_COVER_NAME, ignoreCase = true) }
+        if (resources.sourceOrNull()?.peek()?.use { CbzCrypto.detectCoverImageArchive(it.inputStream()) } == true) {
+            if (resources.source().peek().use { ImageUtil.findImageType(it.inputStream()) == null }) {
+                zip4j = ZipFile(resources.file().toFile().absolutePath)
+                entry = zip4j.fileHeaders.firstOrNull { it.fileName.equals(CbzCrypto.DEFAULT_COVER_NAME, ignoreCase = true) }
 
-            if (zip4j.isEncrypted) zip4j.setPassword(CbzCrypto.getDecryptedPasswordCbz())
+                if (zip4j.isEncrypted) zip4j.setPassword(CbzCrypto.getDecryptedPasswordCbz())
+            }
         }
         val decoder = resources.sourceOrNull()?.use {
             zip4j.use { zipFile ->
