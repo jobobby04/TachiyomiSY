@@ -33,6 +33,8 @@ import exh.eh.EHentaiUpdateHelper
 import exh.pref.DelegateSourcePreferences
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.json.Json
+import net.zetetic.database.sqlcipher.SQLiteDatabase.OPEN_READWRITE
+import net.zetetic.database.sqlcipher.SQLiteDatabase.openDatabase
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.core.XmlVersion
@@ -82,7 +84,23 @@ class AppModule(val app: Application) : InjektModule {
 
         addSingletonFactory<SqlDriver> {
             // SY -->
-            System.loadLibrary("sqlcipher")
+            if (securityPreferences.encryptDatabase().get()) {
+                System.loadLibrary("sqlcipher")
+                val databaseFile = app.getDatabasePath(CbzCrypto.DATABASE_NAME)
+                if (databaseFile.exists()) {
+                    val database = openDatabase(
+                        databaseFile.absolutePath,
+                        CbzCrypto.getDecryptedPasswordSql(),
+                        null,
+                        OPEN_READWRITE,
+                        null,
+                        null,
+                    )
+                    database.use { db ->
+                        db.version = Database.Schema.version
+                    }
+                }
+            }
             // SY <--
             AndroidSqliteDriver(
                 schema = Database.Schema,
