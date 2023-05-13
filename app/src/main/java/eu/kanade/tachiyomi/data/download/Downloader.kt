@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
+import android.os.Build
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay.PublishRelay
 import eu.kanade.domain.chapter.model.toSChapter
@@ -640,7 +641,7 @@ class Downloader(
 
         CbzCrypto.setZipParametersEncrypted(zipParameters)
         zip.setPassword(CbzCrypto.getDecryptedPasswordCbz())
-        zip.charset = StandardCharsets.ISO_8859_1
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) zip.charset = StandardCharsets.ISO_8859_1
 
         tmpDir.filePath?.let { addPaddingToImage(File(it)) }
 
