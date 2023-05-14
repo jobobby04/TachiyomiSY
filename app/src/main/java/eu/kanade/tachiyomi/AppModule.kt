@@ -27,6 +27,7 @@ import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
+import eu.kanade.tachiyomi.util.SqlCipherHelper
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import eu.kanade.tachiyomi.util.system.isDevFlavor
 import exh.eh.EHentaiUpdateHelper
@@ -82,7 +83,11 @@ class AppModule(val app: Application) : InjektModule {
 
         addSingletonFactory<SqlDriver> {
             // SY -->
-            System.loadLibrary("sqlcipher")
+            if (securityPreferences.encryptDatabase().get()) {
+                System.loadLibrary("sqlcipher")
+                SqlCipherHelper.migrateDatabase(app)
+            }
+
             // SY <--
             AndroidSqliteDriver(
                 schema = Database.Schema,
