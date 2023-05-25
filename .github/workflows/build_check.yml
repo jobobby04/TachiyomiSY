@@ -35,7 +35,8 @@ jobs:
       - name: Gradle Properties Modification
         run: |
           echo 'org.gradle.parallel=true' >> gradle.properties
-          echo 'org.gradle.jvmargs=-Xmx2048m' >> gradle.properties
+          echo 'org.gradle.jvmargs=-Xmx4g' >> gradle.properties
+          echo 'kotlin.daemon.jvmargs=-Xmx4g'  >> gradle.properties
 
       - name: Build app
         uses: gradle/gradle-command-action@v2
