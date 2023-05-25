@@ -32,6 +32,11 @@ jobs:
           java-version: 17
           distribution: adopt
 
+      - name: Gradle Properties Modification
+        run: |
+          echo 'org.gradle.parallel=true' >> gradle.properties
+          echo 'org.gradle.jvmargs=-Xmx2048m' >> gradle.properties
+
       - name: Build app
         uses: gradle/gradle-command-action@v2
         with:
