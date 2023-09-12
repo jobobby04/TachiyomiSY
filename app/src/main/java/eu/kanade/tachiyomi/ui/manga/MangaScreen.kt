@@ -59,7 +59,6 @@ import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
 import exh.md.similar.MangaDexSimilarScreen
 import exh.pagepreview.PagePreviewScreen
-import exh.pref.DelegateSourcePreferences
 import exh.recs.RecommendsScreen
 import exh.source.MERGED_SOURCE_ID
 import exh.source.getMainSource
@@ -500,7 +499,7 @@ class MangaScreen(
     // AZ -->
     private fun openRecommends(context: Context, navigator: Navigator, source: Source?, manga: Manga) {
         source ?: return
-        if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources().get()) {
+        if (source.isMdBasedSource()) {
             MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.az_recommends)
                 .setSingleChoiceItems(
