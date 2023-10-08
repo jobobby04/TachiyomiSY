@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Actions -->
-    <string name="action_skip_entry">不要迁移</string>
-    <string name="action_search_manually">手动搜索</string>
-    <string name="action_migrate_now">开始迁移</string>
-    <string name="action_copy_now">开始复制</string>
-    <string name="action_clean_titles">清除标题</string>
-    <string name="action_start_reading">开始阅读</string>
-    <string name="action_edit_info">编辑信息</string>
-
+    <string name="action_skip_entry">不要遷移</string>
+    <string name="action_search_manually">手動搜尋</string>
+    <string name="action_migrate_now">開始遷移</string>
+    <string name="action_copy_now">開始複製</string>
+    <string name="action_clean_titles">清除標題</string>
+    <string name="action_start_reading">開始閱讀</string>
+    <string name="action_edit_info">編輯資訊</string>
     <!-- Entry Type -->
     <string name="entry_type_manga">日漫</string>
-    <string name="entry_type_manhwa">韩漫</string>
-    <string name="entry_type_manhua">国漫</string>
-    <string name="entry_type_comic">喜剧</string>
-    <string name="entry_type_webtoon">网络漫画</string>
+    <string name="entry_type_manhwa">韓漫</string>
+    <string name="entry_type_manhua">陸漫</string>
+    <string name="entry_type_comic">美漫</string>
+    <string name="entry_type_webtoon">條漫</string>
 
     <!-- Preferences -->
     <!-- Subsections -->
-    <string name="pref_category_all_sources">所有来源</string>
-    <string name="pref_category_fork">分支特色设置</string>
-    <string name="pref_ehentai_summary">E-Hentai、ExHentai 登录、画廊同步</string>
-    <string name="pref_mangadex_summary">MangaDex 登录、收藏同步</string>
+    <string name="pref_category_all_sources">所有來源</string>
+    <string name="pref_category_fork">分支特色設定</string>
+    <string name="pref_ehentai_summary">E-Hentai、ExHentai 登入、畫廊同步</string>
+    <string name="pref_mangadex_summary">MangaDex 登入、收藏同步</string>
 
     <!-- About -->
     <string name="changelog_version">版本 %1$s</string>
 
-    <!-- EH Settings -->
-    <string name="ehentai_prefs_account_settings">E-Hentai 网站账户设置</string>
-    <string name="enable_exhentai">启用 ExHentai</string>
-    <string name="requires_login">需要登录</string>
-    <string name="use_hentai_at_home">使用 Hentai@Home 网络</string>
-    <string name="use_hentai_at_home_summary">如果可用，您是否希望通过 Hentai@Home 网络加载图像？禁用此选项将减少您能够浏览的页面数量。\n选项：\n- 任何客户端（推荐）\n- 使用默认端口的客户端（可能会比较慢。如果防火墙或代理阻止非标准端口的出站，则应启用）</string>
-    <string name="use_hentai_at_home_option_1">任何客户端（推荐）</string>
-    <string name="use_hentai_at_home_option_2">仅使用默认端口的客户端</string>
-    <string name="show_japanese_titles">在搜索结果中显示日文标题</string>
-    <string name="show_japanese_titles_option_1">目前在搜索结果中显示日文标题。更改后请到高级设置清除章节缓存。</string>
-    <string name="show_japanese_titles_option_2">目前在搜索结果中显示英文/罗马化的标题。更改后请到高级设置清除章节缓存。</string>
-    <string name="use_original_images">使用原图</string>
-    <string name="use_original_images_on">目前使用的是原图</string>
+    <!-- EH Settings 1 -->
+    <string name="ehentai_prefs_account_settings">E-Hentai 網站帳號設置</string>
+    <string name="enable_exhentai">啟用 ExHentai</string>
+    <string name="requires_login">需要登入</string>
+    <string name="use_hentai_at_home">使用 Hentai@Home 網路</string>
+    <string name="use_hentai_at_home_summary">如果可用，您是否希望通過 Hentai@Home 網路加載圖片？禁用此選項將減少您能夠瀏覽的頁面數量。\n選項：\n- 任何客戶端（推薦）\n- 使用默認端口的客戶端（可能會比較慢。如果防火牆或代理阻止非標準端口的出站，則應啟用）</string>
+    <string name="use_hentai_at_home_option_1">任何客戶端（推薦）</string>
+    <string name="use_hentai_at_home_option_2">僅使用默認端口的客戶端</string>
+    <string name="show_japanese_titles">在搜索結果中顯示日文標題</string>
+    <string name="show_japanese_titles_option_1">目前在搜索結果中顯示日文標題。更改後請到高級設置清除章節緩存。</string>
+    <string name="show_japanese_titles_option_2">目前在搜索結果中顯示英文/羅馬化的標題。更改後請到高級設置清除章節緩存。</string>
+    <string name="use_original_images">使用原圖</string>
+    <string name="use_original_images_on">目前使用的是原圖</string>
+    <!-- EH Settings 2 -->
     <string name="use_original_images_off">目前使用的是重采样图像</string>
     <string name="watched_tags">查看标签</string>
     <string name="watched_tags_summary">在网页视图中查看 E/ExHentai 收藏的标签</string>
