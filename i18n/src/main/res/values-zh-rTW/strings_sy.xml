@@ -38,26 +38,26 @@
     <string name="show_japanese_titles_option_2">目前在搜索結果中顯示英文/羅馬化的標題。更改後請到高級設置清除章節緩存。</string>
     <string name="use_original_images">使用原圖</string>
     <string name="use_original_images_on">目前使用的是原圖</string>
+    <string name="use_original_images_off">目前使用的是重採樣圖像</string>
+    <string name="watched_tags">查看標籤</string>
+    <string name="watched_tags_summary">在網頁視圖中查看 E/ExHentai 收藏的標籤</string>
+    <string name="watched_tags_exh">ExHentai 收藏的標籤</string>
+    <string name="tag_filtering_threshold">標籤過濾閾值</string>
+    <string name="tag_filtering_threshhold_error">必須介於 -9999 和 0！</string>
+    <string name="tag_filtering_threshhold_summary">你可以通過在 "我的 Tags E/ExHentai" 頁面添加負的權重來軟過濾標籤。如果一個畫廊的標籤加起來的權重低於這個值，它就會被過濾掉。這個閾值可以在 -9999 和 0 之間設定。 目前：%1$d</string>
+    <string name="tag_watching_threshhold">標籤收藏閾值</string>
+    <string name="tag_watching_threshhold_error">必須介於 0 和 9999！</string>
+    <string name="tag_watching_threshhold_summary">如果最近上傳的畫廊至少有一個權重為正的已收藏標籤，並且其已收藏標籤的權重之和達到這個值或更高，就會被列入已收藏頁面。這個閾值可以在 0 到 9999 之間設定。目前：%1$d</string>
+    <string name="language_filtering">語言過濾</string>
+    <string name="language_filtering_summary">如果您想在畫廊列表和搜索中隱藏某些語言的畫廊，請在彈出的對話框中選擇它們。\n請注意，無論您的搜索條件為何，匹配的畫廊都不會出現。\n勾選 = 排除</string>
+    <string name="frong_page_categories">首頁類別</string>
+    <string name="fromt_page_categories_summary">你希望在首頁和搜索中默認顯示哪些類別？它們仍然可以通過啟用它們的過濾器而被啟用</string>
+    <string name="watched_list_default">監視列表過濾器默認狀態</string>
+    <string name="watched_list_state_summary">在瀏覽 ExHentai/E-Hentai 時，是否默認啟用監視列表過濾器</string>
+    <string name="eh_image_quality_summary">下載圖片品質</string>
+    <string name="eh_image_quality">圖片品質</string>
+    <string name="eh_image_quality_auto">自動</string>
     <!-- EH Settings 2 -->
-    <string name="use_original_images_off">目前使用的是重采样图像</string>
-    <string name="watched_tags">查看标签</string>
-    <string name="watched_tags_summary">在网页视图中查看 E/ExHentai 收藏的标签</string>
-    <string name="watched_tags_exh">ExHentai 收藏的标签</string>
-    <string name="tag_filtering_threshold">标签过滤阈值</string>
-    <string name="tag_filtering_threshhold_error">必须介于 -9999 和 0！</string>
-    <string name="tag_filtering_threshhold_summary">你可以通过在 \"我的 Tags E/ExHentai\" 页面添加负的权重来软过滤标签。如果一个画廊的标签加起来的权重低于这个值，它就会被过滤掉。这个阈值可以在 -9999 和 0 之间设置。 目前：%1$d</string>
-    <string name="tag_watching_threshhold">标签收藏阈值</string>
-    <string name="tag_watching_threshhold_error">必须介于 0 和 9999！</string>
-    <string name="tag_watching_threshhold_summary">如果最近上传的画廊至少有一个权重为正的已收藏标签，并且其已收藏标签的权重之和达到这个值或更高，就会被列入已收藏页面。这个阈值可以在 0 到 9999 之间设置。目前：%1$d</string>
-    <string name="language_filtering">语言过滤</string>
-    <string name="language_filtering_summary">如果您想在画廊列表和搜索中隐藏某些语言的画廊，请在弹出的对话框中选择它们。\n请注意，无论您的搜索条件如何，匹配的画廊都不会出现。\n勾选 = 排除</string>
-    <string name="frong_page_categories">首页类别</string>
-    <string name="fromt_page_categories_summary">你希望在首页和搜索中默认显示哪些类别？它们仍然可以通过激活它们的过滤器而被启用</string>
-    <string name="watched_list_default">监视列表过滤器默认状态</string>
-    <string name="watched_list_state_summary">在浏览 ExHentai/E-Hentai 时，是否应默认启用监视列表过滤器</string>
-    <string name="eh_image_quality_summary">下载图像质量</string>
-    <string name="eh_image_quality">图像质量</string>
-    <string name="eh_image_quality_auto">自动</string>
     <string name="pref_enhanced_e_hentai_view">增强的 E/ExHentai 浏览</string>
     <string name="pref_enhanced_e_hentai_view_summary">启用或禁用为 E/ExHentai 制作的增强型浏览菜单。</string>
     <string name="favorites_sync">E-Hentai 收藏同步</string>
