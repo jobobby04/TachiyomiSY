@@ -26,16 +26,16 @@
     <string name="changelog_version">版本 %1$s</string>
 
     <!-- EH Settings 1 -->
-    <string name="ehentai_prefs_account_settings">E-Hentai 網站帳號設置</string>
+    <string name="ehentai_prefs_account_settings">E-Hentai 網站帳號設定</string>
     <string name="enable_exhentai">啟用 ExHentai</string>
     <string name="requires_login">需要登入</string>
     <string name="use_hentai_at_home">使用 Hentai@Home 網路</string>
     <string name="use_hentai_at_home_summary">如果可用，您是否希望通過 Hentai@Home 網路加載圖片？禁用此選項將減少您能夠瀏覽的頁面數量。\n選項：\n- 任何客戶端（推薦）\n- 使用默認端口的客戶端（可能會比較慢。如果防火牆或代理阻止非標準端口的出站，則應啟用）</string>
     <string name="use_hentai_at_home_option_1">任何客戶端（推薦）</string>
     <string name="use_hentai_at_home_option_2">僅使用默認端口的客戶端</string>
-    <string name="show_japanese_titles">在搜索結果中顯示日文標題</string>
-    <string name="show_japanese_titles_option_1">目前在搜索結果中顯示日文標題。更改後請到高級設置清除章節緩存。</string>
-    <string name="show_japanese_titles_option_2">目前在搜索結果中顯示英文/羅馬化的標題。更改後請到高級設置清除章節緩存。</string>
+    <string name="show_japanese_titles">在搜尋結果中顯示日文標題</string>
+    <string name="show_japanese_titles_option_1">目前在搜尋結果中顯示日文標題。更改後請到高級設置清除章節緩存。</string>
+    <string name="show_japanese_titles_option_2">目前在搜尋結果中顯示英文/羅馬化的標題。更改後請到高級設置清除章節緩存。</string>
     <string name="use_original_images">使用原圖</string>
     <string name="use_original_images_on">目前使用的是原圖</string>
     <string name="use_original_images_off">目前使用的是重採樣圖像</string>
