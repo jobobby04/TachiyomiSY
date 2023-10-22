@@ -63,10 +63,14 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
 
         private fun isApplicable(source: BufferedSource): Boolean {
             // SY -->
-            val type = source.peek().inputStream().buffered().use {
-                if (CbzCrypto.detectCoverImageArchive(it)) return true
+            val streamBytes = ByteArray(128)
+            source.peek().inputStream().use { it.read(streamBytes, 0, streamBytes.size) }
+            val type = streamBytes.inputStream().buffered().use { stream ->
+                stream.mark(streamBytes.size)
+                if (CbzCrypto.detectCoverImageArchive(stream)) return true
+                stream.reset()
                 // SY <--
-                ImageUtil.findImageType(it)
+                ImageUtil.findImageType(stream)
             }
             return when (type) {
                 ImageUtil.ImageType.AVIF, ImageUtil.ImageType.JXL -> true
