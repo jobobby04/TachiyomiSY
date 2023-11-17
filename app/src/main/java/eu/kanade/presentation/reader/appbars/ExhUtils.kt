@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.kanade.presentation.theme.TachiyomiTheme
@@ -61,42 +63,60 @@ fun ExhUtils(
     Column(
         modifier
             .fillMaxWidth()
-            .background(backgroundColor)
+            .background(backgroundColor),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AnimatedVisibility(visible = isVisible) {
             Column {
                 Row(
-                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(IntrinsicSize.Min),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Row(
                         Modifier
                             .fillMaxWidth(0.5f)
                             .fillMaxHeight()
+                            .padding(5.dp)
                             .clickable(enabled = isAutoScrollEnabled) { onToggleAutoscroll(!isAutoScroll) },
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = stringResource(R.string.eh_autoscroll),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 13.sp,
-                            fontFamily = FontFamily.SansSerif,
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(start = 24.dp)
-                        )
-                        Switch(
-                            checked = isAutoScroll,
-                            onCheckedChange = null,
-                            enabled = isAutoScrollEnabled
-                        )
+                        Column(
+                            Modifier.weight(3f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.eh_autoscroll),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 13.sp,
+                                fontFamily = FontFamily.SansSerif,
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.fillMaxWidth(0.75f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Column(
+                            Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Switch(
+                                checked = isAutoScroll,
+                                onCheckedChange = null,
+                                enabled = isAutoScrollEnabled
+                            )
+                        }
                     }
                     Row(
-                        Modifier.fillMaxWidth(),
+                        Modifier.fillMaxWidth(0.9f).padding(5.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(Modifier.weight(3f)) {
+                        Column(
+                            Modifier.weight(3f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             var autoScrollFrequencyState by remember {
                                 mutableStateOf(autoScrollFrequency)
                             }
@@ -114,7 +134,7 @@ fun ExhUtils(
                                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                                 ),
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth(0.75f),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Decimal
                                 ),
@@ -141,11 +161,11 @@ fun ExhUtils(
                     }
                 }
                 Row(
-                    Modifier.fillMaxWidth(),
+                    Modifier.fillMaxWidth(0.9f),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Row(
-                        Modifier.fillMaxWidth(0.5f),
+                        Modifier.fillMaxWidth(0.5f).padding(5.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -173,7 +193,7 @@ fun ExhUtils(
                         }
                     }
                     Row(
-                        Modifier.fillMaxWidth(),
+                        Modifier.fillMaxWidth(0.9f).padding(5.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
