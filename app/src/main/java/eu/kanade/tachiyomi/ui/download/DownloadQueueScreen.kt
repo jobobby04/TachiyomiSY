@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Pause
-import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +35,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -52,12 +51,14 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.components.NestedMenuItem
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.DownloadListBinding
+import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.util.lang.launchUI
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import kotlin.math.roundToInt
 
@@ -103,7 +104,7 @@ object DownloadQueueScreen : Screen() {
                     titleContent = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = stringResource(R.string.label_download_queue),
+                                text = stringResource(MR.strings.label_download_queue),
                                 maxLines = 1,
                                 modifier = Modifier.weight(1f, false),
                                 overflow = TextOverflow.Ellipsis,
@@ -130,10 +131,10 @@ object DownloadQueueScreen : Screen() {
                                 onDismissRequest = onDismissRequest,
                             ) {
                                 NestedMenuItem(
-                                    text = { Text(text = stringResource(R.string.action_order_by_upload_date)) },
+                                    text = { Text(text = stringResource(MR.strings.action_order_by_upload_date)) },
                                     children = { closeMenu ->
                                         DropdownMenuItem(
-                                            text = { Text(text = stringResource(R.string.action_newest)) },
+                                            text = { Text(text = stringResource(MR.strings.action_newest)) },
                                             onClick = {
                                                 screenModel.reorderQueue(
                                                     { it.download.chapter.dateUpload },
@@ -143,7 +144,7 @@ object DownloadQueueScreen : Screen() {
                                             },
                                         )
                                         DropdownMenuItem(
-                                            text = { Text(text = stringResource(R.string.action_oldest)) },
+                                            text = { Text(text = stringResource(MR.strings.action_oldest)) },
                                             onClick = {
                                                 screenModel.reorderQueue(
                                                     { it.download.chapter.dateUpload },
@@ -155,10 +156,10 @@ object DownloadQueueScreen : Screen() {
                                     },
                                 )
                                 NestedMenuItem(
-                                    text = { Text(text = stringResource(R.string.action_order_by_chapter_number)) },
+                                    text = { Text(text = stringResource(MR.strings.action_order_by_chapter_number)) },
                                     children = { closeMenu ->
                                         DropdownMenuItem(
-                                            text = { Text(text = stringResource(R.string.action_asc)) },
+                                            text = { Text(text = stringResource(MR.strings.action_asc)) },
                                             onClick = {
                                                 screenModel.reorderQueue(
                                                     { it.download.chapter.chapterNumber },
@@ -168,7 +169,7 @@ object DownloadQueueScreen : Screen() {
                                             },
                                         )
                                         DropdownMenuItem(
-                                            text = { Text(text = stringResource(R.string.action_desc)) },
+                                            text = { Text(text = stringResource(MR.strings.action_desc)) },
                                             onClick = {
                                                 screenModel.reorderQueue(
                                                     { it.download.chapter.chapterNumber },
@@ -182,14 +183,14 @@ object DownloadQueueScreen : Screen() {
                             }
 
                             AppBarActions(
-                                listOf(
+                                persistentListOf(
                                     AppBar.Action(
-                                        title = stringResource(R.string.action_sort),
-                                        icon = Icons.Outlined.Sort,
+                                        title = stringResource(MR.strings.action_sort),
+                                        icon = Icons.AutoMirrored.Outlined.Sort,
                                         onClick = { sortExpanded = true },
                                     ),
                                     AppBar.OverflowAction(
-                                        title = stringResource(R.string.action_cancel_all),
+                                        title = stringResource(MR.strings.action_cancel_all),
                                         onClick = { screenModel.clearQueue() },
                                     ),
                                 ),
@@ -209,9 +210,9 @@ object DownloadQueueScreen : Screen() {
                     ExtendedFloatingActionButton(
                         text = {
                             val id = if (isRunning) {
-                                R.string.action_pause
+                                MR.strings.action_pause
                             } else {
-                                R.string.action_resume
+                                MR.strings.action_resume
                             }
                             Text(text = stringResource(id))
                         },
@@ -237,7 +238,7 @@ object DownloadQueueScreen : Screen() {
         ) { contentPadding ->
             if (downloadList.isEmpty()) {
                 EmptyScreen(
-                    textResource = R.string.information_no_downloads,
+                    stringRes = MR.strings.information_no_downloads,
                     modifier = Modifier.padding(contentPadding),
                 )
                 return@Scaffold

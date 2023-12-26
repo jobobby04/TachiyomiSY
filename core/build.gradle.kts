@@ -19,6 +19,9 @@ android {
 
 dependencies {
     implementation(project(":i18n"))
+    // SY -->
+    implementation(project(":i18n-sy"))
+    // SY <--
 
     api(libs.logcat)
 
@@ -26,6 +29,7 @@ dependencies {
 
     api(libs.okhttp.core)
     api(libs.okhttp.logging)
+    api(libs.okhttp.brotli)
     api(libs.okhttp.dnsoverhttps)
     api(libs.okio)
 

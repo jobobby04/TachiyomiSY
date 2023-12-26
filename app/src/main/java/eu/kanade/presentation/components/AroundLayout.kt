@@ -11,10 +11,10 @@ import androidx.compose.ui.util.fastMaxBy
 
 @Composable
 fun AroundLayout(
-    modifier: Modifier = Modifier,
     startLayout: @Composable () -> Unit,
     endLayout: @Composable () -> Unit,
     content: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     SubcomposeLayout(modifier) { constraints ->
         val layoutWidth = constraints.maxWidth
@@ -41,7 +41,8 @@ fun AroundLayout(
             }
         }.fastMap { it.measure(looseConstraints.copy(maxWidth = bodyContentWidth)) }
 
-        val height = (startLayoutPlaceables + endLayoutPlaceables + bodyContentPlaceables).maxOfOrNull { it.height } ?: 0
+        val height = (startLayoutPlaceables + endLayoutPlaceables + bodyContentPlaceables)
+            .maxOfOrNull { it.height } ?: 0
 
         layout(constraints.maxWidth, height) {
             // Placing to control drawing order to match default elevation of each placeable

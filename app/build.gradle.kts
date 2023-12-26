@@ -26,7 +26,7 @@ android {
     defaultConfig {
         applicationId = "eu.kanade.tachiyomi.sy"
 
-        versionCode = 58
+        versionCode = 59
         versionName = "1.9.4"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
@@ -121,6 +121,7 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
 
         // Disable some unused things
         aidl = false
@@ -140,6 +141,9 @@ android {
 
 dependencies {
     implementation(project(":i18n"))
+    // SY -->
+    implementation(project(":i18n-sy"))
+    // SY <--
     implementation(project(":core"))
     implementation(project(":core-metadata"))
     implementation(project(":source-api"))
@@ -162,9 +166,8 @@ dependencies {
     implementation(compose.ui.tooling.preview)
     implementation(compose.ui.util)
     implementation(compose.accompanist.webview)
-    implementation(compose.accompanist.permissions)
-    implementation(compose.accompanist.themeadapter)
     implementation(compose.accompanist.systemuicontroller)
+    lintChecks(compose.lintchecks)
 
     implementation(androidx.paging.runtime)
     implementation(androidx.paging.compose)
@@ -175,6 +178,7 @@ dependencies {
     // SY <--
 
     implementation(kotlinx.reflect)
+    implementation(kotlinx.immutables)
 
     implementation(platform(kotlinx.coroutines.bom))
     implementation(kotlinx.bundles.coroutines)
@@ -197,7 +201,6 @@ dependencies {
 
     // RxJava
     implementation(libs.rxjava)
-    implementation(libs.flowreactivenetwork)
 
     // Networking
     implementation(libs.bundles.okhttp)
@@ -320,12 +323,12 @@ tasks {
             kotlinOptions.freeCompilerArgs += listOf(
                 "-P",
                 "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=" +
-                    project.buildDir.absolutePath + "/compose_metrics",
+                    project.layout.buildDirectory.dir("compose_metrics").get().asFile.absolutePath,
             )
             kotlinOptions.freeCompilerArgs += listOf(
                 "-P",
                 "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=" +
-                    project.buildDir.absolutePath + "/compose_metrics",
+                    project.layout.buildDirectory.dir("compose_metrics").get().asFile.absolutePath,
             )
         }
     }

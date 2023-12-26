@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.PeopleAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,19 +25,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.kanade.domain.manga.model.downloadedFilter
 import eu.kanade.domain.manga.model.forceDownloaded
 import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
-import eu.kanade.tachiyomi.R
+import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.preference.TriState
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.RadioItem
 import tachiyomi.presentation.core.components.SortItem
 import tachiyomi.presentation.core.components.TriStateItem
+import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.active
 
 @Composable
 fun ChapterSettingsDialog(
@@ -45,13 +48,12 @@ fun ChapterSettingsDialog(
     onDownloadFilterChanged: (TriState) -> Unit,
     onUnreadFilterChanged: (TriState) -> Unit,
     onBookmarkedFilterChanged: (TriState) -> Unit,
+    scanlatorFilterActive: Boolean,
+    onScanlatorFilterClicked: (() -> Unit),
     onSortModeChanged: (Long) -> Unit,
     onDisplayModeChanged: (Long) -> Unit,
     onSetAsDefault: (applyToExistingManga: Boolean) -> Unit,
     onResetToDefault: () -> Unit,
-    // SY -->
-    onClickShowScanlatorSelection: (() -> Unit)?,
-    // SY <--
 ) {
     var showSetAsDefaultDialog by rememberSaveable { mutableStateOf(false) }
     if (showSetAsDefaultDialog) {
@@ -63,21 +65,21 @@ fun ChapterSettingsDialog(
 
     TabbedDialog(
         onDismissRequest = onDismissRequest,
-        tabTitles = listOf(
-            stringResource(R.string.action_filter),
-            stringResource(R.string.action_sort),
-            stringResource(R.string.action_display),
+        tabTitles = persistentListOf(
+            stringResource(MR.strings.action_filter),
+            stringResource(MR.strings.action_sort),
+            stringResource(MR.strings.action_display),
         ),
         tabOverflowMenuContent = { closeMenu ->
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.set_chapter_settings_as_default)) },
+                text = { Text(stringResource(MR.strings.set_chapter_settings_as_default)) },
                 onClick = {
                     showSetAsDefaultDialog = true
                     closeMenu()
                 },
             )
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_reset)) },
+                text = { Text(stringResource(MR.strings.action_reset)) },
                 onClick = {
                     onResetToDefault()
                     closeMenu()
@@ -94,14 +96,14 @@ fun ChapterSettingsDialog(
                 0 -> {
                     FilterPage(
                         downloadFilter = manga?.downloadedFilter ?: TriState.DISABLED,
-                        onDownloadFilterChanged = onDownloadFilterChanged.takeUnless { manga?.forceDownloaded() == true },
+                        onDownloadFilterChanged = onDownloadFilterChanged
+                            .takeUnless { manga?.forceDownloaded() == true },
                         unreadFilter = manga?.unreadFilter ?: TriState.DISABLED,
                         onUnreadFilterChanged = onUnreadFilterChanged,
                         bookmarkedFilter = manga?.bookmarkedFilter ?: TriState.DISABLED,
                         onBookmarkedFilterChanged = onBookmarkedFilterChanged,
-                        // SY -->
-                        onClickShowScanlatorSelection = onClickShowScanlatorSelection,
-                        // SY <--
+                        scanlatorFilterActive = scanlatorFilterActive,
+                        onScanlatorFilterClicked = onScanlatorFilterClicked,
                     )
                 }
                 1 -> {
@@ -130,42 +132,38 @@ private fun ColumnScope.FilterPage(
     onUnreadFilterChanged: (TriState) -> Unit,
     bookmarkedFilter: TriState,
     onBookmarkedFilterChanged: (TriState) -> Unit,
-    // SY -->
-    onClickShowScanlatorSelection: (() -> Unit)?,
-    // SY <--
+    scanlatorFilterActive: Boolean,
+    onScanlatorFilterClicked: (() -> Unit),
 ) {
     TriStateItem(
-        label = stringResource(R.string.label_downloaded),
+        label = stringResource(MR.strings.label_downloaded),
         state = downloadFilter,
         onClick = onDownloadFilterChanged,
     )
     TriStateItem(
-        label = stringResource(R.string.action_filter_unread),
+        label = stringResource(MR.strings.action_filter_unread),
         state = unreadFilter,
         onClick = onUnreadFilterChanged,
     )
     TriStateItem(
-        label = stringResource(R.string.action_filter_bookmarked),
+        label = stringResource(MR.strings.action_filter_bookmarked),
         state = bookmarkedFilter,
         onClick = onBookmarkedFilterChanged,
     )
-    // SY -->
-    if (onClickShowScanlatorSelection != null) {
-        SetScanlatorsItem(onClickShowScanlatorSelection)
-    }
-    // SY <--
+    ScanlatorFilterItem(
+        active = scanlatorFilterActive,
+        onClick = onScanlatorFilterClicked,
+    )
 }
 
-// SY -->
 @Composable
-private fun SetScanlatorsItem(
-    onClickShowScanlatorSelection: () -> Unit,
+fun ScanlatorFilterItem(
+    active: Boolean,
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
-            .clickable(
-                onClick = onClickShowScanlatorSelection,
-            )
+            .clickable(onClick = onClick)
             .fillMaxWidth()
             .padding(horizontal = TabbedDialogPaddings.Horizontal, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -174,14 +172,18 @@ private fun SetScanlatorsItem(
         Icon(
             imageVector = Icons.Outlined.PeopleAlt,
             contentDescription = null,
+            tint = if (active) {
+                MaterialTheme.colorScheme.active
+            } else {
+                LocalContentColor.current
+            },
         )
         Text(
-            text = stringResource(R.string.scanlator),
+            text = stringResource(MR.strings.scanlator),
             style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
-// SY <--
 
 @Composable
 private fun ColumnScope.SortPage(
@@ -190,9 +192,10 @@ private fun ColumnScope.SortPage(
     onItemSelected: (Long) -> Unit,
 ) {
     listOf(
-        R.string.sort_by_source to Manga.CHAPTER_SORTING_SOURCE,
-        R.string.sort_by_number to Manga.CHAPTER_SORTING_NUMBER,
-        R.string.sort_by_upload_date to Manga.CHAPTER_SORTING_UPLOAD_DATE,
+        MR.strings.sort_by_source to Manga.CHAPTER_SORTING_SOURCE,
+        MR.strings.sort_by_number to Manga.CHAPTER_SORTING_NUMBER,
+        MR.strings.sort_by_upload_date to Manga.CHAPTER_SORTING_UPLOAD_DATE,
+        MR.strings.action_sort_alpha to Manga.CHAPTER_SORTING_ALPHABET,
     ).map { (titleRes, mode) ->
         SortItem(
             label = stringResource(titleRes),
@@ -208,8 +211,8 @@ private fun ColumnScope.DisplayPage(
     onItemSelected: (Long) -> Unit,
 ) {
     listOf(
-        R.string.show_title to Manga.CHAPTER_DISPLAY_NAME,
-        R.string.show_chapter_number to Manga.CHAPTER_DISPLAY_NUMBER,
+        MR.strings.show_title to Manga.CHAPTER_DISPLAY_NAME,
+        MR.strings.show_chapter_number to Manga.CHAPTER_DISPLAY_NUMBER,
     ).map { (titleRes, mode) ->
         RadioItem(
             label = stringResource(titleRes),
@@ -228,15 +231,15 @@ private fun SetAsDefaultDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(text = stringResource(R.string.chapter_settings)) },
+        title = { Text(text = stringResource(MR.strings.chapter_settings)) },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(text = stringResource(R.string.confirm_set_chapter_settings))
+                Text(text = stringResource(MR.strings.confirm_set_chapter_settings))
 
                 LabeledCheckbox(
-                    label = stringResource(R.string.also_set_chapter_settings_for_library),
+                    label = stringResource(MR.strings.also_set_chapter_settings_for_library),
                     checked = optionalChecked,
                     onCheckedChange = { optionalChecked = it },
                 )
@@ -244,7 +247,7 @@ private fun SetAsDefaultDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text(text = stringResource(R.string.action_cancel))
+                Text(text = stringResource(MR.strings.action_cancel))
             }
         },
         confirmButton = {
@@ -254,7 +257,7 @@ private fun SetAsDefaultDialog(
                     onDismissRequest()
                 },
             ) {
-                Text(text = stringResource(R.string.action_ok))
+                Text(text = stringResource(MR.strings.action_ok))
             }
         },
     )

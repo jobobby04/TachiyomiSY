@@ -1,18 +1,15 @@
 package eu.kanade.tachiyomi.util.system
 
-import android.app.ActivityManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import androidx.appcompat.view.ContextThemeWrapper
-import androidx.core.content.PermissionChecker
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
@@ -24,7 +21,9 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.lang.truncateCenter
 import logcat.LogPriority
 import rikka.sui.Sui
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.core.util.system.logcat
+import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
@@ -45,44 +44,16 @@ fun Context.copyToClipboard(label: String, content: String) {
         // Android 13 and higher shows a visual confirmation of copied contents
         // https://developer.android.com/about/versions/13/features/copy-paste
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
-            toast(getString(R.string.copied_to_clipboard, content.truncateCenter(50)))
+            toast(stringResource(MR.strings.copied_to_clipboard, content.truncateCenter(50)))
         }
     } catch (e: Throwable) {
         logcat(LogPriority.ERROR, e)
-        toast(R.string.clipboard_copy_error)
+        toast(MR.strings.clipboard_copy_error)
     }
 }
 
-/**
- * Checks if the give permission is granted.
- *
- * @param permission the permission to check.
- * @return true if it has permissions.
- */
-fun Context.hasPermission(permission: String) = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
-
 val Context.powerManager: PowerManager
     get() = getSystemService()!!
-
-/**
- * Convenience method to acquire a partial wake lock.
- */
-fun Context.acquireWakeLock(tag: String): PowerManager.WakeLock {
-    val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$tag:WakeLock")
-    wakeLock.acquire()
-    return wakeLock
-}
-
-/**
- * Returns true if the given service class is running.
- */
-fun Context.isServiceRunning(serviceClass: Class<*>): Boolean {
-    val className = serviceClass.name
-    val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-    @Suppress("DEPRECATION")
-    return manager.getRunningServices(Integer.MAX_VALUE)
-        .any { className == it.service.className }
-}
 
 fun Context.openInBrowser(url: String, forceDefaultBrowser: Boolean = false) {
     this.openInBrowser(url.toUri(), forceDefaultBrowser)
@@ -105,7 +76,10 @@ fun Context.openInBrowser(uri: Uri, forceDefaultBrowser: Boolean = false) {
 private fun Context.defaultBrowserPackageName(): String? {
     val browserIntent = Intent(Intent.ACTION_VIEW, "http://".toUri())
     val resolveInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        packageManager.resolveActivity(browserIntent, PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong()))
+        packageManager.resolveActivity(
+            browserIntent,
+            PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong()),
+        )
     } else {
         packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
     }
@@ -158,7 +132,7 @@ fun Context.createReaderThemeContext(): Context {
  * @return document size of [uri] or null if size can't be obtained
  */
 fun Context.getUriSize(uri: Uri): Long? {
-    return UniFile.fromUri(this, uri).length().takeIf { it >= 0 }
+    return UniFile.fromUri(this, uri)?.length()?.takeIf { it >= 0 }
 }
 
 /**
@@ -192,12 +166,4 @@ fun Context.isInstalledFromFDroid(): Boolean {
     return installerPackageName == "org.fdroid.fdroid" ||
         // F-Droid builds typically disable the updater
         (!BuildConfig.INCLUDE_UPDATER && !isDevFlavor)
-}
-
-fun Context.getApplicationIcon(pkgName: String): Drawable? {
-    return try {
-        packageManager.getApplicationIcon(pkgName)
-    } catch (e: PackageManager.NameNotFoundException) {
-        null
-    }
 }

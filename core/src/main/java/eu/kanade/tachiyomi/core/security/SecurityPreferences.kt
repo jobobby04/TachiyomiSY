@@ -1,9 +1,11 @@
 package eu.kanade.tachiyomi.core.security
 
-import eu.kanade.tachiyomi.core.R
+import dev.icerock.moko.resources.StringResource
 import tachiyomi.core.preference.Preference
 import tachiyomi.core.preference.PreferenceStore
 import tachiyomi.core.preference.getEnum
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 
 class SecurityPreferences(
     private val preferenceStore: PreferenceStore,
@@ -26,7 +28,10 @@ class SecurityPreferences(
 
     fun sqlPassword() = this.preferenceStore.getString(Preference.privateKey("sql_password"), "")
 
-    fun passwordProtectDownloads() = preferenceStore.getBoolean(Preference.privateKey("password_protect_downloads"), false)
+    fun passwordProtectDownloads() = preferenceStore.getBoolean(
+        Preference.privateKey("password_protect_downloads"),
+        false,
+    )
 
     fun encryptionType() = this.preferenceStore.getEnum("encryption_type", EncryptionType.AES_256)
 
@@ -42,18 +47,18 @@ class SecurityPreferences(
         0,
     )
 
-    enum class SecureScreenMode(val titleResId: Int) {
-        ALWAYS(R.string.lock_always),
-        INCOGNITO(R.string.pref_incognito_mode),
-        NEVER(R.string.lock_never),
+    enum class SecureScreenMode(val titleRes: StringResource) {
+        ALWAYS(MR.strings.lock_always),
+        INCOGNITO(MR.strings.pref_incognito_mode),
+        NEVER(MR.strings.lock_never),
     }
 
     // SY -->
-    enum class EncryptionType(val titleResId: Int) {
-        AES_256(R.string.aes_256),
-        AES_192(R.string.aes_192),
-        AES_128(R.string.aes_128),
-        ZIP_STANDARD(R.string.standard_zip_encryption),
+    enum class EncryptionType(val titleRes: StringResource) {
+        AES_256(SYMR.strings.aes_256),
+        AES_192(SYMR.strings.aes_192),
+        AES_128(SYMR.strings.aes_128),
+        ZIP_STANDARD(SYMR.strings.standard_zip_encryption),
     }
     // SY <--
 }

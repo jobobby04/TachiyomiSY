@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Newspaper
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
@@ -23,12 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
-import tachiyomi.presentation.core.util.ThemePreviews
 import tachiyomi.presentation.core.util.secondaryItemAlpha
 
 @Composable
@@ -38,8 +39,9 @@ fun InfoScreen(
     subtitleText: String,
     acceptText: String,
     onAcceptClick: () -> Unit,
-    rejectText: String,
-    onRejectClick: () -> Unit,
+    canAccept: Boolean = true,
+    rejectText: String? = null,
+    onRejectClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
@@ -63,17 +65,20 @@ fun InfoScreen(
                         vertical = MaterialTheme.padding.small,
                     ),
             ) {
-                androidx.compose.material3.Button(
+                Button(
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = canAccept,
                     onClick = onAcceptClick,
                 ) {
                     Text(text = acceptText)
                 }
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onRejectClick,
-                ) {
-                    Text(text = rejectText)
+                if (rejectText != null && onRejectClick != null) {
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onRejectClick,
+                    ) {
+                        Text(text = rejectText)
+                    }
                 }
             }
         },
@@ -121,7 +126,7 @@ fun InfoScreen(
     }
 }
 
-@ThemePreviews
+@PreviewLightDark
 @Composable
 private fun InfoScaffoldPreview() {
     InfoScreen(

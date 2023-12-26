@@ -21,18 +21,19 @@ import androidx.glance.layout.padding
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.core.Constants
-import tachiyomi.presentation.widget.R
+import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.widget.util.calculateRowAndColumnCount
-import tachiyomi.presentation.widget.util.stringResource
 
 @Composable
 fun UpdatesWidget(
-    data: List<Pair<Long, Bitmap?>>?,
-    modifier: GlanceModifier = GlanceModifier,
+    data: ImmutableList<Pair<Long, Bitmap?>>?,
     contentColor: ColorProvider,
     topPadding: Dp,
     bottomPadding: Dp,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -42,7 +43,7 @@ fun UpdatesWidget(
             CircularProgressIndicator(color = contentColor)
         } else if (data.isEmpty()) {
             Text(
-                text = stringResource(R.string.information_no_recent),
+                text = stringResource(MR.strings.information_no_recent),
                 style = TextStyle(color = contentColor),
             )
         } else {
@@ -70,7 +71,10 @@ fun UpdatesWidget(
                                         .padding(horizontal = 3.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    val intent = Intent(LocalContext.current, Class.forName(Constants.MAIN_ACTIVITY)).apply {
+                                    val intent = Intent(
+                                        LocalContext.current,
+                                        Class.forName(Constants.MAIN_ACTIVITY),
+                                    ).apply {
                                         action = Constants.SHORTCUT_MANGA
                                         putExtra(Constants.MANGA_EXTRA, mangaId)
                                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -80,8 +84,8 @@ fun UpdatesWidget(
                                         addCategory(mangaId.toString())
                                     }
                                     UpdatesMangaCover(
-                                        modifier = GlanceModifier.clickable(actionStartActivity(intent)),
                                         cover = cover,
+                                        modifier = GlanceModifier.clickable(actionStartActivity(intent)),
                                     )
                                 }
                             }

@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
@@ -16,6 +17,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.float
+import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -30,6 +32,7 @@ import tachiyomi.core.util.lang.withIOContext
 import uy.kohesive.injekt.injectLazy
 import java.text.SimpleDateFormat
 import java.util.Locale
+import tachiyomi.domain.track.model.Track as DomainTrack
 
 class MyAnimeListApi(
     private val trackId: Long,
@@ -101,7 +104,10 @@ class MyAnimeListApi(
         return withIOContext {
             val url = "$baseApiUrl/manga".toUri().buildUpon()
                 .appendPath(id.toString())
-                .appendQueryParameter("fields", "id,title,synopsis,num_chapters,main_picture,status,media_type,start_date")
+                .appendQueryParameter(
+                    "fields",
+                    "id,title,synopsis,num_chapters,mean,main_picture,status,media_type,start_date",
+                )
                 .build()
             with(json) {
                 authClient.newCall(GET(url.toString()))
@@ -110,14 +116,15 @@ class MyAnimeListApi(
                     .let {
                         val obj = it.jsonObject
                         TrackSearch.create(trackId).apply {
-                            media_id = obj["id"]!!.jsonPrimitive.long
+                            remote_id = obj["id"]!!.jsonPrimitive.long
                             title = obj["title"]!!.jsonPrimitive.content
                             summary = obj["synopsis"]?.jsonPrimitive?.content ?: ""
                             total_chapters = obj["num_chapters"]!!.jsonPrimitive.int
+                            score = obj["mean"]?.jsonPrimitive?.floatOrNull ?: -1f
                             cover_url =
                                 obj["main_picture"]?.jsonObject?.get("large")?.jsonPrimitive?.content
                                     ?: ""
-                            tracking_url = "https://myanimelist.net/manga/$media_id"
+                            tracking_url = "https://myanimelist.net/manga/$remote_id"
                             publishing_status =
                                 obj["status"]!!.jsonPrimitive.content.replace("_", " ")
                             publishing_type =
@@ -149,7 +156,7 @@ class MyAnimeListApi(
             }
 
             val request = Request.Builder()
-                .url(mangaUrl(track.media_id).toString())
+                .url(mangaUrl(track.remote_id).toString())
                 .put(formBodyBuilder.build())
                 .build()
             with(json) {
@@ -161,24 +168,18 @@ class MyAnimeListApi(
         }
     }
 
-    suspend fun deleteItem(track: Track): Track {
-        return withIOContext {
-            val request = Request.Builder()
-                .url(mangaUrl(track.media_id).toString())
-                .delete()
-                .build()
-            with(json) {
-                authClient.newCall(request)
-                    .awaitSuccess()
-                track
-            }
+    suspend fun deleteItem(track: DomainTrack) {
+        withIOContext {
+            authClient
+                .newCall(DELETE(mangaUrl(track.remoteId).toString()))
+                .awaitSuccess()
         }
     }
 
     suspend fun findListItem(track: Track): Track? {
         return withIOContext {
             val uri = "$baseApiUrl/manga".toUri().buildUpon()
-                .appendPath(track.media_id.toString())
+                .appendPath(track.remote_id.toString())
                 .appendQueryParameter("fields", "num_chapters,my_list_status{start_date,finish_date}")
                 .build()
             with(json) {

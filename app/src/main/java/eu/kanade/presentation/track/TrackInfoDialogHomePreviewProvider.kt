@@ -2,8 +2,8 @@ package eu.kanade.presentation.track
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import eu.kanade.tachiyomi.dev.preview.DummyTracker
 import eu.kanade.tachiyomi.ui.manga.track.TrackItem
+import eu.kanade.test.DummyTracker
 import tachiyomi.domain.track.model.Track
 import java.text.DateFormat
 
@@ -13,7 +13,7 @@ internal class TrackInfoDialogHomePreviewProvider :
     private val aTrack = Track(
         id = 1L,
         mangaId = 2L,
-        syncId = 3L,
+        trackerId = 3L,
         remoteId = 4L,
         libraryId = null,
         title = "Manage Name On Tracker Site",

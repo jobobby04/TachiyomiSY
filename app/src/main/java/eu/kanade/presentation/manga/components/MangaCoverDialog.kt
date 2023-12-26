@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -47,10 +46,12 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.manga.EditCoverAction
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
+import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clickableNoIndication
 
 @Composable
@@ -84,29 +85,25 @@ fun MangaCoverDialog(
                         IconButton(onClick = onDismissRequest) {
                             Icon(
                                 imageVector = Icons.Outlined.Close,
-                                contentDescription = stringResource(R.string.action_close),
+                                contentDescription = stringResource(MR.strings.action_close),
                             )
                         }
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     ActionsPill {
                         AppBarActions(
-                            actions = buildList {
-                                add(
-                                    AppBar.Action(
-                                        title = stringResource(R.string.action_share),
-                                        icon = Icons.Outlined.Share,
-                                        onClick = onShareClick,
-                                    ),
-                                )
-                                add(
-                                    AppBar.Action(
-                                        title = stringResource(R.string.action_save),
-                                        icon = Icons.Outlined.Save,
-                                        onClick = onSaveClick,
-                                    ),
-                                )
-                            },
+                            actions = persistentListOf(
+                                AppBar.Action(
+                                    title = stringResource(MR.strings.action_share),
+                                    icon = Icons.Outlined.Share,
+                                    onClick = onShareClick,
+                                ),
+                                AppBar.Action(
+                                    title = stringResource(MR.strings.action_save),
+                                    icon = Icons.Outlined.Save,
+                                    onClick = onSaveClick,
+                                ),
+                            ),
                         )
                         if (onEditClick != null) {
                             Box {
@@ -122,7 +119,7 @@ fun MangaCoverDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.Edit,
-                                        contentDescription = stringResource(R.string.action_edit_cover),
+                                        contentDescription = stringResource(MR.strings.action_edit_cover),
                                     )
                                 }
                                 DropdownMenu(
@@ -131,14 +128,14 @@ fun MangaCoverDialog(
                                     offset = DpOffset(8.dp, 0.dp),
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text(text = stringResource(R.string.action_edit)) },
+                                        text = { Text(text = stringResource(MR.strings.action_edit)) },
                                         onClick = {
                                             onEditClick(EditCoverAction.EDIT)
                                             expanded = false
                                         },
                                     )
                                     DropdownMenuItem(
-                                        text = { Text(text = stringResource(R.string.action_delete)) },
+                                        text = { Text(text = stringResource(MR.strings.action_delete)) },
                                         onClick = {
                                             onEditClick(EditCoverAction.DELETE)
                                             expanded = false

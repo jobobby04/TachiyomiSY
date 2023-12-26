@@ -28,10 +28,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.tachiyomi.ui.reader.setting.OrientationType
-import eu.kanade.tachiyomi.ui.reader.setting.ReadingModeType
+import eu.kanade.presentation.reader.components.ChapterNavigator
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
+import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
+import kotlinx.collections.immutable.ImmutableSet
 
 private val animationSpec = tween<IntOffset>(200)
 
@@ -46,11 +48,11 @@ enum class NavBarType {
 fun BoxIgnoreLayoutDirection(modifier: Modifier, content: @Composable BoxScope.() -> Unit) {
     val layoutDirection = LocalLayoutDirection.current
     CompositionLocalProvider(
-        LocalLayoutDirection provides LayoutDirection.Ltr
+        LocalLayoutDirection provides LayoutDirection.Ltr,
     ) {
         Box(modifier) {
             CompositionLocalProvider(
-                LocalLayoutDirection provides layoutDirection
+                LocalLayoutDirection provides layoutDirection,
             ) {
                 content()
             }
@@ -82,10 +84,10 @@ fun ReaderAppBars(
     totalPages: Int,
     onSliderValueChange: (Int) -> Unit,
 
-    readingMode: ReadingModeType,
+    readingMode: ReadingMode,
     onClickReadingMode: () -> Unit,
-    orientationMode: OrientationType,
-    onClickOrientationMode: () -> Unit,
+    orientation: ReaderOrientation,
+    onClickOrientation: () -> Unit,
     cropEnabled: Boolean,
     onClickCropBorder: () -> Unit,
     onClickSettings: () -> Unit,
@@ -104,7 +106,7 @@ fun ReaderAppBars(
     onClickBoostPageHelp: () -> Unit,
     navBarType: NavBarType,
     currentPageText: String,
-    enabledButtons: Set<String>,
+    enabledButtons: ImmutableSet<String>,
     dualPageSplitEnabled: Boolean,
     doublePages: Boolean,
     onClickChapterList: () -> Unit,
@@ -125,7 +127,7 @@ fun ReaderAppBars(
 
     // SY -->
     BoxIgnoreLayoutDirection(
-        Modifier.fillMaxWidth()
+        Modifier.fillMaxWidth(),
     ) {
         AnimatedVisibility(
             visible = visible && navBarType == NavBarType.VerticalLeft,
@@ -139,7 +141,7 @@ fun ReaderAppBars(
             ),
             modifier = modifierWithInsetsPadding
                 .padding(bottom = 48.dp, top = 120.dp)
-                .align(Alignment.TopStart)
+                .align(Alignment.TopStart),
         ) {
             ChapterNavigator(
                 isRtl = isRtl,
@@ -167,7 +169,7 @@ fun ReaderAppBars(
             ),
             modifier = modifierWithInsetsPadding
                 .padding(bottom = 48.dp, top = 120.dp)
-                .align(Alignment.TopEnd)
+                .align(Alignment.TopEnd),
         ) {
             ChapterNavigator(
                 isRtl = isRtl,
@@ -212,19 +214,21 @@ fun ReaderAppBars(
                             AppBarActions(
                                 listOfNotNull(
                                     AppBar.Action(
-                                        title = stringResource(if (bookmarked) R.string.action_remove_bookmark else R.string.action_bookmark),
+                                        title = stringResource(
+                                            if (bookmarked) MR.strings.action_remove_bookmark else MR.strings.action_bookmark
+                                        ),
                                         icon = if (bookmarked) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
                                         onClick = onToggleBookmarked,
                                     ),
                                     onOpenInWebView?.let {
                                         AppBar.OverflowAction(
-                                            title = stringResource(R.string.action_open_in_web_view),
+                                            title = stringResource(MR.strings.action_open_in_web_view),
                                             onClick = it,
                                         )
                                     },
                                     onShare?.let {
                                         AppBar.OverflowAction(
-                                            title = stringResource(R.string.action_share),
+                                            title = stringResource(MR.strings.action_share),
                                             onClick = it,
                                         )
                                     },
@@ -246,12 +250,11 @@ fun ReaderAppBars(
                         onClickRetryAll = onClickRetryAll,
                         onClickRetryAllHelp = onClickRetryAllHelp,
                         onClickBoostPage = onClickBoostPage,
-                        onClickBoostPageHelp = onClickBoostPageHelp
+                        onClickBoostPageHelp = onClickBoostPageHelp,
                     )
                     // SY <--
                 }
             }
-
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -292,8 +295,8 @@ fun ReaderAppBars(
                         backgroundColor = backgroundColor,
                         readingMode = readingMode,
                         onClickReadingMode = onClickReadingMode,
-                        orientationMode = orientationMode,
-                        onClickOrientationMode = onClickOrientationMode,
+                        orientation = orientation,
+                        onClickOrientation = onClickOrientation,
                         cropEnabled = cropEnabled,
                         onClickCropBorder = onClickCropBorder,
                         onClickSettings = onClickSettings,
@@ -304,7 +307,7 @@ fun ReaderAppBars(
                         onClickWebView = onOpenInWebView,
                         onClickShare = onShare,
                         onClickPageLayout = onClickPageLayout,
-                        onClickShiftPage = onClickShiftPage
+                        onClickShiftPage = onClickShiftPage,
                     )
                 }
             }

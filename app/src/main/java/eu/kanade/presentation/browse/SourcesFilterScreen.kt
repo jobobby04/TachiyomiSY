@@ -8,16 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import eu.kanade.presentation.browse.components.BaseSourceItem
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.more.settings.widget.SwitchPreferenceWidget
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.source.SourcesFilterScreenModel
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import tachiyomi.domain.source.model.Source
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 
 @Composable
@@ -33,7 +34,7 @@ fun SourcesFilterScreen(
     Scaffold(
         topBar = { scrollBehavior ->
             AppBar(
-                title = stringResource(R.string.label_sources),
+                title = stringResource(MR.strings.label_sources),
                 navigateUp = navigateUp,
                 scrollBehavior = scrollBehavior,
             )
@@ -41,7 +42,7 @@ fun SourcesFilterScreen(
     ) { contentPadding ->
         if (state.isEmpty) {
             EmptyScreen(
-                textResource = R.string.source_filter_empty_screen,
+                stringRes = MR.strings.source_filter_empty_screen,
                 modifier = Modifier.padding(contentPadding),
             )
             return@Scaffold
@@ -121,10 +122,10 @@ private fun SourcesFilterContent(
 
 @Composable
 private fun SourcesFilterHeader(
-    modifier: Modifier,
     language: String,
     enabled: Boolean,
     onClickItem: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     SwitchPreferenceWidget(
         modifier = modifier,
@@ -143,7 +144,7 @@ fun SourcesFilterToggle(
 ) {
     SwitchPreferenceWidget(
         modifier = modifier,
-        title = stringResource(R.string.pref_category_all_sources),
+        title = stringResource(SYMR.strings.pref_category_all_sources),
         checked = isEnabled,
         onCheckedChanged = { onClickItem() },
     )
@@ -153,10 +154,10 @@ fun SourcesFilterToggle(
 
 @Composable
 private fun SourcesFilterItem(
-    modifier: Modifier,
     source: Source,
     enabled: Boolean,
     onClickItem: (Source) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     BaseSourceItem(
         modifier = modifier,

@@ -1,13 +1,16 @@
 package eu.kanade.tachiyomi.data.track.suwayomi
 
 import android.graphics.Color
-import androidx.annotation.StringRes
+import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.source.Source
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import tachiyomi.i18n.MR
 import tachiyomi.domain.manga.model.Manga as DomainManga
 import tachiyomi.domain.track.model.Track as DomainTrack
 
@@ -27,11 +30,10 @@ class Suwayomi(id: Long) : BaseTracker(id, "Suwayomi"), EnhancedTracker {
 
     override fun getStatusList() = listOf(UNREAD, READING, COMPLETED)
 
-    @StringRes
-    override fun getStatus(status: Int): Int? = when (status) {
-        UNREAD -> R.string.unread
-        READING -> R.string.reading
-        COMPLETED -> R.string.completed
+    override fun getStatus(status: Int): StringResource? = when (status) {
+        UNREAD -> MR.strings.unread
+        READING -> MR.strings.reading
+        COMPLETED -> MR.strings.completed
         else -> null
     }
 
@@ -41,9 +43,9 @@ class Suwayomi(id: Long) : BaseTracker(id, "Suwayomi"), EnhancedTracker {
 
     override fun getCompletionStatus(): Int = COMPLETED
 
-    override fun getScoreList(): List<String> = emptyList()
+    override fun getScoreList(): ImmutableList<String> = persistentListOf()
 
-    override fun displayScore(track: Track): String = ""
+    override fun displayScore(track: DomainTrack): String = ""
 
     override suspend fun update(track: Track, didReadChapter: Boolean): Track {
         if (track.status != COMPLETED) {
@@ -91,7 +93,9 @@ class Suwayomi(id: Long) : BaseTracker(id, "Suwayomi"), EnhancedTracker {
             null
         }
 
-    override fun isTrackFrom(track: DomainTrack, manga: DomainManga, source: Source?): Boolean = source?.let { accept(it) } == true
+    override fun isTrackFrom(track: DomainTrack, manga: DomainManga, source: Source?): Boolean = source?.let {
+        accept(it)
+    } == true
 
     override fun migrateTrack(track: DomainTrack, manga: DomainManga, newSource: Source): DomainTrack? =
         if (accept(newSource)) {

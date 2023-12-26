@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.SnackbarDuration
@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import eu.kanade.presentation.browse.components.BrowseSourceComfortableGrid
@@ -23,15 +22,19 @@ import eu.kanade.presentation.browse.components.BrowseSourceEHentaiList
 import eu.kanade.presentation.browse.components.BrowseSourceList
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.formattedMessage
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.Source
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.source.isEhBasedSource
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.StateFlow
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.StubSource
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
@@ -69,7 +72,7 @@ fun BrowseSourceContent(
         if (mangaList.itemCount > 0 && errorState != null && errorState is LoadState.Error) {
             val result = snackbarHostState.showSnackbar(
                 message = getErrorMessage(errorState),
-                actionLabel = context.getString(R.string.action_retry),
+                actionLabel = context.stringResource(MR.strings.action_retry),
                 duration = SnackbarDuration.Indefinite,
             )
             when (result) {
@@ -84,24 +87,24 @@ fun BrowseSourceContent(
             modifier = Modifier.padding(contentPadding),
             message = getErrorMessage(errorState),
             actions = if (source is LocalSource /* SY --> */ && onLocalSourceHelpClick != null /* SY <-- */) {
-                listOf(
+                persistentListOf(
                     EmptyScreenAction(
-                        stringResId = R.string.local_source_help_guide,
-                        icon = Icons.Outlined.HelpOutline,
+                        stringRes = MR.strings.local_source_help_guide,
+                        icon = Icons.AutoMirrored.Outlined.HelpOutline,
                         onClick = onLocalSourceHelpClick,
                     ),
                 )
             } else {
                 listOfNotNull(
                     EmptyScreenAction(
-                        stringResId = R.string.action_retry,
+                        stringRes = MR.strings.action_retry,
                         icon = Icons.Outlined.Refresh,
                         onClick = mangaList::refresh,
                     ),
                     // SY -->
                     if (onWebViewClick != null) {
                         EmptyScreenAction(
-                            stringResId = R.string.action_open_in_web_view,
+                            MR.strings.action_open_in_web_view,
                             icon = Icons.Outlined.Public,
                             onClick = onWebViewClick,
                         )
@@ -110,15 +113,15 @@ fun BrowseSourceContent(
                     },
                     if (onHelpClick != null) {
                         EmptyScreenAction(
-                            stringResId = R.string.label_help,
-                            icon = Icons.Outlined.HelpOutline,
+                            MR.strings.label_help,
+                            icon = Icons.AutoMirrored.Outlined.HelpOutline,
                             onClick = onHelpClick,
                         )
                     } else {
                         null
                     },
                     // SY <--
-                )
+                ).toImmutableList()
             },
         )
 
@@ -175,7 +178,7 @@ fun BrowseSourceContent(
 }
 
 @Composable
-fun MissingSourceScreen(
+internal fun MissingSourceScreen(
     source: StubSource,
     navigateUp: () -> Unit,
 ) {
@@ -189,7 +192,7 @@ fun MissingSourceScreen(
         },
     ) { paddingValues ->
         EmptyScreen(
-            message = stringResource(R.string.source_not_installed, source.toString()),
+            message = stringResource(MR.strings.source_not_installed, source.toString()),
             modifier = Modifier.padding(paddingValues),
         )
     }

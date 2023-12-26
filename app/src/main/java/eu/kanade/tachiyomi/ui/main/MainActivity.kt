@@ -73,6 +73,7 @@ import eu.kanade.tachiyomi.ui.deeplink.DeepLinkScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.more.NewUpdateScreen
+import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.isNavigationBarNeedsScrim
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
@@ -305,6 +306,7 @@ class MainActivity : BaseActivity() {
                 HandleOnNewIntent(context = context, navigator = navigator)
 
                 CheckForUpdates()
+                ShowOnboarding()
             }
 
             // SY -->
@@ -407,6 +409,17 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    @Composable
+    private fun ShowOnboarding() {
+        val navigator = LocalNavigator.currentOrThrow
+
+        LaunchedEffect(Unit) {
+            if (!preferences.shownOnboardingFlow().get() && navigator.lastItem !is OnboardingScreen) {
+                navigator.push(OnboardingScreen())
+            }
+        }
+    }
+
     /**
      * Sets custom splash screen exit animation on devices prior to Android 12.
      *
@@ -453,7 +466,11 @@ class MainActivity : BaseActivity() {
     private fun handleIntentAction(intent: Intent, navigator: Navigator): Boolean {
         val notificationId = intent.getIntExtra("notificationId", -1)
         if (notificationId > -1) {
-            NotificationReceiver.dismissNotification(applicationContext, notificationId, intent.getIntExtra("groupId", 0))
+            NotificationReceiver.dismissNotification(
+                applicationContext,
+                notificationId,
+                intent.getIntExtra("groupId", 0),
+            )
         }
 
         val tabToOpen = when (intent.action) {

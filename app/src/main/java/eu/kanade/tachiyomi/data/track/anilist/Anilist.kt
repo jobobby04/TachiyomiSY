@@ -1,14 +1,19 @@
 package eu.kanade.tachiyomi.data.track.anilist
 
 import android.graphics.Color
-import androidx.annotation.StringRes
+import dev.icerock.moko.resources.StringResource
+import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.DeletableTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
@@ -57,14 +62,13 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
         return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ, REREADING)
     }
 
-    @StringRes
-    override fun getStatus(status: Int): Int? = when (status) {
-        READING -> R.string.reading
-        PLAN_TO_READ -> R.string.plan_to_read
-        COMPLETED -> R.string.completed
-        ON_HOLD -> R.string.on_hold
-        DROPPED -> R.string.dropped
-        REREADING -> R.string.repeating
+    override fun getStatus(status: Int): StringResource? = when (status) {
+        READING -> MR.strings.reading
+        PLAN_TO_READ -> MR.strings.plan_to_read
+        COMPLETED -> MR.strings.completed
+        ON_HOLD -> MR.strings.on_hold
+        DROPPED -> MR.strings.dropped
+        REREADING -> MR.strings.repeating
         else -> null
     }
 
@@ -74,18 +78,18 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
 
     override fun getCompletionStatus(): Int = COMPLETED
 
-    override fun getScoreList(): List<String> {
+    override fun getScoreList(): ImmutableList<String> {
         return when (scorePreference.get()) {
             // 10 point
-            POINT_10 -> IntRange(0, 10).map(Int::toString)
+            POINT_10 -> IntRange(0, 10).map(Int::toString).toImmutableList()
             // 100 point
-            POINT_100 -> IntRange(0, 100).map(Int::toString)
+            POINT_100 -> IntRange(0, 100).map(Int::toString).toImmutableList()
             // 5 stars
-            POINT_5 -> IntRange(0, 5).map { "$it ★" }
+            POINT_5 -> IntRange(0, 5).map { "$it ★" }.toImmutableList()
             // Smiley
-            POINT_3 -> listOf("-", "😦", "😐", "😊")
+            POINT_3 -> persistentListOf("-", "😦", "😐", "😊")
             // 10 point decimal
-            POINT_10_DECIMAL -> IntRange(0, 100).map { (it / 10f).toString() }
+            POINT_10_DECIMAL -> IntRange(0, 100).map { (it / 10f).toString() }.toImmutableList()
             else -> throw Exception("Unknown score type")
         }
     }
@@ -117,16 +121,16 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
         }
     }
 
-    override fun displayScore(track: Track): String {
+    override fun displayScore(track: DomainTrack): String {
         val score = track.score
 
         return when (scorePreference.get()) {
             POINT_5 -> when (score) {
-                0f -> "0 ★"
+                0.0 -> "0 ★"
                 else -> "${((score + 10) / 20).toInt()} ★"
             }
             POINT_3 -> when {
-                score == 0f -> "0"
+                score == 0.0 -> "0"
                 score <= 35 -> "😦"
                 score <= 60 -> "😐"
                 else -> "😊"
@@ -164,13 +168,13 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
         return api.updateLibManga(track)
     }
 
-    override suspend fun delete(track: Track): Track {
-        if (track.library_id == null || track.library_id!! == 0L) {
-            val libManga = api.findLibManga(track, getUsername().toInt()) ?: return track
-            track.library_id = libManga.library_id
+    override suspend fun delete(track: DomainTrack) {
+        if (track.libraryId == null || track.libraryId == 0L) {
+            val libManga = api.findLibManga(track.toDbTrack(), getUsername().toInt()) ?: return
+            return api.deleteLibManga(track.copy(id = libManga.library_id!!))
         }
 
-        return api.deleteLibManga(track)
+        api.deleteLibManga(track)
     }
 
     override suspend fun bind(track: Track, hasReadChapters: Boolean): Track {

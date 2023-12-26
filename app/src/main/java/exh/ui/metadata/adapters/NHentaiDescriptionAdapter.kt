@@ -14,6 +14,10 @@ import eu.kanade.tachiyomi.util.system.copyToClipboard
 import exh.metadata.MetadataUtil
 import exh.metadata.metadata.NHentaiSearchMetadata
 import exh.ui.metadata.adapters.MetadataUIUtil.bindDrawable
+import tachiyomi.core.i18n.pluralStringResource
+import tachiyomi.core.i18n.stringResource
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import java.util.Date
 
 @Composable
@@ -29,13 +33,15 @@ fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
             if (meta == null || meta !is NHentaiSearchMetadata) return@AndroidView
             val binding = DescriptionAdapterNhBinding.bind(it)
 
-            binding.genre.text = meta.tags.filter { it.namespace == NHentaiSearchMetadata.NHENTAI_CATEGORIES_NAMESPACE }.let { tags ->
+            binding.genre.text = meta.tags.filter {
+                it.namespace == NHentaiSearchMetadata.NHENTAI_CATEGORIES_NAMESPACE
+            }.let { tags ->
                 if (tags.isNotEmpty()) tags.joinToString(transform = { it.name }) else null
             }.let { categoriesString ->
                 categoriesString?.let { MetadataUIUtil.getGenreAndColour(context, it) }?.let {
                     binding.genre.setBackgroundColor(it.first)
                     it.second
-                } ?: categoriesString ?: context.getString(R.string.unknown)
+                } ?: categoriesString ?: context.stringResource(MR.strings.unknown)
             }
 
             meta.favoritesCount?.let {
@@ -46,7 +52,11 @@ fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
 
             binding.whenPosted.text = MetadataUtil.EX_DATE_FORMAT.format(Date((meta.uploadDate ?: 0) * 1000))
 
-            binding.pages.text = context.resources.getQuantityString(R.plurals.num_pages, meta.pageImageTypes.size, meta.pageImageTypes.size)
+            binding.pages.text = context.pluralStringResource(
+                SYMR.plurals.num_pages,
+                meta.pageImageTypes.size,
+                meta.pageImageTypes.size,
+            )
             binding.pages.bindDrawable(context, R.drawable.ic_baseline_menu_book_24)
 
             @SuppressLint("SetTextI18n")

@@ -7,12 +7,12 @@ import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
-import eu.kanade.tachiyomi.data.backup.BackupCreateJob
+import eu.kanade.tachiyomi.data.backup.create.BackupCreateJob
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.network.PREF_DOH_CLOUDFLARE
-import eu.kanade.tachiyomi.ui.reader.setting.OrientationType
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.toast
@@ -27,6 +27,7 @@ import tachiyomi.core.preference.plusAssign
 import tachiyomi.domain.backup.service.BackupPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
+import tachiyomi.i18n.MR
 import java.io.File
 
 object Migrations {
@@ -51,7 +52,7 @@ object Migrations {
         backupPreferences: BackupPreferences,
         trackerManager: TrackerManager,
     ): Boolean {
-        val lastVersionCode = preferenceStore.getInt("last_version_code", 0)
+        val lastVersionCode = preferenceStore.getInt(Preference.appStateKey("last_version_code"), 0)
         val oldVersion = lastVersionCode.get()
         if (oldVersion < BuildConfig.VERSION_CODE) {
             lastVersionCode.set(BuildConfig.VERSION_CODE)
@@ -67,10 +68,6 @@ object Migrations {
 
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
-            if (oldVersion < 14) {
-                // Restore jobs after upgrading to Evernote's job scheduler.
-                LibraryUpdateJob.setupTask(context)
-            }
             if (oldVersion < 15) {
                 // Delete internal chapter cache dir.
                 File(context.cacheDir, "chapter_disk_cache").deleteRecursively()
@@ -97,11 +94,6 @@ object Migrations {
                     }
                 }
             }
-            if (oldVersion < 43) {
-                // Restore jobs after migrating from Evernote's job scheduler to WorkManager.
-                LibraryUpdateJob.setupTask(context)
-                BackupCreateJob.setupTask(context)
-            }
             if (oldVersion < 44) {
                 // Reset sorting preference if using removed sort by source
                 val oldSortingMode = prefs.getInt(libraryPreferences.sortingMode().key(), 0)
@@ -123,13 +115,22 @@ object Migrations {
                     }
                 }
                 prefs.edit {
-                    putInt(libraryPreferences.filterDownloaded().key(), convertBooleanPrefToTriState("pref_filter_downloaded_key"))
+                    putInt(
+                        libraryPreferences.filterDownloaded().key(),
+                        convertBooleanPrefToTriState("pref_filter_downloaded_key"),
+                    )
                     remove("pref_filter_downloaded_key")
 
-                    putInt(libraryPreferences.filterUnread().key(), convertBooleanPrefToTriState("pref_filter_unread_key"))
+                    putInt(
+                        libraryPreferences.filterUnread().key(),
+                        convertBooleanPrefToTriState("pref_filter_unread_key"),
+                    )
                     remove("pref_filter_unread_key")
 
-                    putInt(libraryPreferences.filterCompleted().key(), convertBooleanPrefToTriState("pref_filter_completed_key"))
+                    putInt(
+                        libraryPreferences.filterCompleted().key(),
+                        convertBooleanPrefToTriState("pref_filter_completed_key"),
+                    )
                     remove("pref_filter_completed_key")
                 }
             }
@@ -139,7 +140,7 @@ object Migrations {
                 // v53: switched from WebView to OAuth
                 if (trackerManager.myAnimeList.isLoggedIn) {
                     trackerManager.myAnimeList.logout()
-                    context.toast(R.string.myanimelist_relogin)
+                    context.toast(MR.strings.myanimelist_relogin)
                 }
             }
             if (oldVersion < 57) {
@@ -163,12 +164,12 @@ object Migrations {
             if (oldVersion < 60) {
                 // Migrate Rotation and Viewer values to default values for viewer_flags
                 val newOrientation = when (prefs.getInt("pref_rotation_type_key", 1)) {
-                    1 -> OrientationType.FREE.flagValue
-                    2 -> OrientationType.PORTRAIT.flagValue
-                    3 -> OrientationType.LANDSCAPE.flagValue
-                    4 -> OrientationType.LOCKED_PORTRAIT.flagValue
-                    5 -> OrientationType.LOCKED_LANDSCAPE.flagValue
-                    else -> OrientationType.FREE.flagValue
+                    1 -> ReaderOrientation.FREE.flagValue
+                    2 -> ReaderOrientation.PORTRAIT.flagValue
+                    3 -> ReaderOrientation.LANDSCAPE.flagValue
+                    4 -> ReaderOrientation.LOCKED_PORTRAIT.flagValue
+                    5 -> ReaderOrientation.LOCKED_LANDSCAPE.flagValue
+                    else -> ReaderOrientation.FREE.flagValue
                 }
 
                 // Reading mode flag and prefValue is the same value
@@ -245,12 +246,12 @@ object Migrations {
                 if (oldSecureScreen) {
                     securityPreferences.secureScreen().set(SecurityPreferences.SecureScreenMode.ALWAYS)
                 }
-                if (DeviceUtil.isMiui && basePreferences.extensionInstaller().get() == BasePreferences.ExtensionInstaller.PACKAGEINSTALLER) {
+                if (
+                    DeviceUtil.isMiui &&
+                    basePreferences.extensionInstaller().get() == BasePreferences.ExtensionInstaller.PACKAGEINSTALLER
+                ) {
                     basePreferences.extensionInstaller().set(BasePreferences.ExtensionInstaller.LEGACY)
                 }
-            }
-            if (oldVersion < 76) {
-                BackupCreateJob.setupTask(context)
             }
             if (oldVersion < 77) {
                 val oldReaderTap = prefs.getBoolean("reader_tap", false)
@@ -262,7 +263,12 @@ object Migrations {
             if (oldVersion < 81) {
                 // Handle renamed enum values
                 prefs.edit {
-                    val newSortingMode = when (val oldSortingMode = prefs.getString(libraryPreferences.sortingMode().key(), "ALPHABETICAL")) {
+                    val newSortingMode = when (
+                        val oldSortingMode = prefs.getString(
+                            libraryPreferences.sortingMode().key(),
+                            "ALPHABETICAL",
+                        )
+                    ) {
                         "LAST_CHECKED" -> "LAST_MANGA_UPDATE"
                         "UNREAD" -> "UNREAD_COUNT"
                         "DATE_FETCHED" -> "CHAPTER_FETCH_DATE"
@@ -280,9 +286,6 @@ object Migrations {
                 }
             }
             if (oldVersion < 84) {
-                if (backupPreferences.numberOfBackups().get() == 1) {
-                    backupPreferences.numberOfBackups().set(2)
-                }
                 if (backupPreferences.backupInterval().get() == 0) {
                     backupPreferences.backupInterval().set(12)
                     BackupCreateJob.setupTask(context)
@@ -362,9 +365,6 @@ object Migrations {
                     }
                 }
             }
-            if (oldVersion < 100) {
-                BackupCreateJob.setupTask(context)
-            }
             if (oldVersion < 105) {
                 val pref = libraryPreferences.autoUpdateDeviceRestrictions()
                 if (pref.isSet() && "battery_not_low" in pref.get()) {
@@ -384,7 +384,7 @@ object Migrations {
                     newKey = { Preference.privateKey(it) },
                 )
             }
-            if (oldVersion < 108) {
+            if (oldVersion < 113) {
                 val prefsToReplace = listOf(
                     "pref_download_only",
                     "incognito_mode",
@@ -394,12 +394,19 @@ object Migrations {
                     "library_update_last_timestamp",
                     "library_unseen_updates_count",
                     "last_used_category",
+                    "last_app_check",
+                    "last_ext_check",
+                    "last_version_code",
+                    "storage_dir",
                 )
                 replacePreferences(
                     preferenceStore = preferenceStore,
                     filterPredicate = { it.key in prefsToReplace },
                     newKey = { Preference.appStateKey(it) },
                 )
+
+                // Deleting old download cache index files, but might as well clear it all out
+                context.cacheDir.deleteRecursively()
             }
             return true
         }

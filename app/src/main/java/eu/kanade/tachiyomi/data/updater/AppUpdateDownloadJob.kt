@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.data.updater
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -9,7 +11,6 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
@@ -18,12 +19,13 @@ import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.network.newCachelessCallWithProgress
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.storage.saveTo
+import eu.kanade.tachiyomi.util.system.setForegroundSafely
 import eu.kanade.tachiyomi.util.system.workManager
-import logcat.LogPriority
 import okhttp3.internal.http2.ErrorCode
 import okhttp3.internal.http2.StreamResetException
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.system.logcat
+import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
@@ -36,17 +38,13 @@ class AppUpdateDownloadJob(private val context: Context, workerParams: WorkerPar
 
     override suspend fun doWork(): Result {
         val url = inputData.getString(EXTRA_DOWNLOAD_URL)
-        val title = inputData.getString(EXTRA_DOWNLOAD_TITLE) ?: context.getString(R.string.app_name)
+        val title = inputData.getString(EXTRA_DOWNLOAD_TITLE) ?: context.stringResource(MR.strings.app_name)
 
         if (url.isNullOrEmpty()) {
             return Result.failure()
         }
 
-        try {
-            setForeground(getForegroundInfo())
-        } catch (e: IllegalStateException) {
-            logcat(LogPriority.ERROR, e) { "Not allowed to run on foreground service" }
-        }
+        setForegroundSafely()
 
         withIOContext {
             downloadApk(title, url)
@@ -59,6 +57,11 @@ class AppUpdateDownloadJob(private val context: Context, workerParams: WorkerPar
         return ForegroundInfo(
             Notifications.ID_APP_UPDATER,
             notifier.onDownloadStarted().build(),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            } else {
+                0
+            },
         )
     }
 

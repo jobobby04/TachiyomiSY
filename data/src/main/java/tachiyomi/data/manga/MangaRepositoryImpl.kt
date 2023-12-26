@@ -6,7 +6,6 @@ import logcat.LogPriority
 import tachiyomi.core.util.system.logcat
 import tachiyomi.data.AndroidDatabaseHandler
 import tachiyomi.data.DatabaseHandler
-import tachiyomi.data.StringListAndColumnAdapter
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.library.model.LibraryManga
@@ -27,7 +26,7 @@ class MangaRepositoryImpl(
     }
 
     override suspend fun getMangaByUrlAndSourceId(url: String, sourceId: Long): Manga? {
-        return handler.awaitOneOrNull(inTransaction = true) {
+        return handler.awaitOneOrNull {
             mangasQueries.getMangaByUrlAndSource(
                 url,
                 sourceId,
@@ -51,7 +50,9 @@ class MangaRepositoryImpl(
     }
 
     override suspend fun getLibraryManga(): List<LibraryManga> {
-        return handler.awaitListExecutable { (handler as AndroidDatabaseHandler).getLibraryQuery() }.map(MangaMapper::mapLibraryView)
+        return handler.awaitListExecutable {
+            (handler as AndroidDatabaseHandler).getLibraryQuery()
+        }.map(MangaMapper::mapLibraryView)
         // return handler.awaitList { libraryViewQueries.library(MangaMapper::mapLibraryManga) }
     }
 
@@ -117,9 +118,6 @@ class MangaRepositoryImpl(
                 chapterFlags = manga.chapterFlags,
                 coverLastModified = manga.coverLastModified,
                 dateAdded = manga.dateAdded,
-                // SY -->
-                filteredScanlators = manga.filteredScanlators,
-                // SY <--
                 updateStrategy = manga.updateStrategy,
             )
             mangasQueries.selectLastInsertedRowId()
@@ -168,9 +166,6 @@ class MangaRepositoryImpl(
                     chapterFlags = value.chapterFlags,
                     coverLastModified = value.coverLastModified,
                     dateAdded = value.dateAdded,
-                    // SY -->
-                    filteredScanlators = value.filteredScanlators?.let(StringListAndColumnAdapter::encode),
-                    // SY <--
                     mangaId = value.id,
                     updateStrategy = value.updateStrategy?.let(UpdateStrategyColumnAdapter::encode),
                 )

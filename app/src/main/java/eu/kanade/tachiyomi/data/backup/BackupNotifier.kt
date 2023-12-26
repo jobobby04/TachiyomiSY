@@ -12,6 +12,9 @@ import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
+import tachiyomi.core.i18n.pluralStringResource
+import tachiyomi.core.i18n.stringResource
+import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -20,7 +23,9 @@ class BackupNotifier(private val context: Context) {
 
     private val preferences: SecurityPreferences by injectLazy()
 
-    private val progressNotificationBuilder = context.notificationBuilder(Notifications.CHANNEL_BACKUP_RESTORE_PROGRESS) {
+    private val progressNotificationBuilder = context.notificationBuilder(
+        Notifications.CHANNEL_BACKUP_RESTORE_PROGRESS,
+    ) {
         setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
         setSmallIcon(R.drawable.ic_tachi)
         setAutoCancel(false)
@@ -28,7 +33,9 @@ class BackupNotifier(private val context: Context) {
         setOnlyAlertOnce(true)
     }
 
-    private val completeNotificationBuilder = context.notificationBuilder(Notifications.CHANNEL_BACKUP_RESTORE_COMPLETE) {
+    private val completeNotificationBuilder = context.notificationBuilder(
+        Notifications.CHANNEL_BACKUP_RESTORE_COMPLETE,
+    ) {
         setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
         setSmallIcon(R.drawable.ic_tachi)
         setAutoCancel(false)
@@ -40,7 +47,7 @@ class BackupNotifier(private val context: Context) {
 
     fun showBackupProgress(): NotificationCompat.Builder {
         val builder = with(progressNotificationBuilder) {
-            setContentTitle(context.getString(R.string.creating_backup))
+            setContentTitle(context.stringResource(MR.strings.creating_backup))
 
             setProgress(0, 0, true)
         }
@@ -54,33 +61,43 @@ class BackupNotifier(private val context: Context) {
         context.cancelNotification(Notifications.ID_BACKUP_PROGRESS)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.creating_backup_error))
+            setContentTitle(context.stringResource(MR.strings.creating_backup_error))
             setContentText(error)
 
             show(Notifications.ID_BACKUP_COMPLETE)
         }
     }
 
-    fun showBackupComplete(unifile: UniFile) {
+    fun showBackupComplete(file: UniFile) {
         context.cancelNotification(Notifications.ID_BACKUP_PROGRESS)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.backup_created))
-            setContentText(unifile.filePath ?: unifile.name)
+            setContentTitle(context.stringResource(MR.strings.backup_created))
+            setContentText(file.filePath ?: file.name)
 
             clearActions()
             addAction(
                 R.drawable.ic_share_24dp,
-                context.getString(R.string.action_share),
-                NotificationReceiver.shareBackupPendingBroadcast(context, unifile.uri, Notifications.ID_BACKUP_COMPLETE),
+                context.stringResource(MR.strings.action_share),
+                NotificationReceiver.shareBackupPendingBroadcast(context, file.uri),
             )
 
             show(Notifications.ID_BACKUP_COMPLETE)
         }
     }
 
-    fun showRestoreProgress(content: String = "", contentTitle: String = context.getString(R.string.restoring_backup), progress: Int = 0, maxAmount: Int = 100): NotificationCompat.Builder {
+    fun showRestoreProgress(
+        content: String = "",
+        progress: Int = 0,
+        maxAmount: Int = 100,
+        sync: Boolean = false,
+    ): NotificationCompat.Builder {
         val builder = with(progressNotificationBuilder) {
+            val contentTitle = if (sync) {
+                context.stringResource(MR.strings.syncing_library)
+            } else {
+                context.stringResource(MR.strings.restoring_backup)
+            }
             setContentTitle(contentTitle)
 
             if (!preferences.hideNotificationContent().get()) {
@@ -93,7 +110,7 @@ class BackupNotifier(private val context: Context) {
             clearActions()
             addAction(
                 R.drawable.ic_close_24dp,
-                context.getString(R.string.action_cancel),
+                context.stringResource(MR.strings.action_cancel),
                 NotificationReceiver.cancelRestorePendingBroadcast(context, Notifications.ID_RESTORE_PROGRESS),
             )
         }
@@ -107,18 +124,30 @@ class BackupNotifier(private val context: Context) {
         context.cancelNotification(Notifications.ID_RESTORE_PROGRESS)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.restoring_backup_error))
+            setContentTitle(context.stringResource(MR.strings.restoring_backup_error))
             setContentText(error)
 
             show(Notifications.ID_RESTORE_COMPLETE)
         }
     }
 
-    fun showRestoreComplete(time: Long, errorCount: Int, path: String?, file: String?, contentTitle: String = context.getString(R.string.restore_completed)) {
+    fun showRestoreComplete(
+        time: Long,
+        errorCount: Int,
+        path: String?,
+        file: String?,
+        sync: Boolean,
+    ) {
+        val contentTitle = if (sync) {
+            context.stringResource(MR.strings.library_sync_complete)
+        } else {
+            context.stringResource(MR.strings.restore_completed)
+        }
+
         context.cancelNotification(Notifications.ID_RESTORE_PROGRESS)
 
-        val timeString = context.getString(
-            R.string.restore_duration,
+        val timeString = context.stringResource(
+            MR.strings.restore_duration,
             TimeUnit.MILLISECONDS.toMinutes(time),
             TimeUnit.MILLISECONDS.toSeconds(time) - TimeUnit.MINUTES.toSeconds(
                 TimeUnit.MILLISECONDS.toMinutes(time),
@@ -127,7 +156,14 @@ class BackupNotifier(private val context: Context) {
 
         with(completeNotificationBuilder) {
             setContentTitle(contentTitle)
-            setContentText(context.resources.getQuantityString(R.plurals.restore_completed_message, errorCount, timeString, errorCount))
+            setContentText(
+                context.pluralStringResource(
+                    MR.plurals.restore_completed_message,
+                    errorCount,
+                    timeString,
+                    errorCount,
+                ),
+            )
 
             clearActions()
             if (errorCount > 0 && !path.isNullOrEmpty() && !file.isNullOrEmpty()) {
@@ -138,7 +174,7 @@ class BackupNotifier(private val context: Context) {
                 setContentIntent(errorLogIntent)
                 addAction(
                     R.drawable.ic_folder_24dp,
-                    context.getString(R.string.action_show_errors),
+                    context.stringResource(MR.strings.action_show_errors),
                     errorLogIntent,
                 )
             }

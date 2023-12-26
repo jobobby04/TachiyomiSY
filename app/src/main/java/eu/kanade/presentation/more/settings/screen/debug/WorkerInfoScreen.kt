@@ -15,29 +15,34 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import androidx.lifecycle.asFlow
 import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.util.Screen
 import eu.kanade.presentation.util.ioCoroutineScope
-import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.util.lang.toDateTimestampString
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.workManager
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.plus
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+import java.util.Date
 
 class WorkerInfoScreen : Screen() {
 
@@ -62,9 +67,9 @@ class WorkerInfoScreen : Screen() {
                     navigateUp = navigator::pop,
                     actions = {
                         AppBarActions(
-                            listOf(
+                            persistentListOf(
                                 AppBar.Action(
-                                    title = stringResource(R.string.action_copy_to_clipboard),
+                                    title = stringResource(MR.strings.action_copy_to_clipboard),
                                     icon = Icons.Default.ContentCopy,
                                     onClick = {
                                         context.copyToClipboard(title, enqueued + finished + running)
@@ -115,20 +120,19 @@ class WorkerInfoScreen : Screen() {
         private val workManager = context.workManager
 
         val finished = workManager
-            .getWorkInfosLiveData(WorkQuery.fromStates(WorkInfo.State.SUCCEEDED, WorkInfo.State.FAILED, WorkInfo.State.CANCELLED))
-            .asFlow()
+            .getWorkInfosFlow(
+                WorkQuery.fromStates(WorkInfo.State.SUCCEEDED, WorkInfo.State.FAILED, WorkInfo.State.CANCELLED),
+            )
             .map(::constructString)
             .stateIn(ioCoroutineScope, SharingStarted.WhileSubscribed(), "")
 
         val running = workManager
-            .getWorkInfosLiveData(WorkQuery.fromStates(WorkInfo.State.RUNNING))
-            .asFlow()
+            .getWorkInfosFlow(WorkQuery.fromStates(WorkInfo.State.RUNNING))
             .map(::constructString)
             .stateIn(ioCoroutineScope, SharingStarted.WhileSubscribed(), "")
 
         val enqueued = workManager
-            .getWorkInfosLiveData(WorkQuery.fromStates(WorkInfo.State.ENQUEUED))
-            .asFlow()
+            .getWorkInfosFlow(WorkQuery.fromStates(WorkInfo.State.ENQUEUED))
             .map(::constructString)
             .stateIn(ioCoroutineScope, SharingStarted.WhileSubscribed(), "")
 
@@ -143,6 +147,16 @@ class WorkerInfoScreen : Screen() {
                         appendLine(" - $it")
                     }
                     appendLine("State: ${workInfo.state}")
+                    if (workInfo.state == WorkInfo.State.ENQUEUED) {
+                        appendLine(
+                            "Next scheduled run: ${Date(workInfo.nextScheduleTimeMillis).toDateTimestampString(
+                                UiPreferences.dateFormat(
+                                    Injekt.get<UiPreferences>().dateFormat().get(),
+                                ),
+                            )}",
+                        )
+                        appendLine("Attempt #${workInfo.runAttemptCount + 1}")
+                    }
                     appendLine()
                 }
             }

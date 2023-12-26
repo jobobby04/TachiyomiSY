@@ -2,8 +2,7 @@ package eu.kanade.domain.chapter.model
 
 import eu.kanade.domain.manga.model.downloadedFilter
 import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.ui.manga.ChapterItem
-import exh.md.utils.MdUtil
+import eu.kanade.tachiyomi.ui.manga.ChapterList
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.service.getChapterSort
 import tachiyomi.domain.manga.model.Manga
@@ -14,7 +13,11 @@ import tachiyomi.source.local.isLocal
  * Applies the view filters to the list of chapters obtained from the database.
  * @return an observable of the list of chapters filtered and sorted.
  */
-fun List<Chapter>.applyFilters(manga: Manga, downloadManager: DownloadManager/* SY --> */, mergedManga: Map<Long, Manga>/* SY <-- */): List<Chapter> {
+fun List<Chapter>.applyFilters(
+    manga: Manga,
+    downloadManager: DownloadManager, /* SY --> */
+    mergedManga: Map<Long, Manga>, /* SY <-- */
+): List<Chapter> {
     val isLocalManga = manga.isLocal()
     val unreadFilter = manga.unreadFilter
     val downloadedFilter = manga.downloadedFilter
@@ -28,15 +31,15 @@ fun List<Chapter>.applyFilters(manga: Manga, downloadManager: DownloadManager/* 
             val manga = mergedManga.getOrElse(chapter.mangaId) { manga }
             // SY <--
             applyFilter(downloadedFilter) {
-                val downloaded = downloadManager.isChapterDownloaded(chapter.name, chapter.scanlator, /* SY --> */ manga.ogTitle /* SY <-- */, manga.source)
+                val downloaded = downloadManager.isChapterDownloaded(
+                    chapter.name,
+                    chapter.scanlator,
+                    /* SY --> */ manga.ogTitle /* SY <-- */,
+                    manga.source,
+                )
                 downloaded || isLocalManga
             }
         }
-        // SY -->
-        .filter { chapter ->
-            manga.filteredScanlators.isNullOrEmpty() || MdUtil.getScanlators(chapter.scanlator).any { group -> manga.filteredScanlators!!.contains(group) }
-        }
-        // SY <--
         .sortedWith(getChapterSort(manga))
 }
 
@@ -44,7 +47,7 @@ fun List<Chapter>.applyFilters(manga: Manga, downloadManager: DownloadManager/* 
  * Applies the view filters to the list of chapters obtained from the database.
  * @return an observable of the list of chapters filtered and sorted.
  */
-fun List<ChapterItem>.applyFilters(manga: Manga): Sequence<ChapterItem> {
+fun List<ChapterList.Item>.applyFilters(manga: Manga): Sequence<ChapterList.Item> {
     val isLocalManga = manga.isLocal()
     val unreadFilter = manga.unreadFilter
     val downloadedFilter = manga.downloadedFilter
@@ -53,10 +56,5 @@ fun List<ChapterItem>.applyFilters(manga: Manga): Sequence<ChapterItem> {
         .filter { (chapter) -> applyFilter(unreadFilter) { !chapter.read } }
         .filter { (chapter) -> applyFilter(bookmarkedFilter) { chapter.bookmark } }
         .filter { applyFilter(downloadedFilter) { it.isDownloaded || isLocalManga } }
-        // SY -->
-        .filter { chapter ->
-            manga.filteredScanlators.isNullOrEmpty() || MdUtil.getScanlators(chapter.chapter.scanlator).any { group -> manga.filteredScanlators!!.contains(group) }
-        }
-        // SY <--
         .sortedWith { (chapter1), (chapter2) -> getChapterSort(manga).invoke(chapter1, chapter2) }
 }

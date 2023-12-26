@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -22,11 +22,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import eu.kanade.tachiyomi.R
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun GlobalSearchResultItem(
@@ -73,7 +73,7 @@ fun GlobalSearchResultItem(
                 }
             }
             IconButton(onClick = onClick) {
-                Icon(imageVector = Icons.Outlined.ArrowForward, contentDescription = null)
+                Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)
             }
         }
         content()
@@ -111,7 +111,7 @@ fun GlobalSearchErrorResultItem(message: String?) {
         Icon(imageVector = Icons.Outlined.Error, contentDescription = null)
         Spacer(Modifier.height(4.dp))
         Text(
-            text = message ?: stringResource(R.string.unknown_error),
+            text = message ?: stringResource(MR.strings.unknown_error),
             textAlign = TextAlign.Center,
         )
     }

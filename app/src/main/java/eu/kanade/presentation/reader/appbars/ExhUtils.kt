@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,20 +33,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.kanade.presentation.theme.TachiyomiTheme
-import eu.kanade.tachiyomi.R
-import tachiyomi.presentation.core.util.ThemePreviews
+import tachiyomi.i18n.sy.SYMR
+import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun ExhUtils(
-    modifier: Modifier = Modifier,
     isVisible: Boolean,
     onSetExhUtilsVisibility: (Boolean) -> Unit,
     backgroundColor: Color,
@@ -59,6 +58,7 @@ fun ExhUtils(
     onClickRetryAllHelp: () -> Unit,
     onClickBoostPage: () -> Unit,
     onClickBoostPageHelp: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier
@@ -88,7 +88,7 @@ fun ExhUtils(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = stringResource(R.string.eh_autoscroll),
+                                text = stringResource(SYMR.strings.eh_autoscroll),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.sp,
                                 fontFamily = FontFamily.SansSerif,
@@ -132,18 +132,18 @@ fun ExhUtils(
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                                 ),
                                 modifier = Modifier.fillMaxWidth(0.75f),
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Decimal
+                                    keyboardType = KeyboardType.Decimal,
                                 ),
                             )
                             AnimatedVisibility(!isAutoScrollEnabled) {
                                 Text(
-                                    text = stringResource(R.string.eh_autoscroll_freq_invalid),
+                                    text = stringResource(SYMR.strings.eh_autoscroll_freq_invalid),
                                     color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.labelSmall
+                                    style = MaterialTheme.typography.labelSmall,
                                 )
                             }
                         }
@@ -167,17 +167,17 @@ fun ExhUtils(
                     Row(
                         Modifier.fillMaxWidth(0.5f).padding(5.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         TextButton(
                             onClick = onClickRetryAll,
                             modifier = Modifier.weight(3f),
                         ) {
                             Text(
-                                text = stringResource(R.string.eh_retry_all),
+                                text = stringResource(SYMR.strings.eh_retry_all),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.sp,
-                                fontFamily = FontFamily.SansSerif
+                                fontFamily = FontFamily.SansSerif,
                             )
                         }
                         TextButton(
@@ -195,17 +195,17 @@ fun ExhUtils(
                     Row(
                         Modifier.fillMaxWidth(0.9f).padding(5.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         TextButton(
                             onClick = onClickBoostPage,
                             modifier = Modifier.weight(3f),
                         ) {
                             Text(
-                                text = stringResource(R.string.eh_boost_page),
+                                text = stringResource(SYMR.strings.eh_boost_page),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.sp,
-                                fontFamily = FontFamily.SansSerif
+                                fontFamily = FontFamily.SansSerif,
                             )
                         }
                         TextButton(
@@ -226,7 +226,7 @@ fun ExhUtils(
 
         IconButton(
             onClick = { onSetExhUtilsVisibility(!isVisible) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Icon(
                 imageVector = if (isVisible) {
@@ -241,9 +241,9 @@ fun ExhUtils(
 }
 
 @Composable
-@ThemePreviews
+@PreviewLightDark
 private fun ExhUtilsPreview() {
-    TachiyomiTheme {
+    Surface {
         ExhUtils(
             isVisible = true,
             onSetExhUtilsVisibility = {},
@@ -257,7 +257,7 @@ private fun ExhUtilsPreview() {
             onClickBoostPage = {},
             onClickBoostPageHelp = {},
             onClickRetryAll = {},
-            onClickRetryAllHelp = {}
+            onClickRetryAllHelp = {},
         )
     }
 }

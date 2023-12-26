@@ -32,7 +32,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
 import androidx.paging.compose.collectAsLazyPagingItems
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -47,7 +46,6 @@ import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.browse.extension.details.SourcePreferencesScreen
@@ -64,8 +62,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import tachiyomi.core.Constants
 import tachiyomi.core.util.lang.launchIO
 import tachiyomi.domain.source.model.StubSource
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.source.local.LocalSource
 
 data class BrowseSourceScreen(
@@ -168,13 +168,13 @@ data class BrowseSourceScreen(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Outlined.Favorite,
-                                    contentDescription = "",
+                                    contentDescription = null,
                                     modifier = Modifier
                                         .size(FilterChipDefaults.IconSize),
                                 )
                             },
                             label = {
-                                Text(text = stringResource(R.string.popular))
+                                Text(text = stringResource(MR.strings.popular))
                             },
                         )
                         if ((screenModel.source as CatalogueSource).supportsLatest) {
@@ -187,13 +187,13 @@ data class BrowseSourceScreen(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Outlined.NewReleases,
-                                        contentDescription = "",
+                                        contentDescription = null,
                                         modifier = Modifier
                                             .size(FilterChipDefaults.IconSize),
                                     )
                                 },
                                 label = {
-                                    Text(text = stringResource(R.string.latest))
+                                    Text(text = stringResource(MR.strings.latest))
                                 },
                             )
                         }
@@ -204,7 +204,7 @@ data class BrowseSourceScreen(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Outlined.FilterList,
-                                        contentDescription = "",
+                                        contentDescription = null,
                                         modifier = Modifier
                                             .size(FilterChipDefaults.IconSize),
                                     )
@@ -213,9 +213,9 @@ data class BrowseSourceScreen(
                                     // SY -->
                                     Text(
                                         text = if (state.filters.isNotEmpty()) {
-                                            stringResource(R.string.action_filter)
+                                            stringResource(MR.strings.action_filter)
                                         } else {
-                                            stringResource(R.string.action_search)
+                                            stringResource(MR.strings.action_search)
                                         },
                                     )
                                     // SY <--

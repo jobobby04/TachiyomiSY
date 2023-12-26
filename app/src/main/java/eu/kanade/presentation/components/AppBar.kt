@@ -10,8 +10,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
@@ -20,11 +19,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltipBox
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -40,17 +42,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.kanade.tachiyomi.R
+import kotlinx.collections.immutable.ImmutableList
+import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clearFocusOnSoftKeyboardHide
 import tachiyomi.presentation.core.util.runOnEnterKeyPressed
 import tachiyomi.presentation.core.util.secondaryItemAlpha
@@ -60,10 +61,11 @@ const val SEARCH_DEBOUNCE_MILLIS = 250L
 
 @Composable
 fun AppBar(
+    title: String?,
+
     modifier: Modifier = Modifier,
     backgroundColor: Color? = null,
     // Text
-    title: String?,
     subtitle: String? = null,
     // Up button
     navigateUp: (() -> Unit)? = null,
@@ -88,7 +90,7 @@ fun AppBar(
             if (isActionMode) {
                 AppBarTitle(actionModeCounter.toString())
             } else {
-                AppBarTitle(title, subtitle)
+                AppBarTitle(title, subtitle = subtitle)
             }
         },
         navigateUp = navigateUp,
@@ -108,10 +110,11 @@ fun AppBar(
 
 @Composable
 fun AppBar(
-    modifier: Modifier = Modifier,
-    backgroundColor: Color? = null,
     // Title
     titleContent: @Composable () -> Unit,
+
+    modifier: Modifier = Modifier,
+    backgroundColor: Color? = null,
     // Up button
     navigateUp: (() -> Unit)? = null,
     navigationIcon: ImageVector? = null,
@@ -132,13 +135,13 @@ fun AppBar(
                     IconButton(onClick = onCancelActionMode) {
                         Icon(
                             imageVector = Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.action_cancel),
+                            contentDescription = stringResource(MR.strings.action_cancel),
                         )
                     }
                 } else {
                     navigateUp?.let {
                         IconButton(onClick = it) {
-                            UpIcon(navigationIcon)
+                            UpIcon(navigationIcon = navigationIcon)
                         }
                     }
                 }
@@ -158,9 +161,10 @@ fun AppBar(
 @Composable
 fun AppBarTitle(
     title: String?,
+    modifier: Modifier = Modifier,
     subtitle: String? = null,
 ) {
-    Column {
+    Column(modifier = modifier) {
         title?.let {
             Text(
                 text = it,
@@ -184,18 +188,23 @@ fun AppBarTitle(
 
 @Composable
 fun AppBarActions(
-    actions: List<AppBar.AppBarAction>,
+    actions: ImmutableList<AppBar.AppBarAction>,
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
     actions.filterIsInstance<AppBar.Action>().map {
-        PlainTooltipBox(
-            tooltip = { Text(it.title) },
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            tooltip = {
+                PlainTooltip {
+                    Text(it.title)
+                }
+            },
+            state = rememberTooltipState(),
         ) {
             IconButton(
                 onClick = it.onClick,
                 enabled = it.enabled,
-                modifier = Modifier.tooltipTrigger(),
             ) {
                 Icon(
                     imageVector = it.icon,
@@ -208,16 +217,21 @@ fun AppBarActions(
 
     val overflowActions = actions.filterIsInstance<AppBar.OverflowAction>()
     if (overflowActions.isNotEmpty()) {
-        PlainTooltipBox(
-            tooltip = { Text(stringResource(R.string.abc_action_menu_overflow_description)) },
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            tooltip = {
+                PlainTooltip {
+                    Text(stringResource(MR.strings.action_menu_overflow_description))
+                }
+            },
+            state = rememberTooltipState(),
         ) {
             IconButton(
                 onClick = { showMenu = !showMenu },
-                modifier = Modifier.tooltipTrigger(),
             ) {
                 Icon(
                     Icons.Outlined.MoreVert,
-                    contentDescription = stringResource(R.string.abc_action_menu_overflow_description),
+                    contentDescription = stringResource(MR.strings.action_menu_overflow_description),
                 )
             }
         }
@@ -242,15 +256,16 @@ fun AppBarActions(
 /**
  * @param searchEnabled Set to false if you don't want to show search action.
  * @param searchQuery If null, use normal toolbar.
- * @param placeholderText If null, [R.string.action_search_hint] is used.
+ * @param placeholderText If null, [MR.strings.action_search_hint] is used.
  */
 @Composable
 fun SearchToolbar(
+    searchQuery: String?,
+    onChangeSearchQuery: (String?) -> Unit,
+    modifier: Modifier = Modifier,
     titleContent: @Composable () -> Unit = {},
     navigateUp: (() -> Unit)? = null,
     searchEnabled: Boolean = true,
-    searchQuery: String?,
-    onChangeSearchQuery: (String?) -> Unit,
     placeholderText: String? = null,
     onSearch: (String) -> Unit = {},
     onClickCloseSearch: () -> Unit = { onChangeSearchQuery(null) },
@@ -262,6 +277,7 @@ fun SearchToolbar(
     val focusRequester = remember { FocusRequester() }
 
     AppBar(
+        modifier = modifier,
         titleContent = {
             if (searchQuery == null) return@AppBar titleContent()
 
@@ -306,7 +322,7 @@ fun SearchToolbar(
                         placeholder = {
                             Text(
                                 modifier = Modifier.secondaryItemAlpha(),
-                                text = (placeholderText ?: stringResource(R.string.action_search_hint)),
+                                text = (placeholderText ?: stringResource(MR.strings.action_search_hint)),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.titleMedium.copy(
@@ -327,33 +343,43 @@ fun SearchToolbar(
                 if (!searchEnabled) {
                     // Don't show search action
                 } else if (searchQuery == null) {
-                    PlainTooltipBox(
-                        tooltip = { Text(stringResource(R.string.action_search)) },
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            PlainTooltip {
+                                Text(stringResource(MR.strings.action_search))
+                            }
+                        },
+                        state = rememberTooltipState(),
                     ) {
                         IconButton(
                             onClick = onClick,
-                            modifier = Modifier.tooltipTrigger(),
                         ) {
                             Icon(
                                 Icons.Outlined.Search,
-                                contentDescription = stringResource(R.string.action_search),
+                                contentDescription = stringResource(MR.strings.action_search),
                             )
                         }
                     }
                 } else if (searchQuery.isNotEmpty()) {
-                    PlainTooltipBox(
-                        tooltip = { Text(stringResource(R.string.action_reset)) },
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            PlainTooltip {
+                                Text(stringResource(MR.strings.action_reset))
+                            }
+                        },
+                        state = rememberTooltipState(),
                     ) {
                         IconButton(
                             onClick = {
                                 onClick()
                                 focusRequester.requestFocus()
                             },
-                            modifier = Modifier.tooltipTrigger(),
                         ) {
                             Icon(
                                 Icons.Outlined.Close,
-                                contentDescription = stringResource(R.string.action_reset),
+                                contentDescription = stringResource(MR.strings.action_reset),
                             )
                         }
                     }
@@ -368,12 +394,16 @@ fun SearchToolbar(
 }
 
 @Composable
-fun UpIcon(navigationIcon: ImageVector? = null) {
+fun UpIcon(
+    modifier: Modifier = Modifier,
+    navigationIcon: ImageVector? = null,
+) {
     val icon = navigationIcon
-        ?: if (LocalLayoutDirection.current == LayoutDirection.Ltr) Icons.Outlined.ArrowBack else Icons.Outlined.ArrowForward
+        ?: Icons.AutoMirrored.Outlined.ArrowBack
     Icon(
         imageVector = icon,
-        contentDescription = stringResource(R.string.abc_action_bar_up_description),
+        contentDescription = stringResource(MR.strings.action_bar_up_description),
+        modifier = modifier,
     )
 }
 

@@ -1,10 +1,11 @@
 package eu.kanade.tachiyomi.ui.category
 
-import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import eu.kanade.tachiyomi.R
+import dev.icerock.moko.resources.StringResource
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -16,6 +17,7 @@ import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.RenameCategory
 import tachiyomi.domain.category.interactor.ReorderCategory
 import tachiyomi.domain.category.model.Category
+import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -36,7 +38,9 @@ class CategoryScreenModel(
                 .collectLatest { categories ->
                     mutableState.update {
                         CategoryScreenState.Success(
-                            categories = categories.filterNot(Category::isSystemCategory),
+                            categories = categories
+                                .filterNot(Category::isSystemCategory)
+                                .toImmutableList(),
                         )
                     }
                 }
@@ -124,8 +128,8 @@ sealed interface CategoryDialog {
 }
 
 sealed interface CategoryEvent {
-    sealed class LocalizedMessage(@StringRes val stringRes: Int) : CategoryEvent
-    data object InternalError : LocalizedMessage(R.string.internal_error)
+    sealed class LocalizedMessage(val stringRes: StringResource) : CategoryEvent
+    data object InternalError : LocalizedMessage(MR.strings.internal_error)
 }
 
 sealed interface CategoryScreenState {
@@ -135,7 +139,7 @@ sealed interface CategoryScreenState {
 
     @Immutable
     data class Success(
-        val categories: List<Category>,
+        val categories: ImmutableList<Category>,
         val dialog: CategoryDialog? = null,
     ) : CategoryScreenState {
 

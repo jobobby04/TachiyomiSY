@@ -1,11 +1,14 @@
 package eu.kanade.tachiyomi.util.lang
 
 import android.content.Context
-import eu.kanade.tachiyomi.R
+import tachiyomi.core.i18n.pluralStringResource
+import tachiyomi.core.i18n.stringResource
+import tachiyomi.i18n.MR
 import java.text.DateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 
@@ -36,13 +39,8 @@ fun Long.convertEpochMillisZone(
  * @return date as time key
  */
 fun Long.toDateKey(): Date {
-    val cal = Calendar.getInstance()
-    cal.time = Date(this)
-    cal[Calendar.HOUR_OF_DAY] = 0
-    cal[Calendar.MINUTE] = 0
-    cal[Calendar.SECOND] = 0
-    cal[Calendar.MILLISECOND] = 0
-    return cal.time
+    val instant = Instant.ofEpochMilli(this)
+    return Date.from(instant.truncatedTo(ChronoUnit.DAYS))
 }
 
 private const val MILLISECONDS_IN_DAY = 86_400_000L
@@ -60,9 +58,9 @@ fun Date.toRelativeString(
     val days = difference.floorDiv(MILLISECONDS_IN_DAY).toInt()
     return when {
         difference < 0 -> dateFormat.format(this)
-        difference < MILLISECONDS_IN_DAY -> context.getString(R.string.relative_time_today)
-        difference < MILLISECONDS_IN_DAY.times(7) -> context.resources.getQuantityString(
-            R.plurals.relative_time,
+        difference < MILLISECONDS_IN_DAY -> context.stringResource(MR.strings.relative_time_today)
+        difference < MILLISECONDS_IN_DAY.times(7) -> context.pluralStringResource(
+            MR.plurals.relative_time,
             days,
             days,
         )

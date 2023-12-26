@@ -50,6 +50,7 @@ class Pururin(delegate: HttpSource, val context: Context) :
         }
 
         return urlImportFetchSearchManga(context, newQuery) {
+            @Suppress("DEPRECATION")
             super<DelegatedHttpSource>.fetchSearchManga(page, query, filters)
         }
     }
@@ -62,7 +63,7 @@ class Pururin(delegate: HttpSource, val context: Context) :
             query
         }
         return urlImportFetchSearchMangaSuspend(context, newQuery) {
-            super<DelegatedHttpSource>.getSearchManga(page, query, filters,)
+            super<DelegatedHttpSource>.getSearchManga(page, query, filters)
         }
     }
 
@@ -111,7 +112,11 @@ class Pururin(delegate: HttpSource, val context: Context) :
                             tags += RaisedTag(
                                 namespace,
                                 searchUrl.lastPathSegment!!.substringBefore("."),
-                                if (namespace != PururinSearchMetadata.TAG_NAMESPACE_CATEGORY) PururinSearchMetadata.TAG_TYPE_DEFAULT else RaisedSearchMetadata.TAG_TYPE_VIRTUAL,
+                                if (namespace != PururinSearchMetadata.TAG_NAMESPACE_CATEGORY) {
+                                    PururinSearchMetadata.TAG_TYPE_DEFAULT
+                                } else {
+                                    RaisedSearchMetadata.TAG_TYPE_VIRTUAL
+                                },
                             )
                         }
                     }

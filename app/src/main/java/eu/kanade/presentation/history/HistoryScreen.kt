@@ -10,7 +10,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.AppBar
@@ -20,15 +20,17 @@ import eu.kanade.presentation.components.RelativeDateHeader
 import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.history.components.HistoryItem
 import eu.kanade.presentation.theme.TachiyomiTheme
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.history.HistoryScreenModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.preference.InMemoryPreferenceStore
 import tachiyomi.domain.history.model.HistoryWithRelations
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
-import tachiyomi.presentation.core.util.ThemePreviews
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.Date
@@ -46,14 +48,14 @@ fun HistoryScreen(
     Scaffold(
         topBar = { scrollBehavior ->
             SearchToolbar(
-                titleContent = { AppBarTitle(stringResource(R.string.history)) },
+                titleContent = { AppBarTitle(stringResource(MR.strings.history)) },
                 searchQuery = state.searchQuery,
                 onChangeSearchQuery = onSearchQueryChange,
                 actions = {
                     AppBarActions(
-                        listOf(
+                        persistentListOf(
                             AppBar.Action(
-                                title = stringResource(R.string.pref_clear_history),
+                                title = stringResource(MR.strings.pref_clear_history),
                                 icon = Icons.Outlined.DeleteSweep,
                                 onClick = {
                                     onDialogChange(HistoryScreenModel.Dialog.DeleteAll)
@@ -72,12 +74,12 @@ fun HistoryScreen(
                 LoadingScreen(Modifier.padding(contentPadding))
             } else if (it.isEmpty()) {
                 val msg = if (!state.searchQuery.isNullOrEmpty()) {
-                    R.string.no_results_found
+                    MR.strings.no_results_found
                 } else {
-                    R.string.information_no_recent_manga
+                    MR.strings.information_no_recent_manga
                 }
                 EmptyScreen(
-                    textResource = msg,
+                    stringRes = msg,
                     modifier = Modifier.padding(contentPadding),
                 )
             } else {
@@ -96,7 +98,7 @@ fun HistoryScreen(
 
 @Composable
 private fun HistoryScreenContent(
-    history: List<HistoryUiModel>,
+    history: ImmutableList<HistoryUiModel>,
     contentPadding: PaddingValues,
     onClickCover: (HistoryWithRelations) -> Unit,
     onClickResume: (HistoryWithRelations) -> Unit,
@@ -148,7 +150,7 @@ sealed interface HistoryUiModel {
     data class Item(val item: HistoryWithRelations) : HistoryUiModel
 }
 
-@ThemePreviews
+@PreviewLightDark
 @Composable
 internal fun HistoryScreenPreviews(
     @PreviewParameter(HistoryScreenModelStateProvider::class)

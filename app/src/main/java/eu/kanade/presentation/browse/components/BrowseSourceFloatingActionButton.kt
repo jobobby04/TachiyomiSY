@@ -6,24 +6,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import eu.kanade.tachiyomi.R
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
+import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun BrowseSourceFloatingActionButton(
-    modifier: Modifier = Modifier,
     isVisible: Boolean,
     onFabClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     ExtendedFloatingActionButton(
         modifier = modifier,
         text = {
             Text(
                 text = if (isVisible) {
-                    stringResource(R.string.action_filter)
+                    stringResource(MR.strings.action_filter)
                 } else {
-                    stringResource(R.string.saved_searches)
+                    stringResource(SYMR.strings.saved_searches)
                 },
             )
         },

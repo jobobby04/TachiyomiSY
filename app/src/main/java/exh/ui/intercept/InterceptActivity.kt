@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -34,8 +33,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tachiyomi.core.Constants
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.Scaffold
 
 class InterceptActivity : BaseActivity() {
@@ -59,8 +61,8 @@ class InterceptActivity : BaseActivity() {
         Scaffold(
             topBar = { scrollBehavior ->
                 AppBar(
-                    title = stringResource(R.string.app_name),
-                    navigateUp = ::onBackPressed,
+                    title = stringResource(MR.strings.app_name),
+                    navigateUp = ::finish,
                     scrollBehavior = scrollBehavior,
                 )
             },
@@ -75,17 +77,17 @@ class InterceptActivity : BaseActivity() {
                 when (status) {
                     InterceptResult.Idle, InterceptResult.Loading -> {
                         Text(
-                            text = stringResource(R.string.loading_entry),
+                            text = stringResource(SYMR.strings.loading_entry),
                             style = MaterialTheme.typography.titleLarge,
                         )
                         CircularProgressIndicator(modifier = Modifier.size(56.dp))
                     }
                     is InterceptResult.Success -> Text(
-                        text = stringResource(R.string.launching_app),
+                        text = stringResource(SYMR.strings.launching_app),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     is InterceptResult.Failure -> Text(
-                        text = stringResource(R.string.error_with_reason, status.reason),
+                        text = stringResource(SYMR.strings.error_with_reason, status.reason),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 }
@@ -106,7 +108,7 @@ class InterceptActivity : BaseActivity() {
             .onEach {
                 when (it) {
                     is InterceptResult.Success -> {
-                        onBackPressed()
+                        finish()
                         startActivity(
                             if (it.chapter != null) {
                                 ReaderActivity.newIntent(this, it.manga.id, it.chapter.id)
@@ -120,11 +122,11 @@ class InterceptActivity : BaseActivity() {
                     }
                     is InterceptResult.Failure -> {
                         MaterialAlertDialogBuilder(this)
-                            .setTitle(R.string.chapter_error)
-                            .setMessage(getString(R.string.could_not_open_entry, it.reason))
-                            .setPositiveButton(R.string.action_ok, null)
-                            .setOnCancelListener { onBackPressed() }
-                            .setOnDismissListener { onBackPressed() }
+                            .setTitle(MR.strings.chapter_error.getString(this))
+                            .setMessage(stringResource(SYMR.strings.could_not_open_entry, it.reason))
+                            .setPositiveButton(MR.strings.action_ok.getString(this), null)
+                            .setOnCancelListener { finish() }
+                            .setOnDismissListener { finish() }
                             .show()
                     }
                     else -> Unit
@@ -153,7 +155,7 @@ class InterceptActivity : BaseActivity() {
             val sources = galleryAdder.pickSource(gallery)
             if (sources.size > 1) {
                 MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.label_sources)
+                    .setTitle(MR.strings.label_sources.getString(this))
                     .setSingleChoiceItems(sources.map { it.toString() }.toTypedArray(), 0) { dialog, index ->
                         dialog.dismiss()
                         loadGalleryEnd(gallery, sources[index])

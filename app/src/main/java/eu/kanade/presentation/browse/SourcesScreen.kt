@@ -23,20 +23,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.browse.components.BaseSourceItem
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel.Listing
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.source.model.Pin
 import tachiyomi.domain.source.model.Source
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.SecondaryItemAlpha
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.components.material.topSmallPaddingValues
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.theme.header
@@ -54,7 +56,7 @@ fun SourcesScreen(
     when {
         state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
         state.isEmpty -> EmptyScreen(
-            textResource = R.string.source_empty_screen,
+            MR.strings.source_empty_screen,
             modifier = Modifier.padding(contentPadding),
         )
         else -> {
@@ -106,11 +108,11 @@ fun SourcesScreen(
 
 @Composable
 private fun SourceHeader(
-    modifier: Modifier = Modifier,
     language: String,
     // SY -->
     isCategory: Boolean,
     // SY <--
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     Text(
@@ -129,7 +131,6 @@ private fun SourceHeader(
 
 @Composable
 private fun SourceItem(
-    modifier: Modifier = Modifier,
     source: Source,
     // SY -->
     showLatest: Boolean,
@@ -138,6 +139,7 @@ private fun SourceItem(
     onClickItem: (Source, Listing) -> Unit,
     onLongClickItem: (Source) -> Unit,
     onClickPin: (Source) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     BaseSourceItem(
         modifier = modifier,
@@ -148,7 +150,7 @@ private fun SourceItem(
             if (source.supportsLatest /* SY --> */ && showLatest /* SY <-- */) {
                 TextButton(onClick = { onClickItem(source, Listing.Latest) }) {
                     Text(
-                        text = stringResource(R.string.latest),
+                        text = stringResource(MR.strings.latest),
                         style = LocalTextStyle.current.copy(
                             color = MaterialTheme.colorScheme.primary,
                         ),
@@ -173,8 +175,14 @@ private fun SourcePinButton(
     onClick: () -> Unit,
 ) {
     val icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin
-    val tint = if (isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = SecondaryItemAlpha)
-    val description = if (isPinned) R.string.action_unpin else R.string.action_pin
+    val tint = if (isPinned) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onBackground.copy(
+            alpha = SecondaryItemAlpha,
+        )
+    }
+    val description = if (isPinned) MR.strings.action_unpin else MR.strings.action_pin
     IconButton(onClick = onClick) {
         Icon(
             imageVector = icon,
@@ -201,7 +209,7 @@ fun SourceOptionsDialog(
         },
         text = {
             Column {
-                val textId = if (Pin.Pinned in source.pin) R.string.action_unpin else R.string.action_pin
+                val textId = if (Pin.Pinned in source.pin) MR.strings.action_unpin else MR.strings.action_pin
                 Text(
                     text = stringResource(textId),
                     modifier = Modifier
@@ -211,7 +219,7 @@ fun SourceOptionsDialog(
                 )
                 if (!source.isLocal()) {
                     Text(
-                        text = stringResource(R.string.action_disable),
+                        text = stringResource(MR.strings.action_disable),
                         modifier = Modifier
                             .clickable(onClick = onClickDisable)
                             .fillMaxWidth()
@@ -221,7 +229,7 @@ fun SourceOptionsDialog(
                 // SY -->
                 if (onClickSetCategories != null) {
                     Text(
-                        text = stringResource(id = R.string.categories),
+                        text = stringResource(MR.strings.categories),
                         modifier = Modifier
                             .clickable(onClick = onClickSetCategories)
                             .fillMaxWidth()
@@ -231,9 +239,9 @@ fun SourceOptionsDialog(
                 if (onClickToggleDataSaver != null) {
                     Text(
                         text = if (source.isExcludedFromDataSaver) {
-                            stringResource(id = R.string.data_saver_stop_exclude)
+                            stringResource(SYMR.strings.data_saver_stop_exclude)
                         } else {
-                            stringResource(id = R.string.data_saver_exclude)
+                            stringResource(SYMR.strings.data_saver_exclude)
                         },
                         modifier = Modifier
                             .clickable(onClick = onClickToggleDataSaver)
@@ -258,7 +266,7 @@ sealed interface SourceUiModel {
 @Composable
 fun SourceCategoriesDialog(
     source: Source,
-    categories: List<String>,
+    categories: ImmutableList<String>,
     onClickCategories: (List<String>) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
@@ -289,7 +297,7 @@ fun SourceCategoriesDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(onClick = { onClickCategories(newCategories.toList()) }) {
-                Text(text = stringResource(R.string.action_ok))
+                Text(text = stringResource(MR.strings.action_ok))
             }
         },
     )

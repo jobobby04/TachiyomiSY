@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -53,8 +52,9 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.UpIcon
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.R
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.util.runOnEnterKeyPressed
 import cafe.adriel.voyager.core.screen.Screen as VoyagerScreen
@@ -88,7 +88,9 @@ class SettingsSearchScreen : Screen() {
             focusRequester.requestFocus()
         }
 
-        var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue()) }
+        var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+            mutableStateOf(TextFieldValue())
+        }
         Scaffold(
             topBar = {
                 Column {
@@ -118,7 +120,7 @@ class SettingsSearchScreen : Screen() {
                                 decorationBox = {
                                     if (textFieldValue.text.isEmpty()) {
                                         Text(
-                                            text = stringResource(R.string.action_search_settings),
+                                            text = stringResource(MR.strings.action_search_settings),
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             style = MaterialTheme.typography.bodyLarge,
                                         )
@@ -202,7 +204,11 @@ private fun SearchResult(
                         SearchResultItem(
                             route = settingsData.route,
                             title = p.title,
-                            breadcrumbs = getLocalizedBreadcrumb(path = settingsData.title, node = categoryTitle, isLtr = isLtr),
+                            breadcrumbs = getLocalizedBreadcrumb(
+                                path = settingsData.title,
+                                node = categoryTitle,
+                                isLtr = isLtr,
+                            ),
                             highlightKey = p.title,
                         )
                     }
@@ -215,7 +221,7 @@ private fun SearchResult(
         when {
             it == null -> {}
             it.isEmpty() -> {
-                EmptyScreen(stringResource(R.string.no_results_found))
+                EmptyScreen(stringResource(MR.strings.no_results_found))
             }
             else -> {
                 LazyColumn(

@@ -25,7 +25,6 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.presentation.library.components.LibraryToolbarTitle
 import eu.kanade.presentation.manga.DownloadAction
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -55,6 +54,11 @@ import exh.source.nHentaiSourceIds
 import exh.util.cancellable
 import exh.util.isLewd
 import exh.util.nullIfBlank
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.mutate
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -70,8 +74,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.core.preference.CheckboxState
 import tachiyomi.core.preference.TriState
+import tachiyomi.core.util.lang.compareToWithCollator
 import tachiyomi.core.util.lang.launchIO
 import tachiyomi.core.util.lang.launchNonCancellable
 import tachiyomi.core.util.lang.withIOContext
@@ -103,13 +109,13 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.GetTracksPerManga
 import tachiyomi.domain.track.model.Track
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.text.Collator
 import java.util.Collections
-import java.util.Locale
 
 /**
  * Typealias for the library manga, using the category as keys, and list of manga as values.
@@ -176,7 +182,7 @@ class LibraryScreenModel(
                     .applyGrouping(groupType)
                     // SY <--
                     .applyFilters(tracks, loggedInTrackers)
-                    .applySort(/* SY --> */sort.takeIf { groupType != LibraryGroup.BY_DEFAULT } /* SY <-- */)
+                    .applySort(tracks, /* SY --> */sort.takeIf { groupType != LibraryGroup.BY_DEFAULT } /* SY <-- */)
                     .mapValues { (_, value) ->
                         if (searchQuery != null) {
                             // Filter query
@@ -267,7 +273,7 @@ class LibraryScreenModel(
      * Applies library filters to the given map of manga.
      */
     private suspend fun LibraryMap.applyFilters(
-        trackMap: Map<Long, List<Long>>,
+        trackMap: Map<Long, List<Track>>,
         loggedInTrackers: Map<Long, TriState>,
     ): LibraryMap {
         val prefs = getLibraryItemPreferencesFlow().first()
@@ -322,7 +328,9 @@ class LibraryScreenModel(
         val filterFnTracking: (LibraryItem) -> Boolean = tracking@{ item ->
             if (isNotLoggedInAnyTrack || trackFiltersIsIgnored) return@tracking true
 
-            val mangaTracks = trackMap[item.libraryManga.id].orEmpty()
+            val mangaTracks = trackMap
+                .mapValues { entry -> entry.value.map { it.trackerId } }[item.libraryManga.id]
+                .orEmpty()
 
             val isExcluded = excludedTracks.isNotEmpty() && mangaTracks.fastAny { it in excludedTracks }
             val isIncluded = includedTracks.isEmpty() || mangaTracks.fastAny { it in includedTracks }
@@ -348,7 +356,12 @@ class LibraryScreenModel(
     /**
      * Applies library sorting to the given map of manga.
      */
-    private fun LibraryMap.applySort(/* SY --> */ groupSort: LibrarySort? = null /* SY <-- */): LibraryMap {
+    private fun LibraryMap.applySort(
+        // Map<MangaId, List<Track>>
+        trackMap: Map<Long, List<Track>>,
+        /* SY --> */
+        groupSort: LibrarySort? = null, /* SY <-- */
+    ): LibraryMap {
         // SY -->
         val listOfTags by lazy {
             libraryPreferences.sortTagsForLibrary().get()
@@ -363,12 +376,22 @@ class LibraryScreenModel(
         }
         // SY <--
 
-        val locale = Locale.getDefault()
-        val collator = Collator.getInstance(locale).apply {
-            strength = Collator.PRIMARY
-        }
         val sortAlphabetically: (LibraryItem, LibraryItem) -> Int = { i1, i2 ->
-            collator.compare(i1.libraryManga.manga.title.lowercase(locale), i2.libraryManga.manga.title.lowercase(locale))
+            i1.libraryManga.manga.title.lowercase().compareToWithCollator(i2.libraryManga.manga.title.lowercase())
+        }
+
+        val defaultTrackerScoreSortValue = -1.0
+        val trackerScores by lazy {
+            val trackerMap = trackerManager.loggedInTrackers().associateBy { e -> e.id }
+            trackMap.mapValues { entry ->
+                when {
+                    entry.value.isEmpty() -> null
+                    else ->
+                        entry.value
+                            .mapNotNull { trackerMap[it.trackerId]?.get10PointScore(it) }
+                            .average()
+                }
+            }
         }
 
         val sortFn: (LibraryItem, LibraryItem) -> Int = { i1, i2 ->
@@ -403,6 +426,11 @@ class LibraryScreenModel(
                 }
                 LibrarySort.Type.DateAdded -> {
                     i1.libraryManga.manga.dateAdded.compareTo(i2.libraryManga.manga.dateAdded)
+                }
+                LibrarySort.Type.TrackerMean -> {
+                    val item1Score = trackerScores[i1.libraryManga.id] ?: defaultTrackerScoreSortValue
+                    val item2Score = trackerScores[i2.libraryManga.id] ?: defaultTrackerScoreSortValue
+                    item1Score.compareTo(item2Score)
                 }
                 // SY -->
                 LibrarySort.Type.TagList -> {
@@ -525,7 +553,7 @@ class LibraryScreenModel(
                 mapOf(
                     Category(
                         0,
-                        preferences.context.getString(R.string.ungrouped),
+                        preferences.context.stringResource(SYMR.strings.ungrouped),
                         0,
                         0,
                     ) to
@@ -550,7 +578,7 @@ class LibraryScreenModel(
      * @return map of track id with the filter value
      */
     private fun getTrackingFilterFlow(): Flow<Map<Long, TriState>> {
-        val loggedInTrackers = trackerManager.trackers.filter { it.isLoggedIn }
+        val loggedInTrackers = trackerManager.loggedInTrackers()
         return if (loggedInTrackers.isNotEmpty()) {
             val prefFlows = loggedInTrackers
                 .map { libraryPreferences.filterTracking(it.id.toInt()).changes() }
@@ -581,9 +609,9 @@ class LibraryScreenModel(
         // SY -->
         val mergedManga = getMergedMangaById.await(manga.id).associateBy { it.id }
         return if (manga.id == MERGED_SOURCE_ID) {
-            getMergedChaptersByMangaId.await(manga.id)
+            getMergedChaptersByMangaId.await(manga.id, applyScanlatorFilter = true)
         } else {
-            getChaptersByMangaId.await(manga.id)
+            getChaptersByMangaId.await(manga.id, applyScanlatorFilter = true)
         }.getNextUnread(manga, downloadManager, mergedManga)
         // SY <--
     }
@@ -793,7 +821,8 @@ class LibraryScreenModel(
     }
 
     fun getColumnsPreferenceForCurrentOrientation(isLandscape: Boolean): PreferenceMutableState<Int> {
-        return (if (isLandscape) libraryPreferences.landscapeColumns() else libraryPreferences.portraitColumns()).asState(screenModelScope)
+        return (if (isLandscape) libraryPreferences.landscapeColumns() else libraryPreferences.portraitColumns())
+            .asState(screenModelScope)
     }
 
     suspend fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
@@ -820,24 +849,24 @@ class LibraryScreenModel(
     ): String {
         return when (groupType) {
             LibraryGroup.BY_STATUS -> when (category?.id) {
-                SManga.ONGOING.toLong() -> context.getString(R.string.ongoing)
-                SManga.LICENSED.toLong() -> context.getString(R.string.licensed)
-                SManga.CANCELLED.toLong() -> context.getString(R.string.cancelled)
-                SManga.ON_HIATUS.toLong() -> context.getString(R.string.on_hiatus)
-                SManga.PUBLISHING_FINISHED.toLong() -> context.getString(R.string.publishing_finished)
-                SManga.COMPLETED.toLong() -> context.getString(R.string.completed)
-                else -> context.getString(R.string.unknown)
+                SManga.ONGOING.toLong() -> context.stringResource(MR.strings.ongoing)
+                SManga.LICENSED.toLong() -> context.stringResource(MR.strings.licensed)
+                SManga.CANCELLED.toLong() -> context.stringResource(MR.strings.cancelled)
+                SManga.ON_HIATUS.toLong() -> context.stringResource(MR.strings.on_hiatus)
+                SManga.PUBLISHING_FINISHED.toLong() -> context.stringResource(MR.strings.publishing_finished)
+                SManga.COMPLETED.toLong() -> context.stringResource(MR.strings.completed)
+                else -> context.stringResource(MR.strings.unknown)
             }
             LibraryGroup.BY_SOURCE -> if (category?.id == LocalSource.ID) {
-                context.getString(R.string.local_source)
+                context.stringResource(MR.strings.local_source)
             } else {
                 categoryName
             }
             LibraryGroup.BY_TRACK_STATUS -> TrackStatus.values()
                 .find { it.int.toLong() == category?.id }
                 .let { it ?: TrackStatus.OTHER }
-                .let { context.getString(it.res) }
-            LibraryGroup.UNGROUPED -> context.getString(R.string.ungrouped)
+                .let { context.stringResource(it.res) }
+            LibraryGroup.UNGROUPED -> context.stringResource(SYMR.strings.ungrouped)
             else -> categoryName
         }
     }
@@ -975,12 +1004,12 @@ class LibraryScreenModel(
 
     private fun filterTracks(constraint: String, tracks: List<Track>, context: Context): Boolean {
         return tracks.fastAny { track ->
-            val trackService = trackerManager.get(track.syncId)
+            val trackService = trackerManager.get(track.trackerId)
             if (trackService != null) {
                 val status = trackService.getStatus(track.status.toInt())?.let {
-                    context.getString(it)
+                    context.stringResource(it)
                 }
-                val name = trackerManager.get(track.syncId)?.name
+                val name = trackerManager.get(track.trackerId)?.name
                 status?.contains(constraint, true) == true || name?.contains(constraint, true) == true
             } else {
                 false
@@ -990,16 +1019,16 @@ class LibraryScreenModel(
     // SY <--
 
     fun clearSelection() {
-        mutableState.update { it.copy(selection = emptyList()) }
+        mutableState.update { it.copy(selection = persistentListOf()) }
     }
 
     fun toggleSelection(manga: LibraryManga) {
         mutableState.update { state ->
-            val newSelection = state.selection.toMutableList().apply {
-                if (fastAny { it.id == manga.id }) {
-                    removeAll { it.id == manga.id }
+            val newSelection = state.selection.mutate { list ->
+                if (list.fastAny { it.id == manga.id }) {
+                    list.removeAll { it.id == manga.id }
                 } else {
-                    add(manga)
+                    list.add(manga)
                 }
             }
             state.copy(selection = newSelection)
@@ -1012,11 +1041,11 @@ class LibraryScreenModel(
      */
     fun toggleRangeSelection(manga: LibraryManga) {
         mutableState.update { state ->
-            val newSelection = state.selection.toMutableList().apply {
-                val lastSelected = lastOrNull()
+            val newSelection = state.selection.mutate { list ->
+                val lastSelected = list.lastOrNull()
                 if (lastSelected?.category != manga.category) {
-                    add(manga)
-                    return@apply
+                    list.add(manga)
+                    return@mutate
                 }
 
                 val items = state.getLibraryItemsByCategoryId(manga.category)
@@ -1024,17 +1053,17 @@ class LibraryScreenModel(
                 val lastMangaIndex = items.indexOf(lastSelected)
                 val curMangaIndex = items.indexOf(manga)
 
-                val selectedIds = fastMap { it.id }
+                val selectedIds = list.fastMap { it.id }
                 val selectionRange = when {
                     lastMangaIndex < curMangaIndex -> IntRange(lastMangaIndex, curMangaIndex)
                     curMangaIndex < lastMangaIndex -> IntRange(curMangaIndex, lastMangaIndex)
                     // We shouldn't reach this point
-                    else -> return@apply
+                    else -> return@mutate
                 }
                 val newSelections = selectionRange.mapNotNull { index ->
                     items[index].takeUnless { it.id in selectedIds }
                 }
-                addAll(newSelections)
+                list.addAll(newSelections)
             }
             state.copy(selection = newSelection)
         }
@@ -1042,14 +1071,14 @@ class LibraryScreenModel(
 
     fun selectAll(index: Int) {
         mutableState.update { state ->
-            val newSelection = state.selection.toMutableList().apply {
+            val newSelection = state.selection.mutate { list ->
                 val categoryId = state.categories.getOrNull(index)?.id ?: -1
-                val selectedIds = fastMap { it.id }
+                val selectedIds = list.fastMap { it.id }
                 state.getLibraryItemsByCategoryId(categoryId)
                     ?.fastMapNotNull { item ->
                         item.libraryManga.takeUnless { it.id in selectedIds }
                     }
-                    ?.let { addAll(it) }
+                    ?.let { list.addAll(it) }
             }
             state.copy(selection = newSelection)
         }
@@ -1057,14 +1086,14 @@ class LibraryScreenModel(
 
     fun invertSelection(index: Int) {
         mutableState.update { state ->
-            val newSelection = state.selection.toMutableList().apply {
+            val newSelection = state.selection.mutate { list ->
                 val categoryId = state.categories[index].id
                 val items = state.getLibraryItemsByCategoryId(categoryId)?.fastMap { it.libraryManga }.orEmpty()
-                val selectedIds = fastMap { it.id }
+                val selectedIds = list.fastMap { it.id }
                 val (toRemove, toAdd) = items.fastPartition { it.id in selectedIds }
                 val toRemoveIds = toRemove.fastMap { it.id }
-                removeAll { it.id in toRemoveIds }
-                addAll(toAdd)
+                list.removeAll { it.id in toRemoveIds }
+                list.addAll(toAdd)
             }
             state.copy(selection = newSelection)
         }
@@ -1094,7 +1123,7 @@ class LibraryScreenModel(
                     in mix -> CheckboxState.TriState.Exclude(it)
                     else -> CheckboxState.State.None(it)
                 }
-            }
+            }.toImmutableList()
             mutableState.update { it.copy(dialog = Dialog.ChangeCategory(mangaList, preselected)) }
         }
     }
@@ -1110,7 +1139,10 @@ class LibraryScreenModel(
 
     sealed interface Dialog {
         data object SettingsSheet : Dialog
-        data class ChangeCategory(val manga: List<Manga>, val initialSelection: List<CheckboxState<Category>>) : Dialog
+        data class ChangeCategory(
+            val manga: List<Manga>,
+            val initialSelection: ImmutableList<CheckboxState<Category>>,
+        ) : Dialog
         data class DeleteManga(val manga: List<Manga>) : Dialog
         object SyncFavoritesWarning : Dialog
         object SyncFavoritesConfirm : Dialog
@@ -1132,7 +1164,7 @@ class LibraryScreenModel(
                 val tracks = runBlocking { getTracks.await() }.groupBy { it.mangaId }
                 libraryManga.groupBy { item ->
                     val status = tracks[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
-                        TrackStatus.parseTrackerStatus(trackerManager, track.syncId, track.status)
+                        TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)
                     } ?: TrackStatus.OTHER
 
                     status.int
@@ -1142,8 +1174,10 @@ class LibraryScreenModel(
                         name = TrackStatus.values()
                             .find { it.int == id }
                             .let { it ?: TrackStatus.OTHER }
-                            .let { context.getString(it.res) },
-                        order = TrackStatus.values().indexOfFirst { it.int == id }.takeUnless { it == -1 }?.toLong() ?: TrackStatus.OTHER.ordinal.toLong(),
+                            .let { context.stringResource(it.res) },
+                        order = TrackStatus.values().indexOfFirst {
+                            it.int == id
+                        }.takeUnless { it == -1 }?.toLong() ?: TrackStatus.OTHER.ordinal.toLong(),
                         flags = 0,
                     )
                 }
@@ -1163,7 +1197,7 @@ class LibraryScreenModel(
                     Category(
                         id = it.key,
                         name = if (it.key == LocalSource.ID) {
-                            context.getString(R.string.local_source)
+                            context.stringResource(MR.strings.local_source)
                         } else {
                             val source = sourceManager.getOrStub(it.key)
                             source.name.ifBlank { source.id.toString() }
@@ -1180,13 +1214,13 @@ class LibraryScreenModel(
                     Category(
                         id = it.key + 1,
                         name = when (it.key) {
-                            SManga.ONGOING.toLong() -> context.getString(R.string.ongoing)
-                            SManga.LICENSED.toLong() -> context.getString(R.string.licensed)
-                            SManga.CANCELLED.toLong() -> context.getString(R.string.cancelled)
-                            SManga.ON_HIATUS.toLong() -> context.getString(R.string.on_hiatus)
-                            SManga.PUBLISHING_FINISHED.toLong() -> context.getString(R.string.publishing_finished)
-                            SManga.COMPLETED.toLong() -> context.getString(R.string.completed)
-                            else -> context.getString(R.string.unknown)
+                            SManga.ONGOING.toLong() -> context.stringResource(MR.strings.ongoing)
+                            SManga.LICENSED.toLong() -> context.stringResource(MR.strings.licensed)
+                            SManga.CANCELLED.toLong() -> context.stringResource(MR.strings.cancelled)
+                            SManga.ON_HIATUS.toLong() -> context.stringResource(MR.strings.on_hiatus)
+                            SManga.PUBLISHING_FINISHED.toLong() -> context.stringResource(MR.strings.publishing_finished)
+                            SManga.COMPLETED.toLong() -> context.stringResource(MR.strings.completed)
+                            else -> context.stringResource(MR.strings.unknown)
                         },
                         order = when (it.key) {
                             SManga.ONGOING.toLong() -> 1
@@ -1247,7 +1281,7 @@ class LibraryScreenModel(
         val isLoading: Boolean = true,
         val library: LibraryMap = emptyMap(),
         val searchQuery: String? = null,
-        val selection: List<LibraryManga> = emptyList(),
+        val selection: PersistentList<LibraryManga> = persistentListOf(),
         val hasActiveFilters: Boolean = false,
         val showCategoryTabs: Boolean = false,
         val showMangaCount: Boolean = false,

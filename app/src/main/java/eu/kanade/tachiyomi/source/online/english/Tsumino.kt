@@ -38,12 +38,13 @@ class Tsumino(delegate: HttpSource, val context: Context) :
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getSearchManga"))
     override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> =
         urlImportFetchSearchManga(context, query) {
+            @Suppress("DEPRECATION")
             super<DelegatedHttpSource>.fetchSearchManga(page, query, filters)
         }
 
     override suspend fun getSearchManga(page: Int, query: String, filters: FilterList): MangasPage {
         return urlImportFetchSearchMangaSuspend(context, query) {
-            super<DelegatedHttpSource>.getSearchManga(page, query, filters,)
+            super<DelegatedHttpSource>.getSearchManga(page, query, filters)
         }
     }
 

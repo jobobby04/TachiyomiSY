@@ -12,6 +12,23 @@ import java.io.File
 
 object DiskUtil {
 
+    /**
+     * Returns the root folders of all the available external storages.
+     */
+    fun getExternalStorages(context: Context): List<File> {
+        return ContextCompat.getExternalFilesDirs(context, null)
+            .filterNotNull()
+            .mapNotNull {
+                val file = File(it.absolutePath.substringBefore("/Android/"))
+                val state = Environment.getExternalStorageState(file)
+                if (state == Environment.MEDIA_MOUNTED || state == Environment.MEDIA_MOUNTED_READ_ONLY) {
+                    file
+                } else {
+                    null
+                }
+            }
+    }
+
     fun hashKeyForDisk(key: String): String {
         return Hash.md5(key)
     }
@@ -29,6 +46,30 @@ object DiskUtil {
     }
 
     /**
+     * Gets the total space for the disk that a file path points to, in bytes.
+     */
+    fun getTotalStorageSpace(file: File): Long {
+        return try {
+            val stat = StatFs(file.absolutePath)
+            stat.blockCountLong * stat.blockSizeLong
+        } catch (_: Exception) {
+            -1L
+        }
+    }
+
+    /**
+     * Gets the available space for the disk that a file path points to, in bytes.
+     */
+    fun getAvailableStorageSpace(file: File): Long {
+        return try {
+            val stat = StatFs(file.absolutePath)
+            stat.availableBlocksLong * stat.blockSizeLong
+        } catch (_: Exception) {
+            -1L
+        }
+    }
+
+    /**
      * Gets the available space for the disk that a file path points to, in bytes.
      */
     fun getAvailableStorageSpace(f: UniFile): Long {
@@ -38,23 +79,6 @@ object DiskUtil {
         } catch (_: Exception) {
             -1L
         }
-    }
-
-    /**
-     * Returns the root folders of all the available external storages.
-     */
-    fun getExternalStorages(context: Context): List<File> {
-        return ContextCompat.getExternalFilesDirs(context, null)
-            .filterNotNull()
-            .mapNotNull {
-                val file = File(it.absolutePath.substringBefore("/Android/"))
-                val state = Environment.getExternalStorageState(file)
-                if (state == Environment.MEDIA_MOUNTED || state == Environment.MEDIA_MOUNTED_READ_ONLY) {
-                    file
-                } else {
-                    null
-                }
-            }
     }
 
     /**

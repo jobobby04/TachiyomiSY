@@ -29,8 +29,13 @@ class TrackChapter(
             if (tracks.isEmpty()) return@withNonCancellableContext
 
             tracks.mapNotNull { track ->
-                val service = trackerManager.get(track.syncId)
-                if (service == null || !service.isLoggedIn || chapterNumber <= track.lastChapterRead /* SY --> */ || (service is MdList && track.status == FollowStatus.UNFOLLOWED.int.toLong())/* SY <-- */) {
+                val service = trackerManager.get(track.trackerId)
+                if (
+                    service == null ||
+                    !service.isLoggedIn ||
+                    chapterNumber <= track.lastChapterRead /* SY --> */ ||
+                    (service is MdList && track.status == FollowStatus.UNFOLLOWED.int.toLong())/* SY <-- */
+                ) {
                     return@mapNotNull null
                 }
 

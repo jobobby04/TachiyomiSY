@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi
 
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.app.Application
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -9,10 +8,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import android.os.Environment
 import android.os.Looper
 import android.webkit.WebView
-import androidx.core.content.getSystemService
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -29,7 +27,6 @@ import com.elvishew.xlog.XLog
 import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
-import com.elvishew.xlog.printer.file.clean.FileLastModifiedCleanStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
 import eu.kanade.domain.DomainModule
 import eu.kanade.domain.SYDomainModule
@@ -45,9 +42,13 @@ import eu.kanade.tachiyomi.data.coil.PagePreviewFetcher
 import eu.kanade.tachiyomi.data.coil.PagePreviewKeyer
 import eu.kanade.tachiyomi.data.coil.TachiyomiImageDecoder
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.di.AppModule
+import eu.kanade.tachiyomi.di.PreferenceModule
+import eu.kanade.tachiyomi.di.SYPreferenceModule
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
+import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.system.cancelNotification
@@ -64,16 +65,17 @@ import kotlinx.coroutines.flow.onEach
 import logcat.LogPriority
 import logcat.LogcatLogger
 import org.conscrypt.Conscrypt
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.core.util.system.logcat
-import tachiyomi.presentation.widget.TachiyomiWidgetManager
+import tachiyomi.domain.storage.service.StorageManager
+import tachiyomi.i18n.MR
+import tachiyomi.presentation.widget.WidgetManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
-import java.io.File
 import java.security.Security
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.time.Duration.Companion.days
 
 class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
 
@@ -86,8 +88,6 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
     override fun onCreate() {
         super<Application>.onCreate()
         // if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
-        setupExhLogging() // EXH logging
-        LogcatLogger.install(XLogLogcatLogger()) // SY Redirect Logcat to XLog
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
@@ -102,13 +102,16 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
             if (packageName != process) WebView.setDataDirectorySuffix(process)
         }
 
-        Injekt.importModule(AppModule(this))
         Injekt.importModule(PreferenceModule(this))
+        Injekt.importModule(AppModule(this))
         Injekt.importModule(DomainModule())
         // SY -->
         Injekt.importModule(SYPreferenceModule(this))
         Injekt.importModule(SYDomainModule())
         // SY <--
+
+        setupExhLogging() // EXH logging
+        LogcatLogger.install(XLogLogcatLogger()) // SY Redirect Logcat to XLog
 
         setupNotificationChannels()
 
@@ -123,8 +126,8 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
                         Notifications.ID_INCOGNITO_MODE,
                         Notifications.CHANNEL_INCOGNITO_MODE,
                     ) {
-                        setContentTitle(getString(R.string.pref_incognito_mode))
-                        setContentText(getString(R.string.notification_incognito_text))
+                        setContentTitle(stringResource(MR.strings.pref_incognito_mode))
+                        setContentText(stringResource(MR.strings.notification_incognito_text))
                         setSmallIcon(R.drawable.ic_glasses_24dp)
                         setOngoing(true)
 
@@ -146,7 +149,7 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
         setAppCompatDelegateThemeMode(Injekt.get<UiPreferences>().themeMode().get())
 
         // Updates widget update
-        with(TachiyomiWidgetManager(Injekt.get(), Injekt.get())) {
+        with(WidgetManager(Injekt.get(), Injekt.get())) {
             init(ProcessLifecycleOwner.get().lifecycleScope)
         }
 
@@ -178,7 +181,7 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
             callFactory(callFactoryInit)
             diskCache(diskCacheInit)
             crossfade((300 * this@App.animatorDurationScale).toInt())
-            allowRgb565(getSystemService<ActivityManager>()!!.isLowRamDevice)
+            allowRgb565(DeviceUtil.isLowRamDevice(this@App))
             if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
 
             // Coil spawns a new thread for every image load by default
@@ -211,7 +214,7 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
                 if (chromiumElement?.methodName.equals("getAll", ignoreCase = true)) {
                     return WebViewUtil.SPOOF_PACKAGE_NAME
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
             }
         }
         return super.getPackageName()
@@ -243,30 +246,27 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
 
         val printers = mutableListOf<Printer>(AndroidPrinter())
 
-        val logFolder = File(
-            Environment.getExternalStorageDirectory().absolutePath + File.separator +
-                getString(R.string.app_name),
-            "logs",
-        )
+        val logFolder = Injekt.get<StorageManager>().getLogsDirectory()
 
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+        if (logFolder != null) {
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
-        printers += EnhancedFilePrinter
-            .Builder(logFolder.absolutePath) {
-                fileNameGenerator = object : DateFileNameGenerator() {
-                    override fun generateFileName(logLevel: Int, timestamp: Long): String {
-                        return super.generateFileName(
-                            logLevel,
-                            timestamp,
-                        ) + "-${BuildConfig.BUILD_TYPE}.log"
+            printers += EnhancedFilePrinter
+                .Builder(logFolder) {
+                    fileNameGenerator = object : DateFileNameGenerator() {
+                        override fun generateFileName(logLevel: Int, timestamp: Long): String {
+                            return super.generateFileName(
+                                logLevel,
+                                timestamp,
+                            ) + "-${BuildConfig.BUILD_TYPE}.log"
+                        }
                     }
+                    flattener { timeMillis, level, tag, message ->
+                        "${dateFormat.format(timeMillis)} ${LogLevel.getShortLevelName(level)}/$tag: $message"
+                    }
+                    backupStrategy = NeverBackupStrategy()
                 }
-                flattener { timeMillis, level, tag, message ->
-                    "${dateFormat.format(timeMillis)} ${LogLevel.getShortLevelName(level)}/$tag: $message"
-                }
-                cleanStrategy = FileLastModifiedCleanStrategy(7.days.inWholeMilliseconds)
-                backupStrategy = NeverBackupStrategy()
-            }
+        }
 
         // Install Crashlytics in prod
         if (!BuildConfig.DEBUG) {
@@ -303,7 +303,12 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
 
         fun register() {
             if (!registered) {
-                registerReceiver(this, IntentFilter(ACTION_DISABLE_INCOGNITO_MODE))
+                ContextCompat.registerReceiver(
+                    this@App,
+                    this,
+                    IntentFilter(ACTION_DISABLE_INCOGNITO_MODE),
+                    ContextCompat.RECEIVER_NOT_EXPORTED,
+                )
                 registered = true
             }
         }
@@ -322,7 +327,7 @@ private const val ACTION_DISABLE_INCOGNITO_MODE = "tachi.action.DISABLE_INCOGNIT
 /**
  * Direct copy of Coil's internal SingletonDiskCache so that [MangaCoverFetcher] can access it.
  */
-internal object CoilDiskCache {
+private object CoilDiskCache {
 
     private const val FOLDER_NAME = "image_cache"
     private var instance: DiskCache? = null

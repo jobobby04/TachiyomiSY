@@ -1,19 +1,16 @@
 package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
-import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import logcat.LogPriority
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.core.util.system.logcat
 import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.storage.service.StorageManager
+import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -25,25 +22,11 @@ import uy.kohesive.injekt.api.get
  */
 class DownloadProvider(
     private val context: Context,
-    downloadPreferences: DownloadPreferences = Injekt.get(),
+    private val storageManager: StorageManager = Injekt.get(),
 ) {
 
-    private val scope = MainScope()
-
-    /**
-     * The root directory for downloads.
-     */
-    private var downloadsDir = downloadPreferences.downloadsDirectory().get().let {
-        val dir = UniFile.fromUri(context, it.toUri())
-        DiskUtil.createNoMediaFile(dir, context)
-        dir
-    }
-
-    init {
-        downloadPreferences.downloadsDirectory().changes()
-            .onEach { downloadsDir = UniFile.fromUri(context, it.toUri()) }
-            .launchIn(scope)
-    }
+    private val downloadsDir: UniFile?
+        get() = storageManager.getDownloadsDirectory()
 
     /**
      * Returns the download directory for a manga. For internal use only.
@@ -53,12 +36,12 @@ class DownloadProvider(
      */
     internal fun getMangaDir(mangaTitle: String, source: Source): UniFile {
         try {
-            return downloadsDir
-                .createDirectory(getSourceDirName(source))
-                .createDirectory(getMangaDirName(mangaTitle))
+            return downloadsDir!!
+                .createDirectory(getSourceDirName(source))!!
+                .createDirectory(getMangaDirName(mangaTitle))!!
         } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e) { "Invalid download directory" }
-            throw Exception(context.getString(R.string.invalid_location, downloadsDir))
+            throw Exception(context.stringResource(MR.strings.invalid_location, downloadsDir ?: ""))
         }
     }
 
@@ -68,7 +51,7 @@ class DownloadProvider(
      * @param source the source to query.
      */
     fun findSourceDir(source: Source): UniFile? {
-        return downloadsDir.findFile(getSourceDirName(source), true)
+        return downloadsDir?.findFile(getSourceDirName(source), true)
     }
 
     /**
@@ -108,7 +91,7 @@ class DownloadProvider(
         val mangaDir = findMangaDir(/* SY --> */ manga.ogTitle /* SY <-- */, source) ?: return null to emptyList()
         return mangaDir to chapters.mapNotNull { chapter ->
             getValidChapterDirNames(chapter.name, chapter.scanlator).asSequence()
-                .mapNotNull { mangaDir.findFile(it) }
+                .mapNotNull { mangaDir.findFile(it, true) }
                 .firstOrNull()
         }
     }

@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.ui.reader.loader
 
 import android.content.Context
 import com.github.junrar.exception.UnsupportedRarV5Exception
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.Source
@@ -10,12 +9,15 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
+import tachiyomi.core.i18n.stringResource
+import tachiyomi.core.storage.toTempFile
 import tachiyomi.core.util.lang.withIOContext
 import tachiyomi.core.util.system.logcat
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.i18n.MR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.io.Format
 
@@ -56,7 +58,7 @@ class ChapterLoader(
                     .onEach { it.chapter = chapter }
 
                 if (pages.isEmpty()) {
-                    throw Exception(context.getString(R.string.page_list_empty_error))
+                    throw Exception(context.stringResource(MR.strings.page_list_empty_error))
                 }
 
                 // If the chapter is partially read, set the starting page to the last the user read
@@ -88,30 +90,51 @@ class ChapterLoader(
      */
     private fun getPageLoader(chapter: ReaderChapter): PageLoader {
         val dbChapter = chapter.chapter
-        val isDownloaded = downloadManager.isChapterDownloaded(dbChapter.name, dbChapter.scanlator, /* SY --> */ manga.ogTitle /* SY <-- */, manga.source, skipCache = true)
+        val isDownloaded = downloadManager.isChapterDownloaded(
+            chapterName = dbChapter.name,
+            chapterScanlator = dbChapter.scanlator, /* SY --> */
+            mangaTitle = manga.ogTitle /* SY <-- */,
+            sourceId = manga.source,
+            skipCache = true,
+        )
         return when {
             // SY -->
             source is MergedSource -> {
-                val mangaReference = mergedReferences.firstOrNull { it.mangaId == chapter.chapter.manga_id } ?: error("Merge reference null")
-                val source = sourceManager.get(mangaReference.mangaSourceId) ?: error("Source ${mangaReference.mangaSourceId} was null")
+                val mangaReference = mergedReferences.firstOrNull {
+                    it.mangaId == chapter.chapter.manga_id
+                } ?: error("Merge reference null")
+                val source = sourceManager.get(mangaReference.mangaSourceId)
+                    ?: error("Source ${mangaReference.mangaSourceId} was null")
                 val manga = mergedManga[chapter.chapter.manga_id] ?: error("Manga for merged chapter was null")
-                val isMergedMangaDownloaded = downloadManager.isChapterDownloaded(chapter.chapter.name, chapter.chapter.scanlator, manga.ogTitle, manga.source, true)
+                val isMergedMangaDownloaded = downloadManager.isChapterDownloaded(
+                    chapterName = chapter.chapter.name,
+                    chapterScanlator = chapter.chapter.scanlator,
+                    mangaTitle = manga.ogTitle,
+                    sourceId = manga.source,
+                    skipCache = true,
+                )
                 when {
-                    isMergedMangaDownloaded -> DownloadPageLoader(chapter, manga, source, downloadManager, downloadProvider)
+                    isMergedMangaDownloaded -> DownloadPageLoader(
+                        chapter = chapter,
+                        manga = manga,
+                        source = source,
+                        downloadManager = downloadManager,
+                        downloadProvider = downloadProvider,
+                    )
                     source is HttpSource -> HttpPageLoader(chapter, source)
                     source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
                         when (format) {
                             is Format.Directory -> DirectoryPageLoader(format.file)
-                            is Format.Zip -> ZipPageLoader(format.file)
+                            is Format.Zip -> ZipPageLoader(format.file.toTempFile(context))
                             is Format.Rar -> try {
-                                RarPageLoader(format.file)
+                                RarPageLoader(format.file.toTempFile(context))
                             } catch (e: UnsupportedRarV5Exception) {
-                                error(context.getString(R.string.loader_rar5_error))
+                                error(context.stringResource(MR.strings.loader_rar5_error))
                             }
-                            is Format.Epub -> EpubPageLoader(format.file)
+                            is Format.Epub -> EpubPageLoader(format.file.toTempFile(context))
                         }
                     }
-                    else -> error(context.getString(R.string.loader_not_implemented_error))
+                    else -> error(context.stringResource(MR.strings.loader_not_implemented_error))
                 }
             }
             // SY <--
@@ -119,18 +142,18 @@ class ChapterLoader(
             source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
                 when (format) {
                     is Format.Directory -> DirectoryPageLoader(format.file)
-                    is Format.Zip -> ZipPageLoader(format.file)
+                    is Format.Zip -> ZipPageLoader(format.file.toTempFile(context))
                     is Format.Rar -> try {
-                        RarPageLoader(format.file)
+                        RarPageLoader(format.file.toTempFile(context))
                     } catch (e: UnsupportedRarV5Exception) {
-                        error(context.getString(R.string.loader_rar5_error))
+                        error(context.stringResource(MR.strings.loader_rar5_error))
                     }
-                    is Format.Epub -> EpubPageLoader(format.file)
+                    is Format.Epub -> EpubPageLoader(format.file.toTempFile(context))
                 }
             }
             source is HttpSource -> HttpPageLoader(chapter, source)
-            source is StubSource -> error(context.getString(R.string.source_not_installed, source.toString()))
-            else -> error(context.getString(R.string.loader_not_implemented_error))
+            source is StubSource -> error(context.stringResource(MR.strings.source_not_installed, source.toString()))
+            else -> error(context.stringResource(MR.strings.loader_not_implemented_error))
         }
     }
 }

@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.data.track.mdlist
 
 import android.graphics.Color
-import androidx.annotation.StringRes
+import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
@@ -11,14 +11,22 @@ import eu.kanade.tachiyomi.source.model.SManga
 import exh.md.network.MangaDexAuthInterceptor
 import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
-import tachiyomi.core.util.lang.awaitSingle
-import tachiyomi.core.util.lang.runAsObservable
+import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.core.util.lang.withIOContext
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import tachiyomi.domain.track.model.Track as DomainTrack
 
 class MdList(id: Long) : BaseTracker(id, "MDList") {
+
+    companion object {
+        private val SCORE_LIST = IntRange(0, 10)
+            .map(Int::toString)
+            .toImmutableList()
+    }
 
     private val mdex by lazy { MdUtil.getEnabledMangaDex(Injekt.get()) }
 
@@ -33,24 +41,23 @@ class MdList(id: Long) : BaseTracker(id, "MDList") {
     }
 
     override fun getStatusList(): List<Int> {
-        return FollowStatus.values().map { it.int }
+        return FollowStatus.entries.map { it.int }
     }
 
-    @StringRes
-    override fun getStatus(status: Int): Int? = when (status) {
-        0 -> R.string.md_follows_unfollowed
-        1 -> R.string.reading
-        2 -> R.string.completed
-        3 -> R.string.on_hold
-        4 -> R.string.plan_to_read
-        5 -> R.string.dropped
-        6 -> R.string.repeating
+    override fun getStatus(status: Int): StringResource? = when (status) {
+        0 -> SYMR.strings.md_follows_unfollowed
+        1 -> MR.strings.reading
+        2 -> MR.strings.completed
+        3 -> MR.strings.on_hold
+        4 -> MR.strings.plan_to_read
+        5 -> MR.strings.dropped
+        6 -> MR.strings.repeating
         else -> null
     }
 
-    override fun getScoreList() = IntRange(0, 10).map(Int::toString)
+    override fun getScoreList() = SCORE_LIST
 
-    override fun displayScore(track: Track) = track.score.toInt().toString()
+    override fun displayScore(track: DomainTrack) = track.score.toInt().toString()
 
     override suspend fun update(track: Track, didReadChapter: Boolean): Track {
         return withIOContext {
@@ -138,15 +145,12 @@ class MdList(id: Long) : BaseTracker(id, "MDList") {
     override suspend fun search(query: String): List<TrackSearch> {
         return withIOContext {
             val mdex = mdex ?: throw MangaDexNotFoundException()
-            mdex.fetchSearchManga(1, query, FilterList())
-                .flatMap { page ->
-                    runAsObservable {
-                        page.mangas.map {
-                            toTrackSearch(mdex.getMangaDetails(it))
-                        }.distinct()
-                    }
+            mdex.getSearchManga(1, query, FilterList())
+                .mangas
+                .map {
+                    toTrackSearch(mdex.getMangaDetails(it))
                 }
-                .awaitSingle()
+                .distinct()
         }
     }
 

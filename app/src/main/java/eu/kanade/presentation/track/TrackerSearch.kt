@@ -28,7 +28,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -49,25 +49,25 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toLowerCase
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.theme.TachiyomiTheme
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
-import tachiyomi.presentation.core.util.ThemePreviews
 import tachiyomi.presentation.core.util.plus
 import tachiyomi.presentation.core.util.runOnEnterKeyPressed
 import tachiyomi.presentation.core.util.secondaryItemAlpha
@@ -97,7 +97,7 @@ fun TrackerSearch(
                     navigationIcon = {
                         IconButton(onClick = onDismissRequest) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -120,7 +120,7 @@ fun TrackerSearch(
                             decorationBox = {
                                 if (query.text.isEmpty()) {
                                     Text(
-                                        text = stringResource(R.string.action_search_hint),
+                                        text = stringResource(MR.strings.action_search_hint),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         style = MaterialTheme.typography.bodyLarge,
                                     )
@@ -163,7 +163,7 @@ fun TrackerSearch(
                         .fillMaxWidth(),
                     elevation = ButtonDefaults.elevatedButtonElevation(),
                 ) {
-                    Text(text = stringResource(R.string.action_track))
+                    Text(text = stringResource(MR.strings.action_track))
                 }
             }
         },
@@ -176,7 +176,7 @@ fun TrackerSearch(
                 if (availableTracks.isEmpty()) {
                     EmptyScreen(
                         modifier = Modifier.padding(innerPadding),
-                        textResource = R.string.no_results_found,
+                        stringRes = MR.strings.no_results_found,
                     )
                 } else {
                     ScrollbarLazyColumn(
@@ -193,6 +193,7 @@ fun TrackerSearch(
                                 type = it.publishing_type.toLowerCase(Locale.current).capitalize(Locale.current),
                                 startDate = it.start_date,
                                 status = it.publishing_status.toLowerCase(Locale.current).capitalize(Locale.current),
+                                score = it.score,
                                 description = it.summary.trim(),
                                 selected = it == selected,
                                 onClick = { onSelectedChange(it) },
@@ -204,7 +205,7 @@ fun TrackerSearch(
                 EmptyScreen(
                     modifier = Modifier.padding(innerPadding),
                     message = queryResult.exceptionOrNull()?.message
-                        ?: stringResource(R.string.unknown_error),
+                        ?: stringResource(MR.strings.unknown_error),
                 )
             }
         }
@@ -218,6 +219,7 @@ private fun SearchResultItem(
     type: String,
     startDate: String,
     status: String,
+    score: Float,
     description: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -240,7 +242,7 @@ private fun SearchResultItem(
     ) {
         if (selected) {
             Icon(
-                imageVector = Icons.Default.CheckCircle,
+                imageVector = Icons.Filled.CheckCircle,
                 contentDescription = null,
                 modifier = Modifier.align(Alignment.TopEnd),
                 tint = MaterialTheme.colorScheme.primary,
@@ -263,20 +265,26 @@ private fun SearchResultItem(
                     )
                     if (type.isNotBlank()) {
                         SearchResultItemDetails(
-                            title = stringResource(R.string.track_type),
+                            title = stringResource(MR.strings.track_type),
                             text = type,
                         )
                     }
                     if (startDate.isNotBlank()) {
                         SearchResultItemDetails(
-                            title = stringResource(R.string.label_started),
+                            title = stringResource(MR.strings.label_started),
                             text = startDate,
                         )
                     }
                     if (status.isNotBlank()) {
                         SearchResultItemDetails(
-                            title = stringResource(R.string.track_status),
+                            title = stringResource(MR.strings.track_status),
                             text = status,
+                        )
+                    }
+                    if (score != -1f) {
+                        SearchResultItemDetails(
+                            title = stringResource(MR.strings.score),
+                            text = score.toString(),
                         )
                     }
                 }
@@ -319,7 +327,7 @@ private fun SearchResultItemDetails(
     }
 }
 
-@ThemePreviews
+@PreviewLightDark
 @Composable
 private fun TrackerSearchPreviews(
     @PreviewParameter(TrackerSearchPreviewProvider::class)

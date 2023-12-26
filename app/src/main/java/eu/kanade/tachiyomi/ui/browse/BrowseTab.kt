@@ -10,7 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
@@ -18,7 +17,6 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.TabbedScreen
-import eu.kanade.presentation.permissions.PermissionRequestHelper
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsScreenModel
@@ -28,6 +26,9 @@ import eu.kanade.tachiyomi.ui.browse.migration.sources.migrateSourceTab
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.browse.source.sourcesTab
 import eu.kanade.tachiyomi.ui.main.MainActivity
+import kotlinx.collections.immutable.persistentListOf
+import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -42,7 +43,7 @@ data class BrowseTab(
             val image = AnimatedImageVector.animatedVectorResource(R.drawable.anim_browse_enter)
             return TabOptions(
                 index = 3u,
-                title = stringResource(R.string.browse),
+                title = stringResource(MR.strings.browse),
                 icon = rememberAnimatedVectorPainter(image, isSelected),
             )
         }
@@ -66,17 +67,17 @@ data class BrowseTab(
         val extensionsState by extensionsScreenModel.state.collectAsState()
 
         TabbedScreen(
-            titleRes = R.string.browse,
+            titleRes = MR.strings.browse,
             // SY -->
             tabs = if (feedTabInFront) {
-                listOf(
+                persistentListOf(
                     feedTab(),
                     sourcesTab(),
                     extensionsTab(extensionsScreenModel),
                     migrateSourceTab(),
                 )
             } else {
-                listOf(
+                persistentListOf(
                     sourcesTab(),
                     feedTab(),
                     extensionsTab(extensionsScreenModel),
@@ -88,9 +89,6 @@ data class BrowseTab(
             searchQuery = extensionsState.searchQuery,
             onChangeSearchQuery = extensionsScreenModel::search,
         )
-
-        // For local source
-        PermissionRequestHelper.requestStoragePermission()
 
         LaunchedEffect(Unit) {
             (context as? MainActivity)?.ready = true

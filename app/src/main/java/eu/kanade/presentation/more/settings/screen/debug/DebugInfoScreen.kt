@@ -13,10 +13,12 @@ import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.PreferenceScaffold
 import eu.kanade.presentation.more.settings.screen.about.AboutScreen
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.WebViewUtil
+import kotlinx.collections.immutable.mutate
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.guava.await
+import tachiyomi.i18n.MR
 
 class DebugInfoScreen : Screen() {
 
@@ -24,7 +26,7 @@ class DebugInfoScreen : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         PreferenceScaffold(
-            titleRes = R.string.pref_debug_info,
+            titleRes = MR.strings.pref_debug_info,
             onBackPressed = navigator::pop,
             itemsProvider = {
                 listOf(
@@ -47,7 +49,7 @@ class DebugInfoScreen : Screen() {
     private fun getAppInfoGroup(): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
             title = "App info",
-            preferenceItems = listOf(
+            preferenceItems = persistentListOf(
                 Preference.PreferenceItem.TextPreference(
                     title = "Version",
                     subtitle = AboutScreen.getVersionName(false),
@@ -78,7 +80,8 @@ class DebugInfoScreen : Screen() {
             value = when (result) {
                 ProfileVerifier.CompilationStatus.RESULT_CODE_NO_PROFILE -> "No profile installed"
                 ProfileVerifier.CompilationStatus.RESULT_CODE_COMPILED_WITH_PROFILE -> "Compiled"
-                ProfileVerifier.CompilationStatus.RESULT_CODE_COMPILED_WITH_PROFILE_NON_MATCHING -> "Compiled non-matching"
+                ProfileVerifier.CompilationStatus.RESULT_CODE_COMPILED_WITH_PROFILE_NON_MATCHING ->
+                    "Compiled non-matching"
                 ProfileVerifier.CompilationStatus.RESULT_CODE_ERROR_CACHE_FILE_EXISTS_BUT_CANNOT_BE_READ,
                 ProfileVerifier.CompilationStatus.RESULT_CODE_ERROR_CANT_WRITE_PROFILE_VERIFICATION_RESULT_CACHE_FILE,
                 ProfileVerifier.CompilationStatus.RESULT_CODE_ERROR_PACKAGE_NAME_DOES_NOT_EXIST,
@@ -95,8 +98,8 @@ class DebugInfoScreen : Screen() {
     }
 
     private fun getDeviceInfoGroup(): Preference.PreferenceGroup {
-        val items = buildList {
-            add(
+        val items = persistentListOf<Preference.PreferenceItem<out Any>>().mutate {
+            it.add(
                 Preference.PreferenceItem.TextPreference(
                     title = "Model",
                     subtitle = "${Build.MANUFACTURER} ${Build.MODEL} (${Build.DEVICE})",
@@ -104,14 +107,14 @@ class DebugInfoScreen : Screen() {
             )
 
             if (DeviceUtil.oneUiVersion != null) {
-                add(
+                it.add(
                     Preference.PreferenceItem.TextPreference(
                         title = "OneUI version",
                         subtitle = "${DeviceUtil.oneUiVersion}",
                     ),
                 )
             } else if (DeviceUtil.miuiMajorVersion != null) {
-                add(
+                it.add(
                     Preference.PreferenceItem.TextPreference(
                         title = "MIUI version",
                         subtitle = "${DeviceUtil.miuiMajorVersion}",
@@ -126,7 +129,7 @@ class DebugInfoScreen : Screen() {
             } else {
                 Build.VERSION.RELEASE
             }
-            add(
+            it.add(
                 Preference.PreferenceItem.TextPreference(
                     title = "Android version",
                     subtitle = "$androidVersion (${Build.DISPLAY})",

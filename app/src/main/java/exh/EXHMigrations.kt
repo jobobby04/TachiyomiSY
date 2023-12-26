@@ -9,7 +9,7 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
-import eu.kanade.tachiyomi.data.backup.BackupCreateJob
+import eu.kanade.tachiyomi.data.backup.create.BackupCreateJob
 import eu.kanade.tachiyomi.data.cache.PagePreviewCache
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.track.TrackerManager
@@ -17,7 +17,7 @@ import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.network.PREF_DOH_CLOUDFLARE
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.online.all.NHentai
-import eu.kanade.tachiyomi.ui.reader.setting.OrientationType
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.workManager
@@ -138,7 +138,9 @@ object EXHMigrations {
                     val mergedMangas = runBlocking { getMangaBySource.await(MERGED_SOURCE_ID) }
 
                     if (mergedMangas.isNotEmpty()) {
-                        val mangaConfigs = mergedMangas.mapNotNull { mergedManga -> readMangaConfig(mergedManga)?.let { mergedManga to it } }
+                        val mangaConfigs = mergedMangas.mapNotNull { mergedManga ->
+                            readMangaConfig(mergedManga)?.let { mergedManga to it }
+                        }
                         if (mangaConfigs.isNotEmpty()) {
                             val mangaToUpdate = mutableListOf<MangaUpdate>()
                             val mergedMangaReferences = mutableListOf<MergedMangaReference>()
@@ -183,15 +185,45 @@ object EXHMigrations {
                                 insertMergedReference.awaitAll(mergedMangaReferences)
                             }
 
-                            val loadedMangaList = mangaConfigs.map { it.second.children }.flatten().mapNotNull { it.load() }.distinct()
-                            val chapters = runBlocking { handler.awaitList { ehQueries.getChaptersByMangaIds(mergedMangas.map { it.id }, ChapterMapper::mapChapter) } }
-                            val mergedMangaChapters = runBlocking { handler.awaitList { ehQueries.getChaptersByMangaIds(loadedMangaList.map { it.manga.id }, ChapterMapper::mapChapter) } }
+                            val loadedMangaList = mangaConfigs
+                                .map { it.second.children }
+                                .flatten()
+                                .mapNotNull { it.load() }
+                                .distinct()
+                            val chapters =
+                                runBlocking {
+                                    handler.awaitList {
+                                        ehQueries.getChaptersByMangaIds(
+                                            mergedMangas.map { it.id },
+                                            ChapterMapper::mapChapter,
+                                        )
+                                    }
+                                }
+                            val mergedMangaChapters =
+                                runBlocking {
+                                    handler.awaitList {
+                                        ehQueries.getChaptersByMangaIds(
+                                            loadedMangaList.map { it.manga.id },
+                                            ChapterMapper::mapChapter,
+                                        )
+                                    }
+                                }
 
-                            val mergedMangaChaptersMatched = mergedMangaChapters.mapNotNull { chapter -> loadedMangaList.firstOrNull { it.manga.id == chapter.id }?.let { it to chapter } }
-                            val parsedChapters = chapters.filter { it.read || it.lastPageRead != 0L }.mapNotNull { chapter -> readUrlConfig(chapter.url)?.let { chapter to it } }
+                            val mergedMangaChaptersMatched = mergedMangaChapters.mapNotNull { chapter ->
+                                loadedMangaList.firstOrNull {
+                                    it.manga.id == chapter.id
+                                }?.let { it to chapter }
+                            }
+                            val parsedChapters = chapters.filter {
+                                it.read || it.lastPageRead != 0L
+                            }.mapNotNull { chapter -> readUrlConfig(chapter.url)?.let { chapter to it } }
                             val chaptersToUpdate = mutableListOf<ChapterUpdate>()
                             parsedChapters.forEach { parsedChapter ->
-                                mergedMangaChaptersMatched.firstOrNull { it.second.url == parsedChapter.second.url && it.first.source.id == parsedChapter.second.source && it.first.manga.url == parsedChapter.second.mangaUrl }?.let {
+                                mergedMangaChaptersMatched.firstOrNull {
+                                    it.second.url == parsedChapter.second.url &&
+                                        it.first.source.id == parsedChapter.second.source &&
+                                        it.first.manga.url == parsedChapter.second.mangaUrl
+                                }?.let {
                                     chaptersToUpdate += ChapterUpdate(
                                         it.second.id,
                                         read = parsedChapter.first.read,
@@ -235,12 +267,12 @@ object EXHMigrations {
                 if (oldVersion under 17) {
                     // Migrate Rotation and Viewer values to default values for viewer_flags
                     val newOrientation = when (prefs.getInt("pref_rotation_type_key", 1)) {
-                        1 -> OrientationType.FREE.flagValue
-                        2 -> OrientationType.PORTRAIT.flagValue
-                        3 -> OrientationType.LANDSCAPE.flagValue
-                        4 -> OrientationType.LOCKED_PORTRAIT.flagValue
-                        5 -> OrientationType.LOCKED_LANDSCAPE.flagValue
-                        else -> OrientationType.FREE.flagValue
+                        1 -> ReaderOrientation.FREE.flagValue
+                        2 -> ReaderOrientation.PORTRAIT.flagValue
+                        3 -> ReaderOrientation.LANDSCAPE.flagValue
+                        4 -> ReaderOrientation.LOCKED_PORTRAIT.flagValue
+                        5 -> ReaderOrientation.LOCKED_LANDSCAPE.flagValue
+                        else -> ReaderOrientation.FREE.flagValue
                     }
 
                     // Reading mode flag and prefValue is the same value
@@ -266,7 +298,6 @@ object EXHMigrations {
                     val updateInterval = libraryPreferences.autoUpdateInterval().get()
                     if (updateInterval == 1 || updateInterval == 2) {
                         libraryPreferences.autoUpdateInterval().set(3)
-                        LibraryUpdateJob.setupTask(context, 3)
                     }
                 }
                 if (oldVersion under 20) {
@@ -306,20 +337,11 @@ object EXHMigrations {
                         logcat(throwable = e) { "Already done migration" }
                     }
                 }
-                if (oldVersion under 21) {
-                    // Setup EH updater task after migrating to WorkManager
-                    EHentaiUpdateWorker.scheduleBackground(context)
-
-                    // if (preferences.lang().get() in listOf("en-US", "en-GB")) {
-                    //    preferences.lang().set("en")
-                    // }
-                }
                 if (oldVersion under 22) {
                     // Handle removed every 3, 4, 6, and 8 hour library updates
                     val updateInterval = libraryPreferences.autoUpdateInterval().get()
                     if (updateInterval in listOf(3, 4, 6, 8)) {
                         libraryPreferences.autoUpdateInterval().set(12)
-                        LibraryUpdateJob.setupTask(context, 12)
                     }
                 }
                 if (oldVersion under 23) {
@@ -353,7 +375,11 @@ object EXHMigrations {
                     if (oldSecureScreen) {
                         securityPreferences.secureScreen().set(SecurityPreferences.SecureScreenMode.ALWAYS)
                     }
-                    if (DeviceUtil.isMiui && basePreferences.extensionInstaller().get() == BasePreferences.ExtensionInstaller.PACKAGEINSTALLER) {
+                    if (
+                        DeviceUtil.isMiui &&
+                        basePreferences.extensionInstaller().get() == BasePreferences.ExtensionInstaller
+                            .PACKAGEINSTALLER
+                    ) {
                         basePreferences.extensionInstaller().set(BasePreferences.ExtensionInstaller.LEGACY)
                     }
                 }
@@ -370,9 +396,6 @@ object EXHMigrations {
                             putString("pref_display_mode_catalogue", "COMPACT_GRID")
                         }
                     }
-                }
-                if (oldVersion under 30) {
-                    BackupCreateJob.setupTask(context)
                 }
                 if (oldVersion under 31) {
                     runBlocking {
@@ -418,7 +441,9 @@ object EXHMigrations {
                 }
                 if (oldVersion under 38) {
                     // Handle renamed enum values
-                    val newSortingMode = when (val oldSortingMode = prefs.getString(libraryPreferences.sortingMode().key(), "ALPHABETICAL")) {
+                    val newSortingMode = when (
+                        val oldSortingMode = prefs.getString(libraryPreferences.sortingMode().key(), "ALPHABETICAL")
+                    ) {
                         "LAST_CHECKED" -> "LAST_MANGA_UPDATE"
                         "UNREAD" -> "UNREAD_COUNT"
                         "DATE_FETCHED" -> "CHAPTER_FETCH_DATE"
@@ -452,12 +477,8 @@ object EXHMigrations {
                     }
                 }
                 if (oldVersion under 40) {
-                    if (backupPreferences.numberOfBackups().get() == 1) {
-                        backupPreferences.numberOfBackups().set(2)
-                    }
                     if (backupPreferences.backupInterval().get() == 0) {
                         backupPreferences.backupInterval().set(12)
-                        BackupCreateJob.setupTask(context)
                     }
                 }
                 if (oldVersion under 41) {
@@ -508,8 +529,6 @@ object EXHMigrations {
                     trackerManager.mdList.logout()
                 }
                 if (oldVersion under 52) {
-                    LibraryUpdateJob.cancelAllWorks(context)
-                    LibraryUpdateJob.setupTask(context)
                     // Removed background jobs
                     context.workManager.cancelAllWorkByTag("UpdateChecker")
                     context.workManager.cancelAllWorkByTag("ExtensionUpdate")
@@ -539,7 +558,6 @@ object EXHMigrations {
                             preferenceStore.getEnum("${key}_v2", TriState.DISABLED).set(newValue)
                         }
                     }
-                    BackupCreateJob.setupTask(context)
                 }
                 // if (oldVersion under 53) {
                 //     // This was accidentally visible from the reader settings sheet, but should always
@@ -585,7 +603,8 @@ object EXHMigrations {
                                 preferenceStore.getString(key).delete()
                             }
                         }
-
+                }
+                if (oldVersion under 59) {
                     val prefsToReplace = listOf(
                         "pref_download_only",
                         "incognito_mode",
@@ -595,8 +614,12 @@ object EXHMigrations {
                         "library_update_last_timestamp",
                         "library_unseen_updates_count",
                         "last_used_category",
+                        "last_app_check",
+                        "last_ext_check",
+                        "last_version_code",
                         "skip_pre_migration",
                         "eh_auto_update_stats",
+                        "storage_dir",
                     )
                     replacePreferences(
                         preferenceStore = preferenceStore,
@@ -618,7 +641,7 @@ object EXHMigrations {
                         "eh_exhSettingsProfile",
                         "eh_settingsKey",
                         "eh_sessionCookie",
-                        "eh_hathPerksCookie"
+                        "eh_hathPerksCookie",
                     )
 
                     replacePreferences(
@@ -626,6 +649,9 @@ object EXHMigrations {
                         filterPredicate = { it.key in privatePrefsToReplace },
                         newKey = { Preference.privateKey(it) },
                     )
+
+                    // Deleting old download cache index files, but might as well clear it all out
+                    context.cacheDir.deleteRecursively()
                 }
 
                 // if (oldVersion under 1) { } (1 is current release version)
@@ -749,7 +775,6 @@ object EXHMigrations {
             handler.await { ehQueries.migrateSource(newId, oldId) }
         }
     }
-
 
     @Suppress("UNCHECKED_CAST")
     private fun replacePreferences(

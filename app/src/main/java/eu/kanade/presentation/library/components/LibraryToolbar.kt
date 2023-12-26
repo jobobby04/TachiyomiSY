@@ -14,14 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.SearchToolbar
-import eu.kanade.tachiyomi.R
+import kotlinx.collections.immutable.persistentListOf
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.Pill
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.active
 
 @Composable
@@ -104,36 +106,38 @@ private fun LibraryRegularToolbar(
         actions = {
             val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else LocalContentColor.current
             AppBarActions(
-                listOfNotNull(
+                persistentListOf(
                     AppBar.Action(
-                        title = stringResource(R.string.action_filter),
+                        title = stringResource(MR.strings.action_filter),
                         icon = Icons.Outlined.FilterList,
                         iconTint = filterTint,
                         onClick = onClickFilter,
                     ),
                     AppBar.OverflowAction(
-                        title = stringResource(R.string.action_update_library),
+                        title = stringResource(MR.strings.action_update_library),
                         onClick = onClickGlobalUpdate,
                     ),
                     AppBar.OverflowAction(
-                        title = stringResource(R.string.action_update_category),
+                        title = stringResource(MR.strings.action_update_category),
                         onClick = onClickRefresh,
                     ),
                     AppBar.OverflowAction(
-                        title = stringResource(R.string.action_open_random_manga),
+                        title = stringResource(MR.strings.action_open_random_manga),
                         onClick = onClickOpenRandomManga,
                     ),
+
+                ).builder().apply {
                     // SY -->
                     if (onClickSyncExh != null) {
-                        AppBar.OverflowAction(
-                            title = stringResource(R.string.sync_favorites),
-                            onClick = onClickSyncExh,
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(SYMR.strings.sync_favorites),
+                                onClick = onClickSyncExh,
+                            ),
                         )
-                    } else {
-                        null
-                    },
+                    }
                     // SY <--
-                ),
+                }.build(),
             )
         },
         scrollBehavior = scrollBehavior,
@@ -151,14 +155,14 @@ private fun LibrarySelectionToolbar(
         titleContent = { Text(text = "$selectedCount") },
         actions = {
             AppBarActions(
-                listOf(
+                persistentListOf(
                     AppBar.Action(
-                        title = stringResource(R.string.action_select_all),
+                        title = stringResource(MR.strings.action_select_all),
                         icon = Icons.Outlined.SelectAll,
                         onClick = onClickSelectAll,
                     ),
                     AppBar.Action(
-                        title = stringResource(R.string.action_select_inverse),
+                        title = stringResource(MR.strings.action_select_inverse),
                         icon = Icons.Outlined.FlipToBack,
                         onClick = onClickInvertSelection,
                     ),

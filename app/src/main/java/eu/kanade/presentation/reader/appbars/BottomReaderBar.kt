@@ -17,23 +17,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.ui.reader.setting.OrientationType
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
-import eu.kanade.tachiyomi.ui.reader.setting.ReadingModeType
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
+import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
+import kotlinx.collections.immutable.ImmutableSet
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
+import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun BottomReaderBar(
     // SY -->
-    enabledButtons: Set<String>,
+    enabledButtons: ImmutableSet<String>,
     // SY <--
     backgroundColor: Color,
-    readingMode: ReadingModeType,
+    readingMode: ReadingMode,
     onClickReadingMode: () -> Unit,
-    orientationMode: OrientationType,
-    onClickOrientationMode: () -> Unit,
+    orientation: ReaderOrientation,
+    onClickOrientation: () -> Unit,
     cropEnabled: Boolean,
     onClickCropBorder: () -> Unit,
     onClickSettings: () -> Unit,
@@ -60,7 +63,7 @@ fun BottomReaderBar(
             IconButton(onClick = onClickChapterList) {
                 Icon(
                     imageVector = Icons.Outlined.FormatListNumbered,
-                    contentDescription = stringResource(R.string.chapters),
+                    contentDescription = stringResource(MR.strings.chapters),
                 )
             }
         }
@@ -69,7 +72,7 @@ fun BottomReaderBar(
             IconButton(onClick = onClickWebView) {
                 Icon(
                     imageVector = Icons.Outlined.Public,
-                    contentDescription = stringResource(R.string.action_open_in_web_view),
+                    contentDescription = stringResource(MR.strings.action_open_in_web_view),
                 )
             }
         }
@@ -78,7 +81,7 @@ fun BottomReaderBar(
             IconButton(onClick = onClickShare) {
                 Icon(
                     imageVector = Icons.Outlined.Share,
-                    contentDescription = stringResource(R.string.action_share),
+                    contentDescription = stringResource(MR.strings.action_share),
                 )
             }
         }
@@ -87,30 +90,32 @@ fun BottomReaderBar(
             IconButton(onClick = onClickReadingMode) {
                 Icon(
                     painter = painterResource(readingMode.iconRes),
-                    contentDescription = stringResource(R.string.viewer),
-                )
-            }
-        }
-
-        val cropBorders = when (readingMode) {
-            ReadingModeType.WEBTOON -> ReaderBottomButton.CropBordersWebtoon
-            ReadingModeType.CONTINUOUS_VERTICAL -> ReaderBottomButton.CropBordersContinuesVertical
-            else -> ReaderBottomButton.CropBordersPager
-        }
-        if (cropBorders.isIn(enabledButtons)) {
-            IconButton(onClick = onClickCropBorder) {
-                Icon(
-                    painter = painterResource(if (cropEnabled) R.drawable.ic_crop_24dp else R.drawable.ic_crop_off_24dp),
-                    contentDescription = stringResource(R.string.pref_crop_borders),
+                    contentDescription = stringResource(MR.strings.viewer),
                 )
             }
         }
 
         if (ReaderBottomButton.Rotation.isIn(enabledButtons)) {
-            IconButton(onClick = onClickOrientationMode) {
+            IconButton(onClick = onClickOrientation) {
                 Icon(
-                    painter = painterResource(orientationMode.iconRes),
-                    contentDescription = stringResource(R.string.pref_rotation_type),
+                    imageVector = orientation.icon,
+                    contentDescription = stringResource(MR.strings.pref_rotation_type),
+                )
+            }
+        }
+
+        val cropBorders = when (readingMode) {
+            ReadingMode.WEBTOON -> ReaderBottomButton.CropBordersWebtoon
+            ReadingMode.CONTINUOUS_VERTICAL -> ReaderBottomButton.CropBordersContinuesVertical
+            else -> ReaderBottomButton.CropBordersPager
+        }
+        if (cropBorders.isIn(enabledButtons)) {
+            IconButton(onClick = onClickCropBorder) {
+                Icon(
+                    painter = painterResource(
+                        if (cropEnabled) R.drawable.ic_crop_24dp else R.drawable.ic_crop_off_24dp,
+                    ),
+                    contentDescription = stringResource(MR.strings.pref_crop_borders),
                 )
             }
         }
@@ -118,12 +123,12 @@ fun BottomReaderBar(
         if (
             !dualPageSplitEnabled &&
             ReaderBottomButton.PageLayout.isIn(enabledButtons) &&
-            ReadingModeType.isPagerType(readingMode.flagValue)
+            ReadingMode.isPagerType(readingMode.flagValue)
         ) {
             IconButton(onClick = onClickPageLayout) {
                 Icon(
                     painter = painterResource(R.drawable.ic_book_open_variant_24dp),
-                    contentDescription = stringResource(R.string.page_layout),
+                    contentDescription = stringResource(SYMR.strings.page_layout),
                 )
             }
         }
@@ -132,7 +137,7 @@ fun BottomReaderBar(
             IconButton(onClick = onClickShiftPage) {
                 Icon(
                     painter = painterResource(R.drawable.ic_page_next_outline_24dp),
-                    contentDescription = stringResource(R.string.shift_double_pages),
+                    contentDescription = stringResource(SYMR.strings.shift_double_pages),
                 )
             }
         }
@@ -140,7 +145,7 @@ fun BottomReaderBar(
         IconButton(onClick = onClickSettings) {
             Icon(
                 imageVector = Icons.Outlined.Settings,
-                contentDescription = stringResource(R.string.action_settings),
+                contentDescription = stringResource(MR.strings.action_settings),
             )
         }
         // SY <--

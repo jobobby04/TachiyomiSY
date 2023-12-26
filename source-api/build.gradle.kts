@@ -16,6 +16,7 @@ kotlin {
                 api(libs.jsoup)
                 // SY -->
                 api(project(":i18n"))
+                api(project(":i18n-sy"))
                 api(kotlinx.reflect)
                 // SY <--
             }
@@ -38,5 +39,13 @@ android {
 
     defaultConfig {
         consumerProguardFile("consumer-proguard.pro")
+    }
+}
+
+tasks {
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions.freeCompilerArgs += listOf(
+            "-Xexpect-actual-classes",
+        )
     }
 }

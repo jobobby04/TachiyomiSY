@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.data.track.mangaupdates
 
 import android.graphics.Color
-import androidx.annotation.StringRes
+import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
@@ -9,6 +9,10 @@ import eu.kanade.tachiyomi.data.track.DeletableTracker
 import eu.kanade.tachiyomi.data.track.mangaupdates.dto.copyTo
 import eu.kanade.tachiyomi.data.track.mangaupdates.dto.toTrackSearch
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import tachiyomi.i18n.MR
+import tachiyomi.domain.track.model.Track as DomainTrack
 
 class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker {
 
@@ -18,6 +22,12 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
         const val COMPLETE_LIST = 2
         const val UNFINISHED_LIST = 3
         const val ON_HOLD_LIST = 4
+
+        private val SCORE_LIST = (
+            (0..9)
+                .flatMap { i -> (0..9).map { j -> "$i.$j" } } + listOf("10.0")
+            )
+            .toImmutableList()
     }
 
     private val interceptor by lazy { MangaUpdatesInterceptor(this) }
@@ -32,13 +42,12 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
         return listOf(READING_LIST, COMPLETE_LIST, ON_HOLD_LIST, UNFINISHED_LIST, WISH_LIST)
     }
 
-    @StringRes
-    override fun getStatus(status: Int): Int? = when (status) {
-        READING_LIST -> R.string.reading_list
-        WISH_LIST -> R.string.wish_list
-        COMPLETE_LIST -> R.string.complete_list
-        ON_HOLD_LIST -> R.string.on_hold_list
-        UNFINISHED_LIST -> R.string.unfinished_list
+    override fun getStatus(status: Int): StringResource? = when (status) {
+        READING_LIST -> MR.strings.reading_list
+        WISH_LIST -> MR.strings.wish_list
+        COMPLETE_LIST -> MR.strings.complete_list
+        ON_HOLD_LIST -> MR.strings.on_hold_list
+        UNFINISHED_LIST -> MR.strings.unfinished_list
         else -> null
     }
 
@@ -48,13 +57,11 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
 
     override fun getCompletionStatus(): Int = COMPLETE_LIST
 
-    private val _scoreList = (0..9).flatMap { i -> (0..9).map { j -> "$i.$j" } } + listOf("10.0")
+    override fun getScoreList(): ImmutableList<String> = SCORE_LIST
 
-    override fun getScoreList(): List<String> = _scoreList
+    override fun indexToScore(index: Int): Float = SCORE_LIST[index].toFloat()
 
-    override fun indexToScore(index: Int): Float = _scoreList[index].toFloat()
-
-    override fun displayScore(track: Track): String = track.score.toString()
+    override fun displayScore(track: DomainTrack): String = track.score.toString()
 
     override suspend fun update(track: Track, didReadChapter: Boolean): Track {
         if (track.status != COMPLETE_LIST && didReadChapter) {
@@ -64,9 +71,8 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
         return track
     }
 
-    override suspend fun delete(track: Track): Track {
+    override suspend fun delete(track: DomainTrack) {
         api.deleteSeriesFromList(track)
-        return track
     }
 
     override suspend fun bind(track: Track, hasReadChapters: Boolean): Track {

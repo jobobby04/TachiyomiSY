@@ -40,7 +40,7 @@ abstract class HttpSource : CatalogueSource {
     // SY -->
     protected val network: NetworkHelper by lazy {
         val network = Injekt.get<NetworkHelper>()
-        object : NetworkHelper(Injekt.get<Application>(), Injekt.get()) {
+        object : NetworkHelper(Injekt.get<Application>(), Injekt.get(), network.isDebugBuild) {
             override val client: OkHttpClient
                 get() = delegate?.networkHttpClient ?: network.client
                     .newBuilder()
@@ -135,6 +135,7 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the page number to retrieve.
      */
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getPopularManga"))
     override fun fetchPopularManga(page: Int): Observable<MangasPage> {
         return client.newCall(popularMangaRequest(page))
             .asObservableSuccess()
@@ -165,6 +166,7 @@ abstract class HttpSource : CatalogueSource {
      * @param query the search query.
      * @param filters the list of filters to apply.
      */
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getSearchManga"))
     override fun fetchSearchManga(
         page: Int,
         query: String,
@@ -209,6 +211,7 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the page number to retrieve.
      */
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getLatestUpdates"))
     override fun fetchLatestUpdates(page: Int): Observable<MangasPage> {
         return client.newCall(latestUpdatesRequest(page))
             .asObservableSuccess()

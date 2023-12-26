@@ -14,6 +14,7 @@ import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchItemResult
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SourceFilter
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import kotlinx.collections.immutable.ImmutableMap
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.presentation.core.components.material.Scaffold
 
@@ -60,13 +61,13 @@ fun GlobalSearchScreen(
 
 @Composable
 internal fun GlobalSearchContent(
-    fromSourceId: Long? = null,
-    items: Map<CatalogueSource, SearchItemResult>,
+    items: ImmutableMap<CatalogueSource, SearchItemResult>,
     contentPadding: PaddingValues,
     getManga: @Composable (Manga) -> State<Manga>,
     onClickSource: (CatalogueSource) -> Unit,
     onClickItem: (Manga) -> Unit,
     onLongClickItem: (Manga) -> Unit,
+    fromSourceId: Long? = null,
 ) {
     LazyColumn(
         contentPadding = contentPadding,
@@ -74,7 +75,8 @@ internal fun GlobalSearchContent(
         items.forEach { (source, result) ->
             item(key = source.id) {
                 GlobalSearchResultItem(
-                    title = fromSourceId?.let { "▶ ${source.name}".takeIf { source.id == fromSourceId } } ?: source.name,
+                    title = fromSourceId?.let { "▶ ${source.name}".takeIf { source.id == fromSourceId } }
+                        ?: source.name,
                     subtitle = LocaleHelper.getDisplayName(source.lang),
                     onClick = { onClickSource(source) },
                 ) {

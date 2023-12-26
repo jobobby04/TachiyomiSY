@@ -1,15 +1,19 @@
 package eu.kanade.tachiyomi.data.track.shikimori
 
 import android.graphics.Color
-import androidx.annotation.StringRes
+import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.DeletableTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
+import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
 
@@ -20,6 +24,10 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
         const val DROPPED = 4
         const val PLAN_TO_READ = 5
         const val REREADING = 6
+
+        private val SCORE_LIST = IntRange(0, 10)
+            .map(Int::toString)
+            .toImmutableList()
     }
 
     private val json: Json by injectLazy()
@@ -28,11 +36,9 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
 
     private val api by lazy { ShikimoriApi(id, client, interceptor) }
 
-    override fun getScoreList(): List<String> {
-        return IntRange(0, 10).map(Int::toString)
-    }
+    override fun getScoreList(): ImmutableList<String> = SCORE_LIST
 
-    override fun displayScore(track: Track): String {
+    override fun displayScore(track: DomainTrack): String {
         return track.score.toInt().toString()
     }
 
@@ -54,8 +60,8 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
         return api.updateLibManga(track, getUsername())
     }
 
-    override suspend fun delete(track: Track): Track {
-        return api.deleteLibManga(track)
+    override suspend fun delete(track: DomainTrack) {
+        api.deleteLibManga(track)
     }
 
     override suspend fun bind(track: Track, hasReadChapters: Boolean): Track {
@@ -99,14 +105,13 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
         return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ, REREADING)
     }
 
-    @StringRes
-    override fun getStatus(status: Int): Int? = when (status) {
-        READING -> R.string.reading
-        PLAN_TO_READ -> R.string.plan_to_read
-        COMPLETED -> R.string.completed
-        ON_HOLD -> R.string.on_hold
-        DROPPED -> R.string.dropped
-        REREADING -> R.string.repeating
+    override fun getStatus(status: Int): StringResource? = when (status) {
+        READING -> MR.strings.reading
+        PLAN_TO_READ -> MR.strings.plan_to_read
+        COMPLETED -> MR.strings.completed
+        ON_HOLD -> MR.strings.on_hold
+        DROPPED -> MR.strings.dropped
+        REREADING -> MR.strings.repeating
         else -> null
     }
 

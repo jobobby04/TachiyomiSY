@@ -1,428 +1,269 @@
 package eu.kanade.presentation.more.settings.screen
 
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.hippo.unifile.UniFile
 import eu.kanade.presentation.more.settings.Preference
-import eu.kanade.presentation.permissions.PermissionRequestHelper
+import eu.kanade.presentation.more.settings.screen.data.CreateBackupScreen
+import eu.kanade.presentation.more.settings.screen.data.RestoreBackupScreen
+import eu.kanade.presentation.more.settings.screen.data.StorageInfo
+import eu.kanade.presentation.more.settings.widget.BasePreferenceWidget
+import eu.kanade.presentation.more.settings.widget.PrefsHorizontalPadding
 import eu.kanade.presentation.util.relativeTimeSpanString
-import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.backup.BackupConst
-import eu.kanade.tachiyomi.data.backup.BackupCreateJob
-import eu.kanade.tachiyomi.data.backup.BackupFileValidator
-import eu.kanade.tachiyomi.data.backup.BackupRestoreJob
-import eu.kanade.tachiyomi.data.backup.models.Backup
+import eu.kanade.tachiyomi.data.backup.create.BackupCreateJob
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.PagePreviewCache
-import eu.kanade.tachiyomi.util.system.DeviceUtil
-import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import logcat.LogPriority
+import tachiyomi.core.i18n.stringResource
 import tachiyomi.core.util.lang.launchNonCancellable
 import tachiyomi.core.util.lang.withUIContext
 import tachiyomi.core.util.system.logcat
 import tachiyomi.domain.backup.service.BackupPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.presentation.core.components.LabeledCheckbox
-import tachiyomi.presentation.core.components.ScrollbarLazyColumn
+import tachiyomi.domain.storage.service.StoragePreferences
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import tachiyomi.presentation.core.util.isScrolledToEnd
-import tachiyomi.presentation.core.util.isScrolledToStart
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 object SettingsDataScreen : SearchableSettings {
 
+    val restorePreferenceKeyString = MR.strings.label_backup
+
     @ReadOnlyComposable
     @Composable
-    @StringRes
-    override fun getTitleRes() = R.string.label_data_storage
+    override fun getTitleRes() = MR.strings.label_data_storage
 
     @Composable
     override fun getPreferences(): List<Preference> {
         val backupPreferences = Injekt.get<BackupPreferences>()
+        val storagePreferences = Injekt.get<StoragePreferences>()
 
-        PermissionRequestHelper.requestStoragePermission()
+        return persistentListOf(
+            getStorageLocationPref(storagePreferences = storagePreferences),
+            Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.pref_storage_location_info)),
 
-        return listOf(
             getBackupAndRestoreGroup(backupPreferences = backupPreferences),
             getDataGroup(),
         )
     }
 
     @Composable
+    fun storageLocationPicker(
+        storageDirPref: tachiyomi.core.preference.Preference<String>,
+    ): ManagedActivityResultLauncher<Uri?, Uri?> {
+        val context = LocalContext.current
+
+        return rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocumentTree(),
+        ) { uri ->
+            if (uri != null) {
+                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                context.contentResolver.takePersistableUriPermission(uri, flags)
+
+                UniFile.fromUri(context, uri)?.let {
+                    storageDirPref.set(it.uri.toString())
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun storageLocationText(
+        storageDirPref: tachiyomi.core.preference.Preference<String>,
+    ): String {
+        val context = LocalContext.current
+        val storageDir by storageDirPref.collectAsState()
+
+        if (storageDir == storageDirPref.defaultValue()) {
+            return stringResource(MR.strings.no_location_set)
+        }
+
+        return remember(storageDir) {
+            val file = UniFile.fromUri(context, storageDir.toUri())
+            file?.filePath ?: file?.uri?.toString()
+        } ?: stringResource(MR.strings.invalid_location, storageDir)
+    }
+
+    @Composable
+    private fun getStorageLocationPref(
+        storagePreferences: StoragePreferences,
+    ): Preference.PreferenceItem.TextPreference {
+        val context = LocalContext.current
+        val pickStorageLocation = storageLocationPicker(storagePreferences.baseStorageDirectory())
+
+        return Preference.PreferenceItem.TextPreference(
+            title = stringResource(MR.strings.pref_storage_location),
+            subtitle = storageLocationText(storagePreferences.baseStorageDirectory()),
+            onClick = {
+                try {
+                    pickStorageLocation.launch(null)
+                } catch (e: ActivityNotFoundException) {
+                    context.toast(MR.strings.file_picker_error)
+                }
+            },
+        )
+    }
+
+    @Composable
     private fun getBackupAndRestoreGroup(backupPreferences: BackupPreferences): Preference.PreferenceGroup {
         val context = LocalContext.current
-        val backupIntervalPref = backupPreferences.backupInterval()
-        val backupInterval by backupIntervalPref.collectAsState()
+        val navigator = LocalNavigator.currentOrThrow
+
         val lastAutoBackup by backupPreferences.lastAutoBackupTimestamp().collectAsState()
 
         return Preference.PreferenceGroup(
-            title = stringResource(R.string.label_backup),
-            preferenceItems = listOf(
+            title = stringResource(MR.strings.label_backup),
+            preferenceItems = persistentListOf(
                 // Manual actions
-                getCreateBackupPref(),
-                getRestoreBackupPref(),
+                Preference.PreferenceItem.CustomPreference(
+                    title = stringResource(restorePreferenceKeyString),
+                ) {
+                    BasePreferenceWidget(
+                        subcomponent = {
+                            MultiChoiceSegmentedButtonRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = PrefsHorizontalPadding),
+                            ) {
+                                SegmentedButton(
+                                    checked = false,
+                                    onCheckedChange = { navigator.push(CreateBackupScreen()) },
+                                    shape = SegmentedButtonDefaults.itemShape(0, 2),
+                                ) {
+                                    Text(stringResource(MR.strings.pref_create_backup))
+                                }
+                                SegmentedButton(
+                                    checked = false,
+                                    onCheckedChange = { navigator.push(RestoreBackupScreen()) },
+                                    shape = SegmentedButtonDefaults.itemShape(1, 2),
+                                ) {
+                                    Text(stringResource(MR.strings.pref_restore_backup))
+                                }
+                            }
+                        },
+                    )
+                },
 
                 // Automatic backups
                 Preference.PreferenceItem.ListPreference(
-                    pref = backupIntervalPref,
-                    title = stringResource(R.string.pref_backup_interval),
-                    entries = mapOf(
-                        0 to stringResource(R.string.off),
-                        6 to stringResource(R.string.update_6hour),
-                        12 to stringResource(R.string.update_12hour),
-                        24 to stringResource(R.string.update_24hour),
-                        48 to stringResource(R.string.update_48hour),
-                        168 to stringResource(R.string.update_weekly),
+                    pref = backupPreferences.backupInterval(),
+                    title = stringResource(MR.strings.pref_backup_interval),
+                    entries = persistentMapOf(
+                        0 to stringResource(MR.strings.off),
+                        6 to stringResource(MR.strings.update_6hour),
+                        12 to stringResource(MR.strings.update_12hour),
+                        24 to stringResource(MR.strings.update_24hour),
+                        48 to stringResource(MR.strings.update_48hour),
+                        168 to stringResource(MR.strings.update_weekly),
                     ),
                     onValueChanged = {
                         BackupCreateJob.setupTask(context, it)
                         true
                     },
                 ),
-                Preference.PreferenceItem.ListPreference(
-                    pref = backupPreferences.numberOfBackups(),
-                    enabled = backupInterval != 0,
-                    title = stringResource(R.string.pref_backup_slots),
-                    entries = listOf(2, 3, 4, 5).associateWith { it.toString() },
-                ),
                 Preference.PreferenceItem.InfoPreference(
-                    stringResource(R.string.backup_info) + "\n\n" +
-                        stringResource(R.string.last_auto_backup_info, relativeTimeSpanString(lastAutoBackup)),
+                    stringResource(MR.strings.backup_info) + "\n\n" +
+                        stringResource(MR.strings.last_auto_backup_info, relativeTimeSpanString(lastAutoBackup)),
                 ),
             ),
         )
     }
 
     @Composable
-    private fun getCreateBackupPref(): Preference.PreferenceItem.TextPreference {
-        val scope = rememberCoroutineScope()
-        val context = LocalContext.current
-
-        var flag by rememberSaveable { mutableIntStateOf(0) }
-        val chooseBackupDir = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.CreateDocument("application/*"),
-        ) {
-            if (it != null) {
-                context.contentResolver.takePersistableUriPermission(
-                    it,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                )
-                BackupCreateJob.startNow(context, it, flag)
-            }
-            flag = 0
-        }
-        var showCreateDialog by rememberSaveable { mutableStateOf(false) }
-        if (showCreateDialog) {
-            CreateBackupDialog(
-                onConfirm = {
-                    showCreateDialog = false
-                    flag = it
-                    try {
-                        chooseBackupDir.launch(Backup.getFilename())
-                    } catch (e: ActivityNotFoundException) {
-                        flag = 0
-                        context.toast(R.string.file_picker_error)
-                    }
-                },
-                onDismissRequest = { showCreateDialog = false },
-            )
-        }
-
-        return Preference.PreferenceItem.TextPreference(
-            title = stringResource(R.string.pref_create_backup),
-            subtitle = stringResource(R.string.pref_create_backup_summ),
-            onClick = {
-                scope.launch {
-                    if (!BackupCreateJob.isManualJobRunning(context)) {
-                        if (DeviceUtil.isMiui && DeviceUtil.isMiuiOptimizationDisabled()) {
-                            context.toast(R.string.restore_miui_warning, Toast.LENGTH_LONG)
-                        }
-                        showCreateDialog = true
-                    } else {
-                        context.toast(R.string.backup_in_progress)
-                    }
-                }
-            },
-        )
-    }
-
-    @Composable
-    private fun CreateBackupDialog(
-        onConfirm: (flag: Int) -> Unit,
-        onDismissRequest: () -> Unit,
-    ) {
-        val choices = remember {
-            mapOf(
-                BackupConst.BACKUP_CATEGORY to R.string.categories,
-                BackupConst.BACKUP_CHAPTER to R.string.chapters,
-                BackupConst.BACKUP_TRACK to R.string.track,
-                BackupConst.BACKUP_HISTORY to R.string.history,
-                BackupConst.BACKUP_APP_PREFS to R.string.app_settings,
-                BackupConst.BACKUP_SOURCE_PREFS to R.string.source_settings,
-                // SY -->
-                BackupConst.BACKUP_CUSTOM_INFO to R.string.custom_entry_info,
-                BackupConst.BACKUP_READ_MANGA to R.string.all_read_entries,
-                // SY <--
-            )
-        }
-        val flags = remember { choices.keys.toMutableStateList() }
-        AlertDialog(
-            onDismissRequest = onDismissRequest,
-            title = { Text(text = stringResource(R.string.backup_choice)) },
-            text = {
-                Box {
-                    val state = rememberLazyListState()
-                    ScrollbarLazyColumn(state = state) {
-                        item {
-                            LabeledCheckbox(
-                                label = stringResource(R.string.manga),
-                                checked = true,
-                                onCheckedChange = {},
-                            )
-                        }
-                        choices.forEach { (k, v) ->
-                            item {
-                                val isSelected = flags.contains(k)
-                                LabeledCheckbox(
-                                    label = stringResource(v),
-                                    checked = isSelected,
-                                    onCheckedChange = {
-                                        if (it) {
-                                            flags.add(k)
-                                        } else {
-                                            flags.remove(k)
-                                        }
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    if (!state.isScrolledToStart()) HorizontalDivider(modifier = Modifier.align(Alignment.TopCenter))
-                    if (!state.isScrolledToEnd()) HorizontalDivider(modifier = Modifier.align(Alignment.BottomCenter))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissRequest) {
-                    Text(text = stringResource(R.string.action_cancel))
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val flag = flags.fold(initial = 0, operation = { a, b -> a or b })
-                        onConfirm(flag)
-                    },
-                ) {
-                    Text(text = stringResource(R.string.action_ok))
-                }
-            },
-        )
-    }
-
-    @Composable
-    private fun getRestoreBackupPref(): Preference.PreferenceItem.TextPreference {
-        val context = LocalContext.current
-        var error by remember { mutableStateOf<Any?>(null) }
-        if (error != null) {
-            val onDismissRequest = { error = null }
-            when (val err = error) {
-                is InvalidRestore -> {
-                    AlertDialog(
-                        onDismissRequest = onDismissRequest,
-                        title = { Text(text = stringResource(R.string.invalid_backup_file)) },
-                        text = { Text(text = listOfNotNull(err.uri, err.message).joinToString("\n\n")) },
-                        dismissButton = {
-                            TextButton(
-                                onClick = {
-                                    context.copyToClipboard(err.message, err.message)
-                                    onDismissRequest()
-                                },
-                            ) {
-                                Text(text = stringResource(R.string.action_copy_to_clipboard))
-                            }
-                        },
-                        confirmButton = {
-                            TextButton(onClick = onDismissRequest) {
-                                Text(text = stringResource(R.string.action_ok))
-                            }
-                        },
-                    )
-                }
-                is MissingRestoreComponents -> {
-                    AlertDialog(
-                        onDismissRequest = onDismissRequest,
-                        title = { Text(text = stringResource(R.string.pref_restore_backup)) },
-                        text = {
-                            Column(
-                                modifier = Modifier.verticalScroll(rememberScrollState()),
-                            ) {
-                                val msg = buildString {
-                                    append(stringResource(R.string.backup_restore_content_full))
-                                    if (err.sources.isNotEmpty()) {
-                                        append("\n\n").append(stringResource(R.string.backup_restore_missing_sources))
-                                        err.sources.joinTo(
-                                            this,
-                                            separator = "\n- ",
-                                            prefix = "\n- ",
-                                        )
-                                    }
-                                    if (err.trackers.isNotEmpty()) {
-                                        append("\n\n").append(stringResource(R.string.backup_restore_missing_trackers))
-                                        err.trackers.joinTo(
-                                            this,
-                                            separator = "\n- ",
-                                            prefix = "\n- ",
-                                        )
-                                    }
-                                }
-                                Text(text = msg)
-                            }
-                        },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    BackupRestoreJob.start(context, err.uri)
-                                    onDismissRequest()
-                                },
-                            ) {
-                                Text(text = stringResource(R.string.action_restore))
-                            }
-                        },
-                    )
-                }
-                else -> error = null // Unknown
-            }
-        }
-
-        val chooseBackup = rememberLauncherForActivityResult(
-            object : ActivityResultContracts.GetContent() {
-                override fun createIntent(context: Context, input: String): Intent {
-                    val intent = super.createIntent(context, input)
-                    return Intent.createChooser(intent, context.getString(R.string.file_select_backup))
-                }
-            },
-        ) {
-            if (it == null) {
-                error = InvalidRestore(message = context.getString(R.string.file_null_uri_error))
-                return@rememberLauncherForActivityResult
-            }
-
-            val results = try {
-                BackupFileValidator().validate(context, it)
-            } catch (e: Exception) {
-                error = InvalidRestore(it, e.message.toString())
-                return@rememberLauncherForActivityResult
-            }
-
-            if (results.missingSources.isEmpty() && results.missingTrackers.isEmpty()) {
-                BackupRestoreJob.start(context, it)
-                return@rememberLauncherForActivityResult
-            }
-
-            error = MissingRestoreComponents(it, results.missingSources, results.missingTrackers)
-        }
-
-        return Preference.PreferenceItem.TextPreference(
-            title = stringResource(R.string.pref_restore_backup),
-            subtitle = stringResource(R.string.pref_restore_backup_summ),
-            onClick = {
-                if (!BackupRestoreJob.isRunning(context)) {
-                    if (DeviceUtil.isMiui && DeviceUtil.isMiuiOptimizationDisabled()) {
-                        context.toast(R.string.restore_miui_warning, Toast.LENGTH_LONG)
-                    }
-                    // no need to catch because it's wrapped with a chooser
-                    chooseBackup.launch("*/*")
-                } else {
-                    context.toast(R.string.restore_in_progress)
-                }
-            },
-        )
-    }
-
-    @Composable
     private fun getDataGroup(): Preference.PreferenceGroup {
-        val scope = rememberCoroutineScope()
         val context = LocalContext.current
+        val scope = rememberCoroutineScope()
         val libraryPreferences = remember { Injekt.get<LibraryPreferences>() }
 
         val chapterCache = remember { Injekt.get<ChapterCache>() }
-        var readableSizeSema by remember { mutableIntStateOf(0) }
-        val readableSize = remember(readableSizeSema) { chapterCache.readableSize }
+        var cacheReadableSizeSema by remember { mutableIntStateOf(0) }
+        val cacheReadableSize = remember(cacheReadableSizeSema) { chapterCache.readableSize }
 
         // SY -->
         val pagePreviewCache = remember { Injekt.get<PagePreviewCache>() }
-        var pagePreviewReadableSizeSema by remember { mutableStateOf(0) }
+        var pagePreviewReadableSizeSema by remember { mutableIntStateOf(0) }
         val pagePreviewReadableSize = remember(pagePreviewReadableSizeSema) { pagePreviewCache.readableSize }
         // SY <--
 
         return Preference.PreferenceGroup(
-            title = stringResource(R.string.label_data),
-            preferenceItems = listOf(
+            title = stringResource(MR.strings.label_data),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.CustomPreference(
+                    title = stringResource(MR.strings.pref_storage_usage),
+                ) {
+                    BasePreferenceWidget(
+                        title = stringResource(MR.strings.pref_storage_usage),
+                        subcomponent = {
+                            StorageInfo(
+                                modifier = Modifier.padding(horizontal = PrefsHorizontalPadding),
+                            )
+                        },
+                    )
+                },
+
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_clear_chapter_cache),
-                    subtitle = stringResource(R.string.used_cache, readableSize),
+                    title = stringResource(MR.strings.pref_clear_chapter_cache),
+                    subtitle = stringResource(MR.strings.used_cache, cacheReadableSize),
                     onClick = {
                         scope.launchNonCancellable {
                             try {
                                 val deletedFiles = chapterCache.clear()
                                 withUIContext {
-                                    context.toast(context.getString(R.string.cache_deleted, deletedFiles))
-                                    readableSizeSema++
+                                    context.toast(context.stringResource(MR.strings.cache_deleted, deletedFiles))
+                                    cacheReadableSizeSema++
                                 }
                             } catch (e: Throwable) {
                                 logcat(LogPriority.ERROR, e)
-                                withUIContext { context.toast(R.string.cache_delete_error) }
+                                withUIContext { context.toast(MR.strings.cache_delete_error) }
                             }
                         }
                     },
                 ),
                 // SY -->
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_clear_page_preview_cache),
-                    subtitle = stringResource(R.string.used_cache, pagePreviewReadableSize),
+                    title = stringResource(SYMR.strings.pref_clear_page_preview_cache),
+                    subtitle = stringResource(MR.strings.used_cache, pagePreviewReadableSize),
                     onClick = {
                         scope.launchNonCancellable {
                             try {
                                 val deletedFiles = pagePreviewCache.clear()
                                 withUIContext {
-                                    context.toast(context.getString(R.string.cache_deleted, deletedFiles))
+                                    context.toast(context.stringResource(MR.strings.cache_deleted, deletedFiles))
                                     pagePreviewReadableSizeSema++
                                 }
                             } catch (e: Throwable) {
                                 logcat(LogPriority.ERROR, e)
-                                withUIContext { context.toast(R.string.cache_delete_error) }
+                                withUIContext { context.toast(MR.strings.cache_delete_error) }
                             }
                         }
                     },
@@ -430,20 +271,9 @@ object SettingsDataScreen : SearchableSettings {
                 // SY <--
                 Preference.PreferenceItem.SwitchPreference(
                     pref = libraryPreferences.autoClearChapterCache(),
-                    title = stringResource(R.string.pref_auto_clear_chapter_cache),
+                    title = stringResource(MR.strings.pref_auto_clear_chapter_cache),
                 ),
             ),
         )
     }
 }
-
-private data class MissingRestoreComponents(
-    val uri: Uri,
-    val sources: List<String>,
-    val trackers: List<String>,
-)
-
-private data class InvalidRestore(
-    val uri: Uri? = null,
-    val message: String,
-)

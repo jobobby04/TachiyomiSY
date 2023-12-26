@@ -1,12 +1,12 @@
 package eu.kanade.tachiyomi.network
 
 import android.content.Context
-import eu.kanade.tachiyomi.core.BuildConfig
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UncaughtExceptionInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
+import okhttp3.brotli.BrotliInterceptor
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -15,6 +15,9 @@ import java.util.concurrent.TimeUnit
 open /* SY <-- */ class NetworkHelper(
     private val context: Context,
     private val preferences: NetworkPreferences,
+    // SY -->
+    val isDebugBuild: Boolean,
+    // SY <--
 ) {
 
     /* SY --> */
@@ -33,10 +36,11 @@ open /* SY <-- */ class NetworkHelper(
                     maxSize = 5L * 1024 * 1024, // 5 MiB
                 ),
             )
+            .addInterceptor(BrotliInterceptor)
             .addInterceptor(UncaughtExceptionInterceptor())
             .addInterceptor(UserAgentInterceptor(::defaultUserAgentProvider))
 
-        if (BuildConfig.DEBUG) {
+        if (isDebugBuild) {
             val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.HEADERS
             }

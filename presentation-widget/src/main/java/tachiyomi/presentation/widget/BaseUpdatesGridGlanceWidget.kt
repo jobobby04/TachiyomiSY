@@ -30,6 +30,8 @@ import coil.size.Scale
 import coil.transform.RoundedCornersTransformation
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.util.system.dpToPx
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import tachiyomi.core.util.lang.withIOContext
 import tachiyomi.domain.manga.model.MangaCover
@@ -43,8 +45,8 @@ import tachiyomi.presentation.widget.util.appWidgetBackgroundRadius
 import tachiyomi.presentation.widget.util.calculateRowAndColumnCount
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.util.Calendar
-import java.util.Date
+import java.time.Instant
+import java.time.ZonedDateTime
 
 abstract class BaseUpdatesGridGlanceWidget(
     private val context: Context = Injekt.get<Application>(),
@@ -87,7 +89,7 @@ abstract class BaseUpdatesGridGlanceWidget(
 
             val flow = remember {
                 getUpdates
-                    .subscribe(false, DateLimit.timeInMillis)
+                    .subscribe(false, DateLimit.toEpochMilli())
                     .map { rawData ->
                         rawData.prepareData(rowCount, columnCount)
                     }
@@ -95,10 +97,10 @@ abstract class BaseUpdatesGridGlanceWidget(
             val data by flow.collectAsState(initial = null)
             UpdatesWidget(
                 data = data,
-                modifier = containerModifier,
                 contentColor = foreground,
                 topPadding = topPadding,
                 bottomPadding = bottomPadding,
+                modifier = containerModifier,
             )
         }
     }
@@ -106,7 +108,7 @@ abstract class BaseUpdatesGridGlanceWidget(
     private suspend fun List<UpdatesWithRelations>.prepareData(
         rowCount: Int,
         columnCount: Int,
-    ): List<Pair<Long, Bitmap?>> {
+    ): ImmutableList<Pair<Long, Bitmap?>> {
         // Resize to cover size
         val widthPx = CoverWidth.value.toInt().dpToPx
         val heightPx = CoverHeight.value.toInt().dpToPx
@@ -140,14 +142,12 @@ abstract class BaseUpdatesGridGlanceWidget(
                         .build()
                     Pair(updatesView.mangaId, context.imageLoader.executeBlocking(request).drawable?.toBitmap())
                 }
+                .toImmutableList()
         }
     }
 
     companion object {
-        val DateLimit: Calendar
-            get() = Calendar.getInstance().apply {
-                time = Date()
-                add(Calendar.MONTH, -3)
-            }
+        val DateLimit: Instant
+            get() = ZonedDateTime.now().minusMonths(3).toInstant()
     }
 }

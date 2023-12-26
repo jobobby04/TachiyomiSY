@@ -16,8 +16,8 @@ import tachiyomi.presentation.core.util.secondaryItemAlpha
 
 @Composable
 fun BaseSourceItem(
-    modifier: Modifier = Modifier,
     source: Source,
+    modifier: Modifier = Modifier,
     showLanguageInContent: Boolean = true,
     onClickItem: () -> Unit = {},
     onLongClickItem: () -> Unit = {},
@@ -25,7 +25,9 @@ fun BaseSourceItem(
     action: @Composable RowScope.(Source) -> Unit = {},
     content: @Composable RowScope.(Source, String?) -> Unit = defaultContent,
 ) {
-    val sourceLangString = LocaleHelper.getSourceDisplayName(source.lang, LocalContext.current).takeIf { showLanguageInContent }
+    val sourceLangString = LocaleHelper.getSourceDisplayName(source.lang, LocalContext.current).takeIf {
+        showLanguageInContent
+    }
     BaseBrowseItem(
         modifier = modifier,
         onClickItem = onClickItem,

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRailItem
@@ -26,7 +27,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,7 +41,6 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.util.Screen
 import eu.kanade.presentation.util.isTabletUi
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.BrowseTab
 import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
 import eu.kanade.tachiyomi.ui.history.HistoryTab
@@ -57,9 +56,11 @@ import kotlinx.coroutines.launch
 import soup.compose.material.motion.animation.materialFadeThroughIn
 import soup.compose.material.motion.animation.materialFadeThroughOut
 import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.NavigationBar
 import tachiyomi.presentation.core.components.material.NavigationRail
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.pluralStringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -70,6 +71,7 @@ object HomeScreen : Screen() {
     private val showBottomNavEvent = Channel<Boolean>()
 
     private const val TabFadeDuration = 200
+    private const val TabNavigatorKey = "HomeTabs"
 
     private val tabs = listOf(
         LibraryTab,
@@ -90,6 +92,7 @@ object HomeScreen : Screen() {
         // SY <--
         TabNavigator(
             tab = LibraryTab,
+            key = TabNavigatorKey,
         ) { tabNavigator ->
             // Provide usable navigator to content screen
             CompositionLocalProvider(LocalNavigator provides navigator) {
@@ -142,12 +145,12 @@ object HomeScreen : Screen() {
                                 materialFadeThroughIn(initialScale = 1f, durationMillis = TabFadeDuration) togetherWith
                                     materialFadeThroughOut(durationMillis = TabFadeDuration)
                             },
-                            content = {
-                                tabNavigator.saveableState(key = "currentTab", it) {
-                                    it.Content()
-                                }
-                            },
-                        )
+                            label = "tabContent",
+                        ) {
+                            tabNavigator.saveableState(key = "currentTab", it) {
+                                it.Content()
+                            }
+                        }
                     }
                 }
             }
@@ -188,7 +191,10 @@ object HomeScreen : Screen() {
     }
 
     @Composable
-    private fun RowScope.NavigationBarItem(tab: eu.kanade.presentation.util.Tab/* SY --> */, alwaysShowLabel: Boolean/* SY <-- */) {
+    private fun RowScope.NavigationBarItem(
+        tab: eu.kanade.presentation.util.Tab/* SY --> */,
+        alwaysShowLabel: Boolean, /* SY <-- */
+    ) {
         val tabNavigator = LocalTabNavigator.current
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
@@ -260,7 +266,7 @@ object HomeScreen : Screen() {
                         if (count > 0) {
                             Badge {
                                 val desc = pluralStringResource(
-                                    id = R.plurals.notification_chapters_generic,
+                                    MR.plurals.notification_chapters_generic,
                                     count = count,
                                     count,
                                 )
@@ -279,7 +285,7 @@ object HomeScreen : Screen() {
                         if (count > 0) {
                             Badge {
                                 val desc = pluralStringResource(
-                                    id = R.plurals.update_check_notification_ext_updates,
+                                    MR.plurals.update_check_notification_ext_updates,
                                     count = count,
                                     count,
                                 )
@@ -293,7 +299,12 @@ object HomeScreen : Screen() {
                 }
             },
         ) {
-            Icon(painter = tab.options.icon!!, contentDescription = tab.options.title)
+            Icon(
+                painter = tab.options.icon!!,
+                contentDescription = tab.options.title,
+                // TODO: https://issuetracker.google.com/u/0/issues/316327367
+                tint = LocalContentColor.current,
+            )
         }
     }
 

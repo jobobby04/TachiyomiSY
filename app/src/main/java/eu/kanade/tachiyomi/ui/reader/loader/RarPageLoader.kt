@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.ui.reader.loader
 import android.app.Application
 import com.github.junrar.Archive
 import com.github.junrar.rarfile.FileHeader
+import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
@@ -52,7 +53,7 @@ internal class RarPageLoader(file: File) : PageLoader() {
     override suspend fun getPages(): List<ReaderPage> {
         // SY -->
         if (readerPreferences.cacheArchiveMangaOnDisk().get()) {
-            return DirectoryPageLoader(tmpDir).getPages()
+            return DirectoryPageLoader(UniFile.fromFile(tmpDir)!!).getPages()
         }
         // SY <--
         return rar.fileHeaders.asSequence()

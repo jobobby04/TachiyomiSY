@@ -5,7 +5,6 @@ import android.os.Build
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
-import eu.kanade.tachiyomi.core.R
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.setDefaultSettings
@@ -15,6 +14,7 @@ import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 import tachiyomi.core.util.lang.launchUI
+import tachiyomi.i18n.MR
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -57,7 +57,7 @@ abstract class WebViewInterceptor(
 
         if (!WebViewUtil.supportsWebView(context)) {
             launchUI {
-                context.toast(R.string.information_webview_required, Toast.LENGTH_LONG)
+                context.toast(MR.strings.information_webview_required, Toast.LENGTH_LONG)
             }
             return response
         }
@@ -89,7 +89,8 @@ abstract class WebViewInterceptor(
     }
 }
 
-// Based on [IsRequestHeaderSafe] in https://source.chromium.org/chromium/chromium/src/+/main:services/network/public/cpp/header_util.cc
+// Based on [IsRequestHeaderSafe] in
+// https://source.chromium.org/chromium/chromium/src/+/main:services/network/public/cpp/header_util.cc
 private fun isRequestHeaderSafe(_name: String, _value: String): Boolean {
     val name = _name.lowercase(Locale.ENGLISH)
     val value = _value.lowercase(Locale.ENGLISH)
@@ -97,4 +98,6 @@ private fun isRequestHeaderSafe(_name: String, _value: String): Boolean {
     if (name == "connection" && value == "upgrade") return false
     return true
 }
-private val unsafeHeaderNames = listOf("content-length", "host", "trailer", "te", "upgrade", "cookie2", "keep-alive", "transfer-encoding", "set-cookie")
+private val unsafeHeaderNames = listOf(
+    "content-length", "host", "trailer", "te", "upgrade", "cookie2", "keep-alive", "transfer-encoding", "set-cookie",
+)

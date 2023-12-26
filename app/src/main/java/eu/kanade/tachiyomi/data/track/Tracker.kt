@@ -3,10 +3,12 @@ package eu.kanade.tachiyomi.data.track
 import androidx.annotation.CallSuper
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
+import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import kotlinx.collections.immutable.ImmutableList
 import okhttp3.OkHttpClient
+import tachiyomi.domain.track.model.Track as DomainTrack
 
 interface Tracker {
 
@@ -27,8 +29,7 @@ interface Tracker {
 
     fun getStatusList(): List<Int>
 
-    @StringRes
-    fun getStatus(status: Int): Int?
+    fun getStatus(status: Int): StringResource?
 
     fun getReadingStatus(): Int
 
@@ -36,14 +37,14 @@ interface Tracker {
 
     fun getCompletionStatus(): Int
 
-    fun getScoreList(): List<String>
+    fun getScoreList(): ImmutableList<String>
 
     // TODO: Store all scores as 10 point in the future maybe?
-    fun get10PointScore(track: tachiyomi.domain.track.model.Track): Double
+    fun get10PointScore(track: DomainTrack): Double
 
     fun indexToScore(index: Int): Float
 
-    fun displayScore(track: Track): String
+    fun displayScore(track: DomainTrack): String
 
     suspend fun update(track: Track, didReadChapter: Boolean = false): Track
 

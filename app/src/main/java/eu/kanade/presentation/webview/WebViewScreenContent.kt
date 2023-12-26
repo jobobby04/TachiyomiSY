@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.LoadingState
@@ -38,22 +37,24 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.WarningBanner
 import eu.kanade.tachiyomi.BuildConfig
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.getHtml
 import eu.kanade.tachiyomi.util.system.setDefaultSettings
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun WebViewScreenContent(
     onNavigateUp: () -> Unit,
     initialTitle: String?,
     url: String,
-    headers: Map<String, String> = emptyMap(),
-    onUrlChange: (String) -> Unit = {},
     onShare: (String) -> Unit,
     onOpenInBrowser: (String) -> Unit,
     onClearCookies: (String) -> Unit,
+    headers: Map<String, String> = emptyMap(),
+    onUrlChange: (String) -> Unit = {},
 ) {
     val state = rememberWebViewState(url = url, additionalHttpHeaders = headers)
     val navigator = rememberWebViewNavigator()
@@ -122,10 +123,10 @@ fun WebViewScreenContent(
                         navigationIcon = Icons.Outlined.Close,
                         actions = {
                             AppBarActions(
-                                listOf(
+                                persistentListOf(
                                     AppBar.Action(
-                                        title = stringResource(R.string.action_webview_back),
-                                        icon = Icons.Outlined.ArrowBack,
+                                        title = stringResource(MR.strings.action_webview_back),
+                                        icon = Icons.AutoMirrored.Outlined.ArrowBack,
                                         onClick = {
                                             if (navigator.canGoBack) {
                                                 navigator.navigateBack()
@@ -134,8 +135,8 @@ fun WebViewScreenContent(
                                         enabled = navigator.canGoBack,
                                     ),
                                     AppBar.Action(
-                                        title = stringResource(R.string.action_webview_forward),
-                                        icon = Icons.Outlined.ArrowForward,
+                                        title = stringResource(MR.strings.action_webview_forward),
+                                        icon = Icons.AutoMirrored.Outlined.ArrowForward,
                                         onClick = {
                                             if (navigator.canGoForward) {
                                                 navigator.navigateForward()
@@ -144,19 +145,19 @@ fun WebViewScreenContent(
                                         enabled = navigator.canGoForward,
                                     ),
                                     AppBar.OverflowAction(
-                                        title = stringResource(R.string.action_webview_refresh),
+                                        title = stringResource(MR.strings.action_webview_refresh),
                                         onClick = { navigator.reload() },
                                     ),
                                     AppBar.OverflowAction(
-                                        title = stringResource(R.string.action_share),
+                                        title = stringResource(MR.strings.action_share),
                                         onClick = { onShare(currentUrl) },
                                     ),
                                     AppBar.OverflowAction(
-                                        title = stringResource(R.string.action_open_in_browser),
+                                        title = stringResource(MR.strings.action_open_in_browser),
                                         onClick = { onOpenInBrowser(currentUrl) },
                                     ),
                                     AppBar.OverflowAction(
-                                        title = stringResource(R.string.pref_clear_cookies),
+                                        title = stringResource(MR.strings.pref_clear_cookies),
                                         onClick = { onClearCookies(currentUrl) },
                                     ),
                                 ),
@@ -169,11 +170,13 @@ fun WebViewScreenContent(
                             modifier = Modifier.padding(8.dp),
                         ) {
                             WarningBanner(
-                                textRes = R.string.information_cloudflare_help,
+                                textRes = MR.strings.information_cloudflare_help,
                                 modifier = Modifier
                                     .clip(MaterialTheme.shapes.small)
                                     .clickable {
-                                        uriHandler.openUri("https://tachiyomi.org/docs/guides/troubleshooting/#cloudflare")
+                                        uriHandler.openUri(
+                                            "https://tachiyomi.org/docs/guides/troubleshooting/#cloudflare",
+                                        )
                                     },
                             )
                         }
@@ -186,7 +189,7 @@ fun WebViewScreenContent(
                             .align(Alignment.BottomCenter),
                     )
                     is LoadingState.Loading -> LinearProgressIndicator(
-                        progress = (loadingState as? LoadingState.Loading)?.progress ?: 1f,
+                        progress = { (loadingState as? LoadingState.Loading)?.progress ?: 1f },
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.BottomCenter),

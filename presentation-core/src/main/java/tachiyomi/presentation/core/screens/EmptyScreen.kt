@@ -1,6 +1,5 @@
 package tachiyomi.presentation.core.screens
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,33 +11,38 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
+import dev.icerock.moko.resources.StringResource
+import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.presentation.core.components.ActionButton
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.secondaryItemAlpha
 import kotlin.random.Random
 
 data class EmptyScreenAction(
-    @StringRes val stringResId: Int,
+    val stringRes: StringResource,
     val icon: ImageVector,
     val onClick: () -> Unit,
 )
 
 @Composable
 fun EmptyScreen(
-    @StringRes textResource: Int,
+    stringRes: StringResource,
     modifier: Modifier = Modifier,
-    actions: List<EmptyScreenAction>? = null,
+    actions: ImmutableList<EmptyScreenAction>? = null,
 ) {
     EmptyScreen(
-        message = stringResource(textResource),
+        message = stringResource(stringRes),
         modifier = modifier,
         actions = actions,
     )
@@ -48,7 +52,7 @@ fun EmptyScreen(
 fun EmptyScreen(
     message: String,
     modifier: Modifier = Modifier,
-    actions: List<EmptyScreenAction>? = null,
+    actions: ImmutableList<EmptyScreenAction>? = null,
 ) {
     val face = remember { getRandomErrorFace() }
     Column(
@@ -59,11 +63,13 @@ fun EmptyScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = face,
-            modifier = Modifier.secondaryItemAlpha(),
-            style = MaterialTheme.typography.displayMedium,
-        )
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Text(
+                text = face,
+                modifier = Modifier.secondaryItemAlpha(),
+                style = MaterialTheme.typography.displayMedium,
+            )
+        }
 
         Text(
             text = message,
@@ -83,7 +89,7 @@ fun EmptyScreen(
                 actions.fastForEach {
                     ActionButton(
                         modifier = Modifier.weight(1f),
-                        title = stringResource(it.stringResId),
+                        title = stringResource(it.stringRes),
                         icon = it.icon,
                         onClick = it.onClick,
                     )
@@ -93,7 +99,7 @@ fun EmptyScreen(
     }
 }
 
-private val ERROR_FACES = listOf(
+private val ErrorFaces = listOf(
     "(･o･;)",
     "Σ(ಠ_ಠ)",
     "ಥ_ಥ",
@@ -103,5 +109,5 @@ private val ERROR_FACES = listOf(
 )
 
 private fun getRandomErrorFace(): String {
-    return ERROR_FACES[Random.nextInt(ERROR_FACES.size)]
+    return ErrorFaces[Random.nextInt(ErrorFaces.size)]
 }
