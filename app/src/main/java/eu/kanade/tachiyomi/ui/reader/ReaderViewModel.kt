@@ -23,6 +23,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.saver.Image
 import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.data.saver.Location
+import eu.kanade.tachiyomi.data.sync.SyncDataJob
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.MetadataSource
@@ -95,6 +96,7 @@ import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.domain.sync.SyncPreferences
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -123,6 +125,7 @@ class ReaderViewModel @JvmOverloads constructor(
     private val upsertHistory: UpsertHistory = Injekt.get(),
     private val updateChapter: UpdateChapter = Injekt.get(),
     private val setMangaViewerFlags: SetMangaViewerFlags = Injekt.get(),
+    private val syncPreferences: SyncPreferences = Injekt.get(),
     // SY -->
     private val uiPreferences: UiPreferences = Injekt.get(),
     private val getFlatMetadataById: GetFlatMetadataById = Injekt.get(),
@@ -673,6 +676,7 @@ class ReaderViewModel @JvmOverloads constructor(
         hasExtraPage: Boolean, /* SY <-- */
     ) {
         val pageIndex = page.index
+        val syncFlags = syncPreferences.syncFlags().get()
 
         mutableState.update {
             it.copy(currentPage = pageIndex + 1)
@@ -707,6 +711,13 @@ class ReaderViewModel @JvmOverloads constructor(
                 // SY <--
                 updateTrackChapterRead(readerChapter)
                 deleteChapterIfNeeded(readerChapter)
+
+                // Check if syncing is enabled for chapter read:
+                if (syncPreferences.isSyncEnabled() &&
+                    syncFlags and SyncPreferences.Flags.SYNC_ON_CHAPTER_READ == SyncPreferences.Flags.SYNC_ON_CHAPTER_READ
+                ) {
+                    SyncDataJob.startNow(Injekt.get<Application>())
+                }
             }
 
             updateChapter.await(
@@ -716,6 +727,13 @@ class ReaderViewModel @JvmOverloads constructor(
                     lastPageRead = readerChapter.chapter.last_page_read.toLong(),
                 ),
             )
+
+            // Check if syncing is enabled for chapter open:
+            if (syncPreferences.isSyncEnabled() &&
+                syncFlags and SyncPreferences.Flags.SYNC_ON_CHAPTER_OPEN == SyncPreferences.Flags.SYNC_ON_CHAPTER_OPEN
+            ) {
+                SyncDataJob.startNow(Injekt.get<Application>())
+            }
         }
     }
 
