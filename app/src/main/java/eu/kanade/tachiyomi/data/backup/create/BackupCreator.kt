@@ -159,7 +159,7 @@ class BackupCreator(
     }
 
     // SY -->
-    private suspend fun backupSavedSearches(): List<BackupSavedSearch> {
+    suspend fun backupSavedSearches(): List<BackupSavedSearch> {
         return savedSearchBackupCreator.backupSavedSearches()
     }
     // SY <--

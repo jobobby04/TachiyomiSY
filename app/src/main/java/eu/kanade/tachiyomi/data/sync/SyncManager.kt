@@ -89,6 +89,10 @@ class SyncManager(
             backupSources = backupCreator.backupSources(databaseManga),
             backupPreferences = backupCreator.backupAppPreferences(backupOptions),
             backupSourcePreferences = backupCreator.backupSourcePreferences(backupOptions),
+
+            // SY -->
+            backupSavedSearches = backupCreator.backupSavedSearches(),
+            // SY <--
         )
 
         // Create the SyncData object
@@ -138,6 +142,10 @@ class SyncManager(
                 backupSources = remoteBackup.backupSources,
                 backupPreferences = remoteBackup.backupPreferences,
                 backupSourcePreferences = remoteBackup.backupSourcePreferences,
+
+                // SY -->
+                backupSavedSearches = remoteBackup.backupSavedSearches,
+                // SY <--
             )
 
             // It's local sync no need to restore data. (just update remote data)
