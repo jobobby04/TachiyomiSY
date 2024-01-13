@@ -16,6 +16,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import eu.kanade.domain.chapter.interactor.SetReadStatus
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.manga.model.copyFrom
@@ -100,6 +101,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 
 class LibraryUpdateJob(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
@@ -125,6 +127,8 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private val insertTrack: InsertTrack = Injekt.get()
     private val trackerManager: TrackerManager = Injekt.get()
     private val mdList = trackerManager.mdList
+    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get()
+    private val setReadStatus: SetReadStatus = Injekt.get()
     // SY <--
 
     private val notifier = LibraryUpdateNotifier(context)
@@ -392,7 +396,17 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                 ) {
                                     try {
                                         val newChapters = updateManga(manga, fetchWindow)
-                                            .sortedByDescending { it.sourceOrder }
+                                            .sortedByDescending { it.sourceOrder }.run {
+                                                if (libraryPreferences.libraryReadDuplicateChapters().get()) {
+                                                    val readChapters = getChaptersByMangaId.await(manga.id).filter { it.read }
+                                                    val newReadChapters = this.filter { chapter -> readChapters.any { it.chapterNumber == chapter.chapterNumber } }
+                                                        .also { setReadStatus.await(true, *it.toTypedArray()) }
+
+                                                    this.filterNot { newReadChapters.contains(it) }
+                                                } else {
+                                                    this
+                                                }
+                                            }
 
                                         if (newChapters.isNotEmpty()) {
                                             val categoryIds = getCategories.await(manga.id).map { it.id }
