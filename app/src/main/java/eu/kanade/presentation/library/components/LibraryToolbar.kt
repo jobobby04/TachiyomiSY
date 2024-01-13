@@ -132,8 +132,6 @@ private fun LibraryRegularToolbar(
                         title = stringResource(MR.strings.sync_library),
                         onClick = onClickSyncNow,
                     ),
-                ),
-
                 ).builder().apply {
                     // SY -->
                     if (onClickSyncExh != null) {
