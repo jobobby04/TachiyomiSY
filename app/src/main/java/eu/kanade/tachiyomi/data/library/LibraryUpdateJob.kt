@@ -808,7 +808,8 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
             // Only proceed with SyncDataJob if sync is enabled and the specific sync on library update flag is set
             val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-            if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnLibraryUpdate) {
+            if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnLibraryUpdate
+            ) {
                 // Check if SyncDataJob is already running
                 if (wm.isRunning(SyncDataJob.TAG_MANUAL)) {
                     // SyncDataJob is already running

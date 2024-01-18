@@ -170,7 +170,8 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
 
         val syncPreferences: SyncPreferences by injectLazy()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart
+        ) {
             SyncDataJob.startNow(this@App)
         }
     }
@@ -213,7 +214,8 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
 
         val syncPreferences: SyncPreferences by injectLazy()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppResume) {
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppResume
+        ) {
             SyncDataJob.startNow(this@App)
         }
     }
