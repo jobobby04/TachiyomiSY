@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,7 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.domain.source.model.installedExtension
 import eu.kanade.presentation.browse.components.BaseSourceItem
+import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsScreen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel.Listing
 import eu.kanade.tachiyomi.util.system.LocaleHelper
@@ -43,6 +48,7 @@ import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.theme.header
 import tachiyomi.presentation.core.util.plus
+import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 
 @Composable
@@ -52,6 +58,7 @@ fun SourcesScreen(
     onClickItem: (Source, Listing) -> Unit,
     onClickPin: (Source) -> Unit,
     onLongClickItem: (Source) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     when {
         state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
@@ -165,6 +172,13 @@ private fun SourceItem(
                 )
             }
             // SY <--
+            // AM (BROWSE) -->
+            if (source.id != LocalSource.ID) {
+                SourceSettingsButton(
+                    source = source,
+                )
+            }
+            // <-- AM (BROWSE)
         },
     )
 }
@@ -191,6 +205,22 @@ private fun SourcePinButton(
         )
     }
 }
+
+// AM (BROWSE) -->
+@Composable
+private fun SourceSettingsButton(
+    source: Source,
+) {
+    val navigator = LocalNavigator.currentOrThrow
+    IconButton(onClick = { navigator.push(ExtensionDetailsScreen(source.installedExtension.pkgName)) }) {
+        Icon(
+            imageVector = Icons.Outlined.Settings,
+            tint = MaterialTheme.colorScheme.primary,
+            contentDescription = stringResource(MR.strings.label_settings),
+        )
+    }
+}
+// <-- AM (BROWSE)
 
 @Composable
 fun SourceOptionsDialog(
