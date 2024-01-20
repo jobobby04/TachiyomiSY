@@ -13,6 +13,7 @@ import eu.kanade.domain.chapter.model.toDbChapter
 import eu.kanade.domain.manga.interactor.SetMangaViewerFlags
 import eu.kanade.domain.manga.model.readerOrientation
 import eu.kanade.domain.manga.model.readingMode
+import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.domain.track.interactor.TrackChapter
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.domain.ui.UiPreferences
@@ -96,7 +97,6 @@ import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
-import tachiyomi.domain.sync.SyncPreferences
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -676,7 +676,8 @@ class ReaderViewModel @JvmOverloads constructor(
         hasExtraPage: Boolean, /* SY <-- */
     ) {
         val pageIndex = page.index
-        val syncFlags = syncPreferences.syncFlags().get()
+        val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
+        val isSyncEnabled = syncPreferences.isSyncEnabled()
 
         mutableState.update {
             it.copy(currentPage = pageIndex + 1)
@@ -713,9 +714,7 @@ class ReaderViewModel @JvmOverloads constructor(
                 deleteChapterIfNeeded(readerChapter)
 
                 // Check if syncing is enabled for chapter read:
-                if (syncPreferences.isSyncEnabled() &&
-                    syncFlags and SyncPreferences.Flags.SYNC_ON_CHAPTER_READ == SyncPreferences.Flags.SYNC_ON_CHAPTER_READ
-                ) {
+                if (isSyncEnabled && syncTriggerOpt.syncOnChapterRead) {
                     SyncDataJob.startNow(Injekt.get<Application>())
                 }
             }
@@ -729,9 +728,7 @@ class ReaderViewModel @JvmOverloads constructor(
             )
 
             // Check if syncing is enabled for chapter open:
-            if (syncPreferences.isSyncEnabled() &&
-                syncFlags and SyncPreferences.Flags.SYNC_ON_CHAPTER_OPEN == SyncPreferences.Flags.SYNC_ON_CHAPTER_OPEN
-            ) {
+            if (isSyncEnabled && syncTriggerOpt.syncOnChapterOpen && readerChapter.chapter.last_page_read == 0) {
                 SyncDataJob.startNow(Injekt.get<Application>())
             }
         }

@@ -33,6 +33,7 @@ import com.google.firebase.ktx.Firebase
 import eu.kanade.domain.DomainModule
 import eu.kanade.domain.SYDomainModule
 import eu.kanade.domain.base.BasePreferences
+import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.domain.ui.model.setAppCompatDelegateThemeMode
 import eu.kanade.tachiyomi.crash.CrashActivity
@@ -166,6 +167,12 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
         /*if (!LogcatLogger.isInstalled && networkPreferences.verboseLogging().get()) {
             LogcatLogger.install(AndroidLogcatLogger(LogPriority.VERBOSE))
         }*/
+
+        val syncPreferences: SyncPreferences by injectLazy()
+        val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
+            SyncDataJob.startNow(this@App)
+        }
     }
 
     override fun newImageLoader(): ImageLoader {
@@ -205,8 +212,8 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
         SecureActivityDelegate.onApplicationStart()
 
         val syncPreferences: SyncPreferences by injectLazy()
-        val syncFlags = syncPreferences.syncFlags().get()
-        if (syncPreferences.isSyncEnabled() && syncFlags and SyncPreferences.Flags.SYNC_ON_APP_RESUME == SyncPreferences.Flags.SYNC_ON_APP_RESUME) {
+        val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppResume) {
             SyncDataJob.startNow(this@App)
         }
     }
