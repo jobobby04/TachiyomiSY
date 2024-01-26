@@ -58,7 +58,6 @@ import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.isDevFlavor
 import eu.kanade.tachiyomi.util.system.isReleaseBuildType
-import tachiyomi.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.util.system.notify
 import exh.log.CrashlyticsPrinter
 import exh.log.EHLogLevel
@@ -253,8 +252,8 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
         }
 
         val syncPreferences: SyncPreferences by injectLazy()
-        val syncFlags = syncPreferences.syncFlags().get()
-        if (syncPreferences.isSyncEnabled() && syncFlags and SyncPreferences.Flags.SYNC_ON_APP_START == SyncPreferences.Flags.SYNC_ON_APP_START) {
+        val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
             SyncDataJob.startNow(this@App)
         }
     }
