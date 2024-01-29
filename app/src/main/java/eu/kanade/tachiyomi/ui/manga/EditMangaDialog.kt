@@ -191,7 +191,7 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
             binding.thumbnailUrl.hint =
                 context.stringResource(
                     SYMR.strings.thumbnail_url_hint,
-                    manga.ogThumbnailUrl!!.chop(35) + "." + manga.ogThumbnailUrl!!.substringAfterLast(".").chop(6)
+                    manga.ogThumbnailUrl!!.chop(40) + "." + manga.ogThumbnailUrl!!.substringAfterLast(".").chop(6)
                 )
         }
         if (!manga.ogDescription.isNullOrBlank()) {
