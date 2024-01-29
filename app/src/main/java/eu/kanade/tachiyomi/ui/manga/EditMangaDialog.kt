@@ -50,6 +50,7 @@ fun EditMangaDialog(
         title: String?,
         author: String?,
         artist: String?,
+        thumbnailUrl: String?,
         description: String?,
         tags: List<String>?,
         status: Long?,
@@ -69,6 +70,7 @@ fun EditMangaDialog(
                         binding.title.text.toString(),
                         binding.mangaAuthor.text.toString(),
                         binding.mangaArtist.text.toString(),
+                        binding.thumbnailUrl.text.toString(),
                         binding.mangaDescription.text.toString(),
                         binding.mangaGenresTags.getTextStrings(),
                         binding.status.selectedItemPosition.let {
@@ -157,6 +159,7 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
         binding.title.hint = context.stringResource(SYMR.strings.title_hint, manga.url)
         binding.mangaAuthor.setText(manga.author.orEmpty())
         binding.mangaArtist.setText(manga.artist.orEmpty())
+        binding.thumbnailUrl.setText(manga.thumbnailUrl.orEmpty())
         binding.mangaDescription.setText(manga.description.orEmpty())
         binding.mangaGenresTags.setChips(manga.genre.orEmpty().dropBlank(), scope)
     } else {
@@ -169,6 +172,9 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
         if (manga.artist != manga.ogArtist) {
             binding.mangaArtist.append(manga.artist.orEmpty())
         }
+        if (manga.thumbnailUrl != manga.ogThumbnailUrl) {
+            binding.thumbnailUrl.append(manga.thumbnailUrl.orEmpty())
+        }
         if (manga.description != manga.ogDescription) {
             binding.mangaDescription.append(manga.description.orEmpty())
         }
@@ -180,6 +186,13 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
         }
         if (manga.ogArtist != null) {
             binding.mangaArtist.hint = context.stringResource(SYMR.strings.artist_hint, manga.ogArtist!!)
+        }
+        if (manga.ogThumbnailUrl != null) {
+            binding.thumbnailUrl.hint =
+                context.stringResource(
+                    SYMR.strings.thumbnail_url_hint,
+                    manga.ogThumbnailUrl!!.chop(30) + "." + manga.ogThumbnailUrl!!.substringAfterLast(".").chop(6)
+                )
         }
         if (!manga.ogDescription.isNullOrBlank()) {
             binding.mangaDescription.hint =

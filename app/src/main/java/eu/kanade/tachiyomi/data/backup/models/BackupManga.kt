@@ -52,6 +52,7 @@ data class BackupManga(
     // skipping 803 due to using duplicate value in previous builds
     @ProtoNumber(804) var customDescription: String? = null,
     @ProtoNumber(805) var customGenre: List<String>? = null,
+    @ProtoNumber(806) var customThumbnailUrl: String? = null,
 
     // Neko specific values
     @ProtoNumber(901) var filtered_scanlators: String? = null,
@@ -63,11 +64,11 @@ data class BackupManga(
             ogTitle = this@BackupManga.title,
             ogArtist = this@BackupManga.artist,
             ogAuthor = this@BackupManga.author,
+            ogThumbnailUrl = this@BackupManga.thumbnailUrl,
             ogDescription = this@BackupManga.description,
             ogGenre = this@BackupManga.genre,
             ogStatus = this@BackupManga.status.toLong(),
             // SY <--
-            thumbnailUrl = this@BackupManga.thumbnailUrl,
             favorite = this@BackupManga.favorite,
             source = this@BackupManga.source,
             dateAdded = this@BackupManga.dateAdded,
