@@ -187,16 +187,13 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
         if (manga.ogArtist != null) {
             binding.mangaArtist.hint = context.stringResource(SYMR.strings.artist_hint, manga.ogArtist!!)
         }
-        if (manga.ogThumbnailUrl != null) {
-            binding.thumbnailUrl.hint =
-                context.stringResource(
-                    SYMR.strings.thumbnail_url_hint,
-                    manga.ogThumbnailUrl!!.chop(40) +
-                        if (manga.ogThumbnailUrl!!.length > 46) {
-                            "." + manga.ogThumbnailUrl!!.substringAfterLast(".").chop(6)
-                        } else ""
-                )
-        }
+        binding.thumbnailUrl.hint =
+            context.stringResource(
+                SYMR.strings.thumbnail_url_hint,
+                manga.ogThumbnailUrl?.let {
+                    it.chop(40) + if (it.length > 46) "." + it.substringAfterLast(".").chop(6) else ""
+                } ?: ""
+            )
         if (!manga.ogDescription.isNullOrBlank()) {
             binding.mangaDescription.hint =
                 context.stringResource(
