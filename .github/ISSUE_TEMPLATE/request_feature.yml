@@ -1,5 +1,5 @@
 name: ⭐ Feature request
-description: Suggest a feature to improve Tachiyomi
+description: Suggest a feature to improve TachiyomiSY
 labels: [Feature request]
 body:
 
@@ -7,7 +7,7 @@ body:
     id: feature-description
     attributes:
       label: Describe your suggested feature
-      description: How can Tachiyomi be improved?
+      description: How can TachiyomiSY be improved?
       placeholder: |
         Example:
           "It should work like this..."
@@ -30,8 +30,6 @@ body:
         - label: I have searched the existing issues and this is a new ticket, **NOT** a duplicate or related to another open or closed issue.
           required: true
         - label: I have written a short but informative title.
-          required: true
-        - label: If this is an issue with an official extension, I should be opening an issue in the extension's repository.
           required: true
         - label: I have updated the app to version **[1.10.2](https://github.com/jobobby04/tachiyomisy/releases/latest)**.
           required: true

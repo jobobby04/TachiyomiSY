@@ -16,6 +16,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import eu.kanade.domain.chapter.interactor.SetReadStatus
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.manga.model.copyFrom
@@ -56,10 +57,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
-import tachiyomi.core.i18n.stringResource
-import tachiyomi.core.preference.getAndSet
-import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.system.logcat
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.core.common.preference.getAndSet
+import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
@@ -100,6 +101,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 
 class LibraryUpdateJob(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
@@ -125,6 +127,8 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private val insertTrack: InsertTrack = Injekt.get()
     private val trackerManager: TrackerManager = Injekt.get()
     private val mdList = trackerManager.mdList
+    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get()
+    private val setReadStatus: SetReadStatus = Injekt.get()
     // SY <--
 
     private val notifier = LibraryUpdateNotifier(context)
@@ -392,7 +396,19 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                 ) {
                                     try {
                                         val newChapters = updateManga(manga, fetchWindow)
-                                            .sortedByDescending { it.sourceOrder }
+                                            // SY -->
+                                            .sortedByDescending { it.sourceOrder }.run {
+                                                if (libraryPreferences.libraryReadDuplicateChapters().get()) {
+                                                    val readChapters = getChaptersByMangaId.await(manga.id).filter { it.read }
+                                                    val newReadChapters = this.filter { chapter -> readChapters.any { it.chapterNumber == chapter.chapterNumber } }
+                                                        .also { setReadStatus.await(true, *it.toTypedArray()) }
+
+                                                    this.filterNot { newReadChapters.contains(it) }
+                                                } else {
+                                                    this
+                                                }
+                                            }
+                                        //SY <--
 
                                         if (newChapters.isNotEmpty()) {
                                             val categoryIds = getCategories.await(manga.id).map { it.id }
@@ -663,7 +679,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private fun writeErrorFile(errors: List<Pair<Manga, String?>>): File {
         try {
             if (errors.isNotEmpty()) {
-                val file = context.createFileInCacheDir("tachiyomi_update_errors.txt")
+                val file = context.createFileInCacheDir("mihon_update_errors.txt")
                 file.bufferedWriter().use { out ->
                     out.write(context.stringResource(MR.strings.library_errors_help, ERROR_LOG_HELP_URL) + "\n\n")
                     // Error file format:
@@ -706,7 +722,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         private const val WORK_NAME_AUTO = "LibraryUpdate-auto"
         private const val WORK_NAME_MANUAL = "LibraryUpdate-manual"
 
-        private const val ERROR_LOG_HELP_URL = "https://tachiyomi.org/docs/guides/troubleshooting/"
+        private const val ERROR_LOG_HELP_URL = "https://mihon.app/docs/guides/troubleshooting/"
 
         private const val MANGA_PER_SOURCE_QUEUE_WARNING_THRESHOLD = 60
 

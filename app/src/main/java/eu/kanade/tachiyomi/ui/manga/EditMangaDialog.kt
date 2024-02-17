@@ -35,7 +35,7 @@ import exh.ui.metadata.adapters.MetadataUIUtil.getResourceColor
 import exh.util.dropBlank
 import exh.util.trimOrNull
 import kotlinx.coroutines.CoroutineScope
-import tachiyomi.core.i18n.stringResource
+import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
@@ -181,12 +181,14 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
         binding.mangaGenresTags.setChips(manga.genre.orEmpty().dropBlank(), scope)
 
         binding.title.hint = context.stringResource(SYMR.strings.title_hint, manga.ogTitle)
-        if (manga.ogAuthor != null) {
-            binding.mangaAuthor.hint = context.stringResource(SYMR.strings.author_hint, manga.ogAuthor!!)
-        }
-        if (manga.ogArtist != null) {
-            binding.mangaArtist.hint = context.stringResource(SYMR.strings.artist_hint, manga.ogArtist!!)
-        }
+
+        binding.mangaAuthor.hint = context.stringResource(SYMR.strings.author_hint, manga.ogAuthor ?: "")
+        binding.mangaArtist.hint = context.stringResource(SYMR.strings.artist_hint, manga.ogArtist ?: "")
+        binding.mangaDescription.hint =
+            context.stringResource(
+                SYMR.strings.description_hint,
+                manga.ogDescription?.takeIf { it.isNotBlank() }?.let { it.replace("\n", " ").chop(20) } ?: ""
+            )
         binding.thumbnailUrl.hint =
             context.stringResource(
                 SYMR.strings.thumbnail_url_hint,
@@ -194,13 +196,6 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
                     it.chop(40) + if (it.length > 46) "." + it.substringAfterLast(".").chop(6) else ""
                 } ?: ""
             )
-        if (!manga.ogDescription.isNullOrBlank()) {
-            binding.mangaDescription.hint =
-                context.stringResource(
-                    SYMR.strings.description_hint,
-                    manga.ogDescription!!.replace("\n", " ").chop(20),
-                )
-        }
     }
     binding.mangaGenresTags.clearFocus()
 
