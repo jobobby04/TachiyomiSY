@@ -396,6 +396,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                 ) {
                                     try {
                                         val newChapters = updateManga(manga, fetchWindow)
+                                            // SY -->
                                             .sortedByDescending { it.sourceOrder }.run {
                                                 if (libraryPreferences.libraryReadDuplicateChapters().get()) {
                                                     val readChapters = getChaptersByMangaId.await(manga.id).filter { it.read }
@@ -407,6 +408,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                                     this
                                                 }
                                             }
+                                        //SY <--
 
                                         if (newChapters.isNotEmpty()) {
                                             val categoryIds = getCategories.await(manga.id).map { it.id }
