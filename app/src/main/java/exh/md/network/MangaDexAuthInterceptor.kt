@@ -3,13 +3,12 @@ package exh.md.network
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.track.mdlist.MdList
 import eu.kanade.tachiyomi.data.track.myanimelist.OAuth
-import eu.kanade.tachiyomi.data.track.myanimelist.isExpired
 import eu.kanade.tachiyomi.network.parseAs
 import exh.md.utils.MdUtil
 import exh.util.nullIfBlank
 import okhttp3.Interceptor
 import okhttp3.Response
-import tachiyomi.core.util.system.logcat
+import tachiyomi.core.common.util.system.logcat
 import java.io.IOException
 
 class MangaDexAuthInterceptor(

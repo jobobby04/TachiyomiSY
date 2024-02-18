@@ -80,16 +80,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import logcat.LogPriority
-import tachiyomi.core.i18n.stringResource
-import tachiyomi.core.preference.CheckboxState
-import tachiyomi.core.preference.TriState
-import tachiyomi.core.preference.mapAsCheckboxState
-import tachiyomi.core.util.lang.launchIO
-import tachiyomi.core.util.lang.launchNonCancellable
-import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.lang.withNonCancellableContext
-import tachiyomi.core.util.lang.withUIContext
-import tachiyomi.core.util.system.logcat
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.core.common.preference.CheckboxState
+import tachiyomi.core.common.preference.TriState
+import tachiyomi.core.common.preference.mapAsCheckboxState
+import tachiyomi.core.common.util.lang.launchIO
+import tachiyomi.core.common.util.lang.launchNonCancellable
+import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.lang.withNonCancellableContext
+import tachiyomi.core.common.util.lang.withUIContext
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.SetMangaCategories
 import tachiyomi.domain.category.model.Category
@@ -488,6 +488,7 @@ class MangaScreenModel(
         title: String?,
         author: String?,
         artist: String?,
+        thumbnailUrl: String?,
         description: String?,
         tags: List<String>?,
         status: Long?,
@@ -498,11 +499,13 @@ class MangaScreenModel(
             val newTitle = if (title.isNullOrBlank()) manga.url else title.trim()
             val newAuthor = author?.trimOrNull()
             val newArtist = artist?.trimOrNull()
+            val newThumbnailUrl = thumbnailUrl?.trimOrNull()
             val newDesc = description?.trimOrNull()
             manga = manga.copy(
                 ogTitle = newTitle,
                 ogAuthor = author?.trimOrNull(),
                 ogArtist = artist?.trimOrNull(),
+                ogThumbnailUrl = thumbnailUrl?.trimOrNull(),
                 ogDescription = description?.trimOrNull(),
                 ogGenre = tags?.nullIfEmpty(),
                 ogStatus = status ?: 0,
@@ -516,6 +519,7 @@ class MangaScreenModel(
                         title = newTitle,
                         author = newAuthor,
                         artist = newArtist,
+                        thumbnailUrl = newThumbnailUrl,
                         description = newDesc,
                         genre = tags,
                         status = status,
@@ -534,6 +538,7 @@ class MangaScreenModel(
                     title?.trimOrNull(),
                     author?.trimOrNull(),
                     artist?.trimOrNull(),
+                    thumbnailUrl?.trimOrNull(),
                     description?.trimOrNull(),
                     genre,
                     status.takeUnless { it == state.manga.ogStatus },

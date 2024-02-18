@@ -39,9 +39,9 @@ import eu.kanade.tachiyomi.util.system.toast
 import exh.syDebugVersion
 import kotlinx.coroutines.launch
 import logcat.LogPriority
-import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.lang.withUIContext
-import tachiyomi.core.util.system.logcat
+import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.lang.withUIContext
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.LinkIcon
@@ -156,7 +156,7 @@ object AboutScreen : Screen() {
                 // item {
                 //     TextPreferenceWidget(
                 //         title = stringResource(MR.strings.help_translate),
-                //         onPreferenceClick = { uriHandler.openUri("https://tachiyomi.org/docs/contribute#translation") },
+                //         onPreferenceClick = { uriHandler.openUri("https://mihon.app/docs/contribute#translation") },
                 //     )
                 // }
 
@@ -170,7 +170,7 @@ object AboutScreen : Screen() {
                 item {
                     TextPreferenceWidget(
                         title = stringResource(MR.strings.privacy_policy),
-                        onPreferenceClick = { uriHandler.openUri("https://tachiyomi.org/privacy/") },
+                        onPreferenceClick = { uriHandler.openUri("https://mihon.app/privacy/") },
                     )
                 }
 
@@ -184,7 +184,7 @@ object AboutScreen : Screen() {
                         LinkIcon(
                             label = stringResource(MR.strings.website),
                             icon = Icons.Outlined.Public,
-                            url = "https://tachiyomi.org",
+                            url = "https://mihon.app",
                         )
                         LinkIcon(
                             label = "Discord",

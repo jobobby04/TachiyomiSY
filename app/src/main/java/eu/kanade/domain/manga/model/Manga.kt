@@ -6,9 +6,9 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
+import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.metadata.comicinfo.ComicInfo
 import tachiyomi.core.metadata.comicinfo.ComicInfoPublishingStatus
-import tachiyomi.core.preference.TriState
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.Injekt
@@ -55,6 +55,7 @@ fun Manga.copyFrom(other: SManga): Manga {
     // SY -->
     val author = other.author ?: ogAuthor
     val artist = other.artist ?: ogArtist
+    val thumbnailUrl = other.thumbnail_url ?: ogThumbnailUrl
     val description = other.description ?: ogDescription
     val genres = if (other.genre != null) {
         other.getGenres()
@@ -62,15 +63,14 @@ fun Manga.copyFrom(other: SManga): Manga {
         ogGenre
     }
     // SY <--
-    val thumbnailUrl = other.thumbnail_url ?: thumbnailUrl
     return this.copy(
         // SY -->
         ogAuthor = author,
         ogArtist = artist,
+        ogThumbnailUrl = thumbnailUrl,
         ogDescription = description,
         ogGenre = genres,
         // SY <--
-        thumbnailUrl = thumbnailUrl,
         // SY -->
         ogStatus = other.status.toLong(),
         // SY <--
@@ -86,11 +86,11 @@ fun SManga.toDomainManga(sourceId: Long): Manga {
         ogTitle = title,
         ogArtist = artist,
         ogAuthor = author,
+        ogThumbnailUrl = thumbnail_url,
         ogDescription = description,
         ogGenre = getGenres(),
         ogStatus = status.toLong(),
         // SY <--
-        thumbnailUrl = thumbnail_url,
         updateStrategy = update_strategy,
         initialized = initialized,
         source = sourceId,

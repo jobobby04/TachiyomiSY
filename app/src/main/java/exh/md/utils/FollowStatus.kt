@@ -2,7 +2,7 @@ package exh.md.utils
 
 import java.util.Locale
 
-enum class FollowStatus(val int: Int) {
+enum class FollowStatus(val int: Long) {
     UNFOLLOWED(0),
     READING(1),
     COMPLETED(2),
@@ -17,7 +17,7 @@ enum class FollowStatus(val int: Int) {
     companion object {
         fun fromDex(
             value: String?,
-        ): FollowStatus = values().firstOrNull { it.name.lowercase(Locale.US) == value } ?: UNFOLLOWED
-        fun fromInt(value: Int): FollowStatus = values().firstOrNull { it.int == value } ?: UNFOLLOWED
+        ): FollowStatus = entries.firstOrNull { it.name.lowercase(Locale.US) == value } ?: UNFOLLOWED
+        fun fromInt(value: Long): FollowStatus = entries.firstOrNull { it.int == value } ?: UNFOLLOWED
     }
 }

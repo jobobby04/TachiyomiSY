@@ -74,13 +74,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
-import tachiyomi.core.i18n.stringResource
-import tachiyomi.core.preference.CheckboxState
-import tachiyomi.core.preference.TriState
-import tachiyomi.core.util.lang.compareToWithCollator
-import tachiyomi.core.util.lang.launchIO
-import tachiyomi.core.util.lang.launchNonCancellable
-import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.core.common.preference.CheckboxState
+import tachiyomi.core.common.preference.TriState
+import tachiyomi.core.common.util.lang.compareToWithCollator
+import tachiyomi.core.common.util.lang.launchIO
+import tachiyomi.core.common.util.lang.launchNonCancellable
+import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.SetMangaCategories
@@ -729,6 +729,7 @@ class LibraryScreenModel(
                 title = editedTitle.nullIfBlank(),
                 author = manga.author.takeUnless { it == manga.ogAuthor },
                 artist = manga.artist.takeUnless { it == manga.ogArtist },
+                thumbnailUrl = manga.thumbnailUrl.takeUnless { it == manga.ogThumbnailUrl },
                 description = manga.description.takeUnless { it == manga.ogDescription },
                 genre = manga.genre.takeUnless { it == manga.ogGenre },
                 status = manga.status.takeUnless { it == manga.ogStatus }?.toLong(),
@@ -1020,7 +1021,7 @@ class LibraryScreenModel(
         return tracks.fastAny { track ->
             val trackService = trackerManager.get(track.trackerId)
             if (trackService != null) {
-                val status = trackService.getStatus(track.status.toInt())?.let {
+                val status = trackService.getStatus(track.status)?.let {
                     context.stringResource(it)
                 }
                 val name = trackerManager.get(track.trackerId)?.name

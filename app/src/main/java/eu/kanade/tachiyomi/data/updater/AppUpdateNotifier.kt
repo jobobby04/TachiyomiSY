@@ -13,7 +13,7 @@ import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
-import tachiyomi.core.i18n.stringResource
+import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.release.model.Release
 import tachiyomi.i18n.MR
 
@@ -153,7 +153,7 @@ internal class AppUpdateNotifier(private val context: Context) {
             setContentIntent(
                 NotificationHandler.openUrl(
                     context,
-                    "https://tachiyomi.org/docs/faq/general#how-do-i-update-from-the-f-droid-builds",
+                    "https://mihon.app/docs/faq/general#how-do-i-update-from-the-f-droid-builds",
                 ),
             )
         }

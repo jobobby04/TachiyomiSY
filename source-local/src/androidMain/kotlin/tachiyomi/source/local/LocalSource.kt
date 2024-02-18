@@ -22,18 +22,18 @@ import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import nl.adaptivity.xmlutil.AndroidXmlReader
 import nl.adaptivity.xmlutil.serialization.XML
-import tachiyomi.core.i18n.stringResource
+import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.metadata.comicinfo.COMIC_INFO_FILE
 import tachiyomi.core.metadata.comicinfo.ComicInfo
 import tachiyomi.core.metadata.comicinfo.copyFromComicInfo
 import tachiyomi.core.metadata.comicinfo.getComicInfo
 import tachiyomi.core.metadata.tachiyomi.MangaDetails
-import tachiyomi.core.storage.UniFileTempFileManager
-import tachiyomi.core.storage.extension
-import tachiyomi.core.storage.nameWithoutExtension
-import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.system.ImageUtil
-import tachiyomi.core.util.system.logcat
+import tachiyomi.core.common.storage.UniFileTempFileManager
+import tachiyomi.core.common.storage.extension
+import tachiyomi.core.common.storage.nameWithoutExtension
+import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.system.ImageUtil
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.service.ChapterRecognition
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
@@ -454,7 +454,7 @@ actual class LocalSource(
 
     companion object {
         const val ID = 0L
-        const val HELP_URL = "https://tachiyomi.org/docs/guides/local-source/"
+        const val HELP_URL = "https://mihon.app/docs/guides/local-source/"
 
         // SY -->
         const val COMIC_INFO_ARCHIVE = "ComicInfo.cbm"

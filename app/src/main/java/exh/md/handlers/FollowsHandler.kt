@@ -15,7 +15,7 @@ import exh.md.utils.mdListCall
 import exh.metadata.metadata.MangaDexSearchMetadata
 import exh.util.under
 import kotlinx.coroutines.async
-import tachiyomi.core.util.lang.withIOContext
+import tachiyomi.core.common.util.lang.withIOContext
 
 class FollowsHandler(
     private val lang: String,
@@ -57,7 +57,7 @@ class FollowsHandler(
                 it,
                 lang,
             ) to MangaDexSearchMetadata().apply {
-                followStatus = FollowStatus.fromDex(statuses[it.id]).int
+                followStatus = FollowStatus.fromDex(statuses[it.id]).int.toInt()
             }
         }.sortedWith(comparator)
     }
@@ -116,7 +116,7 @@ class FollowsHandler(
         return withIOContext {
             val mangaId = MdUtil.getMangaId(track.tracking_url)
             val result = runCatching {
-                if (track.score == 0f) {
+                if (track.score == 0.0) {
                     service.deleteMangaRating(mangaId)
                 } else {
                     service.updateMangaRating(mangaId, track.score.toInt())
@@ -157,7 +157,7 @@ class FollowsHandler(
                 title = ""
                 status = followStatus.int
                 tracking_url = url
-                score = rating?.rating?.toFloat() ?: 0F
+                score = rating?.rating?.toDouble() ?: 0.0
             }
         }
     }

@@ -91,6 +91,7 @@ class MangaRestorer(
                 backupCategories = backupCategories,
                 history = backupManga.history + backupManga.brokenHistory.map { it.toBackupHistory() },
                 tracks = backupManga.tracking,
+                excludedScanlators = backupManga.excludedScanlators,
                 // SY -->
                 mergedMangaReferences = backupManga.mergedMangaReferences,
                 flatMetadata = backupManga.flatMetadata,
@@ -120,7 +121,7 @@ class MangaRestorer(
             ogArtist = newer.artist,
             ogDescription = newer.description,
             ogGenre = newer.genre,
-            thumbnailUrl = newer.thumbnailUrl,
+            ogThumbnailUrl = newer.thumbnailUrl,
             ogStatus = newer.status,
             // SY <--
             initialized = this.initialized || newer.initialized,
@@ -289,6 +290,7 @@ class MangaRestorer(
         backupCategories: List<BackupCategory>,
         history: List<BackupHistory>,
         tracks: List<BackupTracking>,
+        excludedScanlators: List<String>,
         // SY -->
         mergedMangaReferences: List<BackupMergedMangaReference>,
         flatMetadata: BackupFlatMetadata?,
@@ -299,6 +301,7 @@ class MangaRestorer(
         restoreChapters(manga, chapters)
         restoreTracking(manga, tracks)
         restoreHistory(history)
+        restoreExcludedScanlators(manga, excludedScanlators)
         updateManga.awaitUpdateFetchInterval(manga, now, currentFetchWindow)
         // SY -->
         restoreMergedMangaReferencesForManga(manga.id, mergedMangaReferences)
@@ -505,6 +508,7 @@ class MangaRestorer(
         if (customTitle != null ||
             customArtist != null ||
             customAuthor != null ||
+            customThumbnailUrl != null ||
             customDescription != null ||
             customGenre != null ||
             customStatus != 0
@@ -514,6 +518,7 @@ class MangaRestorer(
                 title = customTitle,
                 author = customAuthor,
                 artist = customArtist,
+                thumbnailUrl = customThumbnailUrl,
                 description = customDescription,
                 genre = customGenre,
                 status = customStatus.takeUnless { it == 0 }?.toLong(),
@@ -524,4 +529,25 @@ class MangaRestorer(
     // SY <--
 
     private fun Track.forComparison() = this.copy(id = 0L, mangaId = 0L)
+
+    /**
+     * Restores the excluded scanlators for the manga.
+     *
+     * @param manga the manga whose excluded scanlators have to be restored.
+     * @param excludedScanlators the excluded scanlators to restore.
+     */
+    private suspend fun restoreExcludedScanlators(manga: Manga, excludedScanlators: List<String>) {
+        if (excludedScanlators.isEmpty()) return
+        val existingExcludedScanlators = handler.awaitList {
+            excluded_scanlatorsQueries.getExcludedScanlatorsByMangaId(manga.id)
+        }
+        val toInsert = excludedScanlators.filter { it !in existingExcludedScanlators }
+        if (toInsert.isNotEmpty()) {
+            handler.await {
+                toInsert.forEach {
+                    excluded_scanlatorsQueries.insert(manga.id, it)
+                }
+            }
+        }
+    }
 }

@@ -66,6 +66,10 @@ class MangaBackupCreator(
         }
         // SY <--
 
+        mangaObject.excludedScanlators = handler.awaitList {
+            excluded_scanlatorsQueries.getExcludedScanlatorsByMangaId(manga.id)
+        }
+
         if (options.chapters) {
             // Backup all the chapters
             handler.awaitList {
@@ -136,6 +140,7 @@ private fun Manga.toBackupManga(/* SY --> */customMangaInfo: CustomMangaInfo?/* 
             backupManga.customTitle = it.title
             backupManga.customArtist = it.artist
             backupManga.customAuthor = it.author
+            backupManga.customThumbnailUrl = it.thumbnailUrl
             backupManga.customDescription = it.description
             backupManga.customGenre = it.genre
             backupManga.customStatus = it.status?.toInt() ?: 0

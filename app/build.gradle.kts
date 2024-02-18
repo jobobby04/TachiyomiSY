@@ -26,8 +26,8 @@ android {
     defaultConfig {
         applicationId = "eu.kanade.tachiyomi.sy"
 
-        versionCode = 62
-        versionName = "1.10.2"
+        versionCode = 64
+        versionName = "1.10.4"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -140,18 +140,18 @@ android {
 }
 
 dependencies {
-    implementation(project(":i18n"))
+    implementation(projects.i18n)
     // SY -->
-    implementation(project(":i18n-sy"))
+    implementation(projects.i18nSy)
     // SY <--
-    implementation(project(":core"))
-    implementation(project(":core-metadata"))
-    implementation(project(":source-api"))
-    implementation(project(":source-local"))
-    implementation(project(":data"))
-    implementation(project(":domain"))
-    implementation(project(":presentation-core"))
-    implementation(project(":presentation-widget"))
+    implementation(projects.core.common)
+    implementation(projects.coreMetadata)
+    implementation(projects.sourceApi)
+    implementation(projects.sourceLocal)
+    implementation(projects.data)
+    implementation(projects.domain)
+    implementation(projects.presentationCore)
+    implementation(projects.presentationWidget)
 
     // Compose
     implementation(platform(compose.bom))
@@ -167,7 +167,6 @@ dependencies {
     implementation(compose.ui.util)
     implementation(compose.accompanist.webview)
     implementation(compose.accompanist.systemuicontroller)
-    lintChecks(compose.lintchecks)
 
     implementation(androidx.paging.runtime)
     implementation(androidx.paging.compose)

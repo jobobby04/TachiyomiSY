@@ -47,15 +47,15 @@ import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Response
-import tachiyomi.core.i18n.stringResource
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.core.common.storage.extension
+import tachiyomi.core.common.util.lang.launchIO
+import tachiyomi.core.common.util.lang.launchNow
+import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.system.ImageUtil
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.core.metadata.comicinfo.COMIC_INFO_FILE
 import tachiyomi.core.metadata.comicinfo.ComicInfo
-import tachiyomi.core.storage.extension
-import tachiyomi.core.util.lang.launchIO
-import tachiyomi.core.util.lang.launchNow
-import tachiyomi.core.util.lang.withIOContext
-import tachiyomi.core.util.system.ImageUtil
-import tachiyomi.core.util.system.logcat
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.download.service.DownloadPreferences
@@ -663,7 +663,8 @@ class Downloader(
         dirname: String,
         tmpDir: UniFile,
     ) {
-        val zip = ZipFile("${mangaDir.filePath}/$dirname.cbz$TMP_DIR_SUFFIX")
+        val zipFile = File(context.externalCacheDir, "$dirname.cbz$TMP_DIR_SUFFIX")
+        val zip = ZipFile(zipFile)
         val zipParameters = ZipParameters()
 
         CbzCrypto.setZipParametersEncrypted(zipParameters)
@@ -676,9 +677,17 @@ class Downloader(
             tmpDir.listFiles()?.map { img -> img.filePath?.let { File(it) } },
             zipParameters,
         )
+        zip.close()
 
+        val realZip = mangaDir.createFile("$dirname.cbz$TMP_DIR_SUFFIX")!!
+        realZip.openOutputStream().use { out ->
+            zipFile.inputStream().use {
+                it.copyTo(out)
+            }
+        }
         mangaDir.findFile("$dirname.cbz$TMP_DIR_SUFFIX")?.renameTo("$dirname.cbz")
         tmpDir.delete()
+        zipFile.delete()
     }
 
     private fun addPaddingToImage(imageDir: File) {

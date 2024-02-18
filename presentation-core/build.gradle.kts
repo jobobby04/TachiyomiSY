@@ -21,10 +21,10 @@ android {
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":i18n"))
+    api(projects.core.common)
+    api(projects.i18n)
     // SY -->
-    api(project(":i18n-sy"))
+    api(projects.i18nSy)
     // SY <--
 
     // Compose
@@ -39,7 +39,6 @@ dependencies {
     debugImplementation(compose.ui.tooling)
     implementation(compose.ui.tooling.preview)
     implementation(compose.ui.util)
-    lintChecks(compose.lintchecks)
 
     implementation(kotlinx.immutables)
 }
