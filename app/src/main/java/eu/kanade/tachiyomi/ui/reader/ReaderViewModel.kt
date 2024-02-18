@@ -695,7 +695,7 @@ class ReaderViewModel @JvmOverloads constructor(
                 // SY -->
                 if (readerPreferences.markReadDupe().get()) {
                     getChaptersByMangaId.await(manga!!.id).sortedByDescending { it.sourceOrder }
-                        .filter { it.chapterNumber >= 0 && !it.read && it.chapterNumber.toFloat() == readerChapter.chapter.chapter_number }
+                        .filter { it.read.not() && it.chapterNumber.toFloat() == readerChapter.chapter.chapter_number }
                         .also { setReadStatus.await(true, *it.toTypedArray()) }
                 }
                 if (manga?.isEhBasedManga() == true) {
