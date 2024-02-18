@@ -181,6 +181,7 @@ object SettingsReaderScreen : SearchableSettings {
                 Preference.PreferenceItem.SwitchPreference(
                     pref = readerPreferences.markReadDupe(),
                     title = stringResource(MR.strings.pref_mark_read_dupe_chapters),
+                    subtitle = stringResource(MR.strings.pref_mark_read_dupe_chapters_summary),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     pref = readerPreferences.alwaysShowChapterTransition(),
