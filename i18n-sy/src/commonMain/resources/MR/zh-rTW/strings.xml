@@ -9,10 +9,10 @@
     <string name="action_start_reading">開始閱讀</string>
     <string name="action_edit_info">編輯資訊</string>
     <!-- Entry Type -->
-    <string name="entry_type_manga">日本漫畫</string>
-    <string name="entry_type_manhwa">韓國漫畫</string>
-    <string name="entry_type_manhua">中國漫畫</string>
-    <string name="entry_type_comic">美國漫畫</string>
+    <string name="entry_type_manga">漫畫(日本)</string>
+    <string name="entry_type_manhwa">漫畫(韓國)</string>
+    <string name="entry_type_manhua">漫畫(中國)</string>
+    <string name="entry_type_comic">漫畫(美國)</string>
     <string name="entry_type_webtoon">條漫</string>
 
     <!-- Preferences -->
