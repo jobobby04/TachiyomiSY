@@ -301,7 +301,7 @@ actual class LocalSource(
         return null
     }
 
-    private fun copyComicInfoFile(comicInfoFileStream: InputStream, mangaDir: UniFile): File {
+    private fun copyComicInfoFile(comicInfoFileStream: InputStream, mangaDir: UniFile): File? {
         // SY -->
         if (
             CbzCrypto.getPasswordProtectDlPref() &&
@@ -326,7 +326,7 @@ actual class LocalSource(
             }
             zipEncryptedFile.delete()
 
-            return zipEncrypted.file
+            return realZipEncrypted.filePath?.let { File(it) }
         } else {
             return File("${mangaDir.filePath}/$COMIC_INFO_FILE").apply {
                 // SY <--
