@@ -243,9 +243,9 @@ actual class LocalSource(
 
                     // SY -->
                     if (copiedFile != null && copiedFile.name != COMIC_INFO_ARCHIVE) {
-                        setMangaDetailsFromComicInfoFile(copiedFile.inputStream(), manga)
+                        setMangaDetailsFromComicInfoFile(copiedFile.openInputStream(), manga)
                     } else if (copiedFile != null && copiedFile.name == COMIC_INFO_ARCHIVE) {
-                        val comicInfoArchive = ZipFile(copiedFile)
+                        val comicInfoArchive = ZipFile(copiedFile.filePath)
                         comicInfoArchive.setPassword(CbzCrypto.getDecryptedPasswordCbz())
                         val comicInfoEntry = comicInfoArchive.fileHeaders.firstOrNull { it.fileName == COMIC_INFO_FILE }
 
@@ -264,7 +264,7 @@ actual class LocalSource(
         return@withIOContext manga
     }
 
-    private fun copyComicInfoFileFromArchive(chapterArchives: List<UniFile>, mangaDir: UniFile): File? {
+    private fun copyComicInfoFileFromArchive(chapterArchives: List<UniFile>, folder: UniFile): UniFile? {
         for (chapter in chapterArchives) {
             when (Format.valueOf(chapter)) {
                 is Format.Zip -> {
@@ -281,7 +281,7 @@ actual class LocalSource(
                         zip.getFileHeader(COMIC_INFO_FILE)?.let { comicInfoFile ->
                             // SY <--
                             zip.getInputStream(comicInfoFile).buffered().use { stream ->
-                                return copyComicInfoFile(stream, mangaDir)
+                                return copyComicInfoFile(stream, folder)
                             }
                         }
                     }
@@ -290,7 +290,7 @@ actual class LocalSource(
                     JunrarArchive(tempFileManager.createTempFile(chapter)).use { rar ->
                         rar.fileHeaders.firstOrNull { it.fileName == COMIC_INFO_FILE }?.let { comicInfoFile ->
                             rar.getInputStream(comicInfoFile).buffered().use { stream ->
-                                return copyComicInfoFile(stream, mangaDir)
+                                return copyComicInfoFile(stream, folder)
                             }
                         }
                     }
@@ -301,7 +301,7 @@ actual class LocalSource(
         return null
     }
 
-    private fun copyComicInfoFile(comicInfoFileStream: InputStream, mangaDir: UniFile): File? {
+    private fun copyComicInfoFile(comicInfoFileStream: InputStream, folder: UniFile): UniFile? {
         // SY -->
         if (
             CbzCrypto.getPasswordProtectDlPref() &&
@@ -318,7 +318,7 @@ actual class LocalSource(
             zipEncrypted.setPassword(CbzCrypto.getDecryptedPasswordCbz())
             zipEncrypted.addStream(comicInfoFileStream, zipParameters)
 
-            val realZipEncrypted = mangaDir.createFile(COMIC_INFO_ARCHIVE)!!
+            val realZipEncrypted = folder.createFile(COMIC_INFO_ARCHIVE)!!
             realZipEncrypted.openOutputStream().use { out ->
                 zipEncryptedFile.inputStream().use {
                     it.copyTo(out)
@@ -326,11 +326,11 @@ actual class LocalSource(
             }
             zipEncryptedFile.delete()
 
-            return realZipEncrypted.filePath?.let { File(it) }
+            return realZipEncrypted
         } else {
-            return File("${mangaDir.filePath}/$COMIC_INFO_FILE").apply {
-                // SY <--
-                outputStream().use { outputStream ->
+            // SY <--
+            return folder.createFile(COMIC_INFO_FILE)?.apply {
+                openOutputStream().use { outputStream ->
                     comicInfoFileStream.use { it.copyTo(outputStream) }
                 }
             }
