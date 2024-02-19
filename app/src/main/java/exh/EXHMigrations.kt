@@ -655,6 +655,20 @@ object EXHMigrations {
                     }
                 }
 
+                if (oldVersion under 65) {
+                    val appStatePrefsToReplace = listOf(
+                        "__PRIVATE_sql_password",
+                        "__PRIVATE_encrypt_database",
+                        "__PRIVATE_cbz_password",
+                    )
+
+                    replacePreferences(
+                        preferenceStore = preferenceStore,
+                        filterPredicate = { it.key in appStatePrefsToReplace },
+                        newKey = { Preference.appStateKey(it.replace("__PRIVATE_", "").trim()) },
+                    )
+                }
+
                 // if (oldVersion under 1) { } (1 is current release version)
                 // do stuff here when releasing changed crap
 
