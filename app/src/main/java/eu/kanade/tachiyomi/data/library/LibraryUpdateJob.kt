@@ -28,7 +28,6 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.track.TrackStatus
 import eu.kanade.tachiyomi.data.track.TrackerManager
-import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
 import eu.kanade.tachiyomi.source.online.all.MergedSource
@@ -631,9 +630,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 var tracker = dbTracks.firstOrNull { it.trackerId == TrackerManager.MDLIST }
                     ?: mdList.createInitialTracker(manga).toDomainTrack(idRequired = false)
 
-                if (tracker?.status == FollowStatus.UNFOLLOWED.int.toLong()) {
+                if (tracker?.status == FollowStatus.UNFOLLOWED.long) {
                     tracker = tracker.copy(
-                        status = FollowStatus.READING.int.toLong(),
+                        status = FollowStatus.READING.long,
                     )
                     val updatedTrack = mdList.update(tracker.toDbTrack())
                     insertTrack.await(updatedTrack.toDomainTrack(false)!!)

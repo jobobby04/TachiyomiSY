@@ -57,7 +57,7 @@ class FollowsHandler(
                 it,
                 lang,
             ) to MangaDexSearchMetadata().apply {
-                followStatus = FollowStatus.fromDex(statuses[it.id]).int.toInt()
+                followStatus = FollowStatus.fromDex(statuses[it.id]).long.toInt()
             }
         }.sortedWith(comparator)
     }
@@ -155,7 +155,7 @@ class FollowsHandler(
             val (followStatus, rating) = followStatusDef.await() to ratingDef.await()
             Track.create(TrackerManager.MDLIST).apply {
                 title = ""
-                status = followStatus.int
+                status = followStatus.long
                 tracking_url = url
                 score = rating?.rating?.toDouble() ?: 0.0
             }
