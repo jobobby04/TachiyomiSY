@@ -673,10 +673,14 @@ class Downloader(
 
         tmpDir.filePath?.let { addPaddingToImage(File(it)) }
 
-        zip.addFiles(
-            tmpDir.listFiles()?.map { img -> img.filePath?.let { File(it) } },
-            zipParameters,
-        )
+        tmpDir.listFiles()?.map { img ->
+            zipParameters.fileNameInZip = img.name
+            zip.addStream(
+                img.openInputStream(),
+                zipParameters,
+            )
+        }
+
         zip.close()
 
         val realZip = mangaDir.createFile("$dirname.cbz$TMP_DIR_SUFFIX")!!
@@ -685,6 +689,7 @@ class Downloader(
                 it.copyTo(out)
             }
         }
+
         mangaDir.findFile("$dirname.cbz$TMP_DIR_SUFFIX")?.renameTo("$dirname.cbz")
         tmpDir.delete()
         zipFile.delete()
