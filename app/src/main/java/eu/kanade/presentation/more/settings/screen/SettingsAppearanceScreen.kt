@@ -23,6 +23,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableMap
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
+import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.Injekt
@@ -179,8 +180,9 @@ object SettingsAppearanceScreen : SearchableSettings {
                 Preference.PreferenceItem.SliderPreference(
                     value = previewsRowCount,
                     title = stringResource(SYMR.strings.pref_previews_row_count),
-                    subtitle = if (previewsRowCount > 0) stringResource(
-                        SYMR.strings.pref_previews_row_count_value,
+                    subtitle = if (previewsRowCount > 0) pluralStringResource(
+                        SYMR.plurals.row_count,
+                        previewsRowCount,
                         previewsRowCount,
                     ) else stringResource(MR.strings.disabled),
                     min = 0,
