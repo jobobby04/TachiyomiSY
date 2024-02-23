@@ -98,6 +98,11 @@ class MangaRestorer(
                 customManga = backupManga.getCustomMangaInfo(),
                 // SY <--
             )
+
+            if (isSync) {
+                mangasQueries.resetIsSyncing()
+                chaptersQueries.resetIsSyncing()
+            }
         }
     }
 
@@ -106,7 +111,7 @@ class MangaRestorer(
     }
 
     private suspend fun restoreExistingManga(manga: Manga, dbManga: Manga): Manga {
-        return if (manga.lastModifiedAt > dbManga.lastModifiedAt) {
+        return if (manga.version > dbManga.version) {
             updateManga(dbManga.copyFrom(manga).copy(id = dbManga.id))
         } else {
             updateManga(manga.copyFrom(dbManga).copy(id = dbManga.id))
@@ -114,6 +119,21 @@ class MangaRestorer(
     }
 
     private fun Manga.copyFrom(newer: Manga): Manga {
+        if (isSync) {
+            return this.copy(
+                favorite = this.favorite || newer.favorite,
+                author = newer.author,
+                artist = newer.artist,
+                description = newer.description,
+                genre = newer.genre,
+                thumbnailUrl = newer.thumbnailUrl,
+                status = newer.status,
+                initialized = this.initialized || newer.initialized,
+                version = newer.version,
+                isSyncing = 1,
+            )
+        }
+
         return this.copy(
             favorite = this.favorite || newer.favorite,
             // SY -->
@@ -125,6 +145,7 @@ class MangaRestorer(
             ogStatus = newer.status,
             // SY <--
             initialized = this.initialized || newer.initialized,
+            version = newer.version,
         )
     }
 
@@ -151,6 +172,8 @@ class MangaRestorer(
                 dateAdded = manga.dateAdded,
                 mangaId = manga.id,
                 updateStrategy = manga.updateStrategy.let(UpdateStrategyColumnAdapter::encode),
+                version = manga.version,
+                isSyncing = manga.isSyncing
             )
         }
         return manga
@@ -162,6 +185,7 @@ class MangaRestorer(
         return manga.copy(
             initialized = manga.description != null,
             id = insertManga(manga),
+            version = manga.version
         )
     }
 
@@ -193,6 +217,7 @@ class MangaRestorer(
                 bookmark = chapter.bookmark || dbChapter.bookmark,
                 read = chapter.read,
                 lastPageRead = chapter.lastPageRead,
+                isSyncing = 1,
             )
         } else {
             chapter.copyFrom(dbChapter).let {
@@ -208,7 +233,7 @@ class MangaRestorer(
     }
 
     private fun Chapter.forComparison() =
-        this.copy(id = 0L, mangaId = 0L, dateFetch = 0L, dateUpload = 0L, lastModifiedAt = 0L)
+        this.copy(id = 0L, mangaId = 0L, dateFetch = 0L, dateUpload = 0L, lastModifiedAt = 0L, version = 0L)
 
     private suspend fun insertNewChapters(chapters: List<Chapter>) {
         handler.await(true) {
@@ -225,6 +250,7 @@ class MangaRestorer(
                     chapter.sourceOrder,
                     chapter.dateFetch,
                     chapter.dateUpload,
+                    chapter.version,
                 )
             }
         }
@@ -246,6 +272,8 @@ class MangaRestorer(
                     dateFetch = null,
                     dateUpload = null,
                     chapterId = chapter.id,
+                    version = chapter.version,
+                    isSyncing = chapter.isSyncing,
                 )
             }
         }
@@ -278,6 +306,7 @@ class MangaRestorer(
                 coverLastModified = manga.coverLastModified,
                 dateAdded = manga.dateAdded,
                 updateStrategy = manga.updateStrategy,
+                version = manga.version,
             )
             mangasQueries.selectLastInsertedRowId()
         }

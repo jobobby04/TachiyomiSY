@@ -134,6 +134,8 @@ private fun Manga.toBackupManga(/* SY --> */customMangaInfo: CustomMangaInfo?/* 
         updateStrategy = this.updateStrategy,
         lastModifiedAt = this.lastModifiedAt,
         favoriteModifiedAt = this.favoriteModifiedAt,
+        version = this.version,
+        isSyncing = this.isSyncing,
         // SY -->
     ).also { backupManga ->
         customMangaInfo?.let {

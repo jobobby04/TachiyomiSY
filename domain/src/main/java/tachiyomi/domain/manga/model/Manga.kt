@@ -33,6 +33,9 @@ data class Manga(
     val initialized: Boolean,
     val lastModifiedAt: Long,
     val favoriteModifiedAt: Long?,
+    val version: Long,
+    val isSyncing: Long,
+
 ) : Serializable {
 
     // SY -->
@@ -159,6 +162,8 @@ data class Manga(
             initialized = false,
             lastModifiedAt = 0L,
             favoriteModifiedAt = null,
+            version = 0L,
+            isSyncing = 0L,
         )
 
         // SY -->
