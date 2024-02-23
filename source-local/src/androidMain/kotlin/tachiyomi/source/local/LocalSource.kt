@@ -245,7 +245,7 @@ actual class LocalSource(
                     if (copiedFile != null && copiedFile.name != COMIC_INFO_ARCHIVE) {
                         setMangaDetailsFromComicInfoFile(copiedFile.openInputStream(), manga)
                     } else if (copiedFile != null && copiedFile.name == COMIC_INFO_ARCHIVE) {
-                        val comicInfoArchive = ZipFile(copiedFile.filePath)
+                        val comicInfoArchive = ZipFile(tempFileManager.createTempFile(copiedFile))
                         comicInfoArchive.setPassword(CbzCrypto.getDecryptedPasswordCbz())
                         val comicInfoEntry = comicInfoArchive.fileHeaders.firstOrNull { it.fileName == COMIC_INFO_FILE }
 
