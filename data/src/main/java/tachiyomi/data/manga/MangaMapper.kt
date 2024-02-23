@@ -164,6 +164,8 @@ object MangaMapper {
                 fetchInterval = libraryView.calculate_interval.toInt(),
                 lastModifiedAt = libraryView.last_modified_at,
                 favoriteModifiedAt = libraryView.favorite_modified_at,
+                version = libraryView.version,
+                isSyncing = libraryView.is_syncing,
             ),
             category = libraryView.category,
             totalChapters = libraryView.totalCount,

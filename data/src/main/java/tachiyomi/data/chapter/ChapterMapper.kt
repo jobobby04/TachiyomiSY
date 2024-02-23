@@ -17,6 +17,8 @@ object ChapterMapper {
         dateFetch: Long,
         dateUpload: Long,
         lastModifiedAt: Long,
+        version: Long,
+        isSyncing: Long,
     ): Chapter = Chapter(
         id = id,
         mangaId = mangaId,
@@ -31,5 +33,7 @@ object ChapterMapper {
         chapterNumber = chapterNumber,
         scanlator = scanlator,
         lastModifiedAt = lastModifiedAt,
+        version = version,
+        isSyncing = isSyncing
     )
 }

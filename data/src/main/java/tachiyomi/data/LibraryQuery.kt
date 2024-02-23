@@ -39,6 +39,8 @@ private val mapper = { cursor: SqlCursor ->
         lastRead = cursor.getLong(27)!!,
         bookmarkCount = cursor.getDouble(28)!!,
         category = cursor.getLong(29)!!,
+        version = cursor.getLong(30)!!,
+        is_syncing = 0L,
     )
 }
 
