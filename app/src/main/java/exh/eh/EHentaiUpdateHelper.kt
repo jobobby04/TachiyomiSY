@@ -254,6 +254,8 @@ class EHentaiUpdateHelper(context: Context) {
                         scanlator = null,
                         sourceOrder = -1,
                         lastModifiedAt = 0,
+                        version = 0,
+                        isSyncing = 0,
                     )
                 }
             }

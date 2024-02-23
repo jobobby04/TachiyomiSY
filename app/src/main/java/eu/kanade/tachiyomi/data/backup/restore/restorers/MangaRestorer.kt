@@ -122,12 +122,14 @@ class MangaRestorer(
         if (isSync) {
             return this.copy(
                 favorite = this.favorite || newer.favorite,
-                author = newer.author,
-                artist = newer.artist,
-                description = newer.description,
-                genre = newer.genre,
-                thumbnailUrl = newer.thumbnailUrl,
-                status = newer.status,
+                // SY -->
+                ogAuthor = newer.author,
+                ogArtist = newer.artist,
+                ogDescription = newer.description,
+                ogGenre = newer.genre,
+                ogThumbnailUrl = newer.thumbnailUrl,
+                ogStatus = newer.status,
+                // SY <--
                 initialized = this.initialized || newer.initialized,
                 version = newer.version,
                 isSyncing = 1,
