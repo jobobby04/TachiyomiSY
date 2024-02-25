@@ -32,7 +32,6 @@ import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.extension.interactor.TrustExtension
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.source.service.SourcePreferences.DataSaver
-import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.advanced.ClearDatabaseScreen
 import eu.kanade.presentation.more.settings.screen.debug.DebugInfoScreen
@@ -170,7 +169,6 @@ object SettingsAdvancedScreen : SearchableSettings {
                     getNetworkGroup(networkPreferences = networkPreferences),
                     getLibraryGroup(),
                     getExtensionsGroup(basePreferences = basePreferences),
-                    getSyncGroup(),
                     // SY -->
                     // getDownloaderGroup(),
                     getDataSaverGroup(),
@@ -435,25 +433,6 @@ object SettingsAdvancedScreen : SearchableSettings {
                     onClick = {
                         trustExtension.revokeAll()
                         context.toast(MR.strings.requires_app_restart)
-                    },
-                ),
-            ),
-        )
-    }
-
-    @Composable
-    private fun getSyncGroup(): Preference.PreferenceGroup {
-        val context = LocalContext.current
-        val syncPreferences = remember { Injekt.get<SyncPreferences>() }
-        return Preference.PreferenceGroup(
-            title = stringResource(MR.strings.label_sync),
-            preferenceItems = persistentListOf(
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(MR.strings.pref_reset_sync_timestamp),
-                    subtitle = stringResource(MR.strings.pref_reset_sync_timestamp_subtitle),
-                    onClick = {
-                        syncPreferences.lastSyncTimestamp().set(0)
-                        context.toast(MR.strings.success_reset_sync_timestamp)
                     },
                 ),
             ),
