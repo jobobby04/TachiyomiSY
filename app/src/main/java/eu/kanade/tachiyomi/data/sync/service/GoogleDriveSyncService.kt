@@ -173,9 +173,9 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
         val fileList = getAppDataFileList(drive)
         val byteArrayOutputStream = ByteArrayOutputStream()
         withContext(Dispatchers.IO) {
-            val gzipOutputStream = GZIPOutputStream(byteArrayOutputStream)
-            gzipOutputStream.write(jsonData.toByteArray(Charsets.UTF_8))
-            gzipOutputStream.close()
+            GZIPOutputStream(byteArrayOutputStream).use { gzipOutputStream ->
+                gzipOutputStream.write(jsonData.toByteArray(Charsets.UTF_8))
+            }
             logcat(LogPriority.DEBUG) { "JSON serialized successfully" }
         }
 

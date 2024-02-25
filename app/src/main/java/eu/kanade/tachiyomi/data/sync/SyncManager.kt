@@ -28,7 +28,6 @@ import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.util.Date
 import kotlin.system.measureTimeMillis
@@ -187,7 +186,7 @@ class SyncManager(
     private fun writeSyncDataToCache(context: Context, backup: Backup): Uri? {
         val cacheFile = File(context.cacheDir, "tachiyomi_sync_data.proto.gz")
         return try {
-            FileOutputStream(cacheFile).use { output ->
+            cacheFile.outputStream().use { output ->
                 output.write(ProtoBuf.encodeToByteArray(BackupSerializer, backup))
                 Uri.fromFile(cacheFile)
             }

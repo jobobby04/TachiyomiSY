@@ -167,7 +167,7 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
             LogcatLogger.install(AndroidLogcatLogger(LogPriority.VERBOSE))
         }*/
 
-        val syncPreferences: SyncPreferences by injectLazy()
+        val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
         if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart
         ) {
@@ -211,7 +211,7 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
     override fun onStart(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStart()
 
-        val syncPreferences: SyncPreferences by injectLazy()
+        val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
         if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppResume
         ) {
@@ -251,7 +251,7 @@ class App : Application(), DefaultLifecycleObserver, ImageLoaderFactory {
             logcat(LogPriority.ERROR, e) { "Failed to modify notification channels" }
         }
 
-        val syncPreferences: SyncPreferences by injectLazy()
+        val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
         if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
             SyncDataJob.startNow(this@App)
