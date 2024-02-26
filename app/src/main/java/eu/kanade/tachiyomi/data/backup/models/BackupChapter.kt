@@ -21,8 +21,7 @@ data class BackupChapter(
     @ProtoNumber(9) var chapterNumber: Float = 0F,
     @ProtoNumber(10) var sourceOrder: Long = 0,
     @ProtoNumber(11) var lastModifiedAt: Long = 0,
-    @ProtoNumber(12) var version: Long = 0,
-    @ProtoNumber(13) var isSyncing: Long = 0,
+    @ProtoNumber(12) var version: Long = 0
 ) {
     fun toChapterImpl(): Chapter {
         return Chapter.create().copy(
@@ -37,41 +36,40 @@ data class BackupChapter(
             dateUpload = this@BackupChapter.dateUpload,
             sourceOrder = this@BackupChapter.sourceOrder,
             lastModifiedAt = this@BackupChapter.lastModifiedAt,
-            version = this@BackupChapter.version,
-            isSyncing = this@BackupChapter.isSyncing
+            version = this@BackupChapter.version
         )
     }
 }
 
-val backupChapterMapper =
-    { _: Long,
-            _: Long,
-            url: String,
-            name: String,
-            scanlator: String?,
-            read: Boolean,
-            bookmark: Boolean,
-            lastPageRead: Long,
-            chapterNumber: Double,
-            source_order: Long,
-            dateFetch: Long,
-            dateUpload: Long,
-            lastModifiedAt: Long,
+val backupChapterMapper = {
+        _: Long,
+        _: Long,
+        url: String,
+        name: String,
+        scanlator: String?,
+        read: Boolean,
+        bookmark: Boolean,
+        lastPageRead: Long,
+        chapterNumber: Double,
+        source_order: Long,
+        dateFetch: Long,
+        dateUpload: Long,
+        lastModifiedAt: Long,
         version: Long,
-        isSyncing: Long,->
-        BackupChapter(
-            url = url,
-            name = name,
-            chapterNumber = chapterNumber.toFloat(),
-            scanlator = scanlator,
-            read = read,
-            bookmark = bookmark,
-            lastPageRead = lastPageRead,
-            dateFetch = dateFetch,
-            dateUpload = dateUpload,
-            sourceOrder = source_order,
-            lastModifiedAt = lastModifiedAt,
-            version = version,
-            isSyncing = isSyncing
-        )
-    }
+        _: Long
+    ->
+    BackupChapter(
+        url = url,
+        name = name,
+        chapterNumber = chapterNumber.toFloat(),
+        scanlator = scanlator,
+        read = read,
+        bookmark = bookmark,
+        lastPageRead = lastPageRead,
+        dateFetch = dateFetch,
+        dateUpload = dateUpload,
+        sourceOrder = source_order,
+        lastModifiedAt = lastModifiedAt,
+        version = version
+    )
+}

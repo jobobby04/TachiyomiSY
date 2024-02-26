@@ -41,7 +41,6 @@ data class BackupManga(
     @ProtoNumber(107) var favoriteModifiedAt: Long? = null,
     @ProtoNumber(108) var excludedScanlators: List<String> = emptyList(),
     @ProtoNumber(109) var version: Long = 0,
-    @ProtoNumber(110) var isSyncing: Long = 0,
 
     // SY specific values
     @ProtoNumber(600) var mergedMangaReferences: List<BackupMergedMangaReference> = emptyList(),
@@ -78,8 +77,7 @@ data class BackupManga(
             updateStrategy = this@BackupManga.updateStrategy,
             lastModifiedAt = this@BackupManga.lastModifiedAt,
             favoriteModifiedAt = this@BackupManga.favoriteModifiedAt,
-            version = this@BackupManga.version,
-            isSyncing = this@BackupManga.isSyncing
+            version = this@BackupManga.version
         )
     }
 }
