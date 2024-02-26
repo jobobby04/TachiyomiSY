@@ -24,7 +24,6 @@ data class MangaUpdate(
     val updateStrategy: UpdateStrategy? = null,
     val initialized: Boolean? = null,
     val version: Long? = null,
-    val isSyncing: Long? = null,
     // SY -->
     val filteredScanlators: List<String>? = null,
     // SY <--
@@ -54,7 +53,6 @@ fun Manga.toMangaUpdate(): MangaUpdate {
         // SY <--
         updateStrategy = updateStrategy,
         initialized = initialized,
-        version = version,
-        isSyncing = isSyncing
+        version = version
     )
 }
