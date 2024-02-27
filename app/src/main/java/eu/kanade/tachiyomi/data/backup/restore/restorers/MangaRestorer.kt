@@ -119,23 +119,6 @@ class MangaRestorer(
     }
 
     private fun Manga.copyFrom(newer: Manga): Manga {
-        if (isSync) {
-            return this.copy(
-                favorite = this.favorite || newer.favorite,
-                // SY -->
-                ogAuthor = newer.author,
-                ogArtist = newer.artist,
-                ogDescription = newer.description,
-                ogGenre = newer.genre,
-                ogThumbnailUrl = newer.thumbnailUrl,
-                ogStatus = newer.status,
-                // SY <--
-                initialized = this.initialized || newer.initialized,
-                version = newer.version,
-                isSyncing = 1,
-            )
-        }
-
         return this.copy(
             favorite = this.favorite || newer.favorite,
             // SY -->
@@ -175,7 +158,7 @@ class MangaRestorer(
                 mangaId = manga.id,
                 updateStrategy = manga.updateStrategy.let(UpdateStrategyColumnAdapter::encode),
                 version = manga.version,
-                isSyncing = manga.isSyncing
+                isSyncing = 1
             )
         }
         return manga
@@ -219,7 +202,6 @@ class MangaRestorer(
                 bookmark = chapter.bookmark || dbChapter.bookmark,
                 read = chapter.read,
                 lastPageRead = chapter.lastPageRead,
-                isSyncing = 1,
             )
         } else {
             chapter.copyFrom(dbChapter).let {
@@ -275,7 +257,7 @@ class MangaRestorer(
                     dateUpload = null,
                     chapterId = chapter.id,
                     version = chapter.version,
-                    isSyncing = chapter.isSyncing,
+                    isSyncing = 1
                 )
             }
         }

@@ -33,7 +33,6 @@ object ChapterMapper {
         chapterNumber = chapterNumber,
         scanlator = scanlator,
         lastModifiedAt = lastModifiedAt,
-        version = version,
-        isSyncing = isSyncing
+        version = version
     )
 }

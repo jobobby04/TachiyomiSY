@@ -60,8 +60,7 @@ object MangaMapper {
         initialized = initialized,
         lastModifiedAt = lastModifiedAt,
         favoriteModifiedAt = favoriteModifiedAt,
-        version = version,
-        isSyncing = isSyncing,
+        version = version
     )
 
     fun mapLibraryManga(
@@ -164,8 +163,7 @@ object MangaMapper {
                 fetchInterval = libraryView.calculate_interval.toInt(),
                 lastModifiedAt = libraryView.last_modified_at,
                 favoriteModifiedAt = libraryView.favorite_modified_at,
-                version = libraryView.version,
-                isSyncing = libraryView.is_syncing,
+                version = libraryView.version
             ),
             category = libraryView.category,
             totalChapters = libraryView.totalCount,
