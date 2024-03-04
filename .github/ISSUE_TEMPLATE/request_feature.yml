@@ -31,7 +31,7 @@ body:
           required: true
         - label: I have written a short but informative title.
           required: true
-        - label: I have updated the app to version **[1.10.4](https://github.com/jobobby04/tachiyomisy/releases/latest)**.
+        - label: I have updated the app to version **[1.10.5](https://github.com/jobobby04/tachiyomisy/releases/latest)**.
           required: true
         - label: I will fill out all of the requested information in this form.
           required: true

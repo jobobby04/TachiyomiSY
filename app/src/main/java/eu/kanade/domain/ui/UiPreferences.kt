@@ -8,8 +8,8 @@ import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.isDynamicColorAvailable
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
-import java.text.DateFormat
-import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 
 class UiPreferences(
@@ -46,6 +46,8 @@ class UiPreferences(
 
     fun mergeInOverflow() = preferenceStore.getBoolean("merge_in_overflow", true)
 
+    fun previewsRowCount() = preferenceStore.getInt("pref_previews_row_count", 4)
+
     fun useNewSourceNavigation() = preferenceStore.getBoolean("use_new_source_navigation", true)
 
     fun bottomBarLabels() = preferenceStore.getBoolean("pref_show_bottom_bar_labels", true)
@@ -57,9 +59,9 @@ class UiPreferences(
     // SY <--
 
     companion object {
-        fun dateFormat(format: String): DateFormat = when (format) {
-            "" -> DateFormat.getDateInstance(DateFormat.SHORT)
-            else -> SimpleDateFormat(format, Locale.getDefault())
+        fun dateFormat(format: String): DateTimeFormatter = when (format) {
+            "" -> DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+            else -> DateTimeFormatter.ofPattern(format, Locale.getDefault())
         }
     }
 }

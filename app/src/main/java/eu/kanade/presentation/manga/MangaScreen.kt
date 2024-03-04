@@ -106,7 +106,8 @@ import tachiyomi.presentation.core.util.isScrolledToEnd
 import tachiyomi.presentation.core.util.isScrollingUp
 import tachiyomi.source.local.isLocal
 import java.time.Instant
-import java.util.Date
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 @Composable
 fun MangaScreen(
@@ -150,6 +151,7 @@ fun MangaScreen(
     onMergeWithAnotherClicked: () -> Unit,
     onOpenPagePreview: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
+    previewsRowCount: Int,
     // SY <--
 
     // For bottom action menu
@@ -208,6 +210,7 @@ fun MangaScreen(
             onMergeWithAnotherClicked = onMergeWithAnotherClicked,
             onOpenPagePreview = onOpenPagePreview,
             onMorePreviewsClicked = onMorePreviewsClicked,
+            previewsRowCount = previewsRowCount,
             // SY <--
             onMultiBookmarkClicked = onMultiBookmarkClicked,
             onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
@@ -253,6 +256,7 @@ fun MangaScreen(
             onMergeWithAnotherClicked = onMergeWithAnotherClicked,
             onOpenPagePreview = onOpenPagePreview,
             onMorePreviewsClicked = onMorePreviewsClicked,
+            previewsRowCount = previewsRowCount,
             // SY <--
             onMultiBookmarkClicked = onMultiBookmarkClicked,
             onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
@@ -308,6 +312,7 @@ private fun MangaScreenSmallImpl(
     onMergeWithAnotherClicked: () -> Unit,
     onOpenPagePreview: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
+    previewsRowCount: Int,
     // SY <--
 
     // For bottom action menu
@@ -544,13 +549,14 @@ private fun MangaScreenSmallImpl(
                         }
                     }
 
-                    if (state.pagePreviewsState !is PagePreviewState.Unused) {
+                    if (state.pagePreviewsState !is PagePreviewState.Unused && previewsRowCount > 0) {
                         PagePreviewItems(
                             pagePreviewState = state.pagePreviewsState,
                             onOpenPage = onOpenPagePreview,
                             onMorePreviewsClicked = onMorePreviewsClicked,
                             maxWidth = maxWidth,
-                            setMaxWidth = { maxWidth = it }
+                            setMaxWidth = { maxWidth = it },
+                            rowCount = previewsRowCount,
                         )
                     }
                     // SY <--
@@ -632,6 +638,7 @@ fun MangaScreenLargeImpl(
     onMergeWithAnotherClicked: () -> Unit,
     onOpenPagePreview: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
+    previewsRowCount: Int,
     // SY <--
 
     // For bottom action menu
@@ -832,11 +839,12 @@ fun MangaScreenLargeImpl(
                                 onMergeWithAnotherClicked = onMergeWithAnotherClicked,
                             )
                         }
-                        if (state.pagePreviewsState !is PagePreviewState.Unused) {
+                        if (state.pagePreviewsState !is PagePreviewState.Unused && previewsRowCount > 0) {
                             PagePreviews(
                                 pagePreviewState = state.pagePreviewsState,
                                 onOpenPage = onOpenPagePreview,
                                 onMorePreviewsClicked = onMorePreviewsClicked,
+                                rowCount = previewsRowCount,
                             )
                         }
                         // SY <--
@@ -979,9 +987,10 @@ private fun LazyListScope.sharedChapterItems(
                         ?.let {
                             // SY -->
                             if (manga.isEhBasedManga()) {
-                                MetadataUtil.EX_DATE_FORMAT.format(Date(it))
+                                MetadataUtil.EX_DATE_FORMAT
+                                    .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
                             } else {
-                                relativeDateText(Date(item.chapter.dateUpload))
+                                relativeDateText(item.chapter.dateUpload)
                             }
                             // SY <--
                         },

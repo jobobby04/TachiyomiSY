@@ -22,7 +22,10 @@ import exh.source.isEhBasedManga
 import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.library.service.LibraryPreferences
-import java.util.Date
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 @Composable
 fun ChapterListDialog(
@@ -56,9 +59,13 @@ fun ChapterListDialog(
                         ?.let {
                             // SY -->
                             if (manga?.isEhBasedManga() == true) {
-                                MetadataUtil.EX_DATE_FORMAT.format(Date(it))
+                                MetadataUtil.EX_DATE_FORMAT
+                                    .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
                             } else {
-                                Date(it).toRelativeString(context, dateRelativeTime, chapterItem.dateFormat)
+                                LocalDate.ofInstant(
+                                    Instant.ofEpochMilli(it),
+                                    ZoneId.systemDefault(),
+                                ).toRelativeString(context, dateRelativeTime, chapterItem.dateFormat)
                             }
                             // SY <--
                         },

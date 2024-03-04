@@ -2,14 +2,14 @@ package exh.md.utils
 
 import java.util.Locale
 
-enum class FollowStatus(val int: Long) {
-    UNFOLLOWED(0),
-    READING(1),
-    COMPLETED(2),
-    ON_HOLD(3),
-    PLAN_TO_READ(4),
-    DROPPED(5),
-    RE_READING(6),
+enum class FollowStatus(val long: Long) {
+    UNFOLLOWED(0L),
+    READING(1L),
+    COMPLETED(2L),
+    ON_HOLD(3L),
+    PLAN_TO_READ(4L),
+    DROPPED(5L),
+    RE_READING(6L),
     ;
 
     fun toDex(): String = this.name.lowercase(Locale.US)
@@ -18,6 +18,6 @@ enum class FollowStatus(val int: Long) {
         fun fromDex(
             value: String?,
         ): FollowStatus = entries.firstOrNull { it.name.lowercase(Locale.US) == value } ?: UNFOLLOWED
-        fun fromInt(value: Long): FollowStatus = entries.firstOrNull { it.int == value } ?: UNFOLLOWED
+        fun fromLong(value: Long): FollowStatus = entries.firstOrNull { it.long == value } ?: UNFOLLOWED
     }
 }
