@@ -801,4 +801,6 @@
     <string name="action_open_repo">開啟來源儲存庫</string>
     <string name="pref_mark_read_dupe_chapters">將重複章節標記為已讀</string>
     <string name="pref_mark_read_dupe_chapters_summary">讀完後也將重複章節標記為已讀</string>
+    <string name="pref_library_mark_duplicate_chapters">將新的重複章節標記為已讀。</string>
+    <string name="pref_library_mark_duplicate_chapters_summary">自動將已讀的新章節標記為已讀</string>
 </resources>
