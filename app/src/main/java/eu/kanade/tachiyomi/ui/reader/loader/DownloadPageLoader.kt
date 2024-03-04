@@ -23,7 +23,6 @@ internal class DownloadPageLoader(
     private val source: Source,
     private val downloadManager: DownloadManager,
     private val downloadProvider: DownloadProvider,
-    private val tempFileManager: UniFileTempFileManager,
 ) : PageLoader() {
 
     private val context: Application by injectLazy()
@@ -48,7 +47,9 @@ internal class DownloadPageLoader(
     }
 
     private suspend fun getPagesFromArchive(file: UniFile): List<ReaderPage> {
-        val loader = ZipPageLoader(tempFileManager.createTempFile(file)).also { zipPageLoader = it }
+        // SY -->
+        val loader = ZipPageLoader(file, context).also { zipPageLoader = it }
+        // SY <--
         return loader.getPages()
     }
 

@@ -26,7 +26,7 @@ android {
     defaultConfig {
         applicationId = "eu.kanade.tachiyomi.sy"
 
-        versionCode = 65
+        versionCode = 66
         versionName = "1.10.5"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
@@ -215,7 +215,7 @@ dependencies {
     // Disk
     implementation(libs.disklrucache)
     implementation(libs.unifile)
-    implementation(libs.junrar)
+    implementation(libs.bundles.archive)
     // SY -->
     implementation(libs.zip4j)
     // SY <--

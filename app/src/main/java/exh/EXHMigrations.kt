@@ -654,6 +654,12 @@ object EXHMigrations {
                         remove(Preference.appStateKey("trusted_signatures"))
                     }
                 }
+                if (oldVersion under 66) {
+                    val cacheImagesToDisk = prefs.getBoolean("cache_archive_manga_on_disk", false)
+                    if (cacheImagesToDisk) {
+                        readerPreferences.archiveReaderMode().set(ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK)
+                    }
+                }
 
                 // if (oldVersion under 1) { } (1 is current release version)
                 // do stuff here when releasing changed crap
