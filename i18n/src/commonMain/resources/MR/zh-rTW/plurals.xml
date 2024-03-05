@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+re<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <plurals name="lock_after_mins">
         <item quantity="other">%1$s 分鐘後</item>
@@ -55,4 +55,4 @@
         <item quantity="one">明天</item>    
         <item quantity="other">在 %1$d 天内</item>
     </plurals>
- </resources>
+</resources>
