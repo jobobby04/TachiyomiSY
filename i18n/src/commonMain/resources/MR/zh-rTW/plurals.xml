@@ -1,4 +1,4 @@
-re<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <plurals name="lock_after_mins">
         <item quantity="other">%1$s 分鐘後</item>
