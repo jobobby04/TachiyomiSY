@@ -13,6 +13,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.apache.commons.compress.archivers.zip.ZipFile
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.UniFileTempFileManager
@@ -96,6 +98,7 @@ internal class ZipPageLoader(file: UniFile, context: Context) : PageLoader() {
     }
 
     private fun loadZip4j(): List<ReaderPage> {
+        val semaphore = Semaphore(1)
         return zip4j!!.fileHeaders.asSequence()
             .filter { !it.isDirectory && ImageUtil.isImage(it.fileName) { zip4j.getInputStream(it) } }
             .sortedWith { f1, f2 -> f1.fileName.compareToCaseInsensitiveNaturalOrder(f2.fileName) }
@@ -104,8 +107,10 @@ internal class ZipPageLoader(file: UniFile, context: Context) : PageLoader() {
                     when (readerPreferences.archiveReaderMode().get()) {
                         ReaderPreferences.ArchiveReaderMode.LOAD_INTO_MEMORY -> {
                             CoroutineScope(Dispatchers.IO).async {
-                                zip4j.getInputStream(entry).buffered().use { stream ->
-                                    stream.readBytes()
+                                semaphore.withPermit {
+                                    zip4j.getInputStream(entry).buffered().use { stream ->
+                                        stream.readBytes()
+                                    }
                                 }
                             }
                         }
@@ -121,6 +126,7 @@ internal class ZipPageLoader(file: UniFile, context: Context) : PageLoader() {
     }
 
     private fun loadApacheZip(zip: ZipFile): List<ReaderPage> {
+        val semaphore = Semaphore(1)
         return zip.entries.asSequence()
             .filter { !it.isDirectory && ImageUtil.isImage(it.name) { zip.getInputStream(it) } }
             .sortedWith { f1, f2 -> f1.name.compareToCaseInsensitiveNaturalOrder(f2.name) }
@@ -129,8 +135,10 @@ internal class ZipPageLoader(file: UniFile, context: Context) : PageLoader() {
                     when (readerPreferences.archiveReaderMode().get()) {
                         ReaderPreferences.ArchiveReaderMode.LOAD_INTO_MEMORY -> {
                             CoroutineScope(Dispatchers.IO).async {
-                                zip.getInputStream(entry).buffered().use { stream ->
-                                    stream.readBytes()
+                                semaphore.withPermit {
+                                    zip.getInputStream(entry).buffered().use { stream ->
+                                        stream.readBytes()
+                                    }
                                 }
                             }
                         }

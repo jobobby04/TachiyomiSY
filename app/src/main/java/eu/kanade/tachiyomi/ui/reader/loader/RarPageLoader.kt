@@ -14,9 +14,10 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import tachiyomi.core.common.storage.UniFileTempFileManager
 import tachiyomi.core.common.util.system.ImageUtil
-import tachiyomi.core.common.util.system.logcat
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.InputStream
@@ -78,6 +79,7 @@ internal class RarPageLoader(file: UniFile) : PageLoader() {
         if (readerPreferences.archiveReaderMode().get() == ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
             return DirectoryPageLoader(UniFile.fromFile(tmpDir)!!).getPages()
         }
+        val semaphore = Semaphore(1)
         // SY <--
         return rar.fileHeaders.asSequence()
             .filter { !it.isDirectory && ImageUtil.isImage(it.fileName) { rar.getInputStream(it) } }
@@ -88,11 +90,14 @@ internal class RarPageLoader(file: UniFile) : PageLoader() {
                     when (readerPreferences.archiveReaderMode().get()) {
                         ReaderPreferences.ArchiveReaderMode.LOAD_INTO_MEMORY -> {
                             CoroutineScope(Dispatchers.IO).async {
-                                getStream(header).buffered().use { stream ->
-                                    stream.readBytes()
+                                semaphore.withPermit {
+                                    getStream(header).buffered().use { stream ->
+                                        stream.readBytes()
+                                    }
                                 }
                             }
                         }
+
                         else -> null
                     }
 
