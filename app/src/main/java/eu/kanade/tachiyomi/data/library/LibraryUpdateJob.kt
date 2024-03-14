@@ -28,7 +28,6 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.track.TrackStatus
 import eu.kanade.tachiyomi.data.track.TrackerManager
-import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
 import eu.kanade.tachiyomi.source.online.all.MergedSource
@@ -64,6 +63,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.model.NoChaptersException
 import tachiyomi.domain.download.service.DownloadPreferences
@@ -101,7 +101,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 
 class LibraryUpdateJob(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
@@ -400,8 +399,14 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                             .sortedByDescending { it.sourceOrder }.run {
                                                 if (libraryPreferences.libraryReadDuplicateChapters().get()) {
                                                     val readChapters = getChaptersByMangaId.await(manga.id).filter { it.read }
-                                                    val newReadChapters = this.filter { chapter -> readChapters.any { it.chapterNumber == chapter.chapterNumber } }
-                                                        .also { setReadStatus.await(true, *it.toTypedArray()) }
+                                                    val newReadChapters = this.filter { chapter ->
+                                                        chapter.chapterNumber > 0 &&
+                                                            readChapters.any { it.chapterNumber == chapter.chapterNumber }
+                                                    }
+
+                                                    if (newReadChapters.isNotEmpty()) {
+                                                        setReadStatus.await(true, *newReadChapters.toTypedArray())
+                                                    }
 
                                                     this.filterNot { newReadChapters.contains(it) }
                                                 } else {
@@ -631,9 +636,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 var tracker = dbTracks.firstOrNull { it.trackerId == TrackerManager.MDLIST }
                     ?: mdList.createInitialTracker(manga).toDomainTrack(idRequired = false)
 
-                if (tracker?.status == FollowStatus.UNFOLLOWED.int.toLong()) {
+                if (tracker?.status == FollowStatus.UNFOLLOWED.long) {
                     tracker = tracker.copy(
-                        status = FollowStatus.READING.int.toLong(),
+                        status = FollowStatus.READING.long,
                     )
                     val updatedTrack = mdList.update(tracker.toDbTrack())
                     insertTrack.await(updatedTrack.toDomainTrack(false)!!)

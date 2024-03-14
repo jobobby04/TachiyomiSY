@@ -26,7 +26,7 @@ enum class TrackStatus(val int: Int, val res: StringResource) {
         fun parseTrackerStatus(trackerManager: TrackerManager, tracker: Long, status: Long): TrackStatus? {
             return when (tracker) {
                 trackerManager.mdList.id -> {
-                    when (FollowStatus.fromInt(status)) {
+                    when (FollowStatus.fromLong(status)) {
                         FollowStatus.UNFOLLOWED -> null
                         FollowStatus.READING -> READING
                         FollowStatus.COMPLETED -> COMPLETED

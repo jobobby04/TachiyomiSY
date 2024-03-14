@@ -25,14 +25,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.SubcomposeAsyncImage
-import coil.compose.SubcomposeAsyncImageContent
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import eu.kanade.domain.manga.model.PagePreview
 import eu.kanade.presentation.manga.MangaScreenItem
 import eu.kanade.tachiyomi.ui.manga.PagePreviewState
@@ -102,6 +101,7 @@ fun PagePreviews(
     pagePreviewState: PagePreviewState,
     onOpenPage: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
+    rowCount: Int,
 ) {
     Column(Modifier.fillMaxWidth()) {
         var maxWidth by remember {
@@ -113,7 +113,7 @@ fun PagePreviews(
             }
             pagePreviewState is PagePreviewState.Success -> {
                 val itemPerRowCount = (maxWidth / 120.dp).floor()
-                pagePreviewState.pagePreviews.take(4 * itemPerRowCount).chunked(itemPerRowCount).forEach {
+                pagePreviewState.pagePreviews.take(rowCount * itemPerRowCount).chunked(itemPerRowCount).forEach {
                     PagePreviewRow(
                         onOpenPage = onOpenPage,
                         items = remember(it) { it.toImmutableList() }
@@ -132,7 +132,8 @@ fun LazyListScope.PagePreviewItems(
     onOpenPage: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
     maxWidth: Dp,
-    setMaxWidth: (Dp) -> Unit
+    setMaxWidth: (Dp) -> Unit,
+    rowCount: Int,
 ) {
     when {
         pagePreviewState is PagePreviewState.Loading || maxWidth == Dp.Hairline -> {
@@ -148,7 +149,7 @@ fun LazyListScope.PagePreviewItems(
             items(
                 key = { "${MangaScreenItem.CHAPTER_PREVIEW_ROW}-$it" },
                 contentType = { MangaScreenItem.CHAPTER_PREVIEW_ROW },
-                items = pagePreviewState.pagePreviews.take(4 * itemPerRowCount).chunked(itemPerRowCount),
+                items = pagePreviewState.pagePreviews.take(rowCount * itemPerRowCount).chunked(itemPerRowCount),
             ) {
                 PagePreviewRow(
                     onOpenPage = onOpenPage,

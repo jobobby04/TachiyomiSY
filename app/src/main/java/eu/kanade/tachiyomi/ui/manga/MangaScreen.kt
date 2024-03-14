@@ -197,6 +197,7 @@ class MangaScreen(
             onEditFetchIntervalClicked = screenModel::showSetFetchIntervalDialog.takeIf {
                 successState.manga.favorite
             },
+            previewsRowCount = successState.previewsRowCount,
             // SY -->
             onMigrateClicked = { migrateManga(navigator, screenModel.manga!!) }.takeIf { successState.manga.favorite },
             onMetadataViewerClicked = { openMetadataViewer(navigator, successState.manga) },
