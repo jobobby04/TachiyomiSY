@@ -172,7 +172,7 @@
     <ID>ComplexCondition:LibraryUpdateJob.kt$LibraryUpdateJob$group == LibraryGroup.BY_DEFAULT || groupLibraryUpdateType == GroupLibraryMode.GLOBAL || (groupLibraryUpdateType == GroupLibraryMode.ALL_BUT_UNGROUPED &amp;&amp; group == LibraryGroup.UNGROUPED)</ID>
     <ID>ComplexCondition:MangaRestorer.kt$MangaRestorer$customTitle != null || customArtist != null || customAuthor != null || customThumbnailUrl != null || customDescription != null || customGenre != null || customStatus != 0</ID>
     <ID>ComplexCondition:MangaScreenModel.kt$MangaScreenModel$(selectedItem.selected &amp;&amp; selected) || (!selectedItem.selected &amp;&amp; !selected)</ID>
-    <ID>ComplexCondition:PagerPageHolder.kt$PagerPageHolder$imageStream is BufferedInputStream &amp;&amp; !ImageUtil.isAnimatedAndSupported(imageStream) &amp;&amp; ImageUtil.isWideImage( imageStream, // SY --&gt; page.zip4jFile, page.zip4jEntry, // SY &lt;-- ) &amp;&amp; viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN &gt; 0 &amp;&amp; !viewer.config.imageCropBorders</ID>
+    <ID>ComplexCondition:PagerPageHolder.kt$PagerPageHolder$imageStream is BufferedInputStream &amp;&amp; !ImageUtil.isAnimatedAndSupported(imageStream) &amp;&amp; ImageUtil.isWideImage(imageStream) &amp;&amp; viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN &gt; 0 &amp;&amp; !viewer.config.imageCropBorders</ID>
     <ID>ComplexCondition:PagerViewerAdapter.kt$PagerViewerAdapter$items[itemIndex]?.fullPage == true &amp;&amp; itemIndex &gt; 0 &amp;&amp; items[itemIndex - 1] != null &amp;&amp; (itemIndex - 1) % 2 == 0</ID>
     <ID>ComplexCondition:ReaderActivity.kt$ReaderActivity$readerPreferences.useAutoWebtoon().get() &amp;&amp; (manga?.readingMode?.toInt() ?: ReadingMode.DEFAULT.flagValue) == ReadingMode.DEFAULT.flagValue &amp;&amp; defaultReaderType != null &amp;&amp; defaultReaderType == ReadingMode.WEBTOON.flagValue</ID>
     <ID>ComplexCondition:ReaderNavigationOverlayView.kt$ReaderNavigationOverlayView$isVisible || (!showOnStart &amp;&amp; firstLaunch) || navigation is DisabledNavigation</ID>
@@ -539,8 +539,8 @@
     <ID>LongMethod:UpdatesQuery.kt$UpdatesQuery$override fun &lt;R&gt; execute(mapper: (SqlCursor) -&gt; QueryResult&lt;R&gt;): QueryResult&lt;R&gt;</ID>
     <ID>LongMethod:UpdatesUiItem.kt$internal fun LazyListScope.updatesUiItems( uiModels: List&lt;UpdatesUiModel&gt;, selectionMode: Boolean, // SY --&gt; preserveReadingPosition: Boolean, // SY &lt;-- onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -&gt; Unit, onClickCover: (UpdatesItem) -&gt; Unit, onClickUpdate: (UpdatesItem) -&gt; Unit, onDownloadChapter: (List&lt;UpdatesItem&gt;, ChapterDownloadAction) -&gt; Unit, )</ID>
     <ID>LongMethod:WebtoonRecyclerView.kt$WebtoonRecyclerView.Detector$override fun onTouchEvent(ev: MotionEvent): Boolean</ID>
-    <ID>LongParameterList:ChapterLoader.kt$ChapterLoader$( private val context: Context, private val downloadManager: DownloadManager, private val downloadProvider: DownloadProvider, private val tempFileManager: UniFileTempFileManager, private val manga: Manga, private val source: Source, // SY --&gt; private val sourceManager: SourceManager, private val readerPrefs: ReaderPreferences, private val mergedReferences: List&lt;MergedMangaReference&gt;, private val mergedManga: Map&lt;Long, Manga&gt;, // SY &lt;-- )</ID>
-    <ID>LongParameterList:ChapterMapper.kt$ChapterMapper$( id: Long, mangaId: Long, url: String, name: String, scanlator: String?, read: Boolean, bookmark: Boolean, lastPageRead: Long, chapterNumber: Double, sourceOrder: Long, dateFetch: Long, dateUpload: Long, lastModifiedAt: Long, )</ID>
+    <ID>LongParameterList:ChapterLoader.kt$ChapterLoader$( private val context: Context, private val downloadManager: DownloadManager, private val downloadProvider: DownloadProvider, private val manga: Manga, private val source: Source, // SY --&gt; private val sourceManager: SourceManager, private val readerPrefs: ReaderPreferences, private val mergedReferences: List&lt;MergedMangaReference&gt;, private val mergedManga: Map&lt;Long, Manga&gt;, // SY &lt;-- )</ID>
+    <ID>LongParameterList:ChapterMapper.kt$ChapterMapper$( id: Long, mangaId: Long, url: String, name: String, scanlator: String?, read: Boolean, bookmark: Boolean, lastPageRead: Long, chapterNumber: Double, sourceOrder: Long, dateFetch: Long, dateUpload: Long, lastModifiedAt: Long, version: Long, @Suppress("UNUSED_PARAMETER") isSyncing: Long, )</ID>
     <ID>LongParameterList:Chip.kt$ChipColors$( private val containerColor: Color, private val labelColor: Color, private val leadingIconContentColor: Color, private val trailingIconContentColor: Color, private val disabledContainerColor: Color, private val disabledLabelColor: Color, private val disabledLeadingIconContentColor: Color, private val disabledTrailingIconContentColor: Color, )</ID>
     <ID>LongParameterList:EXHMigrations.kt$EXHMigrations$( context: Context, preferenceStore: PreferenceStore, basePreferences: BasePreferences, uiPreferences: UiPreferences, networkPreferences: NetworkPreferences, sourcePreferences: SourcePreferences, securityPreferences: SecurityPreferences, libraryPreferences: LibraryPreferences, readerPreferences: ReaderPreferences, backupPreferences: BackupPreferences, trackerManager: TrackerManager, pagePreviewCache: PagePreviewCache, )</ID>
     <ID>LongParameterList:FavoritesEntryRepositoryImpl.kt$FavoritesEntryRepositoryImpl$( gid: String, token: String, title: String, category: Long, otherGid: String?, otherToken: String?, )</ID>
@@ -806,6 +806,7 @@
     <ID>MagicNumber:EXHMigrations.kt$EXHMigrations$59</ID>
     <ID>MagicNumber:EXHMigrations.kt$EXHMigrations$6</ID>
     <ID>MagicNumber:EXHMigrations.kt$EXHMigrations$60</ID>
+    <ID>MagicNumber:EXHMigrations.kt$EXHMigrations$66</ID>
     <ID>MagicNumber:EXHMigrations.kt$EXHMigrations$6907</ID>
     <ID>MagicNumber:EXHMigrations.kt$EXHMigrations$6907L</ID>
     <ID>MagicNumber:EXHMigrations.kt$EXHMigrations$6909L</ID>
@@ -1630,6 +1631,7 @@
     <ID>NestedBlockDepth:SearchEngine.kt$SearchEngine$fun queryToSql(q: List&lt;QueryComponent&gt;): Pair&lt;String, List&lt;String&gt;&gt;</ID>
     <ID>NestedBlockDepth:SmartSearchEngine.kt$SmartSearchEngine$private fun removeTextInBrackets(text: String, readForward: Boolean): String</ID>
     <ID>NestedBlockDepth:SyncChaptersWithSource.kt$SyncChaptersWithSource$suspend fun await( rawSourceChapters: List&lt;SChapter&gt;, manga: Manga, source: Source, manualFetch: Boolean = false, fetchWindow: Pair&lt;Long, Long&gt; = Pair(0, 0), ): List&lt;Chapter&gt;</ID>
+    <ID>NestedBlockDepth:UniFileExtensions.kt$fun UniFile.unzip(destination: File, onlyCopyImages: Boolean = false)</ID>
     <ID>NestedBlockDepth:UniFileTempFileManager.kt$UniFileTempFileManager$fun createTempFile(file: UniFile): File</ID>
     <ID>NestedBlockDepth:WebtoonRecyclerView.kt$WebtoonRecyclerView.Detector$override fun onTouchEvent(ev: MotionEvent): Boolean</ID>
     <ID>NestedBlockDepth:WebtoonViewer.kt$WebtoonViewer$fun scrollDown()</ID>
@@ -2105,6 +2107,7 @@
     <ID>TopLevelPropertyNaming:CbzCrypto.kt$private const val CRYPTO_SETTINGS = "$ALGORITHM/$BLOCK_MODE/$PADDING"</ID>
     <ID>TopLevelPropertyNaming:CbzCrypto.kt$private const val IV_SIZE = 16</ID>
     <ID>TopLevelPropertyNaming:CbzCrypto.kt$private const val KEY_SIZE = 256</ID>
+    <ID>TopLevelPropertyNaming:CbzCrypto.kt$private const val SQL_PASSWORD_LENGTH = 32</ID>
     <ID>TopLevelPropertyNaming:ChapterCache.kt$/** Application cache version. */ private const val PARAMETER_APP_VERSION = 1</ID>
     <ID>TopLevelPropertyNaming:ChapterCache.kt$/** The maximum number of bytes this cache should use to store. */ private const val PARAMETER_CACHE_SIZE = 100L * 1024 * 1024</ID>
     <ID>TopLevelPropertyNaming:ChapterCache.kt$/** The number of values per cache entry. Must be positive. */ private const val PARAMETER_VALUE_COUNT = 1</ID>

@@ -122,9 +122,18 @@
 # XmlUtil
 -keep public enum nl.adaptivity.xmlutil.EventType { *; }
 
+# Apache Commons Compress
+-keep class * extends org.apache.commons.compress.archivers.zip.ZipExtraField { <init>(); }
+
 # Firebase
 -keep class com.google.firebase.installations.** { *; }
 -keep interface com.google.firebase.installations.** { *; }
+
+# Google Drive
+-keep class com.google.api.services.** { *; }
+
+# Google OAuth
+-keep class com.google.api.client.** { *; }
 
 # SY -->
 # SqlCipher
@@ -260,6 +269,9 @@
  -keep,allowoptimization class * extends uy.kohesive.injekt.api.TypeReference
  -keep,allowoptimization public class io.requery.android.database.sqlite.SQLiteConnection { *; }
 
+ # Keep apache http client
+ -keep class org.apache.http.** { *; }
+
 # Suggested rules
 -dontwarn com.oracle.svm.core.annotate.AutomaticFeature
 -dontwarn com.oracle.svm.core.annotate.Delete
@@ -273,3 +285,15 @@
 -dontwarn java.lang.Module
 -dontwarn org.graalvm.nativeimage.hosted.RuntimeResourceAccess
 -dontwarn org.jspecify.annotations.NullMarked
+-dontwarn javax.naming.InvalidNameException
+-dontwarn javax.naming.NamingException
+-dontwarn javax.naming.directory.Attribute
+-dontwarn javax.naming.directory.Attributes
+-dontwarn javax.naming.ldap.LdapName
+-dontwarn javax.naming.ldap.Rdn
+-dontwarn org.ietf.jgss.GSSContext
+-dontwarn org.ietf.jgss.GSSCredential
+-dontwarn org.ietf.jgss.GSSException
+-dontwarn org.ietf.jgss.GSSManager
+-dontwarn org.ietf.jgss.GSSName
+-dontwarn org.ietf.jgss.Oid

@@ -215,7 +215,7 @@ dependencies {
     // Disk
     implementation(libs.disklrucache)
     implementation(libs.unifile)
-    implementation(libs.junrar)
+    implementation(libs.bundles.archive)
     // SY -->
     implementation(libs.zip4j)
     // SY <--
@@ -247,6 +247,9 @@ dependencies {
     implementation(libs.bundles.voyager)
     implementation(libs.compose.materialmotion)
     implementation(libs.swipe)
+
+    implementation(libs.google.api.services.drive)
+    implementation(libs.google.api.client.oauth)
 
     // Logging
     implementation(libs.logcat)
