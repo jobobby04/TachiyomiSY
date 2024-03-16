@@ -36,7 +36,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build app
-        run: ./gradlew assembleDevDebug
+        run: ./gradlew detekt assembleDevDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
