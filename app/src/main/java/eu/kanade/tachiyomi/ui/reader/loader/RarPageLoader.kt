@@ -60,9 +60,7 @@ internal class RarPageLoader(file: UniFile) : PageLoader() {
                                 input.copyTo(output)
                             }
                         }
-
                 }
-
         }
     }
     // SY <--

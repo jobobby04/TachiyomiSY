@@ -49,7 +49,10 @@ internal class ZipPageLoader(file: UniFile, context: Context) : PageLoader() {
     }
 
     private val tmpFile =
-        if (apacheZip == null && readerPreferences.archiveReaderMode().get() != ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
+        if (
+            apacheZip == null &&
+            readerPreferences.archiveReaderMode().get() != ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK
+        ) {
             tempFileManager.createTempFile(file)
         } else {
             null

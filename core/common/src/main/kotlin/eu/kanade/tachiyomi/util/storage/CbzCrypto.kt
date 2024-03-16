@@ -127,7 +127,7 @@ object CbzCrypto {
 
     fun getDecryptedPasswordCbz(): CharArray {
         val encryptedPassword = securityPreferences.cbzPassword().get()
-        if (encryptedPassword.isBlank()) throw IllegalStateException ("This archive is encrypted please set a password")
+        if (encryptedPassword.isBlank()) error("This archive is encrypted please set a password")
 
         return decrypt(encryptedPassword, ALIAS_CBZ).toCharArray()
     }
