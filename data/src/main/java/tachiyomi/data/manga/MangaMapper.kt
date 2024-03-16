@@ -6,6 +6,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.view.LibraryView
 
 object MangaMapper {
+    @Suppress("LongParameterList")
     fun mapManga(
         id: Long,
         source: Long,
@@ -34,6 +35,7 @@ object MangaMapper {
         lastModifiedAt: Long,
         favoriteModifiedAt: Long?,
         version: Long,
+        @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
     ): Manga = Manga(
         id = id,
@@ -60,9 +62,10 @@ object MangaMapper {
         initialized = initialized,
         lastModifiedAt = lastModifiedAt,
         favoriteModifiedAt = favoriteModifiedAt,
-        version = version
+        version = version,
     )
 
+    @Suppress("LongParameterList")
     fun mapLibraryManga(
         id: Long,
         source: Long,
@@ -163,7 +166,7 @@ object MangaMapper {
                 fetchInterval = libraryView.calculate_interval.toInt(),
                 lastModifiedAt = libraryView.last_modified_at,
                 favoriteModifiedAt = libraryView.favorite_modified_at,
-                version = libraryView.version
+                version = libraryView.version,
             ),
             category = libraryView.category,
             totalChapters = libraryView.totalCount,

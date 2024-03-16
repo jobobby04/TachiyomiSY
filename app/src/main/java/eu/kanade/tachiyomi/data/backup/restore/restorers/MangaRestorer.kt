@@ -158,7 +158,7 @@ class MangaRestorer(
                 mangaId = manga.id,
                 updateStrategy = manga.updateStrategy.let(UpdateStrategyColumnAdapter::encode),
                 version = manga.version,
-                isSyncing = 1
+                isSyncing = 1,
             )
         }
         return manga
@@ -170,7 +170,7 @@ class MangaRestorer(
         return manga.copy(
             initialized = manga.description != null,
             id = insertManga(manga),
-            version = manga.version
+            version = manga.version,
         )
     }
 
@@ -257,7 +257,7 @@ class MangaRestorer(
                     dateUpload = null,
                     chapterId = chapter.id,
                     version = chapter.version,
-                    isSyncing = 1
+                    isSyncing = 1,
                 )
             }
         }

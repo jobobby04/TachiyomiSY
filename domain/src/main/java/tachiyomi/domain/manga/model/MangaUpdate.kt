@@ -53,6 +53,6 @@ fun Manga.toMangaUpdate(): MangaUpdate {
         // SY <--
         updateStrategy = updateStrategy,
         initialized = initialized,
-        version = version
+        version = version,
     )
 }
