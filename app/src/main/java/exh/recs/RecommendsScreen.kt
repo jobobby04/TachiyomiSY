@@ -16,13 +16,20 @@ import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.components.BrowseSourceSimpleToolbar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
+import exh.ui.ifSourcesLoaded
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.screens.LoadingScreen
 
 class RecommendsScreen(val mangaId: Long, val sourceId: Long) : Screen() {
 
     @Composable
     override fun Content() {
+        if (!ifSourcesLoaded()) {
+            LoadingScreen()
+            return
+        }
+
         val screenModel = rememberScreenModel { RecommendsScreenModel(mangaId, sourceId) }
         val state by screenModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
