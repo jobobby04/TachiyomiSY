@@ -755,13 +755,13 @@ class LibraryScreenModel(
         state.value.selection.fastForEach { (manga) ->
             val mangaInfo = CustomMangaInfo(
                 id = manga.id,
-                title = manga.ogTitle,
-                author = manga.ogAuthor,
-                artist = manga.ogArtist,
-                thumbnailUrl = manga.ogThumbnailUrl,
-                description = manga.ogDescription,
-                genre = manga.ogGenre,
-                status = manga.ogStatus,
+                title = null,
+                author = null,
+                artist = null,
+                thumbnailUrl = null,
+                description = null,
+                genre = null,
+                status = null,
             )
 
             setCustomMangaInfo.set(mangaInfo)
