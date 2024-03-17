@@ -218,7 +218,6 @@ private fun loadCover(manga: Manga, context: Context, binding: EditMangaDialogBi
     }
 }
 
-
 private fun resetInfo(manga: Manga, binding: EditMangaDialogBinding, scope: CoroutineScope) {
     binding.title.setText("")
     binding.mangaAuthor.setText("")
