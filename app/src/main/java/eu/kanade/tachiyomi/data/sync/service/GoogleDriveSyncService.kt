@@ -420,8 +420,6 @@ class GoogleDriveService(private val context: Context) {
             // Save the new access token
             syncPreferences.googleDriveAccessToken().set(newAccessToken)
             setupGoogleDriveService(newAccessToken, credential.refreshToken)
-            this@GoogleDriveService
-                .logcat(LogPriority.DEBUG) { "Google Access token refreshed old: $accessToken new: $newAccessToken" }
         } catch (e: TokenResponseException) {
             if (e.details.error == "invalid_grant") {
                 // The refresh token is invalid, prompt the user to sign in again
