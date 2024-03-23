@@ -392,7 +392,6 @@ class GoogleDriveService(private val context: Context) {
     }
     internal suspend fun refreshToken() = withIOContext {
         val refreshToken = syncPreferences.googleDriveRefreshToken().get()
-        val accessToken = syncPreferences.googleDriveAccessToken().get()
 
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
         val secrets = GoogleClientSecrets.load(
@@ -411,8 +410,6 @@ class GoogleDriveService(private val context: Context) {
         }
 
         credential.refreshToken = refreshToken
-
-        this@GoogleDriveService.logcat(LogPriority.DEBUG) { "Refreshing access token with: $refreshToken" }
 
         try {
             credential.refreshToken()
