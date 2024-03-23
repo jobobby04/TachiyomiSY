@@ -123,6 +123,11 @@ private class SyncSettingsSelectorModel(
                 appSettings = syncSettings.appSettings,
                 sourceSettings = syncSettings.sourceSettings,
                 privateSettings = syncSettings.privateSettings,
+
+                // SY -->
+                customInfo = syncSettings.customInfo,
+                readEntries = syncSettings.readEntries,
+                // SY <--
             )
         }
 
@@ -136,6 +141,11 @@ private class SyncSettingsSelectorModel(
                 appSettings = backupOptions.appSettings,
                 sourceSettings = backupOptions.sourceSettings,
                 privateSettings = backupOptions.privateSettings,
+
+                // SY -->
+                customInfo = backupOptions.customInfo,
+                readEntries = backupOptions.readEntries,
+                // SY <--
             )
         }
     }

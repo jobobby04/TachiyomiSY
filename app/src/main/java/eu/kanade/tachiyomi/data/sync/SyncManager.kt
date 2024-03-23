@@ -88,6 +88,11 @@ class SyncManager(
             appSettings = syncOptions.appSettings,
             sourceSettings = syncOptions.sourceSettings,
             privateSettings = syncOptions.privateSettings,
+
+            // SY -->
+            customInfo = syncOptions.customInfo,
+            readEntries = syncOptions.readEntries,
+            // SY <--
         )
         val backup = Backup(
             backupManga = backupCreator.backupMangas(databaseManga, backupOptions),
