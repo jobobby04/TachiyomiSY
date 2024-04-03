@@ -16,6 +16,8 @@ import uy.kohesive.injekt.injectLazy
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import java.security.KeyStore
 import java.security.SecureRandom
 import javax.crypto.Cipher
@@ -82,11 +84,11 @@ object CbzCrypto {
         }.generateKey()
     }
 
-    private fun encrypt(password: String, cipher: Cipher): String {
+    private fun encrypt(password: ByteArray, cipher: Cipher): String {
         val outputStream = ByteArrayOutputStream()
         outputStream.use { output ->
             output.write(cipher.iv)
-            ByteArrayInputStream(password.toByteArray()).use { input ->
+            ByteArrayInputStream(password).use { input ->
                 val buffer = ByteArray(BUFFER_SIZE)
                 while (input.available() > BUFFER_SIZE) {
                     input.read(buffer)
@@ -98,7 +100,7 @@ object CbzCrypto {
         return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
     }
 
-    private fun decrypt(encryptedPassword: String, alias: String): String {
+    private fun decrypt(encryptedPassword: String, alias: String): ByteArray {
         val inputStream = Base64.decode(encryptedPassword, Base64.DEFAULT).inputStream()
         return inputStream.use { input ->
             val iv = ByteArray(IV_SIZE)
@@ -111,7 +113,7 @@ object CbzCrypto {
                     output.write(cipher.update(buffer))
                 }
                 output.write(cipher.doFinal(inputStream.readBytes()))
-                output.toString()
+                output.toByteArray()
             }
         }
     }
@@ -122,27 +124,40 @@ object CbzCrypto {
     }
 
     fun encryptCbz(password: String): String {
-        return encrypt(password, encryptionCipherCbz)
+        return encrypt(password.toByteArray(), encryptionCipherCbz)
     }
 
     fun getDecryptedPasswordCbz(): CharArray {
         val encryptedPassword = securityPreferences.cbzPassword().get()
         if (encryptedPassword.isBlank()) error("This archive is encrypted please set a password")
 
-        return decrypt(encryptedPassword, ALIAS_CBZ).toCharArray()
+        val cbzBytes = decrypt(encryptedPassword, ALIAS_CBZ)
+        return Charsets.UTF_8.decode(ByteBuffer.wrap(cbzBytes)).array()
+            .also {
+                cbzBytes.fill('#'.code.toByte())
+            }
     }
 
     private fun generateAndEncryptSqlPw() {
         val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-        val password = (1..SQL_PASSWORD_LENGTH).map {
-            charPool[SecureRandom().nextInt(charPool.size)]
-        }.joinToString("", transform = { it.toString() })
-        securityPreferences.sqlPassword().set(encrypt(password, encryptionCipherSql))
+        val passwordArray = CharArray(SQL_PASSWORD_LENGTH)
+        for (i in 0..<SQL_PASSWORD_LENGTH) {
+            passwordArray[i] = charPool[SecureRandom().nextInt(charPool.size)]
+        }
+        val passwordBuffer = Charsets.UTF_8.encode(CharBuffer.wrap(passwordArray))
+        val passwordBytes = ByteArray(passwordBuffer.limit())
+        passwordBuffer.get(passwordBytes)
+        securityPreferences.sqlPassword().set(encrypt(passwordBytes, encryptionCipherSql))
+            .also {
+                passwordArray.fill('#')
+                passwordBuffer.array().fill('#'.code.toByte())
+                passwordBytes.fill('#'.code.toByte())
+            }
     }
 
     fun getDecryptedPasswordSql(): ByteArray {
         if (securityPreferences.sqlPassword().get().isBlank()) generateAndEncryptSqlPw()
-        return decrypt(securityPreferences.sqlPassword().get(), ALIAS_SQL).toByteArray()
+        return decrypt(securityPreferences.sqlPassword().get(), ALIAS_SQL)
     }
 
     fun isPasswordSet(): Boolean {
