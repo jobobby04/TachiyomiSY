@@ -106,14 +106,16 @@ object CbzCrypto {
             val iv = ByteArray(IV_SIZE)
             input.read(iv)
             val cipher = getDecryptCipher(iv, alias)
-            ByteArrayOutputStream().use { output ->
+            ByteArrayOutputStreamPassword().use { output ->
                 val buffer = ByteArray(BUFFER_SIZE)
                 while (inputStream.available() > BUFFER_SIZE) {
                     inputStream.read(buffer)
                     output.write(cipher.update(buffer))
                 }
                 output.write(cipher.doFinal(inputStream.readBytes()))
-                output.toByteArray()
+                output.toByteArray().also {
+                    output.clear()
+                }
             }
         }
     }
@@ -231,4 +233,14 @@ private const val ALIAS_CBZ = "cbzPw"
 private const val ALIAS_SQL = "sqlPw"
 
 private const val SQL_PASSWORD_LENGTH = 32
+
+
+class ByteArrayOutputStreamPassword : ByteArrayOutputStream() {
+    fun clear() {
+        for (i in 0..<this.buf.size) {
+            this.buf[i] ='#'.code.toByte()
+        }
+    }
+}
+
 // SY <--
