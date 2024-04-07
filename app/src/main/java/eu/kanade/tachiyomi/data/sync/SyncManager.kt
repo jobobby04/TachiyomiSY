@@ -103,6 +103,7 @@ class SyncManager(
 
         // Create the SyncData object
         val syncData = SyncData(
+            deviceId = syncPreferences.uniqueDeviceID(),
             backup = backup,
         )
 
