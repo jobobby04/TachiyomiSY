@@ -143,7 +143,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
             logcat(LogPriority.DEBUG) { "File downloaded successfully" }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, throwable = e) { "Error downloading file" }
-            return null
+            throw Exception("Failed to download sync data: ${e.message}", e)
         }
 
         return withIOContext {

@@ -29,34 +29,31 @@ abstract class SyncService(
     open suspend fun doSync(syncData: SyncData): Backup? {
         beforeSync()
 
-        val remoteSData = pullSyncData()
+        try {
+            val remoteSData = pullSyncData() ?: throw Exception("Failed to pull sync data")
 
-        // Get local unique device ID
-        val localDeviceId = syncPreferences.uniqueDeviceID()
-        val lastSyncDeviceId = remoteSData?.deviceId
+            // Get local unique device ID
+            val localDeviceId = syncPreferences.uniqueDeviceID()
+            val lastSyncDeviceId = remoteSData.deviceId
 
-        // Log the device IDs
-        logcat(LogPriority.DEBUG, "SyncService") {
-            "Local device ID: $localDeviceId, Last sync device ID: $lastSyncDeviceId"
-        }
-
-        // check if the last sync was done by the same device if so overwrite the remote data with the local data
-        if (lastSyncDeviceId == localDeviceId) {
-            pushSyncData(syncData)
-            return syncData.backup
-        }
-
-        val finalSyncData =
-            if (remoteSData == null) {
-                pushSyncData(syncData)
-                syncData
-            } else {
-                val mergedSyncData = mergeSyncData(syncData, remoteSData)
-                pushSyncData(mergedSyncData)
-                mergedSyncData
+            // Log the device IDs
+            logcat(LogPriority.DEBUG, "SyncService") {
+                "Local device ID: $localDeviceId, Last sync device ID: $lastSyncDeviceId"
             }
 
-        return finalSyncData.backup
+            // check if the last sync was done by the same device if so overwrite the remote data with the local data
+            if (lastSyncDeviceId == localDeviceId) {
+                pushSyncData(syncData)
+                return syncData.backup
+            }
+
+            val mergedSyncData = mergeSyncData(syncData, remoteSData)
+            pushSyncData(mergedSyncData)
+            return mergedSyncData.backup
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, "SyncService") { "Error syncing: ${e.message}" }
+            return null
+        }
     }
 
     /**

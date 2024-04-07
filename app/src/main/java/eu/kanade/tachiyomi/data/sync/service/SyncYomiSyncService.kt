@@ -129,7 +129,7 @@ class SyncYomiSyncService(
         client.newCall(lockFileUpdate).await()
     }
 
-    override suspend fun pullSyncData(): SyncData? {
+    override suspend fun pullSyncData(): SyncData {
         val host = syncPreferences.clientHost().get()
         val apiKey = syncPreferences.clientAPIKey().get()
         val downloadUrl = "$host/api/sync/download"
@@ -145,12 +145,12 @@ class SyncYomiSyncService(
         val response = client.newCall(downloadRequest).await()
         val responseBody = response.body.string()
 
-        return if (response.isSuccessful) {
-            json.decodeFromString<SyncData>(responseBody)
+        if (response.isSuccessful) {
+            return json.decodeFromString(responseBody)
         } else {
             notifier.showSyncError("Failed to download sync data: $responseBody")
-            responseBody.let { logcat(LogPriority.ERROR) { "SyncError:$it" } }
-            null
+            logcat(LogPriority.ERROR) { "SyncError:$responseBody" }
+            throw Exception("Failed to download sync data: $responseBody")
         }
     }
 
