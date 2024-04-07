@@ -130,6 +130,13 @@ class SyncManager(
 
         val remoteBackup = syncService?.doSync(syncData)
 
+        if (remoteBackup === syncData.backup){
+            // nothing changed
+            syncPreferences.lastSyncTimestamp().set(Date().time)
+            notifier.showSyncSuccess("Sync completed successfully")
+            return
+        }
+
         // Stop the sync early if the remote backup is null or empty
         if (remoteBackup?.backupManga?.size == 0) {
             notifier.showSyncError("No data found on remote server.")
