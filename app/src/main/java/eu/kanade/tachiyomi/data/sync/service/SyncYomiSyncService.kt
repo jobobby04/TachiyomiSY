@@ -2,23 +2,21 @@ package eu.kanade.tachiyomi.data.sync.service
 
 import android.content.Context
 import eu.kanade.domain.sync.SyncPreferences
+import eu.kanade.tachiyomi.data.backup.models.Backup
 import eu.kanade.tachiyomi.data.sync.SyncNotifier
 import eu.kanade.tachiyomi.network.GET
-import eu.kanade.tachiyomi.network.PATCH
-import eu.kanade.tachiyomi.network.POST
+import eu.kanade.tachiyomi.network.PUT
 import eu.kanade.tachiyomi.network.await
-import kotlinx.coroutines.delay
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import logcat.logcat
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
-import okhttp3.RequestBody.Companion.gzip
 import okhttp3.RequestBody.Companion.toRequestBody
-import tachiyomi.core.common.util.system.logcat
+import org.apache.http.HttpStatus
 import java.util.concurrent.TimeUnit
 
 class SyncYomiSyncService(
@@ -28,137 +26,116 @@ class SyncYomiSyncService(
     private val notifier: SyncNotifier,
 ) : SyncService(context, json, syncPreferences) {
 
-    @Serializable
-    enum class SyncStatus {
-        @SerialName("pending")
-        Pending,
+    private class SyncYomiException(message: String?) : Exception(message)
 
-        @SerialName("syncing")
-        Syncing,
+    override suspend fun doSync(syncData: SyncData): Backup? {
+        try {
+            val (remoteData, etag) = pullSyncData()
+            val finalSyncData: SyncData
 
-        @SerialName("success")
-        Success,
-    }
+            if (remoteData != null){
+                assert(etag.isNotEmpty()) { "ETag should never be empty if remote data is not null" }
+                logcat(LogPriority.DEBUG, "SyncService") {
+                    "Try update remote data with ETag($etag)"
+                }
 
-    @Serializable
-    data class LockFile(
-        @SerialName("id")
-        val id: Int?,
-        @SerialName("user_api_key")
-        val userApiKey: String?,
-        @SerialName("acquired_by")
-        val acquiredBy: String?,
-        @SerialName("last_synced")
-        val lastSynced: String?,
-        @SerialName("status")
-        val status: SyncStatus,
-        @SerialName("acquired_at")
-        val acquiredAt: String?,
-        @SerialName("expires_at")
-        val expiresAt: String?,
-    )
+                finalSyncData = mergeSyncData(syncData, remoteData)
+                pushSyncData(finalSyncData, etag)
 
-    @Serializable
-    data class LockfileCreateRequest(
-        @SerialName("acquired_by")
-        val acquiredBy: String,
-    )
+            } else {
+                // init or overwrite remote data
+                logcat(LogPriority.DEBUG) {
+                    "Try overwrite remote data with ETag($etag)"
+                }
 
-    @Serializable
-    data class LockfilePatchRequest(
-        @SerialName("user_api_key")
-        val userApiKey: String,
-        @SerialName("acquired_by")
-        val acquiredBy: String,
-    )
+                finalSyncData = syncData
 
-    override suspend fun beforeSync() {
-        val host = syncPreferences.clientHost().get()
-        val apiKey = syncPreferences.clientAPIKey().get()
-        val lockFileApi = "$host/api/sync/lock"
-        val deviceId = syncPreferences.uniqueDeviceID()
-        val client = OkHttpClient()
-        val headers = Headers.Builder().add("X-API-Token", apiKey).build()
-        val json = Json { ignoreUnknownKeys = true }
-
-        val createLockfileRequest = LockfileCreateRequest(deviceId)
-        val createLockfileJson = json.encodeToString(createLockfileRequest)
-
-        val patchRequest = LockfilePatchRequest(apiKey, deviceId)
-        val patchJson = json.encodeToString(patchRequest)
-
-        val lockFileRequest = GET(
-            url = lockFileApi,
-            headers = headers,
-        )
-
-        val lockFileCreate = POST(
-            url = lockFileApi,
-            headers = headers,
-            body = createLockfileJson.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()),
-        )
-
-        val lockFileUpdate = PATCH(
-            url = lockFileApi,
-            headers = headers,
-            body = patchJson.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()),
-        )
-
-        // create lock file first
-        client.newCall(lockFileCreate).await()
-        // update lock file acquired_by
-        client.newCall(lockFileUpdate).await()
-
-        var backoff = 2000L // Start with 2 seconds
-        val maxBackoff = 32000L // Maximum backoff time e.g., 32 seconds
-        var lockFile: LockFile
-        do {
-            val response = client.newCall(lockFileRequest).await()
-            val responseBody = response.body.string()
-            lockFile = json.decodeFromString<LockFile>(responseBody)
-            logcat(LogPriority.DEBUG) { "SyncYomi lock file status: ${lockFile.status}" }
-
-            if (lockFile.status != SyncStatus.Success) {
-                logcat(LogPriority.DEBUG) { "Lock file not ready, retrying in $backoff ms..." }
-                delay(backoff)
-                backoff = (backoff * 2).coerceAtMost(maxBackoff)
             }
-        } while (lockFile.status != SyncStatus.Success)
 
-        // update lock file acquired_by
-        client.newCall(lockFileUpdate).await()
+            return if (pushSyncData(finalSyncData, etag)) {
+                finalSyncData.backup
+            } else {
+                // update failed
+                null
+            }
+
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR) { "Error syncing: ${e.message}" }
+            return null
+        }
     }
 
-    override suspend fun pullSyncData(): SyncData {
+    private suspend fun pullSyncData(): Pair<SyncData?, String> {
         val host = syncPreferences.clientHost().get()
         val apiKey = syncPreferences.clientAPIKey().get()
-        val downloadUrl = "$host/api/sync/download"
+        val downloadUrl = "$host/api/sync/content"
 
-        val client = OkHttpClient()
-        val headers = Headers.Builder().add("X-API-Token", apiKey).build()
+        val headersBuilder = Headers.Builder().add("X-API-Token", apiKey)
+        val lastETag = syncPreferences.lastSyncEtag().get()
+        if (lastETag != "") {
+            headersBuilder.add("If-None-Match", lastETag)
+        }
+        val headers = headersBuilder.build()
 
         val downloadRequest = GET(
             url = downloadUrl,
             headers = headers,
         )
 
+        val client = OkHttpClient()
         val response = client.newCall(downloadRequest).await()
+
+        if (response.code == HttpStatus.SC_NOT_MODIFIED) {
+            // not modified
+            assert(lastETag.isNotEmpty())
+            logcat(LogPriority.INFO) {
+                "Remote server not modified"
+            }
+            return Pair(null, lastETag)
+        } else if (response.code == HttpStatus.SC_NOT_FOUND) {
+            // maybe got deleted from remote
+            return Pair(null, "")
+        }
+
         val responseBody = response.body.string()
 
         if (response.isSuccessful) {
-            return json.decodeFromString(responseBody)
+            val newETag = response.headers["ETag"] ?: throw SyncYomiException("Missing ETag")
+            if (newETag.isEmpty()) {
+                throw SyncYomiException("ETag is empty")
+            }
+
+            return try {
+                Pair(json.decodeFromString(responseBody), newETag)
+            } catch (e: SerializationException) {
+                logcat(LogPriority.INFO) {
+                    "Bad content responsed from server: $responseBody"
+                }
+                // the body is not a json
+                // return default value so we can overwrite it
+                Pair(null, "")
+            }
         } else {
             notifier.showSyncError("Failed to download sync data: $responseBody")
             logcat(LogPriority.ERROR) { "SyncError:$responseBody" }
-            throw Exception("Failed to download sync data: $responseBody")
+            throw SyncYomiException("Failed to download sync data: $responseBody")
         }
     }
 
-    override suspend fun pushSyncData(syncData: SyncData) {
+    /**
+     * Return true if update success
+     */
+    private suspend fun pushSyncData(syncData: SyncData, eTag: String): Boolean {
         val host = syncPreferences.clientHost().get()
         val apiKey = syncPreferences.clientAPIKey().get()
-        val uploadUrl = "$host/api/sync/upload"
+        val uploadUrl = "$host/api/sync/content"
         val timeout = 30L
+
+        val headersBuilder = Headers.Builder().add("X-API-Token", apiKey)
+        if (eTag.isNotEmpty()) {
+            headersBuilder.add("If-Match", eTag)
+        }
+        val headers = headersBuilder.build()
 
         // Set timeout to 30 seconds
         val client = OkHttpClient.Builder()
@@ -167,32 +144,36 @@ class SyncYomiSyncService(
             .writeTimeout(timeout, TimeUnit.SECONDS)
             .build()
 
-        val headers = Headers.Builder().add(
-            "Content-Type",
-            "application/gzip",
-        ).add("Content-Encoding", "gzip").add("X-API-Token", apiKey).build()
-
-        val mediaType = "application/gzip".toMediaTypeOrNull()
-
         val jsonData = json.encodeToString(syncData)
-        val body = jsonData.toRequestBody(mediaType).gzip()
+        val body = jsonData.toRequestBody("application/octet-stream".toMediaTypeOrNull())
 
-        val uploadRequest = POST(
+        val uploadRequest = PUT(
             url = uploadUrl,
             headers = headers,
             body = body,
         )
 
-        client.newCall(uploadRequest).await().use {
-            if (it.isSuccessful) {
-                logcat(
-                    LogPriority.DEBUG,
-                ) { "SyncYomi sync completed!" }
-            } else {
-                val responseBody = it.body.string()
-                notifier.showSyncError("Failed to upload sync data: $responseBody")
-                responseBody.let { logcat(LogPriority.ERROR) { "SyncError:$it" } }
+        val response = client.newCall(uploadRequest).await()
+
+        if (response.isSuccessful) {
+            val newETag = response.headers["ETag"] ?: throw SyncYomiException("Missing ETag")
+            if (newETag.isEmpty()) {
+                throw SyncYomiException("ETag is empty")
             }
+            syncPreferences.lastSyncEtag().set(newETag)
+            logcat(LogPriority.DEBUG) { "SyncYomi sync completed" }
+            return true
+
+        } else if (response.code == HttpStatus.SC_PRECONDITION_FAILED) {
+            // other clients updated remote data, will try next time
+            logcat(LogPriority.DEBUG) { "SyncYomi sync failed with 412" }
+            return false
+
+        } else {
+            val responseBody = response.body.string()
+            notifier.showSyncError("Failed to upload sync data: $responseBody")
+            logcat(LogPriority.ERROR) { "SyncError: $responseBody" }
+            return false
         }
     }
 }

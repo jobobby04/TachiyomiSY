@@ -94,6 +94,8 @@ class SyncManager(
             readEntries = syncOptions.readEntries,
             // SY <--
         )
+
+        logcat(LogPriority.DEBUG) { "Begin create backup" }
         val backup = Backup(
             backupManga = backupCreator.backupMangas(databaseManga, backupOptions),
             backupCategories = backupCreator.backupCategories(backupOptions),
@@ -105,6 +107,7 @@ class SyncManager(
             backupSavedSearches = backupCreator.backupSavedSearches(),
             // SY <--
         )
+        logcat(LogPriority.DEBUG) { "End create backup" }
 
         // Create the SyncData object
         val syncData = SyncData(
