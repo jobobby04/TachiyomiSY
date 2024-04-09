@@ -17,6 +17,7 @@ import logcat.logcat
 
 @Serializable
 data class SyncData(
+    val deviceId: String = "",
     val backup: Backup? = null,
 )
 
@@ -28,19 +29,37 @@ abstract class SyncService(
     open suspend fun doSync(syncData: SyncData): Backup? {
         beforeSync()
 
-        val remoteSData = pullSyncData()
+        try {
+            val remoteSData = pullSyncData()
 
-        val finalSyncData =
-            if (remoteSData == null) {
-                pushSyncData(syncData)
-                syncData
-            } else {
-                val mergedSyncData = mergeSyncData(syncData, remoteSData)
-                pushSyncData(mergedSyncData)
-                mergedSyncData
+            if (remoteSData != null ){
+                // Get local unique device ID
+                val localDeviceId = syncPreferences.uniqueDeviceID()
+                val lastSyncDeviceId = remoteSData.deviceId
+
+                // Log the device IDs
+                logcat(LogPriority.DEBUG, "SyncService") {
+                    "Local device ID: $localDeviceId, Last sync device ID: $lastSyncDeviceId"
+                }
+
+                // check if the last sync was done by the same device if so overwrite the remote data with the local data
+                return if (lastSyncDeviceId == localDeviceId) {
+                    pushSyncData(syncData)
+                    syncData.backup
+                }else{
+                    // Merge the local and remote sync data
+                    val mergedSyncData = mergeSyncData(syncData, remoteSData)
+                    pushSyncData(mergedSyncData)
+                    mergedSyncData.backup
+                }
             }
 
-        return finalSyncData.backup
+            pushSyncData(syncData)
+            return syncData.backup
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, "SyncService") { "Error syncing: ${e.message}" }
+            return null
+        }
     }
 
     /**
@@ -101,6 +120,7 @@ abstract class SyncService(
 
         // Create the merged SData object
         return SyncData(
+            deviceId = syncPreferences.uniqueDeviceID(),
             backup = mergedBackup,
         )
     }
