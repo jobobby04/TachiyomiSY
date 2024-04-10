@@ -38,25 +38,19 @@ class SyncYomiSyncService(
     override suspend fun doSync(syncData: SyncData): Backup? {
         try {
             val (remoteData, etag) = pullSyncData()
-            val finalSyncData: SyncData
 
-            if (remoteData != null){
+            val finalSyncData = if (remoteData != null){
                 assert(etag.isNotEmpty()) { "ETag should never be empty if remote data is not null" }
                 logcat(LogPriority.DEBUG, "SyncService") {
                     "Try update remote data with ETag($etag)"
                 }
-
-                finalSyncData = mergeSyncData(syncData, remoteData)
-                pushSyncData(finalSyncData, etag)
-
+                mergeSyncData(syncData, remoteData)
             } else {
                 // init or overwrite remote data
                 logcat(LogPriority.DEBUG) {
                     "Try overwrite remote data with ETag($etag)"
                 }
-
-                finalSyncData = syncData
-
+                syncData
             }
 
             pushSyncData(finalSyncData, etag)
