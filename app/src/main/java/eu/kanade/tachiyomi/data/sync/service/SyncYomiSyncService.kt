@@ -3,20 +3,25 @@ package eu.kanade.tachiyomi.data.sync.service
 import android.content.Context
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.models.Backup
+import eu.kanade.tachiyomi.data.backup.models.BackupSerializer
 import eu.kanade.tachiyomi.data.sync.SyncNotifier
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.PUT
 import eu.kanade.tachiyomi.network.await
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
 import logcat.logcat
 import okhttp3.Headers
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.apache.http.HttpStatus
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.i18n.MR
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.util.concurrent.TimeUnit
 
 class SyncYomiSyncService(
@@ -24,6 +29,8 @@ class SyncYomiSyncService(
     json: Json,
     syncPreferences: SyncPreferences,
     private val notifier: SyncNotifier,
+
+    private val protoBuf: ProtoBuf = Injekt.get(),
 ) : SyncService(context, json, syncPreferences) {
 
     private class SyncYomiException(message: String?) : Exception(message)
@@ -93,27 +100,30 @@ class SyncYomiSyncService(
             return Pair(null, "")
         }
 
-        val responseBody = response.body.string()
-
         if (response.isSuccessful) {
-            val newETag = response.headers["ETag"] ?: throw SyncYomiException("Missing ETag")
-            if (newETag.isEmpty()) {
-                throw SyncYomiException("ETag is empty")
+            val newETag = response.headers["ETag"]
+                .takeIf { it?.isNotEmpty() == true } ?: throw SyncYomiException("Missing ETag")
+
+            val byteArray = response.body.byteStream().use {
+                return@use it.readBytes()
             }
 
             return try {
-                Pair(json.decodeFromString(responseBody), newETag)
-            } catch (e: SerializationException) {
+                val backup = protoBuf.decodeFromByteArray(BackupSerializer, byteArray)
+                return Pair(SyncData(backup = backup), newETag)
+            } catch (_: SerializationException) {
                 logcat(LogPriority.INFO) {
-                    "Bad content responsed from server: $responseBody"
+                    "Bad content responsed from server"
                 }
-                // the body is not a json
+                // the body is invalid
                 // return default value so we can overwrite it
                 Pair(null, "")
             }
+
         } else {
+            val responseBody = response.body.string()
             notifier.showSyncError("Failed to download sync data: $responseBody")
-            logcat(LogPriority.ERROR) { "SyncError:$responseBody" }
+            logcat(LogPriority.ERROR) { "SyncError: $responseBody" }
             throw SyncYomiException("Failed to download sync data: $responseBody")
         }
     }
@@ -122,6 +132,8 @@ class SyncYomiSyncService(
      * Return true if update success
      */
     private suspend fun pushSyncData(syncData: SyncData, eTag: String) {
+        val backup = syncData.backup ?: return
+
         val host = syncPreferences.clientHost().get()
         val apiKey = syncPreferences.clientAPIKey().get()
         val uploadUrl = "$host/api/sync/content"
@@ -140,8 +152,11 @@ class SyncYomiSyncService(
             .writeTimeout(timeout, TimeUnit.SECONDS)
             .build()
 
-        val jsonData = json.encodeToString(syncData)
-        val body = jsonData.toRequestBody("application/octet-stream".toMediaTypeOrNull())
+        val byteArray = protoBuf.encodeToByteArray(BackupSerializer, backup)
+        if (byteArray.isEmpty()) {
+            throw IllegalStateException(context.stringResource(MR.strings.empty_backup_error))
+        }
+        val body = byteArray.toRequestBody("application/octet-stream".toMediaType())
 
         val uploadRequest = PUT(
             url = uploadUrl,
@@ -152,10 +167,8 @@ class SyncYomiSyncService(
         val response = client.newCall(uploadRequest).await()
 
         if (response.isSuccessful) {
-            val newETag = response.headers["ETag"] ?: throw SyncYomiException("Missing ETag")
-            if (newETag.isEmpty()) {
-                throw SyncYomiException("ETag is empty")
-            }
+            val newETag = response.headers["ETag"]
+                .takeIf { it?.isNotEmpty() == true } ?: throw SyncYomiException("Missing ETag")
             syncPreferences.lastSyncEtag().set(newETag)
             logcat(LogPriority.DEBUG) { "SyncYomi sync completed" }
 
