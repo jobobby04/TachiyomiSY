@@ -36,9 +36,15 @@ abstract class SyncService(
      * @return The JSON string containing the merged sync data.
      */
     protected fun mergeSyncData(localSyncData: SyncData, remoteSyncData: SyncData): SyncData {
-        val mergedMangaList = mergeMangaLists(localSyncData.backup?.backupManga, remoteSyncData.backup?.backupManga)
         val mergedCategoriesList =
             mergeCategoriesLists(localSyncData.backup?.backupCategories, remoteSyncData.backup?.backupCategories)
+
+        val mergedMangaList = mergeMangaLists(
+            localSyncData.backup?.backupManga,
+            remoteSyncData.backup?.backupManga,
+            localSyncData.backup?.backupCategories ?: emptyList(),
+            remoteSyncData.backup?.backupCategories ?: emptyList(),
+            mergedCategoriesList)
 
         val mergedSourcesList =
             mergeSourcesLists(localSyncData.backup?.backupSources, remoteSyncData.backup?.backupSources)
@@ -88,6 +94,9 @@ abstract class SyncService(
     private fun mergeMangaLists(
         localMangaList: List<BackupManga>?,
         remoteMangaList: List<BackupManga>?,
+        localCategories: List<BackupCategory>,
+        remoteCategories: List<BackupCategory>,
+        mergedCategories: List<BackupCategory>,
     ): List<BackupManga> {
         val logTag = "MergeMangaLists"
 
@@ -106,6 +115,18 @@ abstract class SyncService(
         val localMangaMap = localMangaListSafe.associateBy { mangaCompositeKey(it) }
         val remoteMangaMap = remoteMangaListSafe.associateBy { mangaCompositeKey(it) }
 
+        val localCategoriesMapByOrder = localCategories.associateBy { it.order }
+        val remoteCategoriesMapByOrder = remoteCategories.associateBy { it.order }
+        val mergedCategoriesMapByName = mergedCategories.associateBy { it.name }
+
+        fun updateCategories(theManga: BackupManga, theMap: Map<Long, BackupCategory>): BackupManga {
+            return theManga.copy(categories = theManga.categories.mapNotNull {
+                theMap[it]?.let { category ->
+                    mergedCategoriesMapByName[category.name]?.order
+                }
+            })
+        }
+
         logcat(LogPriority.DEBUG, logTag) {
             "Starting merge. Local list size: ${localMangaListSafe.size}, Remote list size: ${remoteMangaListSafe.size}"
         }
@@ -116,20 +137,26 @@ abstract class SyncService(
 
             // New version comparison logic
             when {
-                local != null && remote == null -> local
-                local == null && remote != null -> remote
+                local != null && remote == null -> updateCategories(local, localCategoriesMapByOrder)
+                local == null && remote != null -> updateCategories(remote, remoteCategoriesMapByOrder)
                 local != null && remote != null -> {
                     // Compare versions to decide which manga to keep
                     if (local.version >= remote.version) {
                         logcat(LogPriority.DEBUG, logTag) {
                             "Keeping local version of ${local.title} with merged chapters."
                         }
-                        local.copy(chapters = mergeChapters(local.chapters, remote.chapters))
+                        updateCategories(
+                            local.copy(chapters = mergeChapters(local.chapters, remote.chapters)),
+                            localCategoriesMapByOrder
+                        )
                     } else {
                         logcat(LogPriority.DEBUG, logTag) {
                             "Keeping remote version of ${remote.title} with merged chapters."
                         }
-                        remote.copy(chapters = mergeChapters(local.chapters, remote.chapters))
+                        updateCategories(
+                            remote.copy(chapters = mergeChapters(local.chapters, remote.chapters)),
+                            remoteCategoriesMapByOrder
+                        )
                     }
                 }
                 else -> null // No manga found for key
