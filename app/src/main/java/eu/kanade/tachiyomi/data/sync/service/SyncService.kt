@@ -26,56 +26,7 @@ abstract class SyncService(
     val json: Json,
     val syncPreferences: SyncPreferences,
 ) {
-    open suspend fun doSync(syncData: SyncData): Backup? {
-        beforeSync()
-
-        try {
-            val remoteSData = pullSyncData()
-
-            if (remoteSData != null ){
-                // Get local unique device ID
-                val localDeviceId = syncPreferences.uniqueDeviceID()
-                val lastSyncDeviceId = remoteSData.deviceId
-
-                // Log the device IDs
-                logcat(LogPriority.DEBUG, "SyncService") {
-                    "Local device ID: $localDeviceId, Last sync device ID: $lastSyncDeviceId"
-                }
-
-                // check if the last sync was done by the same device if so overwrite the remote data with the local data
-                return if (lastSyncDeviceId == localDeviceId) {
-                    pushSyncData(syncData)
-                    syncData.backup
-                }else{
-                    // Merge the local and remote sync data
-                    val mergedSyncData = mergeSyncData(syncData, remoteSData)
-                    pushSyncData(mergedSyncData)
-                    mergedSyncData.backup
-                }
-            }
-
-            pushSyncData(syncData)
-            return syncData.backup
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, "SyncService") { "Error syncing: ${e.message}" }
-            return null
-        }
-    }
-
-    /**
-     * For refreshing tokens and other possible operations before connecting to the remote storage
-     */
-    open suspend fun beforeSync() {}
-
-    /**
-     * Download sync data from the remote storage
-     */
-    abstract suspend fun pullSyncData(): SyncData?
-
-    /**
-     * Upload sync data to the remote storage
-     */
-    abstract suspend fun pushSyncData(syncData: SyncData)
+    abstract suspend fun doSync(syncData: SyncData): Backup?;
 
     /**
      * Merges the local and remote sync data into a single JSON string.
@@ -84,7 +35,7 @@ abstract class SyncService(
      * @param remoteSyncData The SData containing the remote sync data.
      * @return The JSON string containing the merged sync data.
      */
-    private fun mergeSyncData(localSyncData: SyncData, remoteSyncData: SyncData): SyncData {
+    protected fun mergeSyncData(localSyncData: SyncData, remoteSyncData: SyncData): SyncData {
         val mergedMangaList = mergeMangaLists(localSyncData.backup?.backupManga, remoteSyncData.backup?.backupManga)
         val mergedCategoriesList =
             mergeCategoriesLists(localSyncData.backup?.backupCategories, remoteSyncData.backup?.backupCategories)

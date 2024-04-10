@@ -19,6 +19,7 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
 import eu.kanade.domain.sync.SyncPreferences
+import eu.kanade.tachiyomi.data.backup.models.Backup
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -68,7 +69,43 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
 
     private val googleDriveService = GoogleDriveService(context)
 
-    override suspend fun beforeSync() {
+    override suspend fun doSync(syncData: SyncData): Backup? {
+        beforeSync()
+
+        try {
+            val remoteSData = pullSyncData()
+
+            if (remoteSData != null ){
+                // Get local unique device ID
+                val localDeviceId = syncPreferences.uniqueDeviceID()
+                val lastSyncDeviceId = remoteSData.deviceId
+
+                // Log the device IDs
+                logcat(LogPriority.DEBUG, "SyncService") {
+                    "Local device ID: $localDeviceId, Last sync device ID: $lastSyncDeviceId"
+                }
+
+                // check if the last sync was done by the same device if so overwrite the remote data with the local data
+                return if (lastSyncDeviceId == localDeviceId) {
+                    pushSyncData(syncData)
+                    syncData.backup
+                }else{
+                    // Merge the local and remote sync data
+                    val mergedSyncData = mergeSyncData(syncData, remoteSData)
+                    pushSyncData(mergedSyncData)
+                    mergedSyncData.backup
+                }
+            }
+
+            pushSyncData(syncData)
+            return syncData.backup
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, "SyncService") { "Error syncing: ${e.message}" }
+            return null
+        }
+    }
+
+    private suspend fun beforeSync() {
         try {
             googleDriveService.refreshToken()
             val drive = googleDriveService.driveService
@@ -124,7 +161,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
         }
     }
 
-    override suspend fun pullSyncData(): SyncData? {
+    private fun pullSyncData(): SyncData? {
         val drive = googleDriveService.driveService ?:
         throw Exception(context.stringResource(MR.strings.google_drive_not_signed_in))
 
@@ -149,7 +186,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
         }
     }
 
-    override suspend fun pushSyncData(syncData: SyncData) {
+    private suspend fun pushSyncData(syncData: SyncData) {
         val drive = googleDriveService.driveService
             ?: throw Exception(context.stringResource(MR.strings.google_drive_not_signed_in))
 
