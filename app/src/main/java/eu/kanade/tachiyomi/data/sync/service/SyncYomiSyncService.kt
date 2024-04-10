@@ -64,6 +64,7 @@ class SyncYomiSyncService(
 
         } catch (e: Exception) {
             logcat(LogPriority.ERROR) { "Error syncing: ${e.message}" }
+            notifier.showSyncError(e.message)
             return null
         }
     }
