@@ -52,12 +52,8 @@ class SyncYomiSyncService(
 
             }
 
-            return if (pushSyncData(finalSyncData, etag)) {
-                finalSyncData.backup
-            } else {
-                // update failed
-                null
-            }
+            pushSyncData(finalSyncData, etag)
+            return finalSyncData.backup
 
         } catch (e: Exception) {
             logcat(LogPriority.ERROR) { "Error syncing: ${e.message}" }
@@ -125,7 +121,7 @@ class SyncYomiSyncService(
     /**
      * Return true if update success
      */
-    private suspend fun pushSyncData(syncData: SyncData, eTag: String): Boolean {
+    private suspend fun pushSyncData(syncData: SyncData, eTag: String) {
         val host = syncPreferences.clientHost().get()
         val apiKey = syncPreferences.clientAPIKey().get()
         val uploadUrl = "$host/api/sync/content"
@@ -162,18 +158,15 @@ class SyncYomiSyncService(
             }
             syncPreferences.lastSyncEtag().set(newETag)
             logcat(LogPriority.DEBUG) { "SyncYomi sync completed" }
-            return true
 
         } else if (response.code == HttpStatus.SC_PRECONDITION_FAILED) {
             // other clients updated remote data, will try next time
             logcat(LogPriority.DEBUG) { "SyncYomi sync failed with 412" }
-            return false
 
         } else {
             val responseBody = response.body.string()
             notifier.showSyncError("Failed to upload sync data: $responseBody")
             logcat(LogPriority.ERROR) { "SyncError: $responseBody" }
-            return false
         }
     }
 }
