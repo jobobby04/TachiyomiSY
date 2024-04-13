@@ -109,7 +109,7 @@ data class SourceSearchScreen(
         }
 
         val onDismissRequest = { screenModel.setDialog(null) }
-        when (val dialog = state.dialog) {
+        when (state.dialog) {
             is BrowseSourceScreenModel.Dialog.Filter -> {
                 SourceFilterDialog(
                     onDismissRequest = onDismissRequest,
