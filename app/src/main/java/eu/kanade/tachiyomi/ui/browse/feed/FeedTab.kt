@@ -87,7 +87,7 @@ fun Screen.feedTab(): TabContent {
                     navigator.push(MangaScreen(manga.id, true))
                 },
                 onRefresh = screenModel::init,
-                getMangaState = { manga, source -> screenModel.getManga(initialManga = manga, source = source) },
+                getMangaState = { manga -> screenModel.getManga(initialManga = manga) },
             )
 
             state.dialog?.let { dialog ->

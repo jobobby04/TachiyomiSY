@@ -67,6 +67,7 @@ import exh.source.isMdBasedSource
 import exh.ui.ifSourcesLoaded
 import exh.ui.metadata.MetadataViewScreen
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
@@ -251,11 +252,19 @@ class MangaScreen(
                     },
                 )
             }
-            is MangaScreenModel.Dialog.DuplicateManga -> DuplicateMangaDialog(
-                onDismissRequest = onDismissRequest,
-                onConfirm = { screenModel.toggleFavorite(onRemoved = {}, checkDuplicate = false) },
-                onOpenManga = { navigator.push(MangaScreen(dialog.duplicate.id)) },
-            )
+
+            is MangaScreenModel.Dialog.DuplicateManga -> {
+                DuplicateMangaDialog(
+                    onDismissRequest = onDismissRequest,
+                    onConfirm = { screenModel.toggleFavorite(onRemoved = {}, checkDuplicate = false) },
+                    onOpenManga = { navigator.push(MangaScreen(dialog.duplicate.id)) },
+                    onMigrate = {
+                        // SY -->
+                        migrateManga(navigator, dialog.duplicate, screenModel.manga!!.id)
+                        // SY <--
+                    },
+                )
+            }
             MangaScreenModel.Dialog.SettingsSheet -> ChapterSettingsDialog(
                 onDismissRequest = onDismissRequest,
                 manga = successState.manga,
@@ -457,12 +466,13 @@ class MangaScreen(
     /**
      * Initiates source migration for the specific manga.
      */
-    private fun migrateManga(navigator: Navigator, manga: Manga) {
+    private fun migrateManga(navigator: Navigator, manga: Manga, toMangaId: Long? = null) {
         // SY -->
         PreMigrationScreen.navigateToMigration(
             Injekt.get<UnsortedPreferences>().skipPreMigration().get(),
             navigator,
-            listOf(manga.id),
+            manga.id,
+            toMangaId,
         )
         // SY <--
     }
@@ -505,6 +515,7 @@ class MangaScreen(
         navigator.push(SourcesScreen(smartSearchConfig))
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun mergeWithAnother(
         navigator: Navigator,
         context: Context,

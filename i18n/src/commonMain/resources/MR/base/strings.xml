@@ -26,12 +26,11 @@
     <string name="label_download_queue">Download queue</string>
     <string name="label_library">Library</string>
     <string name="label_recent_updates">Updates</string>
+    <string name="label_upcoming">Upcoming</string>
     <string name="label_recent_manga">History</string>
     <string name="label_sources">Sources</string>
+    <string name="label_backup">Backup and restore</string>
     <string name="label_data_storage">Data and storage</string>
-    <string name="label_backup">Backup</string>
-    <string name="label_sync">Sync</string>
-    <string name="label_triggers">Triggers</string>
     <string name="label_stats">Statistics</string>
     <string name="label_migration">Migrate</string>
     <string name="label_extensions">Extensions</string>
@@ -162,6 +161,8 @@
     <string name="action_webview_refresh">Refresh</string>
     <string name="action_start_downloading_now">Start downloading now</string>
     <string name="action_not_now">Not now</string>
+    <string name="action_add_anyway">Add anyway</string>
+    <string name="action_migrate_duplicate">Migrate existing entry</string>
 
     <!-- Operations -->
     <string name="loading">Loading…</string>
@@ -210,7 +211,6 @@
     <string name="pref_tracking_summary">One-way progress sync, enhanced sync</string>
     <string name="pref_browse_summary">Sources, extensions, global search</string>
     <string name="pref_backup_summary">Manual &amp; automatic backups, storage space</string>
-    <string name="pref_backup_and_sync_summary">Manual &amp; automatic backups and sync</string>
     <string name="pref_security_summary">App lock, secure screen</string>
     <string name="pref_advanced_summary">Dump crash logs, battery optimizations</string>
 
@@ -265,9 +265,6 @@
     <string name="pref_category_library_update">Global update</string>
     <string name="pref_library_update_interval">Automatic updates</string>
     <string name="update_never">Off</string>
-    <string name="update_30min">Every 30 minutes</string>
-    <string name="update_1hour">Every hour</string>
-    <string name="update_3hour">Every 3 hours</string>
     <string name="update_6hour">Every 6 hours</string>
     <string name="update_12hour">Every 12 hours</string>
     <string name="update_24hour">Daily</string>
@@ -351,6 +348,9 @@
     <string name="invalid_repo_name">Invalid repo URL</string>
     <string name="delete_repo_confirmation">Do you wish to delete the repo \"%s\"?</string>
     <string name="action_open_repo">Open source repo</string>
+    <string name="action_replace_repo">Replace</string>
+    <string name="action_replace_repo_title">Signing Key Fingerprint Already Exists</string>
+    <string name="action_replace_repo_message">Repository %1$s has the same Signing Key Fingerprint as %2$s.\nIf this is expected, %2$s will be replaced, otherwise contact your repo maintainer.</string>
 
       <!-- Reader section -->
     <string name="pref_fullscreen">Fullscreen</string>
@@ -370,8 +370,7 @@
     <string name="pref_show_page_number">Show page number</string>
     <string name="pref_show_reading_mode">Show reading mode</string>
     <string name="pref_show_reading_mode_summary">Briefly show current mode when reader is opened</string>
-    <string name="pref_true_color">32-bit color</string>
-    <string name="pref_true_color_summary">Reduces banding, but may impact performance</string>
+    <string name="pref_display_profile">Custom display profile</string>
     <string name="pref_crop_borders">Crop borders</string>
     <string name="pref_custom_brightness">Custom brightness</string>
     <string name="pref_grayscale">Grayscale</string>
@@ -546,52 +545,6 @@
     <!-- Sync section -->
     <string name="syncing_library">Syncing library</string>
     <string name="library_sync_complete">Library sync complete</string>
-    <string name="sync_error">Syncing library failed</string>
-    <string name="sync_complete">Syncing library complete</string>
-    <string name="sync_in_progress">Sync is already in progress</string>
-    <string name="pref_sync_host">Host</string>
-    <string name="pref_sync_host_summ">Enter the host address for synchronizing your library</string>
-    <string name="pref_sync_api_key">API key</string>
-    <string name="pref_sync_api_key_summ">Enter the API key to synchronize your library</string>
-    <string name="pref_sync_now_group_title">Sync Actions</string>
-    <string name="pref_sync_now">Sync now</string>
-    <string name="pref_sync_confirmation_title">Sync confirmation</string>
-    <string name="pref_sync_now_subtitle">Initiate immediate synchronization of your data</string>
-    <string name="pref_sync_confirmation_message">Syncing will overwrite your local library with the remote library. Are you sure you want to continue?</string>
-    <string name="pref_sync_service">Service</string>
-    <string name="pref_sync_service_summ">Select the service to sync your library with</string>
-    <string name="pref_sync_service_category">Sync</string>
-    <string name="pref_sync_automatic_category">Automatic Synchronization</string>
-    <string name="pref_sync_interval">Synchronization frequency</string>
-    <string name="pref_choose_what_to_sync">Choose what to sync</string>
-    <string name="success_reset_sync_timestamp">Last sync timestamp reset</string>
-    <string name="syncyomi">SyncYomi</string>
-    <string name="sync_completed_message">Done in %1$s</string>
-    <string name="last_synchronization">Last Synchronization: %1$s</string>
-    <string name="google_drive">Google Drive</string>
-    <string name="pref_google_drive_sign_in">Sign in</string>
-    <string name="google_drive_sign_in_success">Signed in successfully</string>
-    <string name="google_drive_sign_in_failed">Sign in failed</string>
-    <string name="authentication">Authentication</string>
-    <string name="pref_google_drive_purge_sync_data">Clear Sync Data from Google Drive</string>
-    <string name="google_drive_sync_data_purged">Sync data purged from Google Drive</string>
-    <string name="google_drive_sync_data_not_found">No sync data found in Google Drive</string>
-    <string name="google_drive_sync_data_purge_error">Error purging sync data from Google Drive, Try to sign in again.</string>
-    <string name="google_drive_login_success">Logged in to Google Drive</string>
-    <string name="google_drive_login_failed">Failed to log in to Google Drive: %s</string>
-    <string name="google_drive_not_signed_in">Not signed in to Google Drive</string>
-    <string name="error_uploading_sync_data">Error uploading sync data to Google Drive</string>
-    <string name="error_deleting_google_drive_lock_file">Error Deleting Google Drive Lock File</string>
-    <string name="error_before_sync_gdrive">Error before sync: %s</string>
-    <string name="pref_purge_confirmation_title">Purge confirmation</string>
-    <string name="pref_purge_confirmation_message">Purging sync data will delete all your sync data from Google Drive. Are you sure you want to continue?</string>
-    <string name="pref_sync_options">Create sync triggers</string>
-    <string name="pref_sync_options_summ">Can be used to set sync triggers</string>
-    <string name="sync_on_chapter_read">Sync on Chapter Read</string>
-    <string name="sync_on_chapter_open">Sync on Chapter Open</string>
-    <string name="sync_on_app_start">Sync on App Start</string>
-    <string name="sync_on_app_resume">Sync on App Resume</string>
-    <string name="sync_library">Sync library</string>
 
       <!-- Advanced section -->
     <string name="label_network">Networking</string>
@@ -843,6 +796,12 @@
     <string name="updates_last_update_info">Library last updated: %s</string>
     <string name="updates_last_update_info_just_now">Just now</string>
     <string name="relative_time_span_never">Never</string>
+    <string name="action_view_upcoming">View Upcoming Updates</string>
+
+    <!-- Upcoming -->
+    <string name="upcoming_guide">Upcoming Guide</string>
+    <string name="upcoming_calendar_next">Next Month</string>
+    <string name="upcoming_calendar_prev">Previous Month</string>
 
     <!-- History -->
     <string name="recent_manga_time">Ch. %1$s - %2$s</string>
