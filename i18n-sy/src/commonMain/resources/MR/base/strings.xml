@@ -248,18 +248,6 @@
     <string name="sync_on_app_resume">Sync on App Resume</string>
     <string name="sync_library">Sync library</string>
 
-    <!-- Unused Strings -->
-    <string name="pref_backup_and_sync_summary">Manual &amp; automatic backups and sync</string>
-    <string name="label_backup">Backup</string>
-    <string name="google_drive_sign_in_success">Signed in successfully</string>
-    <string name="google_drive_sign_in_failed">Sign in failed</string>
-    <string name="pref_sync_confirmation_message">Syncing will overwrite your local library with the remote library. Are you sure you want to continue?</string>
-    <string name="success_reset_sync_timestamp">Last sync timestamp reset</string>
-    <string name="pref_sync_confirmation_title">Sync confirmation</string>
-    <string name="sync_completed_message">Done in %1$s</string>
-    <string name="authentication">Authentication</string>
-    <string name="pref_sync_service_summ">Select the service to sync your library with</string>
-
     <!-- Security settings -->
     <string name="biometric_lock_times">Biometric lock times</string>
     <string name="action_edit_biometric_lock_times">Edit lock times</string>
