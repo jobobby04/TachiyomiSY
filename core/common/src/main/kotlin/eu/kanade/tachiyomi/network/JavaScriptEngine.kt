@@ -7,7 +7,7 @@ import tachiyomi.core.common.util.lang.withIOContext
 /**
  * Util for evaluating JavaScript in sources.
  */
-@Suppress("UNUSED", "UNCHECKED_CAST")
+@Suppress("UNUSED", "UNCHECKED_CAST", "UNUSED_PARAMETER")
 class JavaScriptEngine(context: Context) {
 
     /**

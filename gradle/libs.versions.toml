@@ -1,7 +1,6 @@
 [versions]
-aboutlib_version = "11.1.1"
-acra = "5.11.3"
-leakcanary = "2.13"
+aboutlib_version = "11.2.1"
+leakcanary = "2.14"
 moko = "0.23.0"
 okhttp_version = "5.0.0-alpha.12"
 richtext = "0.20.0"
@@ -15,7 +14,7 @@ detektCompose = "0.3.12"
 [libraries]
 desugar = "com.android.tools:desugar_jdk_libs:2.0.4"
 android-shortcut-gradle = "com.github.zellius:android-shortcut-gradle-plugin:0.1.2"
-google-services-gradle = "com.google.gms:google-services:4.4.1"
+google-services-gradle = "com.google.gms:google-services:4.4.2"
 
 rxjava = "io.reactivex:rxjava:1.3.8"
 
@@ -32,8 +31,8 @@ quickjs-android = "app.cash.quickjs:quickjs-android:0.9.2"
 jsoup = "org.jsoup:jsoup:1.17.2"
 
 disklrucache = "com.jakewharton:disklrucache:2.0.2"
-unifile = "com.github.tachiyomiorg:unifile:7c257e1c64"
-common-compress = "org.apache.commons:commons-compress:1.26.1"
+unifile = "com.github.tachiyomiorg:unifile:e0def6b3dc"
+common-compress = "org.apache.commons:commons-compress:1.26.2"
 junrar = "com.github.junrar:junrar:7.5.5"
 zip4j = "net.lingala.zip4j:zip4j:2.11.5"
 
@@ -52,7 +51,7 @@ coil-gif = { module = "io.coil-kt.coil3:coil-gif" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp" }
 
-subsamplingscaleimageview = "com.github.tachiyomiorg:subsampling-scale-image-view:aeaa170036"
+subsamplingscaleimageview = "com.github.tachiyomiorg:subsampling-scale-image-view:b8e1b0ed2b"
 image-decoder = "com.github.tachiyomiorg:image-decoder:e08e9be535"
 exifinterface = "androidx.exifinterface:exifinterface:1.3.7"
 
@@ -61,7 +60,7 @@ natural-comparator = "com.github.gpanther:java-nat-sort:natural-comparator-1.1"
 richtext-commonmark = { module = "com.halilibo.compose-richtext:richtext-commonmark", version.ref = "richtext" }
 richtext-m3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 
-material = "com.google.android.material:material:1.11.0"
+material = "com.google.android.material:material:1.12.0"
 flexible-adapter-core = "com.github.arkon.FlexibleAdapter:flexible-adapter:c8013533"
 photoview = "com.github.chrisbanes:PhotoView:2.3.0"
 directionalviewpager = "com.github.tachiyomiorg:DirectionalViewPager:1.0.0"
@@ -77,9 +76,7 @@ moko-gradle = { module = "dev.icerock.moko:resources-generator", version.ref = "
 
 logcat = "com.squareup.logcat:logcat:0.1"
 
-acra-http = { module = "ch.acra:acra-http", version.ref = "acra" }
-acra-scheduler = { module = "ch.acra:acra-advanced-scheduler", version.ref = "acra" }
-firebase-analytics = "com.google.firebase:firebase-analytics-ktx:21.6.1"
+firebase-analytics = "com.google.firebase:firebase-analytics:22.0.1"
 
 aboutLibraries-gradle = { module = "com.mikepenz.aboutlibraries.plugin:aboutlibraries-plugin", version.ref = "aboutlib_version" }
 aboutLibraries-compose = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlib_version" }
@@ -97,8 +94,8 @@ sqldelight-dialects-sql = { module = "app.cash.sqldelight:sqlite-3-38-dialect", 
 sqldelight-gradle = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight" }
 
 junit = "org.junit.jupiter:junit-jupiter:5.10.2"
-kotest-assertions = "io.kotest:kotest-assertions-core:5.8.1"
-mockk = "io.mockk:mockk:1.13.10"
+kotest-assertions = "io.kotest:kotest-assertions-core:5.9.0"
+mockk = "io.mockk:mockk:1.13.11"
 
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
@@ -113,7 +110,6 @@ google-api-services-drive = "com.google.apis:google-api-services-drive:v3-rev197
 google-api-client-oauth = "com.google.oauth-client:google-oauth-client:1.34.1"
 
 [bundles]
-acra = ["acra-http", "acra-scheduler"]
 archive = ["common-compress", "junrar"]
 okhttp = ["okhttp-core", "okhttp-logging", "okhttp-brotli", "okhttp-dnsoverhttps"]
 js-engine = ["quickjs-android"]
