@@ -30,6 +30,11 @@ internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader
     }
 
     init {
+        reader.wrongPassword?.let { wrongPassword ->
+            if (wrongPassword) {
+                error("Incorrect archive password")
+            }
+        }
         if (readerPreferences.archiveReaderMode().get() == ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
             tmpDir.mkdirs()
             reader.useEntries { entries ->

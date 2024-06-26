@@ -258,6 +258,9 @@ actual class LocalSource(
                     // SY -->
                     if (copiedFile != null && copiedFile.name != COMIC_INFO_ARCHIVE) {
                         setMangaDetailsFromComicInfoFile(copiedFile.openInputStream(), manga)
+                    } else if (copiedFile != null && copiedFile.name == COMIC_INFO_ARCHIVE) {
+                        copiedFile.archiveReader(context).getInputStream(COMIC_INFO_FILE)
+                            ?.let { setMangaDetailsFromComicInfoFile(it, manga) }
                     } else {
                         // Avoid re-scanning
                         mangaDir.createFile(".noxml")

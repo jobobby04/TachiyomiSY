@@ -17,6 +17,7 @@ class ArchiveReader(pfd: ParcelFileDescriptor) : Closeable {
 
     // SY -->
     val encrypted by lazy { isEncrypted() }
+    val wrongPassword by lazy { isPasswordIncorrect() }
     val archiveHashCode = pfd.hashCode()
     // SY <--
 
@@ -54,6 +55,26 @@ class ArchiveReader(pfd: ParcelFileDescriptor) : Closeable {
             Archive.readFree(archive)
             throw e
         }
+    }
+
+    private fun isPasswordIncorrect(): Boolean? {
+        if (!encrypted) return null
+        val archive = ArchiveInputStream(address, size)
+        try {
+            while (true) {
+                val entry = archive.getNextEntry() ?: break
+                if (entry.isEncrypted) {
+                    archive.read()
+                    break
+                }
+            }
+        } catch (e: ArchiveException) {
+            if (e.message == "Incorrect passphrase") return true
+            archive.close()
+            throw e
+        }
+        archive.close()
+        return false
     }
     // SY <--
 
