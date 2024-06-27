@@ -39,7 +39,7 @@ jobs:
         run: ./gradlew detekt assembleDevDebug
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: TachiyomiSY-${{ github.sha }}.apk
           path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
