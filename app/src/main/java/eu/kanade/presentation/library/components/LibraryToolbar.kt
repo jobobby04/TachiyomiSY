@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.SearchToolbar
@@ -25,6 +26,8 @@ import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.active
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 @Composable
 fun LibraryToolbar(
@@ -107,6 +110,7 @@ private fun LibraryRegularToolbar(
         searchQuery = searchQuery,
         onChangeSearchQuery = onSearchQueryChange,
         actions = {
+            val syncPreferences: SyncPreferences = Injekt.get() // SY
             val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else LocalContentColor.current
             AppBarActions(
                 persistentListOf(
@@ -128,12 +132,16 @@ private fun LibraryRegularToolbar(
                         title = stringResource(MR.strings.action_open_random_manga),
                         onClick = onClickOpenRandomManga,
                     ),
-                    AppBar.OverflowAction(
-                        title = stringResource(SYMR.strings.sync_library),
-                        onClick = onClickSyncNow,
-                    ),
                 ).builder().apply {
                     // SY -->
+                    if (syncPreferences.isSyncEnabled()) {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(SYMR.strings.sync_library),
+                                onClick = onClickSyncNow,
+                            ),
+                        )
+                    }
                     if (onClickSyncExh != null) {
                         add(
                             AppBar.OverflowAction(
