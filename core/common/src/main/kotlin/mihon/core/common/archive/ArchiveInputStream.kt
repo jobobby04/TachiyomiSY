@@ -6,12 +6,18 @@ import me.zhanghai.android.libarchive.ArchiveEntry
 import me.zhanghai.android.libarchive.ArchiveException
 import java.io.InputStream
 import java.nio.ByteBuffer
+import kotlin.concurrent.Volatile
 
 class ArchiveInputStream(
     buffer: Long,
     size: Long,
     encrypted: Boolean,
 ) : InputStream() {
+    private val lock = Any()
+
+    @Volatile
+    private var isClosed = false
+
     private val archive = Archive.readNew()
 
     init {
@@ -51,6 +57,11 @@ class ArchiveInputStream(
     }
 
     override fun close() {
+        synchronized(lock) {
+            if (isClosed) return
+            isClosed = true
+        }
+
         Archive.readFree(archive)
     }
 
