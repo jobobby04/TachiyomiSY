@@ -6,7 +6,6 @@ import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import tachiyomi.i18n.sy.SYMR.strings.standard_zip_encryption
 
 class SecurityPreferences(
     private val preferenceStore: PreferenceStore,
@@ -58,7 +57,7 @@ class SecurityPreferences(
     enum class EncryptionType(val titleRes: StringResource) {
         AES_256(SYMR.strings.aes_256),
         AES_128(SYMR.strings.aes_128),
-        ZIP_STANDARD(standard_zip_encryption),
+        ZIP_STANDARD(SYMR.strings.standard_zip_encryption),
     }
     // SY <--
 }
