@@ -7,13 +7,17 @@ import me.zhanghai.android.libarchive.ArchiveException
 import java.io.InputStream
 import java.nio.ByteBuffer
 
-class ArchiveInputStream(buffer: Long, size: Long) : InputStream() {
+class ArchiveInputStream(
+    buffer: Long,
+    size: Long,
+    encrypted: Boolean,
+) : InputStream() {
     private val archive = Archive.readNew()
 
     init {
         try {
             // SY -->
-            if (Archive.readHasEncryptedEntries(archive) != 0) {
+            if (encrypted) {
                 Archive.readAddPassphrase(archive, CbzCrypto.getDecryptedPasswordCbz())
             }
             // SY <--

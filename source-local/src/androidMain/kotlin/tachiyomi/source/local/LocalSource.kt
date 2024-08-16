@@ -155,13 +155,14 @@ actual class LocalSource(
         val mangaDirFiles = fileSystem.getFilesInMangaDirectory(manga.url)
         val existingFile = mangaDirFiles
             .firstOrNull { it.name == COMIC_INFO_FILE }
-        val comicInfoArchiveFile = mangaDirFiles
-            .firstOrNull { it.name == COMIC_INFO_ARCHIVE }
-        val existingComicInfo = (existingFile?.openInputStream() ?: comicInfoArchiveFile?.archiveReader(context)?.getInputStream(COMIC_INFO_FILE))?.use {
-            AndroidXmlReader(it, StandardCharsets.UTF_8.name()).use { xmlReader ->
-                xml.decodeFromReader<ComicInfo>(xmlReader)
+        val comicInfoArchiveFile = mangaDirFiles.firstOrNull { it.name == COMIC_INFO_ARCHIVE }
+        val comicInfoArchiveReader = comicInfoArchiveFile?.archiveReader(context)
+        val existingComicInfo =
+            (existingFile?.openInputStream() ?: comicInfoArchiveReader?.getInputStream(COMIC_INFO_FILE))?.use {
+                AndroidXmlReader(it, StandardCharsets.UTF_8.name()).use { xmlReader ->
+                    xml.decodeFromReader<ComicInfo>(xmlReader)
+                }
             }
-        }
         val newComicInfo = if (existingComicInfo != null) {
             manga.run {
                 existingComicInfo.copy(
@@ -182,8 +183,9 @@ actual class LocalSource(
         fileSystem.getMangaDirectory(manga.url)?.let {
             copyComicInfoFile(
                 xml.encodeToString(ComicInfo.serializer(), newComicInfo).byteInputStream(),
-                it
-            )
+                it,
+                comicInfoArchiveReader?.encrypted ?: false
+             )
         }
     }
     // SY <--
@@ -278,27 +280,29 @@ actual class LocalSource(
         for (chapter in chapterArchives) {
             chapter.archiveReader(context).use { reader ->
                 reader.getInputStream(COMIC_INFO_FILE)?.use { stream ->
-                    return copyComicInfoFile(stream, folder)
+                    return copyComicInfoFile(stream, folder, /* SY --> */ reader.encrypted /* SY <-- */)
                 }
             }
         }
         return null
     }
 
-    private fun copyComicInfoFile(comicInfoFileStream: InputStream, folder: UniFile): UniFile? {
+    private fun copyComicInfoFile(
+        comicInfoFileStream: InputStream,
+        folder: UniFile,
         // SY -->
-        if (
-            CbzCrypto.getPasswordProtectDlPref() &&
-            CbzCrypto.isPasswordSet()
-        ) {
-            val comicInfoArchive = folder.createFile(COMIC_INFO_ARCHIVE)
-            comicInfoArchive?.let { archive ->
+        encrypt: Boolean,
+        // SY <--
+    ): UniFile? {
+        // SY -->
+        if (encrypt) {
+            val comicInfoArchiveFile = folder.createFile(COMIC_INFO_ARCHIVE)
+            comicInfoArchiveFile?.let { archive ->
                 ZipWriter(context, archive, encrypt = true).use { writer ->
-                    writer.write(comicInfoFileStream.readBytes(), COMIC_INFO_FILE)
+                    writer.write(comicInfoFileStream.use { it.readBytes() }, COMIC_INFO_FILE)
                 }
             }
-
-            return comicInfoArchive
+            return comicInfoArchiveFile
         } else {
             // SY <--
             return folder.createFile(COMIC_INFO_FILE)?.apply {

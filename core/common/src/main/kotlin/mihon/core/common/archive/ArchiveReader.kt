@@ -5,7 +5,6 @@ import android.os.ParcelFileDescriptor
 import android.system.Os
 import android.system.OsConstants
 import com.hippo.unifile.UniFile
-import me.zhanghai.android.libarchive.Archive
 import me.zhanghai.android.libarchive.ArchiveException
 import tachiyomi.core.common.storage.openFileDescriptor
 import java.io.Closeable
@@ -16,16 +15,27 @@ class ArchiveReader(pfd: ParcelFileDescriptor) : Closeable {
     val address = Os.mmap(0, size, OsConstants.PROT_READ, OsConstants.MAP_PRIVATE, pfd.fileDescriptor, 0)
 
     // SY -->
-    val encrypted by lazy { isEncrypted() }
-    val wrongPassword by lazy { isPasswordIncorrect() }
+    var encrypted: Boolean = false
+        private set
+    var wrongPassword: Boolean? = null
+        private set
     val archiveHashCode = pfd.hashCode()
+
+    init {
+        checkEncryptionStatus()
+    }
     // SY <--
 
-    inline fun <T> useEntries(block: (Sequence<ArchiveEntry>) -> T): T =
-        ArchiveInputStream(address, size).use { block(generateSequence { it.getNextEntry() }) }
+    inline fun <T> useEntries(block: (Sequence<ArchiveEntry>) -> T): T = ArchiveInputStream(
+        address,
+        size,
+        // SY -->
+        encrypted,
+        // SY <--
+    ).use { block(generateSequence { it.getNextEntry() }) }
 
     fun getInputStream(entryName: String): InputStream? {
-        val archive = ArchiveInputStream(address, size)
+        val archive = ArchiveInputStream(address, size, /* SY --> */ encrypted /* SY <-- */)
         try {
             while (true) {
                 val entry = archive.getNextEntry() ?: break
@@ -42,39 +52,37 @@ class ArchiveReader(pfd: ParcelFileDescriptor) : Closeable {
     }
 
     // SY -->
-    private fun isEncrypted(): Boolean {
-        val archive = Archive.readNew()
-        try {
-            Archive.setCharset(archive, Charsets.UTF_8.name().toByteArray())
-            Archive.readSupportFilterAll(archive)
-            Archive.readSupportFormatAll(archive)
-            Archive.readOpenMemoryUnsafe(archive, address, size)
-            return Archive.readHasEncryptedEntries(archive) != 0
-                .also { Archive.readFree(archive) }
-        } catch (e: ArchiveException) {
-            Archive.readFree(archive)
-            throw e
-        }
-    }
-
-    private fun isPasswordIncorrect(): Boolean? {
-        if (!encrypted) return null
-        val archive = ArchiveInputStream(address, size)
+    private fun checkEncryptionStatus() {
+        val archive = ArchiveInputStream(address, size, false)
         try {
             while (true) {
                 val entry = archive.getNextEntry() ?: break
                 if (entry.isEncrypted) {
-                    archive.read()
+                    encrypted = true
+                    isPasswordIncorrect(entry.name)
                     break
                 }
             }
         } catch (e: ArchiveException) {
-            if (e.message == "Incorrect passphrase") return true
             archive.close()
             throw e
         }
         archive.close()
-        return false
+    }
+
+    private fun isPasswordIncorrect(entryName: String) {
+        try {
+            getInputStream(entryName).use { stream ->
+                stream!!.read()
+            }
+        } catch (e: ArchiveException) {
+            if (e.message == "Incorrect passphrase") {
+                wrongPassword = true
+                return
+            }
+            throw e
+        }
+        wrongPassword = false
     }
     // SY <--
 
