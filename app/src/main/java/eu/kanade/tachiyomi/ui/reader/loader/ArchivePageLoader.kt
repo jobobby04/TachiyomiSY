@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.loader
 
 import android.app.Application
+import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
@@ -59,6 +60,9 @@ internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader
     override var isLocal: Boolean = true
 
     override suspend fun getPages(): List<ReaderPage> = reader.useEntries { entries ->
+        if (readerPreferences.archiveReaderMode().get() == ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
+            return DirectoryPageLoader(UniFile.fromFile(tmpDir)!!).getPages()
+        }
         entries
             .filter { it.isFile && ImageUtil.isImage(it.name) { reader.getInputStream(it.name)!! } }
             .sortedWith { f1, f2 -> f1.name.compareToCaseInsensitiveNaturalOrder(f2.name) }
