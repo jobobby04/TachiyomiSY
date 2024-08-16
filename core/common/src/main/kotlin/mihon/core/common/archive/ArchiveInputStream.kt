@@ -11,7 +11,9 @@ import kotlin.concurrent.Volatile
 class ArchiveInputStream(
     buffer: Long,
     size: Long,
+    // SY -->
     encrypted: Boolean,
+    // SY <--
 ) : InputStream() {
     private val lock = Any()
 
