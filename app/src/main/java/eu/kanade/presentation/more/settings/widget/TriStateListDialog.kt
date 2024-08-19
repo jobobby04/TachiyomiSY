@@ -34,7 +34,9 @@ import tachiyomi.presentation.core.util.isScrolledToEnd
 import tachiyomi.presentation.core.util.isScrolledToStart
 
 private enum class State {
-    CHECKED, INVERSED, UNCHECKED
+    CHECKED,
+    INVERSED,
+    UNCHECKED,
 }
 
 @Composable
