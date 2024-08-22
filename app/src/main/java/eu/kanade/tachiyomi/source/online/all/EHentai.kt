@@ -542,9 +542,10 @@ class EHentai(
             if (
                 MATCH_SEEK_REGEX.matches(jumpSeekValue) ||
                 (
-                    MATCH_YEAR_REGEX.matches(jumpSeekValue) && jumpSeekValue.toIntOrNull()?.let {
-                        it in 2007..2099
-                    } == true
+                    MATCH_YEAR_REGEX.matches(jumpSeekValue) &&
+                        jumpSeekValue.toIntOrNull()?.let {
+                            it in 2007..2099
+                        } == true
                     )
             ) {
                 uri.appendQueryParameter("seek", jumpSeekValue)

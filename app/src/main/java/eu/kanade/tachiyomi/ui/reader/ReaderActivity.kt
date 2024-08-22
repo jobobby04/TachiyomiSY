@@ -1274,13 +1274,14 @@ class ReaderActivity : BaseActivity() {
                 .onEach {
                     if (viewModel.state.value.viewer !is PagerViewer) return@onEach
                     reloadChapters(
-                        !it && when (readerPreferences.pageLayout().get()) {
-                            PagerConfig.PageLayout.DOUBLE_PAGES -> true
-                            PagerConfig.PageLayout.AUTOMATIC ->
-                                resources.configuration.orientation ==
-                                    Configuration.ORIENTATION_LANDSCAPE
-                            else -> false
-                        },
+                        !it &&
+                            when (readerPreferences.pageLayout().get()) {
+                                PagerConfig.PageLayout.DOUBLE_PAGES -> true
+                                PagerConfig.PageLayout.AUTOMATIC ->
+                                    resources.configuration.orientation ==
+                                        Configuration.ORIENTATION_LANDSCAPE
+                                else -> false
+                            },
                         true,
                     )
                 }

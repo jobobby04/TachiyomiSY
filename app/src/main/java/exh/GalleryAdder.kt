@@ -46,11 +46,12 @@ class GalleryAdder(
         return sourceManager.getVisibleCatalogueSources()
             .mapNotNull { it.getMainSource<UrlImportableSource>() }
             .filter {
-                it.lang in filters.enabledLangs && it.id !in filters.disabledSources && try {
-                    it.matchesUri(uri)
-                } catch (e: Exception) {
-                    false
-                }
+                it.lang in filters.enabledLangs &&
+                    it.id !in filters.disabledSources && try {
+                        it.matchesUri(uri)
+                    } catch (e: Exception) {
+                        false
+                    }
             }
     }
 
