@@ -210,8 +210,11 @@ object ImageUtil {
      * new image with added center padding scaled relative to the height of the display view
      * to compensate for scaling.
      */
-
-    fun addHorizontalCenterMargin(imageSource: BufferedSource, viewHeight: Int, backgroundContext: Context): BufferedSource {
+    fun addHorizontalCenterMargin(
+        imageSource: BufferedSource,
+        viewHeight: Int,
+        backgroundContext: Context,
+    ): BufferedSource {
         val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()!!
         val height = imageBitmap.height
         val width = imageBitmap.width
@@ -620,6 +623,7 @@ object ImageUtil {
 
     private val optimalImageHeight = getDisplayMaxHeightInPx * 2
 
+    // SY -->
     fun mergeBitmaps(
         imageBitmap: Bitmap,
         imageBitmap2: Bitmap,
@@ -665,6 +669,7 @@ object ImageUtil {
 
     private val Bitmap.rect: Rect
         get() = Rect(0, 0, width, height)
+    // SY <--
 }
 
 val getDisplayMaxHeightInPx: Int
