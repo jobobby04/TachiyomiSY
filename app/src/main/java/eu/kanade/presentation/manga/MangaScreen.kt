@@ -995,7 +995,9 @@ private fun LazyListScope.sharedChapterItems(
                             // SY <--
                         },
                     readProgress = item.chapter.lastPageRead
-                        .takeIf { /* SY --> */(!item.chapter.read || alwaysShowReadingProgress)/* SY <-- */ && it > 0L }
+                        .takeIf {
+                            /* SY --> */(!item.chapter.read || alwaysShowReadingProgress)/* SY <-- */ && it > 0L
+                        }
                         ?.let {
                             stringResource(
                                 MR.strings.chapter_progress,

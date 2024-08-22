@@ -72,7 +72,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
         try {
             val remoteSData = pullSyncData()
 
-            if (remoteSData != null ){
+            if (remoteSData != null) {
                 // Get local unique device ID
                 val localDeviceId = syncPreferences.uniqueDeviceID()
                 val lastSyncDeviceId = remoteSData.deviceId
@@ -86,7 +86,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
                 return if (lastSyncDeviceId == localDeviceId) {
                     pushSyncData(syncData)
                     syncData.backup
-                }else{
+                } else {
                     // Merge the local and remote sync data
                     val mergedSyncData = mergeSyncData(syncData, remoteSData)
                     pushSyncData(mergedSyncData)
@@ -165,7 +165,9 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
                             appProperties = mapOf("deviceId" to syncData.deviceId)
                         }
                         drive.files().update(fileId, fileMetadata, mediaContent).execute()
-                        logcat(LogPriority.DEBUG) { "Updated existing sync data file in Google Drive with file ID: $fileId" }
+                        logcat(LogPriority.DEBUG) {
+                            "Updated existing sync data file in Google Drive with file ID: $fileId"
+                        }
                     } else {
                         val fileMetadata = File().apply {
                             name = remoteFileName
@@ -176,7 +178,9 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
                         val uploadedFile = drive.files().create(fileMetadata, mediaContent)
                             .setFields("id")
                             .execute()
-                        logcat(LogPriority.DEBUG) { "Created new sync data file in Google Drive with file ID: ${uploadedFile.id}" }
+                        logcat(LogPriority.DEBUG) {
+                            "Created new sync data file in Google Drive with file ID: ${uploadedFile.id}"
+                        }
                     }
                 }
             }
@@ -202,7 +206,6 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
             return mutableListOf()
         }
     }
-
 
     suspend fun deleteSyncDataFromGoogleDrive(): DeleteSyncDataStatus {
         val drive = googleDriveService.driveService

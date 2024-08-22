@@ -207,7 +207,6 @@ private fun ColumnScope.SortPage(
     }.collectAsState(initial = screenModel.libraryPreferences.sortTagsForLibrary().get().isNotEmpty())
     // SY <--
 
-
     val trackerSortOption = if (trackers.isEmpty()) {
         emptyList()
     } else {

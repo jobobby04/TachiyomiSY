@@ -18,7 +18,11 @@ class UiPreferences(
 
     fun themeMode() = preferenceStore.getEnum(
         "pref_theme_mode_key",
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { ThemeMode.SYSTEM } else { ThemeMode.LIGHT },
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ThemeMode.SYSTEM
+        } else {
+            ThemeMode.LIGHT
+        },
     )
 
     fun appTheme() = preferenceStore.getEnum(

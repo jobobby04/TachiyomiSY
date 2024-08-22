@@ -99,11 +99,13 @@ interface SecureActivityDelegate {
 
             // `requireUnlock` can be true on process start or if app was closed in locked state
             if (!AuthenticatorUtil.isAuthenticating && !requireUnlock) {
-                requireUnlock = /* SY --> */ canLockNow(preferences) && /* SY <-- */ when (val lockDelay = preferences.lockAppAfter().get()) {
-                    -1 -> false // Never
-                    0 -> true // Always
-                    else -> lastClosedPref.get() + lockDelay * 60_000 <= System.currentTimeMillis()
-                }
+                requireUnlock =
+                    /* SY --> */ canLockNow(preferences) &&
+                    /* SY <-- */ when (val lockDelay = preferences.lockAppAfter().get()) {
+                        -1 -> false // Never
+                        0 -> true // Always
+                        else -> lastClosedPref.get() + lockDelay * 60_000 <= System.currentTimeMillis()
+                    }
             }
 
             lastClosedPref.delete()

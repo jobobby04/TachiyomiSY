@@ -39,7 +39,8 @@ data class BackupOptions(
         // SY <--
     )
 
-    fun canCreate() = libraryEntries || categories || appSettings || extensionRepoSettings || sourceSettings || savedSearches
+    fun canCreate() =
+        libraryEntries || categories || appSettings || extensionRepoSettings || sourceSettings || savedSearches
 
     companion object {
         val libraryOptions = persistentListOf(

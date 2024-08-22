@@ -7,7 +7,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class SavedSearchBackupCreator(
-    private val handler: DatabaseHandler = Injekt.get()
+    private val handler: DatabaseHandler = Injekt.get(),
 ) {
 
     suspend operator fun invoke(): List<BackupSavedSearch> {

@@ -115,7 +115,7 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
                             dialog.duplicate.id,
                             dialog.manga.id,
                         )
-                    }
+                    },
                 )
             }
             is BrowseSourceScreenModel.Dialog.RemoveManga -> {
