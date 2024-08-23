@@ -147,7 +147,7 @@ class SyncManager(
             return
         }
 
-        if (remoteBackup === syncData.backup){
+        if (remoteBackup === syncData.backup) {
             // nothing changed
             logcat(LogPriority.DEBUG) { "Skip restore due to remote was overwrite from local" }
             syncPreferences.lastSyncTimestamp().set(Date().time)

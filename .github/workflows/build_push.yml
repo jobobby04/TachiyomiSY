@@ -50,7 +50,7 @@ jobs:
       # SY -->
 
       - name: Build app and run unit tests
-        run: ./gradlew detekt assembleStandardRelease testStandardReleaseUnitTest --stacktrace
+        run: ./gradlew spotlessCheck assembleStandardRelease testStandardReleaseUnitTest --stacktrace
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1

@@ -41,7 +41,11 @@ fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, sea
                     ?: meta.genre
                     ?: context.stringResource(MR.strings.unknown)
 
-            binding.visible.text = context.stringResource(SYMR.strings.is_visible, meta.visible ?: context.stringResource(MR.strings.unknown))
+            binding.visible.text =
+                context.stringResource(
+                    SYMR.strings.is_visible,
+                    meta.visible ?: context.stringResource(MR.strings.unknown),
+                )
 
             binding.favorites.text = (meta.favorites ?: 0).toString()
             binding.favorites.bindDrawable(context, R.drawable.ic_book_24dp)
@@ -65,7 +69,8 @@ fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, sea
             val ratingFloat = meta.averageRating?.toFloat()
             binding.ratingBar.rating = ratingFloat ?: 0F
             @SuppressLint("SetTextI18n")
-            binding.rating.text = (ratingFloat ?: 0F).toString() + " - " + MetadataUIUtil.getRatingString(context, ratingFloat?.times(2))
+            binding.rating.text =
+                (ratingFloat ?: 0F).toString() + " - " + MetadataUIUtil.getRatingString(context, ratingFloat?.times(2))
 
             binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
 

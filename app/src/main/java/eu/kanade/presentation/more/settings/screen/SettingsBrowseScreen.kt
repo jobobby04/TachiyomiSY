@@ -94,7 +94,7 @@ object SettingsBrowseScreen : SearchableSettings {
                         pref = uiPreferences.feedTabInFront(),
                         title = stringResource(SYMR.strings.pref_feed_position),
                         subtitle = stringResource(SYMR.strings.pref_feed_position_summery),
-                        enabled = hideFeedTab.not()
+                        enabled = hideFeedTab.not(),
                     ),
                 ),
             ),

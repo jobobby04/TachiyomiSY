@@ -45,7 +45,6 @@ import java.io.IOException
  * Available request parameter:
  * - [USE_CUSTOM_COVER_KEY]: Use custom cover if set by user, default is true
  */
-@Suppress("LongParameterList")
 class MangaCoverFetcher(
     private val url: String?,
     private val isLibraryManga: Boolean,
@@ -86,7 +85,7 @@ class MangaCoverFetcher(
             source = ImageSource(
                 file = file.toOkioPath(),
                 fileSystem = FileSystem.SYSTEM,
-                diskCacheKey = diskCacheKey
+                diskCacheKey = diskCacheKey,
             ),
             mimeType = "image/*",
             dataSource = DataSource.DISK,

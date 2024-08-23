@@ -174,8 +174,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart
-        ) {
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
             SyncDataJob.startNow(this@App)
         }
 
@@ -199,7 +198,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         )
     }
 
-    @Suppress("MagicNumber")
     override fun newImageLoader(context: Context): ImageLoader {
         return ImageLoader.Builder(this).apply {
             val callFactoryLazy = lazy { Injekt.get<NetworkHelper>().client }
@@ -239,8 +237,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppResume
-        ) {
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppResume) {
             SyncDataJob.startNow(this@App)
         }
     }
@@ -339,7 +336,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             """
                 App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
                 Preview build: $syDebugVersion
-                Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}) 
+                Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})
                 Android build ID: ${Build.DISPLAY}
                 Device brand: ${Build.BRAND}
                 Device manufacturer: ${Build.MANUFACTURER}

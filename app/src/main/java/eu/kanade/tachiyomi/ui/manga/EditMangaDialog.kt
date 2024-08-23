@@ -189,14 +189,14 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
         binding.mangaDescription.hint =
             context.stringResource(
                 SYMR.strings.description_hint,
-                manga.ogDescription?.takeIf { it.isNotBlank() }?.replace("\n", " ")?.chop(20) ?: ""
+                manga.ogDescription?.takeIf { it.isNotBlank() }?.replace("\n", " ")?.chop(20) ?: "",
             )
         binding.thumbnailUrl.hint =
             context.stringResource(
                 SYMR.strings.thumbnail_url_hint,
                 manga.ogThumbnailUrl?.let {
                     it.chop(40) + if (it.length > 46) "." + it.substringAfterLast(".").chop(6) else ""
-                } ?: ""
+                } ?: "",
             )
     }
     binding.mangaGenresTags.clearFocus()
