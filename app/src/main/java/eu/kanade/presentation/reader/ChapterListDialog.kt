@@ -8,11 +8,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.presentation.manga.components.MangaChapterListItem
+import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.reader.chapter.ReaderChapterItem
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsScreenModel
@@ -22,6 +24,9 @@ import exh.source.isEhBasedManga
 import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.source.local.isLocal
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -39,6 +44,7 @@ fun ChapterListDialog(
     val manga by screenModel.mangaFlow.collectAsState()
     val context = LocalContext.current
     val state = rememberLazyListState(chapters.indexOfFirst { it.isCurrent }.coerceAtLeast(0))
+    val downloadManager: DownloadManager = remember { Injekt.get() }
 
     AdaptiveSheet(
         onDismissRequest = onDismissRequest,
@@ -52,6 +58,22 @@ fun ChapterListDialog(
                 items = chapters,
                 key = { "chapter-${it.chapter.id}" },
             ) { chapterItem ->
+                val activeDownload = downloadManager.getQueuedDownloadOrNull(chapterItem.chapter.id)
+                val downloaded = if (chapterItem.manga.isLocal()) {
+                    true
+                } else {
+                    downloadManager.isChapterDownloaded(
+                        chapterItem.chapter.name,
+                        chapterItem.chapter.scanlator,
+                        chapterItem.manga.ogTitle,
+                        chapterItem.manga.source,
+                    )
+                }
+                val downloadState = when {
+                    activeDownload != null -> activeDownload.status
+                    downloaded -> Download.State.DOWNLOADED
+                    else -> Download.State.NOT_DOWNLOADED
+                }
                 MangaChapterListItem(
                     title = chapterItem.chapter.name,
                     date = chapterItem.chapter.dateUpload
@@ -76,8 +98,8 @@ fun ChapterListDialog(
                     bookmark = chapterItem.chapter.bookmark,
                     selected = false,
                     downloadIndicatorEnabled = false,
-                    downloadStateProvider = { Download.State.NOT_DOWNLOADED },
-                    downloadProgressProvider = { 0 },
+                    downloadStateProvider = { downloadState },
+                    downloadProgressProvider = { activeDownload?.progress ?: 0 },
                     chapterSwipeStartAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     chapterSwipeEndAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     onLongClick = { /*TODO*/ },
