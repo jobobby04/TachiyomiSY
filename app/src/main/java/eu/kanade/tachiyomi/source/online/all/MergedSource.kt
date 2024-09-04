@@ -137,7 +137,7 @@ class MergedSource : HttpSource() {
                                         val results =
                                             syncChaptersWithSource.await(chapterList, loadedManga, source)
 
-                                        if (reference.downloadChapters) {
+                                        if (downloadChapters && reference.downloadChapters) {
                                             val chaptersToDownload = filterChaptersForDownload.await(manga, results)
                                             if (chaptersToDownload.isNotEmpty()) {
                                                 downloadManager.downloadChapters(
