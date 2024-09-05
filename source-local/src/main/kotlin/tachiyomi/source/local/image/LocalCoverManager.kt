@@ -8,7 +8,7 @@ import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import mihon.core.common.archive.ZipWriter
+import mihon.core.archive.ZipWriter
 import tachiyomi.core.common.storage.nameWithoutExtension
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.source.local.io.LocalSourceFileSystem

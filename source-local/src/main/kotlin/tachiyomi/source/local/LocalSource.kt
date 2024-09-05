@@ -15,7 +15,6 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
-import eu.kanade.tachiyomi.util.storage.EpubFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -28,8 +27,9 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import logcat.LogPriority
-import mihon.core.common.archive.ZipWriter
-import mihon.core.common.archive.archiveReader
+import mihon.core.archive.EpubReader
+import mihon.core.archive.ZipWriter
+import mihon.core.archive.archiveReader
 import nl.adaptivity.xmlutil.core.AndroidXmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import tachiyomi.core.common.i18n.stringResource
@@ -416,7 +416,7 @@ class LocalSource(
                     try {
                         val format = Format.valueOf(chapterFile)
                         if (format is Format.Epub) {
-                            EpubFile(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz)).use { epub ->
+                            EpubReader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz)).use { epub ->
                                 epub.fillMetadata(manga, this)
                             }
                         } else {
@@ -494,7 +494,7 @@ class LocalSource(
                     }
                 }
                 is Format.Epub -> {
-                    EpubFile(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz)).use { epub ->
+                    EpubReader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz)).use { epub ->
                         val entry = epub.getImagesFromPages().firstOrNull()
 
                         entry?.let { coverManager.update(manga, epub.getInputStream(it)!!) }

@@ -12,7 +12,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
-import mihon.core.common.archive.archiveReader
+import mihon.core.archive.archiveReader
 import tachiyomi.domain.manga.model.Manga
 
 /**

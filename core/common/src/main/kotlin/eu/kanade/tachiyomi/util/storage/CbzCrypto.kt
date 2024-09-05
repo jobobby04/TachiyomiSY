@@ -9,9 +9,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import mihon.core.common.archive.ArchiveReader
-import tachiyomi.core.common.util.system.ImageUtil
-import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -32,16 +29,7 @@ import javax.crypto.spec.IvParameterSpec
 class CbzCrypto(private val securityPreferences: SecurityPreferences) {
     companion object {
         const val DATABASE_NAME = "tachiyomiEncrypted.db"
-        private const val DEFAULT_COVER_NAME = "cover.jpg"
-
-        fun ArchiveReader.getCoverStream(): BufferedInputStream? {
-            this.getInputStream(DEFAULT_COVER_NAME)?.let { stream ->
-                if (ImageUtil.isImage(DEFAULT_COVER_NAME) { stream }) {
-                    return this.getInputStream(DEFAULT_COVER_NAME)?.buffered()
-                }
-            }
-            return null
-        }
+        const val DEFAULT_COVER_NAME = "cover.jpg"
     }
 
     private val keyStore = KeyStore.getInstance(Keystore).apply {

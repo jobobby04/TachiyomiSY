@@ -1,6 +1,5 @@
-package eu.kanade.tachiyomi.util.storage
+package mihon.core.archive
 
-import mihon.core.common.archive.ArchiveReader
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
@@ -9,9 +8,9 @@ import java.io.File
 import java.io.InputStream
 
 /**
- * Wrapper over ZipFile to load files in epub format.
+ * Wrapper over ArchiveReader to load files in epub format.
  */
-class EpubFile(private val reader: ArchiveReader) : Closeable by reader {
+class EpubReader(private val reader: ArchiveReader) : Closeable by reader {
 
     /**
      * Path separator used by this epub.

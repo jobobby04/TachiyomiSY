@@ -35,6 +35,7 @@ rootProject.name = "TachiyomiSY"
 include(":app")
 include(":baseline-profile")
 include(":core-metadata")
+include(":core:archive")
 include(":core:common")
 include(":core:metro")
 include(":data")

@@ -1,4 +1,4 @@
-package mihon.core.common.archive
+package mihon.core.archive
 
 import me.zhanghai.android.libarchive.Archive
 import me.zhanghai.android.libarchive.ArchiveEntry
@@ -6,7 +6,7 @@ import me.zhanghai.android.libarchive.ArchiveException
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.concurrent.Volatile
-import mihon.core.common.archive.ArchiveEntry as MihonArchiveEntry
+import mihon.core.archive.ArchiveEntry as MihonArchiveEntry
 
 class ArchiveInputStream(
     buffer: Long,

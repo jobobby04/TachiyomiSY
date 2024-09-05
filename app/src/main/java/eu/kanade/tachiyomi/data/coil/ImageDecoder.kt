@@ -16,11 +16,12 @@ import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import com.hippo.unifile.UniFile
-import eu.kanade.tachiyomi.util.storage.CbzCrypto.Companion.getCoverStream
+import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import mihon.app.di.appGraph
-import mihon.core.common.archive.archiveReader
+import mihon.core.archive.ArchiveReader
+import mihon.core.archive.archiveReader
 import okio.BufferedSource
 import tachiyomi.core.common.util.system.ImageUtil
 import uy.kohesive.injekt.Injekt
@@ -225,3 +226,14 @@ private const val MAX_STRIP_WIDTH = 4096
 
 // Each decode holds the whole native frame until its strips are copied, and the reader loads pages ahead in parallel
 private val stripDecodes = Semaphore(1)
+
+// SY -->
+private fun ArchiveReader.getCoverStream(): BufferedInputStream? {
+    getInputStream(CbzCrypto.DEFAULT_COVER_NAME)?.let { stream ->
+        if (ImageUtil.isImage(CbzCrypto.DEFAULT_COVER_NAME) { stream }) {
+            return getInputStream(CbzCrypto.DEFAULT_COVER_NAME)?.buffered()
+        }
+    }
+    return null
+}
+// SY <--

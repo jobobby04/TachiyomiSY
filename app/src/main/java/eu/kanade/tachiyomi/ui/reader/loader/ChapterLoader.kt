@@ -14,7 +14,8 @@ import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import mihon.core.common.archive.archiveReader
+import mihon.core.archive.archiveReader
+import mihon.core.archive.epubReader
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.model.Manga
@@ -139,7 +140,7 @@ class ChapterLoader(
                         when (format) {
                             is Format.Directory -> DirectoryPageLoader(format.file)
                             is Format.Archive -> ArchivePageLoader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz), context, readerPrefs)
-                            is Format.Epub -> EpubPageLoader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz))
+                            is Format.Epub -> EpubPageLoader(format.file.epubReader(context, cbzCrypto::getDecryptedPasswordCbz))
                         }
                     }
                     else -> error(context.stringResource(MR.strings.loader_not_implemented_error))
@@ -162,7 +163,7 @@ class ChapterLoader(
                 when (format) {
                     is Format.Directory -> DirectoryPageLoader(format.file)
                     is Format.Archive -> ArchivePageLoader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz), context, readerPrefs)
-                    is Format.Epub -> EpubPageLoader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz))
+                    is Format.Epub -> EpubPageLoader(format.file.epubReader(context, cbzCrypto::getDecryptedPasswordCbz))
                 }
             }
             source is HttpSource -> HttpPageLoader(chapter, source, chapterCache, appScope, readerPrefs, sourcePreferences)

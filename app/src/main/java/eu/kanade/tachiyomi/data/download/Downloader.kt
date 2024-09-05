@@ -53,7 +53,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import logcat.LogPriority
-import mihon.core.common.archive.ZipWriter
+import mihon.core.archive.ZipWriter
 import mihon.core.metro.AppCoroutineScope
 import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Response

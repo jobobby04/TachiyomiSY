@@ -1,4 +1,4 @@
-package mihon.core.common.archive
+package mihon.core.archive
 
 import android.content.Context
 import android.system.Os
@@ -8,7 +8,6 @@ import me.zhanghai.android.libarchive.Archive
 import me.zhanghai.android.libarchive.ArchiveEntry
 import me.zhanghai.android.libarchive.ArchiveEntry.AE_IFREG
 import me.zhanghai.android.libarchive.ArchiveException
-import tachiyomi.core.common.storage.openFileDescriptor
 import java.io.Closeable
 import java.nio.ByteBuffer
 

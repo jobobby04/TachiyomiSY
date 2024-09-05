@@ -179,6 +179,7 @@ dependencies {
     implementation(projects.iconsSy.customMaterialSymbols)
     implementation(projects.iconsSy.materialSymbols)
     // SY <--
+    implementation(projects.core.archive)
     implementation(projects.core.common)
     implementation(projects.core.metro)
     implementation(projects.coreMetadata)
