@@ -22,6 +22,8 @@ import eu.kanade.tachiyomi.util.lang.toRelativeString
 import exh.metadata.MetadataUtil
 import exh.source.isEhBasedManga
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.source.local.isLocal
@@ -45,6 +47,7 @@ fun ChapterListDialog(
     val context = LocalContext.current
     val state = rememberLazyListState(chapters.indexOfFirst { it.isCurrent }.coerceAtLeast(0))
     val downloadManager: DownloadManager = remember { Injekt.get() }
+    val downloadQueueState by downloadManager.queueState.collectAsState()
 
     AdaptiveSheet(
         onDismissRequest = onDismissRequest,
@@ -58,7 +61,13 @@ fun ChapterListDialog(
                 items = chapters,
                 key = { "chapter-${it.chapter.id}" },
             ) { chapterItem ->
-                val activeDownload = downloadManager.getQueuedDownloadOrNull(chapterItem.chapter.id)
+                val activeDownload = downloadQueueState.find { it.chapter.id == chapterItem.chapter.id }
+                val progress = activeDownload?.let {
+                    downloadManager.progressFlow()
+                        .filter { it.chapter.id == chapterItem.chapter.id }
+                        .map { it.progress }
+                        .collectAsState(0).value
+                } ?: 0
                 val downloaded = if (chapterItem.manga.isLocal()) {
                     true
                 } else {
@@ -99,7 +108,7 @@ fun ChapterListDialog(
                     selected = false,
                     downloadIndicatorEnabled = false,
                     downloadStateProvider = { downloadState },
-                    downloadProgressProvider = { activeDownload?.progress ?: 0 },
+                    downloadProgressProvider = { progress },
                     chapterSwipeStartAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     chapterSwipeEndAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     onLongClick = { /*TODO*/ },
