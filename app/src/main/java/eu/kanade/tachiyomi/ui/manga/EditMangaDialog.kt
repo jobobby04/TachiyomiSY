@@ -27,21 +27,27 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.databinding.EditMangaDialogBinding
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.system.dpToPx
+import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.widget.materialdialogs.setTextInput
 import exh.ui.metadata.adapters.MetadataUIUtil.getResourceColor
 import exh.util.dropBlank
 import exh.util.trimOrNull
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.source.local.isLocal
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 @Composable
 fun EditMangaDialog(
@@ -61,6 +67,8 @@ fun EditMangaDialog(
     var binding by remember {
         mutableStateOf<EditMangaDialogBinding?>(null)
     }
+    val getTracks = Injekt.get<GetTracks>()
+    val trackerManager = Injekt.get<TrackerManager>()
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -109,7 +117,7 @@ fun EditMangaDialog(
                         EditMangaDialogBinding.inflate(LayoutInflater.from(factoryContext))
                             .also { binding = it }
                             .apply {
-                                onViewCreated(manga, factoryContext, this, scope)
+                                onViewCreated(manga, factoryContext, this, scope, getTracks, trackerManager)
                             }
                             .root
                     },
@@ -120,7 +128,7 @@ fun EditMangaDialog(
     )
 }
 
-private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDialogBinding, scope: CoroutineScope) {
+private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDialogBinding, scope: CoroutineScope, getTracks: GetTracks, trackerManager: TrackerManager) {
     loadCover(manga, binding)
 
     val statusAdapter: ArrayAdapter<String> = ArrayAdapter(
@@ -203,6 +211,29 @@ private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDial
 
     binding.resetTags.setOnClickListener { resetTags(manga, binding, scope) }
     binding.resetInfo.setOnClickListener { resetInfo(manga, binding, scope) }
+    binding.autofillFromTracker.setOnClickListener {
+        scope.launch {
+            autofillFromTracker(manga, binding, getTracks, trackerManager, context)
+        }
+    }
+}
+
+private suspend fun autofillFromTracker(manga: Manga, binding: EditMangaDialogBinding, getTracks: GetTracks, trackerManager: TrackerManager, context: Context) {
+    val tracks = getTracks.await(manga.id)
+
+    if (tracks.isEmpty()) {
+        context.toast("Entry not tracked.")
+        return
+    }
+    val track = tracks[0]
+    val tracker = trackerManager.get(track.trackerId)!!
+    val trackerMangaMetadata = tracker.getMangaMetadata(track)
+
+    binding.title.setText(trackerMangaMetadata.title)
+    binding.mangaAuthor.setText(trackerMangaMetadata.authors)
+    binding.mangaArtist.setText(trackerMangaMetadata.artists)
+    binding.thumbnailUrl.setText(trackerMangaMetadata.thumbnailUrl)
+    binding.mangaDescription.setText(trackerMangaMetadata.description)
 }
 
 private fun resetTags(manga: Manga, binding: EditMangaDialogBinding, scope: CoroutineScope) {
