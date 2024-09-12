@@ -22,6 +22,7 @@ import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.chapter.interactor.SetReadStatus
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.source.service.SourcePreferences
+import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.presentation.library.components.LibraryToolbarTitle
 import eu.kanade.presentation.manga.DownloadAction
@@ -151,6 +152,7 @@ class LibraryScreenModel(
     private val searchEngine: SearchEngine = Injekt.get(),
     private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
     private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
+    private val syncPreferences: SyncPreferences = Injekt.get(),
     // SY <--
 ) : StateScreenModel<LibraryScreenModel.State>(State()) {
 
@@ -276,6 +278,7 @@ class LibraryScreenModel(
                 }
             }
             .launchIn(screenModelScope)
+        mutableState.update { it.copy(isSyncEnabled = syncPreferences.isSyncEnabled()) }
         // SY <--
     }
 
@@ -1362,6 +1365,7 @@ class LibraryScreenModel(
         val dialog: Dialog? = null,
         // SY -->
         val showSyncExh: Boolean = false,
+        val isSyncEnabled: Boolean = false,
         val ogCategories: List<Category> = emptyList(),
         val groupType: Int = LibraryGroup.BY_DEFAULT,
         // SY <--
