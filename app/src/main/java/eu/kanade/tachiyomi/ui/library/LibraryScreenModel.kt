@@ -280,8 +280,10 @@ class LibraryScreenModel(
             .launchIn(screenModelScope)
         syncPreferences.syncService()
             .changes()
-            .onEach {
-                mutableState.update { it.copy(isSyncEnabled = it != 0) }
+            .onEach { syncService ->
+                mutableState.update { state ->
+                    state.copy(isSyncEnabled = syncService != 0)
+                }
             }
             .launchIn(screenModelScope)
         // SY <--
