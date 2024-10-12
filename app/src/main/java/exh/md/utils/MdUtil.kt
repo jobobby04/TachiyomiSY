@@ -256,5 +256,15 @@ class MdUtil {
             return jsonParser.encodeToString(body)
                 .toRequestBody("application/json".toMediaType())
         }
+
+        fun addAltTitleToDesc(description: String, altTitles: List<String>?): String {
+            return if (altTitles.isNullOrEmpty()) {
+                description
+            } else {
+                val altTitlesDesc = altTitles
+                    .joinToString("\n", "Alternative Titles:\n") { "• $it" }
+                description + (if (description.isBlank()) "" else "\n\n") + altTitlesDesc
+            }
+        }
     }
 }
