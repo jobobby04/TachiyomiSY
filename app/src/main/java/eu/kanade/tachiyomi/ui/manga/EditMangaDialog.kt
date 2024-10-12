@@ -246,7 +246,7 @@ private fun ChipGroup.setChips(items: List<String>, scope: CoroutineScope) {
     }
 
     val addTagChip = Chip(context).apply {
-        setText(SYMR.strings.add_tag.getString(context))
+        setText(SYMR.strings.add_tags.getString(context))
 
         chipIcon = ContextCompat.getDrawable(context, R.drawable.ic_add_24dp)?.apply {
             isChipIconVisible = true
@@ -254,14 +254,15 @@ private fun ChipGroup.setChips(items: List<String>, scope: CoroutineScope) {
         }
 
         setOnClickListener {
-            var newTag: String? = null
+            var newTags: String? = null
             MaterialAlertDialogBuilder(context)
-                .setTitle(SYMR.strings.add_tag.getString(context))
-                .setTextInput {
-                    newTag = it.trimOrNull()
-                }
+                .setTitle(SYMR.strings.add_tags.getString(context))
+                .setMessage(SYMR.strings.multi_tags_comma_separated.getString(context))
+                .setTextInput { newTags = it.trimOrNull() }
                 .setPositiveButton(MR.strings.action_ok.getString(context)) { _, _ ->
-                    if (newTag != null) setChips(items + listOfNotNull(newTag), scope)
+                    newTags?.let {
+                        setChips(items + it.split(",").map { it.trimOrNull() }.filterNotNull(), scope)
+                    }
                 }
                 .setNegativeButton(MR.strings.action_cancel.getString(context), null)
                 .show()
@@ -271,7 +272,7 @@ private fun ChipGroup.setChips(items: List<String>, scope: CoroutineScope) {
 }
 
 private fun ChipGroup.getTextStrings(): List<String> = children.mapNotNull {
-    if (it is Chip && !it.text.toString().contains(context.stringResource(SYMR.strings.add_tag), ignoreCase = true)) {
+    if (it is Chip && !it.text.toString().contains(context.stringResource(SYMR.strings.add_tags), ignoreCase = true)) {
         it.text.toString()
     } else {
         null
