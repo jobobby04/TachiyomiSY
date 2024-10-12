@@ -119,7 +119,7 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
         interceptor.newAuth(authenticated.sessionToken)
     }
 
-    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
         val series = api.getSeries(track)
         return series?.let {
             TrackMangaMetadata(
@@ -130,7 +130,7 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
                 it.authors?.filter { it.type == "Author" }?.joinToString(separator = ", ") { it.name ?: "" },
                 it.authors?.filter { it.type == "Artist" }?.joinToString(separator = ", ") { it.name ?: "" },
             )
-        } ?: TrackMangaMetadata()
+        }
     }
 
     fun restoreSession(): String? {

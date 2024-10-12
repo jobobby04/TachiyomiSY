@@ -121,11 +121,7 @@ abstract class BaseTracker(
         updateRemote(track)
     }
 
-    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
-        return TrackMangaMetadata(
-            0, "test", "test", "test", "test", "test",
-        )
-    }
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? = null
 
     private suspend fun updateRemote(track: Track): Unit = withIOContext {
         try {

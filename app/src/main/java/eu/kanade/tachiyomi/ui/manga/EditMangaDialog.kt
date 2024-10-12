@@ -47,6 +47,9 @@ import exh.util.dropBlank
 import exh.util.trimOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import logcat.LogPriority
+import logcat.asLog
+import logcat.logcat
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.track.interactor.GetTracks
@@ -299,14 +302,29 @@ private suspend fun getTrackers(manga: Manga, binding: EditMangaDialogBinding, c
     autofillFromTracker(binding, tracks.value.first().first, tracks.value.first().second)
 }
 
-private suspend fun autofillFromTracker(binding: EditMangaDialogBinding, track: Track, tracker: Tracker) {
-    val trackerMangaMetadata = tracker.getMangaMetadata(track)
+private fun setTextIfNotBlank(field: (String) -> Unit, value: String?) {
+    value?.takeIf { it.isNotBlank() }?.let { field(it) }
+}
 
-    binding.title.setText(trackerMangaMetadata.title)
-    binding.mangaAuthor.setText(trackerMangaMetadata.authors)
-    binding.mangaArtist.setText(trackerMangaMetadata.artists)
-    binding.thumbnailUrl.setText(trackerMangaMetadata.thumbnailUrl)
-    binding.mangaDescription.setText(trackerMangaMetadata.description)
+private suspend fun autofillFromTracker(binding: EditMangaDialogBinding, track: Track, tracker: Tracker) {
+    try {
+        val trackerMangaMetadata = tracker.getMangaMetadata(track)
+
+        setTextIfNotBlank(binding.title::setText, trackerMangaMetadata?.title)
+        setTextIfNotBlank(binding.mangaAuthor::setText, trackerMangaMetadata?.authors)
+        setTextIfNotBlank(binding.mangaArtist::setText, trackerMangaMetadata?.artists)
+        setTextIfNotBlank(binding.thumbnailUrl::setText, trackerMangaMetadata?.thumbnailUrl)
+        setTextIfNotBlank(binding.mangaDescription::setText, trackerMangaMetadata?.description)
+    } catch (e: Throwable) {
+        logcat("[MetadataAutofill] [${tracker.name}] ", LogPriority.ERROR) { e.asLog() }
+        binding.root.context.toast(
+            binding.root.context.stringResource(
+                MR.strings.track_error,
+                tracker.name,
+                e.message ?: "",
+            ),
+        )
+    }
 }
 
 private fun resetTags(manga: Manga, binding: EditMangaDialogBinding, scope: CoroutineScope) {

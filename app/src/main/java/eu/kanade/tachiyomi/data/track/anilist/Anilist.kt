@@ -233,7 +233,7 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
         interceptor.setAuth(null)
     }
 
-    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
         return api.getMangaMetadata(track)
     }
 
