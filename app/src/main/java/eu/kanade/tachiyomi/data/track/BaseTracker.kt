@@ -6,6 +6,7 @@ import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.model.toDomainTrack
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.Flow
@@ -119,6 +120,8 @@ abstract class BaseTracker(
         track.finished_reading_date = epochMillis
         updateRemote(track)
     }
+
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? = null
 
     private suspend fun updateRemote(track: Track): Unit = withIOContext {
         try {
