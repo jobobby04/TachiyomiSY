@@ -60,7 +60,7 @@
     <string name="tag_watching_threshhold">Umbral de Monitoreo de Etiquetas</string>
     <string name="tag_watching_threshhold_summary">Las galerías recientemente subidas se incluirán en la pantalla de observación si tienen al menos una etiqueta observada con peso positivo, y la suma de los pesos de sus etiquetas observadas alcanza este valor o es mayor. Este umbral se puede establecer entre 0 y 9999. Actualmente: %1$d</string>
     <string name="watched_list_default">Estado Predeterminado del Filtro de la Lista Observada</string>
-    <string name="watched_list_state_summary">Cuando navegas por ExHentai/E-Hentai, ¿debería estar habilitado por defecto el filtro de la lista observada?</string>
+    <string name="watched_list_state_summary">¿Al navegar ExHentai/E-Hentai debería el filtro de lista de observación estar habilitado por defecto?</string>
     <string name="pref_enhanced_e_hentai_view_summary">Habilitar/Deshabilitar el menú de navegación mejorado hecho para E/ExHentai</string>
     <string name="favorites_sync">Sincronización de Favoritos de E-Hentai</string>
     <string name="tag_filtering_threshhold_summary">Puedes filtrar suavemente las etiquetas añadiéndolas a la página Mis Etiquetas de E/ExHentai con un peso negativo. Si una galería tiene etiquetas que suman un peso inferior a este valor, se filtra de la vista. Este umbral se puede establecer entre -9999 y 0. Actualmente: %1$d</string>
@@ -96,16 +96,7 @@
     <string name="eh_settings_configuration_failed_message">Se ha producido un error durante el proceso de configuración: %1$s</string>
     <string name="eh_settings_uploading_to_server">Cargar la configuración en el servidor</string>
     <string name="time_between_batches_summary_2">%1$s comprueba/actualiza las galerías por lotes. Esto significa que esperará %2$d hora(s), comprobará %3$d galerías, esperará %2$d hora(s), comprobará %3$d y así sucesivamente…</string>
-    <string name="gallery_updater_stats_time">"
-\nGalerías que se comprobaron en la última:
-\n- hora: %1$d
-\n- 6 horas: %2$d
-\n- 12 horas: %3$d
-\n- día: %4$d
-\n- 2 días: %5$d
-\n- semana: %6$d
-\n- mes: %7$d
-\n- año: %8$d"</string>
+    <string name="gallery_updater_stats_time">\nGalerías que se comprobaron en:\n- hora: %1$d\n- 6 horas: %2$d\n- 12 horas: %3$d\n- día: %4$d\n- 2 días: %5$d\n- semana: %6$d\n- mes: %7$d\n- año: %8$d</string>
     <string name="settings_profile_note_message">La aplicación añadirá ahora un nuevo perfil de configuración en E-Hentai y ExHentai para optimizar el rendimiento de la aplicación. Asegúrate de tener menos de tres perfiles en ambos sitios.
 \n
 \nSi no tienes ni idea de lo que son los perfiles de configuración, probablemente no importe, simplemente pulsa \"Aceptar\".</string>
@@ -126,7 +117,7 @@
     <string name="enable_source_blacklist">Activar lista negra de fuentes</string>
     <string name="enable_source_blacklist_summary">Ocultar extensiones/fuentes que son incompatibles con %1$s. Reinicie la aplicación forzosamente después de realizar el cambio.</string>
     <string name="open_debug_menu">Abrir menú de depuración</string>
-    <string name="open_debug_menu_summary">¡NO TOQUES ESTE MENÚ A MENOS QUE SEPAS LO QUE ESTÁS HACIENDO! <font color="red">¡PUEDE CORROMPER TU BIBLIOTECA!</font></string>
+    <string name="open_debug_menu_summary"><![CDATA[¡NO TOQUE ESTE MENÚ A MENOS QUE SEPA LO QUE ESTÁ HACIENDO! <font color=\'red\'>¡PUEDE CORROMPER SU BIBLIOTECA!</font>]]></string>
     <string name="starting_cleanup">Comenzando la limpieza</string>
     <string name="clean_up_downloaded_chapters">Limpiar capítulos descargados</string>
     <string name="delete_unused_chapters">Eliminar carpetas de capítulos inexistentes, parcialmente descargadas y leídas</string>
@@ -172,4 +163,21 @@
     <string name="pref_skip_pre_migration_summary">Utilizar las últimas preferencias y fuentes guardadas antes de la migración para migrar</string>
     <string name="library_group_updates">Actualizaciones de categorías dinámicas de la biblioteca</string>
     <string name="library_group_updates_global">Ejecutar siempre actualizaciones globales</string>
+    <string name="library_group_updates_all">Publicar siempre actualizaciones de categorías</string>
+    <string name="pref_mark_read_dupe_chapters">Marcar capítulos duplicados como leídos</string>
+    <string name="pref_library_mark_duplicate_chapters">Marcar nuevos capítulos duplicados como leídos</string>
+    <string name="pref_library_mark_duplicate_chapters_summary">Marcar automáticamente nuevos capítulos como leídos si se han leído antes</string>
+    <string name="update_1hour">Cada hora</string>
+    <string name="pref_hide_feed">Ocultar pestaña Feed</string>
+    <string name="pref_source_source_filtering_summery">Filtrar las fuentes que están en categorías, haciendo que las fuentes no se pongan debajo del idioma si están en una categoría</string>
+    <string name="pref_source_navigation_summery">Reemplace el botón más reciente con una vista de exploración personalizada que incluya tanto lo más reciente como la exploración</string>
+    <string name="all_read_entries">Todas las obras leídas</string>
+    <string name="library_group_updates_all_but_ungrouped">Ejecutar actualizaciones globales solo para no agrupados, actualizaciones de categoría para otros</string>
+    <string name="pref_mark_read_dupe_chapters_summary">Marcar capítulos duplicados como leídos después de leerlos</string>
+    <string name="update_30min">Cada 30 minutos</string>
+    <string name="pref_source_source_filtering">Filtrar las fuentes en categorías</string>
+    <string name="update_3hour">Cada 3 horas</string>
+    <string name="pref_feed_position">Posición de la pestaña Feed</string>
+    <string name="pref_feed_position_summery">¿Quieres que la pestaña feed sea la primera pestaña en navegar? Esto hará que sea la pestaña predeterminada al abrir la navegación, no se recomienda si está con datos móviles o una red medida</string>
+    <string name="pref_source_navigation">Reemplazar el botón más reciente</string>
 </resources>
