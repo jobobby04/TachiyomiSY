@@ -16,6 +16,7 @@ import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.interceptor.rateLimit
 import eu.kanade.tachiyomi.network.jsonMime
 import eu.kanade.tachiyomi.network.parseAs
+import eu.kanade.tachiyomi.util.lang.htmlDecode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -338,7 +339,7 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
                             remoteId = media.id,
                             title = media.title.userPreferred,
                             thumbnailUrl = media.coverImage.large,
-                            description = media.description,
+                            description = media.description?.htmlDecode()?.ifEmpty { null },
                             authors = media.staff.edges
                                 .filter { it.role == "Story" || it.role == "Story & Art" }
                                 .map { it.node.name.userPreferred }
