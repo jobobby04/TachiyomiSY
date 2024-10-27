@@ -121,7 +121,9 @@ abstract class BaseTracker(
         updateRemote(track)
     }
 
-    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? = null
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
+        throw NotImplementedError("Not implemented.")
+    }
 
     private suspend fun updateRemote(track: Track): Unit = withIOContext {
         try {
