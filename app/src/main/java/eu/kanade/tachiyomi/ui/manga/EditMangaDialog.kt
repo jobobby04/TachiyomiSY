@@ -48,9 +48,8 @@ import exh.util.trimOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import logcat.LogPriority
-import logcat.asLog
-import logcat.logcat
 import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.model.Track
@@ -316,7 +315,7 @@ private suspend fun autofillFromTracker(binding: EditMangaDialogBinding, track: 
         setTextIfNotBlank(binding.thumbnailUrl::setText, trackerMangaMetadata?.thumbnailUrl)
         setTextIfNotBlank(binding.mangaDescription::setText, trackerMangaMetadata?.description)
     } catch (e: Throwable) {
-        logcat("[MetadataAutofill] [${tracker.name}] ", LogPriority.ERROR) { e.asLog() }
+        tracker.logcat(LogPriority.ERROR, e)
         binding.root.context.toast(
             binding.root.context.stringResource(
                 MR.strings.track_error,
