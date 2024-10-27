@@ -171,7 +171,7 @@ private fun TrackerSelectDialog(
             }
         },
         title = {
-            Text("Select a tracker")
+            Text(stringResource(SYMR.strings.select_tracker))
         },
         text = {
             FlowRow(
@@ -289,7 +289,7 @@ private suspend fun getTrackers(manga: Manga, binding: EditMangaDialogBinding, c
     }
 
     if (tracks.value.isEmpty()) {
-        context.toast("Entry not tracked.")
+        context.toast(context.stringResource(SYMR.strings.entry_not_tracked))
         return
     }
 
