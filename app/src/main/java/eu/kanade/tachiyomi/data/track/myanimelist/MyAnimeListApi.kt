@@ -216,12 +216,12 @@ class MyAnimeListApi(
                             description = it.synopsis,
                             authors = it.authors
                                 .filter { it.role == "Story" || it.role == "Story & Art" }
-                                .map { "{it.node.firstName} {it.node.lastName}".trim() }
+                                .map { "${it.node.firstName} ${it.node.lastName}".trim() }
                                 .joinToString(separator = ", ")
                                 .ifEmpty { null },
                             artists = it.authors
                                 .filter { it.role == "Art" || it.role == "Story & Art" }
-                                .map { "{it.node.firstName} {it.node.lastName}".trim() }
+                                .map { "${it.node.firstName} ${it.node.lastName}".trim() }
                                 .joinToString(separator = ", ")
                                 .ifEmpty { null },
                         )
