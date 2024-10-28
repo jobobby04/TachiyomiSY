@@ -34,6 +34,7 @@ import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import eu.kanade.presentation.track.components.TrackLogoIcon
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.databinding.EditMangaDialogBinding
@@ -287,6 +288,7 @@ private suspend fun getTrackers(manga: Manga, binding: EditMangaDialogBinding, c
     tracks.value = getTracks.await(manga.id).map { track ->
         track to trackerManager.get(track.trackerId)!!
     }
+        .filterNot { (_, tracker) -> tracker is EnhancedTracker }
 
     if (tracks.value.isEmpty()) {
         context.toast(context.stringResource(SYMR.strings.entry_not_tracked))
