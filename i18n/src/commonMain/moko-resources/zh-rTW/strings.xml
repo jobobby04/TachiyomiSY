@@ -226,7 +226,7 @@
     <string name="decode_image_error">圖片無法載入</string>
     <string name="notification_first_add_to_library">請先將作品收藏至書櫃</string>
     <string name="file_select_backup">選擇備份檔</string>
-    <string name="information_empty_category">尚無任何類別，輕觸新增按鈕即可建立類別以組織你的書櫃。</string>
+    <string name="information_empty_category">尚無任何類別，輕觸新增按鈕即可建立類別來管理書櫃。</string>
     <string name="download_notifier_downloader_title">下載管理員</string>
     <string name="download_unread">未讀</string>
     <string name="confirm_set_image_as_cover">要將該圖片設為封面嗎？</string>
