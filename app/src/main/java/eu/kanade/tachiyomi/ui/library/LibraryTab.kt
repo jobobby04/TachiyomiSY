@@ -165,7 +165,7 @@ object LibraryTab : Tab {
                     },
                     onClickSyncNow = {
                         if (!SyncDataJob.isRunning(context)) {
-                            SyncDataJob.startNow(context)
+                            SyncDataJob.startNow(context, manual = true)
                         } else {
                             context.toast(SYMR.strings.sync_in_progress)
                         }
