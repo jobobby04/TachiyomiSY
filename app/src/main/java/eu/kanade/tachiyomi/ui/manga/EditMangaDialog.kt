@@ -80,8 +80,8 @@ fun EditMangaDialog(
         mutableStateOf<EditMangaDialogBinding?>(null)
     }
     val showTrackerSelectionDialogue = remember { mutableStateOf(false) }
-    val getTracks = Injekt.get<GetTracks>()
-    val trackerManager = Injekt.get<TrackerManager>()
+    val getTracks = remember { Injekt.get<GetTracks>() }
+    val trackerManager = remember { Injekt.get<TrackerManager>() }
     val tracks = remember { mutableStateOf(emptyList<Pair<Track, Tracker>>()) }
     AlertDialog(
         onDismissRequest = onDismissRequest,
