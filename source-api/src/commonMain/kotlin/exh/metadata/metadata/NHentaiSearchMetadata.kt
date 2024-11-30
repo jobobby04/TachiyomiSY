@@ -130,6 +130,7 @@ class NHentaiSearchMetadata : RaisedSearchMetadata() {
 
         fun typeToExtension(t: String?) =
             when (t) {
+                "w" -> "webp"
                 "p" -> "png"
                 "j" -> "jpg"
                 "g" -> "gif"
