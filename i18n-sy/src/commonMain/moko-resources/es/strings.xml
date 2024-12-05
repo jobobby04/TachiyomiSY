@@ -60,7 +60,7 @@
     <string name="tag_watching_threshhold">Umbral de Monitoreo de Etiquetas</string>
     <string name="tag_watching_threshhold_summary">Las galerías recientemente subidas se incluirán en la pantalla de observación si tienen al menos una etiqueta observada con peso positivo, y la suma de los pesos de sus etiquetas observadas alcanza este valor o es mayor. Este umbral se puede establecer entre 0 y 9999. Actualmente: %1$d</string>
     <string name="watched_list_default">Estado Predeterminado del Filtro de la Lista Observada</string>
-    <string name="watched_list_state_summary">Al navegar por ExHentai/E-Hentai, ¿debería estar activado por defecto el filtro de la lista vigilada?</string>
+    <string name="watched_list_state_summary">Al navegar en ExHentai/E-Hentai, ¿debería estar habilitado el filtro de la lista de seguimiento de forma predeterminada?</string>
     <string name="pref_enhanced_e_hentai_view_summary">Habilitar/Deshabilitar el menú de navegación mejorado hecho para E/ExHentai</string>
     <string name="favorites_sync">Sincronización de Favoritos de E-Hentai</string>
     <string name="tag_filtering_threshhold_summary">Puedes filtrar suavemente las etiquetas añadiéndolas a la página Mis Etiquetas de E/ExHentai con un peso negativo. Si una galería tiene etiquetas que suman un peso inferior a este valor, se filtra de la vista. Este umbral se puede establecer entre -9999 y 0. Actualmente: %1$d</string>
