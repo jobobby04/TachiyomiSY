@@ -660,4 +660,8 @@
     <string name="add_tags">新增標籤</string>
     <string name="multi_tags_comma_separated">輸入標籤，可用逗號分隔</string>
     <string name="alt_titles">替代標題</string>
+    <string name="select_tracker">選擇一個歷程平臺</string>
+    <string name="entry_not_tracked">條目還未登錄歷程</string>
+    <string name="fill_from_tracker">從歷程獲取</string>
+    <string name="favorites_sync_unable_to_add_to_remote">無法將圖庫新增到遠端伺服器：「%1$s」 (GID：%2$s)！</string>
 </resources>
