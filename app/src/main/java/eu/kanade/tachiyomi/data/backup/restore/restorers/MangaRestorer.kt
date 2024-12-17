@@ -202,7 +202,7 @@ class MangaRestorer(
                 bookmark = chapter.bookmark || dbChapter.bookmark,
                 read = chapter.read,
                 lastPageRead = chapter.lastPageRead,
-                sourceOrder = chapter.sourceOrder
+                sourceOrder = chapter.sourceOrder,
             )
         } else {
             chapter.copyFrom(dbChapter).let {
