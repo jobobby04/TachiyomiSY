@@ -607,4 +607,9 @@
     <string name="pref_sync_api_key">API key</string>
     <string name="alt_titles">Alternatibong mga Title</string>
     <string name="pref_sync_host">Host</string>
+    <string name="video">Video</string>
+    <string name="url">Url</string>
+    <string name="uploader">Uploader</string>
+    <string name="cosplay">Cosplay</string>
+    <string name="id">Id</string>
 </resources>
