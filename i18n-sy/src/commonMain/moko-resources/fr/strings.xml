@@ -223,7 +223,7 @@
     <!-- Sort by tags -->
     <string name="pref_tag_sorting">Tag de tri des Tags</string>
     <string name="tag_sorting">Tri des tags</string>
-    <string name="action_add_tags_message">Lis ça! Les Tags doivent être exactes, il n\'y a pas de correspondance partielle, vous ne pouvez pas faire netorare pour filtrer les femmes: netorare ou similaire!\nLe style des Tags sous forme "femme: seule femme" sans guillemets!\nL\'ajout de plusieurs variantes du même tag est pris en charge, alors n\'hésitez pas à faire "tag: netorare" pour NHentai et "female: netorare" pour E-Hentai!</string>
+    <string name="action_add_tags_message">Lis ça! Les Tags doivent être exactes, il n\'y a pas de correspondance partielle, vous ne pouvez pas faire netorare pour filtrer les femmes: netorare ou similaire!\nLe style des Tags sous forme femme: seule femme sans guillemets!\nL\'ajout de plusieurs variantes du même tag est pris en charge, alors n\'hésitez pas à faire tag: netorare pour NHentai et female: netorare pour E-Hentai!</string>
     <string name="action_edit_tags">Éditer tags</string>
     <string name="information_empty_tags">Vous n\'avez aucun tag. Appuyez sur le bouton plus pour en créer un pour trier votre bibliothèque par Tags</string>
     <string name="error_tag_exists">Cette Tag existe!</string>
