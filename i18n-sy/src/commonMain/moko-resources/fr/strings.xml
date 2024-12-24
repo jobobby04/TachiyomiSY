@@ -223,7 +223,7 @@
     <!-- Sort by tags -->
     <string name="pref_tag_sorting">Tag de tri des Tags</string>
     <string name="tag_sorting">Tri des tags</string>
-    <string name="action_add_tags_message">Lis ça! Les Tags doivent être exactes, il n\'y a pas de correspondance partielle, vous ne pouvez pas faire netorare pour filtrer les femmes: netorare ou similaire!\nLe style des Tags sous forme "femme: seule femme" sans guillemets!\nL\'ajout de plusieurs variantes du même tag est pris en charge, alors n\'hésitez pas à faire "tag: netorare" pour NHentai et "female: netorare" pour E-Hentai!</string>
+    <string name="action_add_tags_message">Lis ça! Les Tags doivent être exactes, il n\'y a pas de correspondance partielle, vous ne pouvez pas faire netorare pour filtrer les femmes: netorare ou similaire!\nLe style des Tags sous forme femme: seule femme sans guillemets!\nL\'ajout de plusieurs variantes du même tag est pris en charge, alors n\'hésitez pas à faire tag: netorare pour NHentai et female: netorare pour E-Hentai!</string>
     <string name="action_edit_tags">Éditer tags</string>
     <string name="information_empty_tags">Vous n\'avez aucun tag. Appuyez sur le bouton plus pour en créer un pour trier votre bibliothèque par Tags</string>
     <string name="error_tag_exists">Cette Tag existe!</string>
@@ -433,4 +433,36 @@
     <string name="recheck_login_status">Revérifier le statut de la connexion</string>
     <string name="alternative_login_page">Page de connexion alternative</string>
     <string name="skip_page_restyling">Ignorer la refonte de la page</string>
+    <string name="pref_library_mark_duplicate_chapters_summary">Marquer automatiquement les nouveaux chapitres comme lus s’ils ont déjà été lus</string>
+    <string name="pref_library_mark_duplicate_chapters">Marquer les nouveaux chapitres en double comme lus</string>
+    <string name="pref_mark_read_dupe_chapters_summary">Marquer les chapitres en double comme lus après la lecture</string>
+    <string name="pref_sync_host_summ">Saisissez l’adresse de l’hôte pour synchroniser votre bibliothèque</string>
+    <string name="google_drive_not_signed_in">Pas connecté à Google Drive</string>
+    <string name="syncyomi">SyncYomi</string>
+    <string name="pref_sync_api_key_summ">Entrez la clé API pour synchroniser votre bibliothèque</string>
+    <string name="pref_google_drive_purge_sync_data">Effacer les données de synchronisation de Google Drive</string>
+    <string name="google_drive_sync_data_not_found">Aucune donnée de synchronisation trouvée dans Google Drive</string>
+    <string name="pref_sync_api_key">Clé API</string>
+    <string name="pref_sync_interval">Fréquence de synchronisation</string>
+    <string name="update_3hour">Toutes les 3 heures</string>
+    <string name="sync_in_progress">Synchronisation déjà en cours</string>
+    <string name="update_30min">Toutes les 30 minutes</string>
+    <string name="update_1hour">Toutes les heures</string>
+    <string name="custom_entry_info">Informations des entrées personnalisées</string>
+    <string name="label_sync">Synchroniser</string>
+    <string name="sync_error">Synchronisation des bibliothèques échoué</string>
+    <string name="sync_complete">Synchronisation des bibliothèques complétée</string>
+    <string name="pref_sync_host">Hôte</string>
+    <string name="pref_sync_now">Synchroniser maintenant</string>
+    <string name="pref_sync_now_subtitle">Initie la synchronisation immédiate de vos données</string>
+    <string name="pref_sync_service">Service</string>
+    <string name="pref_sync_service_category">Synchronisation</string>
+    <string name="pref_sync_automatic_category">Synchronisation automatique</string>
+    <string name="pref_choose_what_to_sync">Choisir quoi synchroniser</string>
+    <string name="last_synchronization">Dernière synchronisation: %1$s</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="pref_google_drive_sign_in">Connexion</string>
+    <string name="google_drive_login_success">Connecté à Google Drive</string>
+    <string name="google_drive_login_failed">Impossible de se connecter à Google Drive: %s</string>
+    <string name="error_uploading_sync_data">Erreur lors du téléversement des données de synchronisation sur Google Drive</string>
 </resources>
