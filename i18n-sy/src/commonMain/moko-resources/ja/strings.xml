@@ -651,4 +651,7 @@
     <string name="ignore_non_library_entries">ライブラリ以外の作品を無視</string>
     <!-- Humanize time -->
     <string name="humanize_fallback">少し前</string>
+    <string name="action_copy_first_page">最初のページをコピーする</string>
+    <string name="action_copy_second_page">2ページ目をコピー</string>
+    <string name="action_copy_combined_page">コピー結合ページ</string>
 </resources>
