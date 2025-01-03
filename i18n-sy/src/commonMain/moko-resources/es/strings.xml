@@ -609,4 +609,8 @@
     <string name="mangadex_push_favorites_to_mangadex_summary">Sincroniza cualquier entrada rastreada no incluida en MdList con MangaDex como lectura.</string>
     <string name="relation_similar">Similar</string>
     <string name="relation_monochrome">Monocromo</string>
+    <string name="entry_not_tracked">La entrada no se rastrea.</string>
+    <string name="select_tracker">Seleccione un rastreador</string>
+    <string name="fill_from_tracker">Llenar desde el rastreador</string>
+    <string name="favorites_sync_unable_to_add_to_remote">No se puede agregar la galería al servidor remoto: \'%1$s\' (GID: %2$s)!</string>
 </resources>

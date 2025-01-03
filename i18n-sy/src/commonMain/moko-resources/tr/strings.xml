@@ -89,4 +89,13 @@
     <string name="ignore_sync_errors">Eşitleme hatalarını mümkün olduğunda görmezden gel</string>
     <string name="eh_settings_successfully_uploaded">Ayarlar başarılı bir şekilde yüklendi!</string>
     <string name="eh_settings_configuration_failed">Ayarlarlana başarısız!</string>
+    <string name="settings_profile_note">Ayarlar profili notu</string>
+    <string name="eh_settings_configuration_failed_message">Yapılandırma sürecinde bir hata oluştu: %1$s</string>
+    <string name="eh_settings_out_of_slots_error">%1$s üzerinde profil yuvanız bitti, lütfen bir profil silin!</string>
+    <string name="alternative_login_page">Alternatif giriş sayfası</string>
+    <string name="skip_page_restyling">Sayfa yeniden düzenlemeyi atla</string>
+    <string name="eh_settings_uploading_to_server">Ayarlar sunucuya yükleniyor</string>
+    <string name="eh_settings_uploading_to_server_message">Lütfen bekleyin, bu biraz sürebilir…</string>
+    <string name="settings_profile_note_message">Uygulama performansını arttırmak için E-Hentai ve ExHentai üzerine yeni bir ayarlar profili eklenecektir. Lütfen iki web sitesinde de üçten daha az profiliniz olduğundan emin olun.\n\nEğer ayarlar profillerinin ne olduğundan emin değilseniz bu muhtemelen sizin için farklılık oluşturmayacaktır, \"TAMAM\" butonuna dokunun.</string>
+    <string name="recheck_login_status">Giriş yapma durumunu tekrar kontrol et</string>
 </resources>
