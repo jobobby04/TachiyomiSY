@@ -12,6 +12,8 @@ plugins {
     // id("com.github.zellius.shortcut-helper")
     alias(libs.plugins.aboutLibraries)
     id("com.github.ben-manes.versions")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 if (gradle.startParameter.taskRequests.toString().contains("Standard")) {
@@ -293,6 +295,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    // Firebase (Achmad)
+    implementation(libs.firebase.messaging)
 
     // Better logging (EH)
     implementation(sylibs.xlog)

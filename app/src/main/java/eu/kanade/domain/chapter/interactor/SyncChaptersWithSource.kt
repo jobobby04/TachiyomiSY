@@ -139,6 +139,7 @@ class SyncChaptersWithSource(
         }
 
         // Return if there's nothing to add, delete, or update to avoid unnecessary db transactions.
+
         if (newChapters.isEmpty() && removedChapters.isEmpty() && updatedChapters.isEmpty()) {
             if (manualFetch || manga.fetchInterval == 0 || manga.nextUpdate < fetchWindow.first) {
                 updateManga.awaitUpdateFetchInterval(

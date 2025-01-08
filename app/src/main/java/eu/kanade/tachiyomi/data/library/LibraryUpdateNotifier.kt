@@ -163,6 +163,29 @@ class LibraryUpdateNotifier(
         }
     }
 
+    fun showNoUpdateNotification(
+        manga: Manga
+    ) {
+        context.notify(
+            Notifications.ID_WATCHER_ERROR,
+            Notifications.CHANNEL_WATCHER_ERROR,
+        ) {
+            setContentTitle("No Updates Found")
+            setContentText(manga.title)
+
+            setSmallIcon(R.drawable.ic_tachi)
+            setLargeIcon(notificationBitmap)
+
+            setGroup(Notifications.GROUP_WATCHER_ERROR)
+            setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+            setGroupSummary(true)
+            priority = NotificationCompat.PRIORITY_HIGH
+
+            setContentIntent(getNotificationIntent())
+            setAutoCancel(true)
+        }
+    }
+
     /**
      * Shows the notification containing the result of the update done by the service.
      *

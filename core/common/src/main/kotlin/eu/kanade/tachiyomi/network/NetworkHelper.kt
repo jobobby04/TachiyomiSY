@@ -44,7 +44,7 @@ open /* SY <-- */ class NetworkHelper(
 
         if (isDebugBuild) {
             val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.HEADERS
+                level = HttpLoggingInterceptor.Level.BODY
             }
             builder.addNetworkInterceptor(httpLoggingInterceptor)
         }

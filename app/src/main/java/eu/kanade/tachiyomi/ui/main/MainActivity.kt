@@ -10,9 +10,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.DoNotInline
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -38,7 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.InterceptPlatformTextInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.PlatformTextInputMethodRequest
 import androidx.core.animation.doOnEnd
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen
@@ -246,24 +251,38 @@ class MainActivity : BaseActivity() {
                 ) { contentPadding ->
                     // Consume insets already used by app state banners
                     Box {
-                        // Shows current screen
-                        DefaultNavigatorScreenTransition(
-                            navigator = navigator,
-                            modifier = Modifier
-                                .padding(contentPadding)
-                                .consumeWindowInsets(contentPadding),
-                        )
-
-                        // Draw navigation bar scrim when needed
-                        if (remember { isNavigationBarNeedsScrim() }) {
-                            Spacer(
+                        // Set keyboard incognito when needed
+                        InterceptPlatformTextInput(
+                            interceptor = { request, nextHandler ->
+                                val modifiedRequest = PlatformTextInputMethodRequest { outAttributes ->
+                                    request.createInputConnection(outAttributes).also {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && incognito) {
+                                            NoPersonalizedLearningHelper.addNoPersonalizedLearning(outAttributes)
+                                        }
+                                    }
+                                }
+                                nextHandler.startInputMethod(modifiedRequest)
+                            }
+                        ) {
+                            // Shows current screen
+                            DefaultNavigatorScreenTransition(
+                                navigator = navigator,
                                 modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .fillMaxWidth()
-                                    .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                                    .alpha(0.8f)
-                                    .background(MaterialTheme.colorScheme.surfaceContainer),
+                                    .padding(contentPadding)
+                                    .consumeWindowInsets(contentPadding),
                             )
+
+                            // Draw navigation bar scrim when needed
+                            if (remember { isNavigationBarNeedsScrim() }) {
+                                Spacer(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .fillMaxWidth()
+                                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                                        .alpha(0.8f)
+                                        .background(MaterialTheme.colorScheme.surfaceContainer),
+                                )
+                            }
                         }
                     }
                 }
@@ -537,3 +556,12 @@ class MainActivity : BaseActivity() {
 private const val SPLASH_MIN_DURATION = 500 // ms
 private const val SPLASH_MAX_DURATION = 5000 // ms
 private const val SPLASH_EXIT_ANIM_DURATION = 400L // ms
+
+@RequiresApi(Build.VERSION_CODES.O)
+internal object NoPersonalizedLearningHelper {
+    @DoNotInline
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addNoPersonalizedLearning(info: EditorInfo) {
+        info.imeOptions = info.imeOptions or EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
+    }
+}

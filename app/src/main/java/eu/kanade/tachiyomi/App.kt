@@ -74,6 +74,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import logcat.LogPriority
 import logcat.LogcatLogger
+import logcat.logcat
 import mihon.core.firebase.FirebaseConfig
 import mihon.core.migration.Migrator
 import mihon.core.migration.migrations.migrations
@@ -137,6 +138,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
         val scope = ProcessLifecycleOwner.get().lifecycleScope
+
+        logcat(LogPriority.DEBUG, "FCM_Token") { basePreferences.fcmToken().get() }
 
         // Show notification to disable Incognito Mode when it's enabled
         basePreferences.incognitoMode().changes()

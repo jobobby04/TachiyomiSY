@@ -14,6 +14,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
+import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.chapter.interactor.GetAvailableScanlators
 import eu.kanade.domain.chapter.interactor.SetReadStatus
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
@@ -41,7 +42,11 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
+import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.HttpException
+import eu.kanade.tachiyomi.network.NetworkHelper
+import eu.kanade.tachiyomi.network.POST
+import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.source.PagePreviewSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.getNameForMangaInfo
@@ -83,8 +88,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import logcat.logcat
 import mihon.domain.chapter.interactor.FilterChaptersForDownload
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
@@ -189,6 +200,8 @@ class MangaScreenModel(
     private val setMangaCategories: SetMangaCategories = Injekt.get(),
     private val mangaRepository: MangaRepository = Injekt.get(),
     private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get(),
+    private val networkHelper: NetworkHelper = Injekt.get(),
+    private val basePreferences: BasePreferences = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : StateScreenModel<MangaScreenModel.State>(State.Loading) {
 
@@ -242,6 +255,15 @@ class MangaScreenModel(
         constructor(pair: Pair<Manga, List<Chapter>>, flatMetadata: FlatMetadata?) :
             this(pair.first, pair.second, flatMetadata)
     }
+
+    @Serializable
+    private data class TachiyomiWatcherRequest(
+        val mangaTitle: String,
+        val mangaId: Int,
+        val mangaHid: String,
+        val interval: Long,
+        val deviceToken: String,
+    )
 
     /**
      * Helper function to update the UI state only if it's currently in success state
@@ -775,6 +797,7 @@ class MangaScreenModel(
                         updateManga.awaitUpdateCoverLastModified(manga.id)
                     }
                     withUIContext { onRemoved() }
+                    removeWatcher()
                 }
             } else {
                 // Add to library
@@ -854,6 +877,76 @@ class MangaScreenModel(
         }
     }
 
+    // Achmad -->
+    private suspend fun addWatcher() {
+        val state = successState ?: return
+        val source = state.source
+        if (source.name.lowercase().contains(COMICK)) {
+            try {
+                val request = TachiyomiWatcherRequest(
+                    mangaTitle = state.manga.title,
+                    mangaId = state.manga.id.toInt(),
+                    mangaHid = state.manga.url.removePrefix("/comic/").removeSuffix("#"),
+                    interval = 10L,
+                    deviceToken = basePreferences.fcmToken().get()
+                )
+                val requestBody = Json
+                    .encodeToString(request)
+                    .toRequestBody("application/json".toMediaType())
+
+                val result = networkHelper.client.newCall(
+                    POST(
+                        url = WATCHER_HOST_COMICK,
+                        body = requestBody
+                    )
+                ).await()
+
+                var message = "Failed adding to Watcher"
+                if (result.isSuccessful) message = "Added to Watcher"
+
+                snackbarHostState.showSnackbar(message = message)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private suspend fun removeWatcher() {
+        val state = successState ?: return
+        val source = state.source
+        if (source.name.lowercase().contains(COMICK)) {
+            try {
+                val request = TachiyomiWatcherRequest(
+                    mangaTitle = state.manga.title,
+                    mangaId = state.manga.id.toInt(),
+                    mangaHid = state.manga.url.removePrefix("/comic/").removeSuffix("#"),
+                    interval = 300L,
+                    deviceToken = basePreferences.fcmToken().get()
+                )
+                val requestBody = Json
+                    .encodeToString(request)
+                    .toRequestBody("application/json".toMediaType())
+
+                val result = networkHelper.client.newCall(
+                    DELETE(
+                        url = WATCHER_HOST_COMICK,
+                        body = requestBody
+                    )
+                ).await()
+
+                var message = "Failed removing from Watcher"
+                if (result.isSuccessful) message = "Removed from Watcher"
+
+                snackbarHostState.showSnackbar(message = message)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+    // Achmad <--
+
     /**
      * Returns true if the manga has any downloads.
      */
@@ -920,6 +1013,7 @@ class MangaScreenModel(
     private fun moveMangaToCategory(categoryIds: List<Long>) {
         screenModelScope.launchIO {
             setMangaCategories.await(mangaId, categoryIds)
+            addWatcher()
         }
     }
 
@@ -1827,3 +1921,9 @@ sealed interface PagePreviewState {
     data class Error(val error: Throwable) : PagePreviewState
 }
 // SY <--
+
+// Achmad -->
+private const val COMICK = "comick"
+//private const val WATCHER_HOST_COMICK = "https://api.achmad.dev/tracks/comick"
+private const val WATCHER_HOST_COMICK = "http://192.168.1.5:8080/tracks/comick"
+// Achmad <--

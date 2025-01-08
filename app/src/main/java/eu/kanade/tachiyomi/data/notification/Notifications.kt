@@ -33,6 +33,9 @@ object Notifications {
     const val CHANNEL_LIBRARY_EHENTAI = "library_ehentai_channel"
     const val ID_EHENTAI_PROGRESS = -199
     const val ID_EHENTAI_ERROR = -198
+    const val CHANNEL_WATCHER_ERROR = "watcher_errors_channel"
+    const val ID_WATCHER_ERROR = -197
+    const val GROUP_WATCHER_ERROR = "eu.kanade.tachiyomi.WATCHER_ERROR"
 
     /**
      * Notification channel and ids used by the downloader.
@@ -134,6 +137,9 @@ object Notifications {
                     setName(context.stringResource(MR.strings.channel_errors))
                     setGroup(GROUP_LIBRARY)
                     setShowBadge(false)
+                },
+                buildNotificationChannel(CHANNEL_WATCHER_ERROR, IMPORTANCE_DEFAULT) {
+                    setName("Watcher updates")
                 },
                 buildNotificationChannel(CHANNEL_NEW_CHAPTERS, IMPORTANCE_DEFAULT) {
                     setName(context.stringResource(MR.strings.channel_new_chapters))
