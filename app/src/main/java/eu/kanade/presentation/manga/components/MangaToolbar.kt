@@ -7,6 +7,8 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.FlipToBack
 import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +53,11 @@ fun MangaToolbar(
     onClickMerge: (() -> Unit)?,
     onClickMergedSettings: (() -> Unit)?,
     // SY <--
+
+    // Shin -->
+    isWatching: Boolean?,
+    onClickWatch: () -> Unit,
+    // Shin <--
 
     // For action mode
     actionModeCounter: Int,
@@ -106,9 +113,24 @@ fun MangaToolbar(
                     }
 
                     val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else LocalContentColor.current
+                    val (watchStatusIcon, watchStatusTint) = when (isWatching) {
+                        true -> Icons.Outlined.Visibility to MaterialTheme.colorScheme.active
+                        false -> Icons.Outlined.VisibilityOff to LocalContentColor.current
+                        else -> null to null
+                    }
                     AppBarActions(
                         actions = persistentListOf<AppBar.AppBarAction>().builder()
                             .apply {
+                                if (watchStatusIcon != null && watchStatusTint != null) {
+                                    add(
+                                        AppBar.Action(
+                                            title = "Watch Status", // TODO use string resource
+                                            icon = watchStatusIcon,
+                                            iconTint = watchStatusTint,
+                                            onClick = onClickWatch
+                                        )
+                                    )
+                                }
                                 if (onClickDownload != null) {
                                     add(
                                         AppBar.Action(

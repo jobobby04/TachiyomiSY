@@ -1,8 +1,17 @@
 package tachiyomi.data.manga
 
+import eu.kanade.tachiyomi.network.GET
+import eu.kanade.tachiyomi.network.NetworkHelper
+import eu.kanade.tachiyomi.network.POST
+import eu.kanade.tachiyomi.network.await
+import eu.kanade.tachiyomi.network.parseAs
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.AndroidDatabaseHandler
 import tachiyomi.data.DatabaseHandler
@@ -11,12 +20,16 @@ import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
+import tachiyomi.domain.manga.model.WatchStatusRequest
+import tachiyomi.domain.manga.model.WatchStatusResponse
 import tachiyomi.domain.manga.repository.MangaRepository
 import java.time.LocalDate
 import java.time.ZoneId
 
 class MangaRepositoryImpl(
     private val handler: DatabaseHandler,
+    private val networkHelper: NetworkHelper,
+    private val json: Json,
 ) : MangaRepository {
 
     override suspend fun getMangaById(id: Long): Manga {
@@ -208,4 +221,50 @@ class MangaRepositoryImpl(
         }.map(MangaMapper::mapLibraryView)
     }
     // SY <--
+
+    override suspend fun getWatchStatus(mangaId: Long, fcmToken: String): Boolean? {
+        val response = networkHelper.client.newCall(GET("$WATCHER_HOST_COMICK/$fcmToken")).await()
+        if (response.isSuccessful) {
+            with(json) {
+                val watchStatusResponse = response.parseAs<List<WatchStatusResponse>>()
+                return watchStatusResponse.any { it.mangaId == mangaId }
+            }
+        }
+        return null
+    }
+
+    override suspend fun insertWatchStatus(watchStatusRequest: WatchStatusRequest): Boolean {
+        val requestBody = Json
+            .encodeToString(watchStatusRequest)
+            .toRequestBody("application/json".toMediaType())
+
+        val result = networkHelper.client.newCall(
+            POST(
+                url = WATCHER_HOST_COMICK,
+                body = requestBody
+            )
+        ).await()
+
+        return result.isSuccessful
+    }
+
+    override suspend fun deleteWatchStatus(watchStatusRequest: WatchStatusRequest): Boolean {
+        val requestBody = Json
+            .encodeToString(watchStatusRequest)
+            .toRequestBody("application/json".toMediaType())
+
+        val result = networkHelper.client.newCall(
+            POST(
+                url = WATCHER_HOST_COMICK,
+                body = requestBody
+            )
+        ).await()
+
+        return result.isSuccessful
+    }
 }
+
+// Shin -->
+const val WATCHER_HOST_COMICK = "https://api.Shin.dev/tracks/comick"
+//const val WATCHER_HOST_COMICK = "http://192.168.1.5:8080/tracks/comick"
+// Shin <--

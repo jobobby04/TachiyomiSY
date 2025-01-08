@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
+import tachiyomi.domain.manga.model.WatchStatusRequest
 
 interface MangaRepository {
 
@@ -48,4 +49,12 @@ interface MangaRepository {
 
     suspend fun getReadMangaNotInLibraryView(): List<LibraryManga>
     // SY <--
+
+    // Shin -->
+    suspend fun getWatchStatus(mangaId: Long, fcmToken: String): Boolean?
+
+    suspend fun insertWatchStatus(watchStatusRequest: WatchStatusRequest): Boolean
+
+    suspend fun deleteWatchStatus(watchStatusRequest: WatchStatusRequest): Boolean
+    // Shin <--
 }

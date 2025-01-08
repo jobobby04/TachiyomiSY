@@ -42,11 +42,8 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
-import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.NetworkHelper
-import eu.kanade.tachiyomi.network.POST
-import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.source.PagePreviewSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.getNameForMangaInfo
@@ -88,13 +85,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import mihon.domain.chapter.interactor.FilterChaptersForDownload
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
@@ -120,13 +112,16 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
 import tachiyomi.domain.manga.interactor.DeleteMangaById
 import tachiyomi.domain.manga.interactor.DeleteMergeById
+import tachiyomi.domain.manga.interactor.DeleteWatchStatus
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFlatMetadataById
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
+import tachiyomi.domain.manga.interactor.GetWatchStatus
 import tachiyomi.domain.manga.interactor.InsertMergedReference
+import tachiyomi.domain.manga.interactor.InsertWatchStatus
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
@@ -136,6 +131,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
 import tachiyomi.domain.manga.model.MergedMangaReference
+import tachiyomi.domain.manga.model.WatchStatusRequest
 import tachiyomi.domain.manga.model.applyFilter
 import tachiyomi.domain.manga.repository.MangaRepository
 import tachiyomi.domain.source.service.SourceManager
@@ -201,6 +197,9 @@ class MangaScreenModel(
     private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get(),
     private val networkHelper: NetworkHelper = Injekt.get(),
     private val basePreferences: BasePreferences = Injekt.get(),
+    private val getWatchStatus: GetWatchStatus = Injekt.get(),
+    private val insertWatchStatus: InsertWatchStatus = Injekt.get(),
+    private val deleteWatchStatus: DeleteWatchStatus = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : StateScreenModel<MangaScreenModel.State>(State.Loading) {
 
@@ -254,15 +253,6 @@ class MangaScreenModel(
         constructor(pair: Pair<Manga, List<Chapter>>, flatMetadata: FlatMetadata?) :
             this(pair.first, pair.second, flatMetadata)
     }
-
-    @Serializable
-    private data class TachiyomiWatcherRequest(
-        val mangaTitle: String,
-        val mangaId: Int,
-        val mangaHid: String,
-        val interval: Long,
-        val deviceToken: String,
-    )
 
     /**
      * Helper function to update the UI state only if it's currently in success state
@@ -430,6 +420,10 @@ class MangaScreenModel(
             val needRefreshInfo = !manga.initialized
             val needRefreshChapter = chapters.isEmpty()
 
+            // Shin -->
+            val isWatching = getWatchStatus.await(mangaId = mangaId, fcmToken = basePreferences.fcmToken().get())
+            // Shin <--
+
             // Show what we have earlier
             mutableState.update {
                 val source = sourceManager.getOrStub(manga.source)
@@ -464,6 +458,9 @@ class MangaScreenModel(
                     readerPreferences.preserveReadingPosition().get() && manga.isEhBasedManga(),
                     previewsRowCount = uiPreferences.previewsRowCount().get(),
                     // SY <--
+                    // Shin -->
+                    isWatching = isWatching
+                    // Shin <--
                 )
             }
 
@@ -796,7 +793,9 @@ class MangaScreenModel(
                         updateManga.awaitUpdateCoverLastModified(manga.id)
                     }
                     withUIContext { onRemoved() }
-                    removeWatcher()
+                    if (state.isWatching == true) {
+                        removeWatcher(state)
+                    }
                 }
             } else {
                 // Add to library
@@ -876,75 +875,54 @@ class MangaScreenModel(
         }
     }
 
-    // Achmad -->
-    private suspend fun addWatcher() {
+    // Shin -->
+    fun toggleWatchStatus() {
         val state = successState ?: return
+        if (state.isWatching == null) return
+        if (state.watchStatusLoading) return
         val source = state.source
+        // TODO handle other extensions, currently only supports Comick
         if (source.name.lowercase().contains(COMICK)) {
-            try {
-                val request = TachiyomiWatcherRequest(
-                    mangaTitle = state.manga.title,
-                    mangaId = state.manga.id.toInt(),
-                    mangaHid = state.manga.url.removePrefix("/comic/").removeSuffix("#"),
-                    interval = 10L,
-                    deviceToken = basePreferences.fcmToken().get()
-                )
-                val requestBody = Json
-                    .encodeToString(request)
-                    .toRequestBody("application/json".toMediaType())
-
-                val result = networkHelper.client.newCall(
-                    POST(
-                        url = WATCHER_HOST_COMICK,
-                        body = requestBody
-                    )
-                ).await()
-
-                var message = "Failed adding to Watcher"
-                if (result.isSuccessful) message = "Added to Watcher"
-
-                snackbarHostState.showSnackbar(message = message)
-
-            } catch (e: Exception) {
-                e.printStackTrace()
+            screenModelScope.launchIO {
+                runCatching {
+                    updateSuccessState { it.copy(watchStatusLoading = true) }
+                    if (state.isWatching) {
+                        if (removeWatcher(state)) "Removed from Watcher" else "Failed to remove from Watcher"
+                    } else {
+                        if (addWatcher(state)) "Added to Watcher" else "Failed adding to Watcher"
+                    }
+                }
+                .onSuccess {
+                    snackbarHostState.showSnackbar(message = it)
+                    updateSuccessState { it.copy(watchStatusLoading = false) }
+                }
+                .onFailure {
+                    snackbarHostState.showSnackbar(message = it.message ?: "Unknown Error")
+                    updateSuccessState { it.copy(watchStatusLoading = false) }
+                }
             }
         }
     }
 
-    private suspend fun removeWatcher() {
-        val state = successState ?: return
-        val source = state.source
-        if (source.name.lowercase().contains(COMICK)) {
-            try {
-                val request = TachiyomiWatcherRequest(
-                    mangaTitle = state.manga.title,
-                    mangaId = state.manga.id.toInt(),
-                    mangaHid = state.manga.url.removePrefix("/comic/").removeSuffix("#"),
-                    interval = 300L,
-                    deviceToken = basePreferences.fcmToken().get()
-                )
-                val requestBody = Json
-                    .encodeToString(request)
-                    .toRequestBody("application/json".toMediaType())
-
-                val result = networkHelper.client.newCall(
-                    DELETE(
-                        url = WATCHER_HOST_COMICK,
-                        body = requestBody
-                    )
-                ).await()
-
-                var message = "Failed removing from Watcher"
-                if (result.isSuccessful) message = "Removed from Watcher"
-
-                snackbarHostState.showSnackbar(message = message)
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+    private fun buildWatchStatusRequest(state: State.Success): WatchStatusRequest {
+        return WatchStatusRequest(
+            mangaTitle = state.manga.title,
+            mangaId = state.manga.id.toInt(),
+            // TODO handle other extensions, currently only supports Comick
+            mangaHid = state.manga.url.removePrefix("/comic/").removeSuffix("#"),
+            interval = 10L,
+            deviceToken = basePreferences.fcmToken().get()
+        )
     }
-    // Achmad <--
+
+    private suspend fun addWatcher(state: State.Success): Boolean {
+        return insertWatchStatus.await(buildWatchStatusRequest(state))
+    }
+
+    private suspend fun removeWatcher(state: State.Success): Boolean {
+        return deleteWatchStatus.await(buildWatchStatusRequest(state))
+    }
+    // Shin <--
 
     /**
      * Returns true if the manga has any downloads.
@@ -1012,7 +990,6 @@ class MangaScreenModel(
     private fun moveMangaToCategory(categoryIds: List<Long>) {
         screenModelScope.launchIO {
             setMangaCategories.await(mangaId, categoryIds)
-            addWatcher()
         }
     }
 
@@ -1821,6 +1798,10 @@ class MangaScreenModel(
             val alwaysShowReadingProgress: Boolean,
             val previewsRowCount: Int,
             // SY <--
+            // Shin -->
+            val isWatching: Boolean?,
+            val watchStatusLoading: Boolean = false,
+            // Shin <--
         ) : State {
             val processedChapters by lazy {
                 chapters.applyFilters(manga).toList()
@@ -1921,8 +1902,6 @@ sealed interface PagePreviewState {
 }
 // SY <--
 
-// Achmad -->
+// Shin -->
 private const val COMICK = "comick"
-private const val WATCHER_HOST_COMICK = "https://api.achmad.dev/tracks/comick"
-//private const val WATCHER_HOST_COMICK = "http://192.168.1.5:8080/tracks/comick"
-// Achmad <--
+// Shin <--

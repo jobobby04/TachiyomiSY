@@ -164,9 +164,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         val groupExtra = inputData.getString(KEY_GROUP_EXTRA)
         // SY <--
 
-        // Achmad -->
+        // Shin -->
         val singleMangaUpdateId = inputData.getLong(KEY_SINGLE_MANGA_UPDATE, -1L)
-        // Achmad <--
+        // Shin <--
 
         if (singleMangaUpdateId == -1L) {
             setForegroundSafely()
@@ -228,9 +228,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         val groupLibraryUpdateType = libraryPreferences.groupLibraryUpdateType().get()
         // SY <--
 
-        val listToUpdate = /* Achmad --> */ if (singleMangaUpdateId != null) {
+        val listToUpdate = /* Shin --> */ if (singleMangaUpdateId != null) {
             libraryManga.filter { it.manga.id == singleMangaUpdateId }
-        } /* Achmad <-- */ else if (categoryId != -1L) {
+        } /* Shin <-- */ else if (categoryId != -1L) {
             libraryManga.filter { it.category == categoryId }
         } else if (
             group == LibraryGroup.BY_DEFAULT ||
@@ -785,9 +785,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         const val KEY_GROUP_EXTRA = "group_extra"
         // SY <--
 
-        // Achmad -->
+        // Shin -->
         const val KEY_SINGLE_MANGA_UPDATE = "single_manga_update"
-        // Achmad <--
+        // Shin <--
 
         fun cancelAllWorks(context: Context) {
             context.workManager.cancelAllWorkByTag(TAG)
@@ -850,9 +850,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
             group: Int = LibraryGroup.BY_DEFAULT,
             groupExtra: String? = null,
             // SY <--
-            // Achmad -->
+            // Shin -->
             singleMangaUpdateId: Long? = null,
-            // Achmad <--
+            // Shin <--
         ): Boolean {
             val wm = context.workManager
             // Check if the LibraryUpdateJob is already running
@@ -868,9 +868,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 KEY_GROUP to group,
                 KEY_GROUP_EXTRA to groupExtra,
                 // SY <--
-                // Achmad -->
+                // Shin -->
                 KEY_SINGLE_MANGA_UPDATE to singleMangaUpdateId
-                // Achmad <--
+                // Shin <--
             )
 
             if (singleMangaUpdateId != null) {
