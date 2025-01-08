@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">TachiyomiSY</string>
+    <string name="app_name" translatable="false">Shinyomi</string>
 
     <!-- Generic strings -->
     <string name="on">On</string>
@@ -970,4 +970,23 @@
     <string name="exception_http">HTTP %d, check website in WebView</string>
     <string name="exception_offline">No Internet connection</string>
     <string name="exception_unknown_host">Couldn\'t reach %s</string>
+
+    <!-- External Watcher -->
+    <string name="external_watcher_removed" translatable="false">Unwatched %s</string>
+    <string name="external_watcher_added" translatable="false">Watching %s</string>
+    <string name="external_watcher_settings_title" translatable="false">External Monitoring Service</string>
+    <string name="external_watcher_settings_enable_title" translatable="false">Enable external monitoring service</string>
+    <string name="external_watcher_settings_enable_subtitle" translatable="false">Real-time updates using an external monitoring service</string>
+    <string name="external_watcher_settings_host_title" translatable="false">Host</string>
+    <string name="external_watcher_settings_host_subtitle" translatable="false">Host address of the service</string>
+    <string name="external_watcher_settings_interval" translatable="false">Watch interval</string>
+    <string name="watch_5minutes" translatable="false">Every 5 Minutes</string>
+    <string name="watch_10minutes" translatable="false">Every 10 Minutes</string>
+    <string name="watch_30minutes" translatable="false">Every 30 Minutes</string>
+    <string name="watch_1hour" translatable="false">Every hour</string>
+    <string name="watch_3hour" translatable="false">Every 3 hours</string>
+    <string name="watch_6hour" translatable="false">Every 6 hours</string>
+    <string name="watch_12hour" translatable="false">Every 12 hours</string>
+    <string name="watch_24hour" translatable="false">Daily</string>
+    <string name="external_watcher_error" translatable="false">Unknown Error</string>
 </resources>

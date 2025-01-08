@@ -69,6 +69,9 @@ object SettingsLibraryScreen : SearchableSettings {
             getSortingCategory(LocalNavigator.currentOrThrow, libraryPreferences),
             getMigrationCategory(unsortedPreferences),
             // SY <--
+            // Shin -->
+            getWatchStatusGroup(libraryPreferences),
+            // Shin <--
         )
     }
 
@@ -313,4 +316,48 @@ object SettingsLibraryScreen : SearchableSettings {
         )
     }
     // SY <--
+
+    // Shin -->
+    @Composable
+    private fun getWatchStatusGroup(
+        libraryPreferences: LibraryPreferences,
+    ): Preference.PreferenceGroup {
+        val externalWatcherPref = libraryPreferences.enableExternalWatcher()
+        val externalWatcherEnabled by externalWatcherPref.collectAsState()
+        val seconds = 60L
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.external_watcher_settings_title),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    pref = externalWatcherPref,
+                    title = stringResource(MR.strings.external_watcher_settings_enable_title),
+                    subtitle = stringResource(MR.strings.external_watcher_settings_enable_subtitle),
+                    // TODO decide whether to disable automatic updates or not
+                ),
+                Preference.PreferenceItem.EditTextPreference(
+                    pref = libraryPreferences.externalWatcherHost(),
+                    enabled = externalWatcherEnabled,
+                    title = stringResource(MR.strings.external_watcher_settings_host_title),
+                    subtitle = stringResource(MR.strings.external_watcher_settings_host_subtitle),
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    pref = libraryPreferences.externalWatcherInterval(),
+                    enabled = externalWatcherEnabled,
+                    title = stringResource(MR.strings.external_watcher_settings_interval),
+                    entries = persistentMapOf(
+                        (5L).times(seconds) to stringResource(MR.strings.watch_5minutes),
+                        (10L).times(seconds) to stringResource(MR.strings.watch_10minutes),
+                        (30L).times(seconds) to stringResource(MR.strings.watch_30minutes),
+                        (60L).times(seconds) to stringResource(MR.strings.watch_1hour),
+                        (180L).times(seconds) to stringResource(MR.strings.watch_3hour),
+                        (360L).times(seconds) to stringResource(MR.strings.watch_6hour),
+                        (720L).times(seconds) to stringResource(MR.strings.watch_12hour),
+                        (1440L).times(seconds) to stringResource(MR.strings.watch_24hour),
+                    )
+                ),
+                // TODO add feature to watch all library manga
+            )
+        )
+    }
+    // Shin <--
 }

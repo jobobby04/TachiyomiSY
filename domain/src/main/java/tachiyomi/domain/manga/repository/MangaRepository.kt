@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
-import tachiyomi.domain.manga.model.WatchStatusRequest
+import tachiyomi.domain.manga.model.ExternalWatcherRequest
 
 interface MangaRepository {
 
@@ -51,10 +51,10 @@ interface MangaRepository {
     // SY <--
 
     // Shin -->
-    suspend fun getWatchStatus(mangaId: Long, fcmToken: String): Boolean?
+    suspend fun getExternalWatcher(mangaId: Long, fcmToken: String): Boolean?
 
-    suspend fun insertWatchStatus(watchStatusRequest: WatchStatusRequest): Boolean
+    suspend fun insertExternalWatcher(externalWatcherRequest: ExternalWatcherRequest): Boolean
 
-    suspend fun deleteWatchStatus(watchStatusRequest: WatchStatusRequest): Boolean
+    suspend fun deleteExternalWatcher(externalWatcherRequest: ExternalWatcherRequest): Boolean
     // Shin <--
 }

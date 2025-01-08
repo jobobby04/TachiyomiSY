@@ -1412,6 +1412,10 @@ class LibraryScreenModel(
         }
         // SY <--
 
+        // Shin -->
+        // TODO add functionality to move NON-READ manga to a certain category
+        // Shin <--
+
         fun getLibraryItemsByCategoryId(categoryId: Long): List<LibraryItem>? {
             return library.firstNotNullOfOrNull { (k, v) -> v.takeIf { k.id == categoryId } }
         }

@@ -3,7 +3,7 @@ package tachiyomi.domain.manga.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class WatchStatusResponse(
+data class ExternalWatcherResponse(
     val id: Int,
     val mangaTitle: String,
     val mangaId: Long,

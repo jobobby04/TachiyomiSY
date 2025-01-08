@@ -112,16 +112,16 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
 import tachiyomi.domain.manga.interactor.DeleteMangaById
 import tachiyomi.domain.manga.interactor.DeleteMergeById
-import tachiyomi.domain.manga.interactor.DeleteWatchStatus
+import tachiyomi.domain.manga.interactor.DeleteExternalWatcher
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFlatMetadataById
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
-import tachiyomi.domain.manga.interactor.GetWatchStatus
+import tachiyomi.domain.manga.interactor.GetExternalWatcher
 import tachiyomi.domain.manga.interactor.InsertMergedReference
-import tachiyomi.domain.manga.interactor.InsertWatchStatus
+import tachiyomi.domain.manga.interactor.InsertExternalWatcher
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
@@ -131,7 +131,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
 import tachiyomi.domain.manga.model.MergedMangaReference
-import tachiyomi.domain.manga.model.WatchStatusRequest
+import tachiyomi.domain.manga.model.ExternalWatcherRequest
 import tachiyomi.domain.manga.model.applyFilter
 import tachiyomi.domain.manga.repository.MangaRepository
 import tachiyomi.domain.source.service.SourceManager
@@ -197,9 +197,9 @@ class MangaScreenModel(
     private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get(),
     private val networkHelper: NetworkHelper = Injekt.get(),
     private val basePreferences: BasePreferences = Injekt.get(),
-    private val getWatchStatus: GetWatchStatus = Injekt.get(),
-    private val insertWatchStatus: InsertWatchStatus = Injekt.get(),
-    private val deleteWatchStatus: DeleteWatchStatus = Injekt.get(),
+    private val getExternalWatcher: GetExternalWatcher = Injekt.get(),
+    private val insertExternalWatcher: InsertExternalWatcher = Injekt.get(),
+    private val deleteExternalWatcher: DeleteExternalWatcher = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : StateScreenModel<MangaScreenModel.State>(State.Loading) {
 
@@ -421,7 +421,9 @@ class MangaScreenModel(
             val needRefreshChapter = chapters.isEmpty()
 
             // Shin -->
-            val isWatching = getWatchStatus.await(mangaId = mangaId, fcmToken = basePreferences.fcmToken().get())
+            val isWatching = if (libraryPreferences.enableExternalWatcher().get()) {
+                getExternalWatcher.await(mangaId = mangaId, fcmToken = basePreferences.fcmToken().get())
+            } else null
             // Shin <--
 
             // Show what we have earlier
@@ -794,7 +796,7 @@ class MangaScreenModel(
                     }
                     withUIContext { onRemoved() }
                     if (state.isWatching == true) {
-                        removeWatcher(state)
+                        removeFromExternalWatcher(state)
                     }
                 }
             } else {
@@ -887,9 +889,11 @@ class MangaScreenModel(
                 runCatching {
                     updateSuccessState { it.copy(watchStatusLoading = true) }
                     if (state.isWatching) {
-                        if (removeWatcher(state)) "Removed from Watcher" else "Failed to remove from Watcher"
+                        removeFromExternalWatcher(state)
+                        context.stringResource(MR.strings.external_watcher_removed)
                     } else {
-                        if (addWatcher(state)) "Added to Watcher" else "Failed adding to Watcher"
+                        addToExternalWatcher(state)
+                        context.stringResource(MR.strings.external_watcher_added)
                     }
                 }
                 .onSuccess {
@@ -897,30 +901,32 @@ class MangaScreenModel(
                     updateSuccessState { it.copy(watchStatusLoading = false) }
                 }
                 .onFailure {
-                    snackbarHostState.showSnackbar(message = it.message ?: "Unknown Error")
+                    snackbarHostState.showSnackbar(
+                        message = it.message ?: context.stringResource(MR.strings.external_watcher_error)
+                    )
                     updateSuccessState { it.copy(watchStatusLoading = false) }
                 }
             }
         }
     }
 
-    private fun buildWatchStatusRequest(state: State.Success): WatchStatusRequest {
-        return WatchStatusRequest(
+    private fun buildExternalWatcherRequest(state: State.Success): ExternalWatcherRequest {
+        return ExternalWatcherRequest(
             mangaTitle = state.manga.title,
             mangaId = state.manga.id.toInt(),
             // TODO handle other extensions, currently only supports Comick
             mangaHid = state.manga.url.removePrefix("/comic/").removeSuffix("#"),
-            interval = 10L,
+            interval = libraryPreferences.externalWatcherInterval().get(),
             deviceToken = basePreferences.fcmToken().get()
         )
     }
 
-    private suspend fun addWatcher(state: State.Success): Boolean {
-        return insertWatchStatus.await(buildWatchStatusRequest(state))
+    private suspend fun addToExternalWatcher(state: State.Success): Boolean {
+        return insertExternalWatcher.await(buildExternalWatcherRequest(state))
     }
 
-    private suspend fun removeWatcher(state: State.Success): Boolean {
-        return deleteWatchStatus.await(buildWatchStatusRequest(state))
+    private suspend fun removeFromExternalWatcher(state: State.Success): Boolean {
+        return deleteExternalWatcher.await(buildExternalWatcherRequest(state))
     }
     // Shin <--
 
