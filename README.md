@@ -3,7 +3,7 @@
 | [![Preview](https://github.com/jobobby04/TachiyomiSYPreview/workflows/Remote%20Dispatch%20Build%20App/badge.svg)](https://github.com/jobobby04/TachiyomiSYPreview/releases) | [![stable release](https://img.shields.io/github/release/jobobby04/tachiyomisy.svg?maxAge=3600&label=download)](https://github.com/jobobby04/tachiyomisy/releases/latest) | [![Discord](https://img.shields.io/discord/1195734228319617024.svg?label=discord&labelColor=7289da&color=2c2f33&style=flat)](https://discord.gg/mihon) |
 
 
-# ![app icon](./.github/readme-images/shinyomi-icon-small.png)Shinyomi
+# ![app icon](./.github/readme-images/shinyomi-icon-small.png) Shinyomi
 Mihon is a free and open source manga reader for Android 6.0 and above. This version of Mihon, Shinyomi was based off TachiyomiSY. This version is meant to push forward in the ways of usability and features. Shinyomi tries to push forward where it can, but staying in a place where it can easily grab updates and features from the main app, it tries to make new features, or take features from other forks like J2K and Neko.
 
 ![screenshots of app](./.github/readme-images/screens.png)
