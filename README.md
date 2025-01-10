@@ -65,10 +65,11 @@ Additional features for some extensions, features include custom description, op
 * Puruin
 * Tsumino
 
-[//]: # (## Download)
+## Download
 
-[//]: # (Get the app from our [releases page]&#40;https://github.com/jobobby04/tachiyomisy/releases/latest&#41;.)
+Get the app from our [releases page](https://github.com/achmadss/Shinyomi/releases/latest).
 
+[//]: # (Comment the rest of the )
 [//]: # ()
 [//]: # (If you want to try new features before they get to the stable release, you can download the preview version [here]&#40;https://github.com/jobobby04/tachiyomisypreview/releases&#41;.)
 
