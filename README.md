@@ -4,9 +4,11 @@
 
 
 # ![app icon](./.github/readme-images/shinyomi-icon-small.png) Shinyomi
-Mihon is a free and open source manga reader for Android 6.0 and above. This version of Mihon, Shinyomi was based off TachiyomiSY. This version is meant to push forward in the ways of usability and features. Shinyomi tries to push forward where it can, but staying in a place where it can easily grab updates and features from the main app, it tries to make new features, or take features from other forks like J2K and Neko.
 
-![screenshots of app](./.github/readme-images/screens.png)
+## Acknowledgements
+Shinyomi is a fork of TachiyomiSY, which itself is based on Mihon. This version focuses on developing features that I find personally useful. A big thank you to the original authors for their incredible work and for sharing it with the community!
+
+[//]: # (![screenshots of app]&#40;./.github/readme-images/screens.png&#41;)
 
 ## Features
 
@@ -65,64 +67,66 @@ Additional features for some extensions, features include custom description, op
 * Puruin
 * Tsumino
 
-## Download
-Get the app from our [releases page](https://github.com/jobobby04/tachiyomisy/releases/latest).
+[//]: # (## Download)
 
-If you want to try new features before they get to the stable release, you can download the preview version [here](https://github.com/jobobby04/tachiyomisypreview/releases).
+[//]: # (Get the app from our [releases page]&#40;https://github.com/jobobby04/tachiyomisy/releases/latest&#41;.)
 
-## Translation
-Feel free to translate the project on [Weblate](https://hosted.weblate.org/projects/mihon/tachiyomisy/)
+[//]: # ()
+[//]: # (If you want to try new features before they get to the stable release, you can download the preview version [here]&#40;https://github.com/jobobby04/tachiyomisypreview/releases&#41;.)
 
-<details><summary>Translation Progress</summary>
-<a href="https://hosted.weblate.org/engage/mihon/">
-<img src="https://hosted.weblate.org/widgets/mihon/-/tachiyomisy/multi-auto.svg" alt="Translation status" />
-</a>
-</details>
+[//]: # ()
+[//]: # (## Translation)
 
-## Issues, Feature Requests and Contributing
+[//]: # (Feel free to translate the project on [Weblate]&#40;https://hosted.weblate.org/projects/mihon/tachiyomisy/&#41;)
 
-Please make sure to read the full guidelines. Your issue may be closed without warning if you do not.
+[//]: # (<details><summary>Translation Progress</summary>)
+[//]: # (<a href="https://hosted.weblate.org/engage/mihon/">)
+[//]: # (<img src="https://hosted.weblate.org/widgets/mihon/-/tachiyomisy/multi-auto.svg" alt="Translation status" />)
+[//]: # (</a>)
+[//]: # (</details>)
 
-<details><summary>Issues</summary>
+[//]: # (## Issues, Feature Requests and Contributing)
 
-1. **Before reporting a new issue, take a look at the [FAQ](https://mihon.app/docs/faq/general), the [changelog](https://github.com/jobobby04/tachiyomisy/releases) and the already opened [issues](https://github.com/jobobby04/tachiyomisy/issues).**
-2. If you are unsure, ask here: [![Discord](https://img.shields.io/discord/1195734228319617024.svg)](https://discord.gg/mihon)
+[//]: # (Please make sure to read the full guidelines. Your issue may be closed without warning if you do not.)
 
-</details>
+[//]: # (<details><summary>Issues</summary>)
 
-<details><summary>Bugs</summary>
+[//]: # (1. **Before reporting a new issue, take a look at the [FAQ]&#40;https://mihon.app/docs/faq/general&#41;, the [changelog]&#40;https://github.com/jobobby04/tachiyomisy/releases&#41; and the already opened [issues]&#40;https://github.com/jobobby04/tachiyomisy/issues&#41;.**)
+[//]: # (2. If you are unsure, ask here: [![Discord]&#40;https://img.shields.io/discord/1195734228319617024.svg&#41;]&#40;https://discord.gg/mihon&#41;)
+[//]: # (</details>)
 
-* Include version (More → About → Version)
-* If not latest, try updating, it may have already been solved
-* Preview version is equal to the number of commits as seen on the main page
-* Include steps to reproduce (if not obvious from description)
-* Include screenshot (if needed)
-* If it could be device-dependent, try reproducing on another device (if possible)
-* Don't group unrelated requests into one issue
+[//]: # (<details><summary>Bugs</summary>)
 
-Use the [issue forms](https://github.com/jobobby04/TachiyomiSY/issues/new/choose) to submit a bug.
+[//]: # (* Include version &#40;More → About → Version&#41;)
+[//]: # (* If not latest, try updating, it may have already been solved)
+[//]: # (* Preview version is equal to the number of commits as seen on the main page)
+[//]: # (* Include steps to reproduce &#40;if not obvious from description&#41;)
+[//]: # (* Include screenshot &#40;if needed&#41;)
+[//]: # (* If it could be device-dependent, try reproducing on another device &#40;if possible&#41;)
+[//]: # (* Don't group unrelated requests into one issue)
 
-</details>
+[//]: # (Use the [issue forms]&#40;https://github.com/jobobby04/TachiyomiSY/issues/new/choose&#41; to submit a bug.)
+[//]: # (</details>)
 
-<details><summary>Feature Requests</summary>
+[//]: # (<details><summary>Feature Requests</summary>)
 
-* Write a detailed issue, explaining what it should do or how. Avoid writing just "like X app does"
-* Include screenshot (if needed)
+[//]: # (* Write a detailed issue, explaining what it should do or how. Avoid writing just "like X app does")
+[//]: # (* Include screenshot &#40;if needed&#41;)
 
-Source requests are not accepted.
-</details>
+[//]: # (Source requests are not accepted.)
+[//]: # (</details>)
 
-<details><summary>Contributing</summary>
+[//]: # (<details><summary>Contributing</summary>)
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
-</details>
+[//]: # (See [CONTRIBUTING.md]&#40;./CONTRIBUTING.md&#41;.)
+[//]: # (</details>)
 
-<details><summary>Code of Conduct</summary>
+[//]: # (<details><summary>Code of Conduct</summary>)
 
-See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
-</details>
+[//]: # (See [CODE_OF_CONDUCT.md]&#40;./CODE_OF_CONDUCT.md&#41;.)
+[//]: # (</details>)
 
-## FAQ
+[//]: # (## FAQ)
 
-[See our website.](https://mihon.app/)
-You can also reach out to us on [Discord](https://discord.gg/mihon).
+[//]: # ([See our website.]&#40;https://mihon.app/&#41;)
+[//]: # (You can also reach out to us on [Discord]&#40;https://discord.gg/mihon&#41;.)
