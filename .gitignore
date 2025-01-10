@@ -24,3 +24,4 @@ google-services.json
 *.dm
 output-metadata.json
 *.jks
+shinyomi_oauth_client_secret.json
