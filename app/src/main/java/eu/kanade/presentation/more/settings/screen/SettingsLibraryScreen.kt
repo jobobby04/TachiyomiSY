@@ -371,7 +371,7 @@ object SettingsLibraryScreen : SearchableSettings {
                 externalWatcherPrefLoading = false
                 e.printStackTrace()
                 scope.launch { context.toast(e.message) }
-                return true
+                return externalWatcherEnabled
             }
         }
 
@@ -417,7 +417,7 @@ object SettingsLibraryScreen : SearchableSettings {
 
                 Preference.PreferenceItem.InfoPreference(
                     title = when {
-                        externalWatcherEnabled -> stringResource(ShinMR.strings.external_watcher_info_disable)
+                        externalWatcherPref.get() -> stringResource(ShinMR.strings.external_watcher_info_disable)
                         else -> stringResource(ShinMR.strings.external_watcher_info_enable)
                     },
                 ),

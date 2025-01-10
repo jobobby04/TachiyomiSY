@@ -21,10 +21,9 @@ class ExternalWatcherRepositoryImpl(
     private val libraryPreferences: LibraryPreferences,
 ) : ExternalWatcherRepository {
 
-    val host = libraryPreferences.externalWatcherHost().get()
-
     override suspend fun getExternalWatcher(mangaId: Long, fcmToken: String): Boolean? {
         if (fcmToken.isBlank()) return null
+        val host = libraryPreferences.externalWatcherHost().get()
         val response = networkHelper.client.newCall(GET("$host/tracks/comick/$fcmToken")).await()
         if (response.isSuccessful) {
             with(json) {
@@ -37,6 +36,7 @@ class ExternalWatcherRepositoryImpl(
 
     override suspend fun addToExternalWatcher(externalWatcherRequest: ExternalWatcherRequest): Boolean {
         if (externalWatcherRequest.deviceToken.isBlank()) throw Exception("FCM Token is empty!") // unlikely to happen
+        val host = libraryPreferences.externalWatcherHost().get()
         val requestBody = Json
             .encodeToString(externalWatcherRequest)
             .toRequestBody("application/json".toMediaType())
@@ -47,12 +47,13 @@ class ExternalWatcherRepositoryImpl(
                 body = requestBody,
             ),
         ).await()
-        if (!result.isSuccessful) throw ExternalWatcherException(result.message)
+        if (!result.isSuccessful) throw ExternalWatcherException(result.message.ifBlank { "Something wrong happened with the host $host" })
         return true
     }
 
     override suspend fun removeFromExternalWatcher(externalWatcherRequest: ExternalWatcherRequest): Boolean {
         if (externalWatcherRequest.deviceToken.isBlank()) throw Exception("FCM Token is empty!") // unlikely to happen
+        val host = libraryPreferences.externalWatcherHost().get()
         val requestBody = Json
             .encodeToString(externalWatcherRequest)
             .toRequestBody("application/json".toMediaType())
@@ -63,27 +64,28 @@ class ExternalWatcherRepositoryImpl(
                 body = requestBody,
             ),
         ).await()
-        if (!result.isSuccessful) throw ExternalWatcherException(result.message)
+        if (!result.isSuccessful) throw ExternalWatcherException(result.message.ifBlank { "Something wrong happened with the host $host" })
         return true
     }
 
     override suspend fun disableExternalWatcher(fcmToken: String): Boolean {
         if (fcmToken.isBlank()) return false
-
+        val host = libraryPreferences.externalWatcherHost().get()
         val result = networkHelper.client.newCall(POST(url = "$host/jobs/delete/$fcmToken")).await()
-        if (!result.isSuccessful) throw ExternalWatcherException(result.message)
+        if (!result.isSuccessful) throw ExternalWatcherException(result.message.ifBlank { "Something wrong happened with the host $host" })
 
         return true
     }
 
     override suspend fun enableExternalWatcher(fcmToken: String, interval: Long): Boolean {
         if (fcmToken.isBlank()) return false
+        val host = libraryPreferences.externalWatcherHost().get()
         // Register device token
         val resultRegisterDevice = networkHelper.client.newCall(POST(url = "$host/device/$fcmToken/$interval")).await()
-        if (!resultRegisterDevice.isSuccessful) throw ExternalWatcherException(resultRegisterDevice.message)
+        if (!resultRegisterDevice.isSuccessful) throw ExternalWatcherException(resultRegisterDevice.message.ifBlank { "Something wrong happened with the host $host" })
         // Enable external watcher
         val resultEnable = networkHelper.client.newCall(POST(url = "$host/jobs/create/$fcmToken/$interval")).await()
-        if (!resultEnable.isSuccessful) throw ExternalWatcherException(resultEnable.message)
+        if (!resultEnable.isSuccessful) throw ExternalWatcherException(resultEnable.message.ifBlank { "Something wrong happened with the host $host" })
 
         return true
     }
