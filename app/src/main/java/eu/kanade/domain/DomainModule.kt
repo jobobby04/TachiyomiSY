@@ -71,7 +71,7 @@ import tachiyomi.domain.history.interactor.GetTotalReadDuration
 import tachiyomi.domain.history.interactor.RemoveHistory
 import tachiyomi.domain.history.interactor.UpsertHistory
 import tachiyomi.domain.history.repository.HistoryRepository
-import tachiyomi.domain.external_watcher.interactor.RemoveFromExternalWatcher
+import tachiyomi.domain.watcher.interactor.RemoveFromExternalWatcher
 import tachiyomi.domain.manga.interactor.FetchInterval
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFavorites
@@ -79,11 +79,11 @@ import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaByUrlAndSourceId
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
-import tachiyomi.domain.external_watcher.interactor.GetExternalWatcher
-import tachiyomi.domain.external_watcher.interactor.AddToExternalWatcher
-import tachiyomi.domain.external_watcher.interactor.DisableExternalWatcher
-import tachiyomi.domain.external_watcher.interactor.EnableExternalWatcher
-import tachiyomi.domain.external_watcher.repository.ExternalWatcherRepository
+import tachiyomi.domain.watcher.interactor.GetExternalWatcher
+import tachiyomi.domain.watcher.interactor.AddToExternalWatcher
+import tachiyomi.domain.watcher.interactor.DisableExternalWatcher
+import tachiyomi.domain.watcher.interactor.EnableExternalWatcher
+import tachiyomi.domain.watcher.repository.ExternalWatcherRepository
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.ResetViewerFlags
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags

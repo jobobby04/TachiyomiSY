@@ -4,8 +4,7 @@ import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getEnum
-import tachiyomi.domain.external_watcher.EXTERNAL_WATCHER_HOST_ACHMAD
-import tachiyomi.domain.external_watcher.EXTERNAL_WATCHER_HOST_DISABLED
+import tachiyomi.domain.watcher.EXTERNAL_WATCHER_HOST_DISABLED
 import tachiyomi.domain.library.model.GroupLibraryMode
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryGroup

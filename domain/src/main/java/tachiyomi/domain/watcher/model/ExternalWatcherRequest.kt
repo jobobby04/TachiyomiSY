@@ -1,12 +1,12 @@
-package tachiyomi.domain.external_watcher.model
+package tachiyomi.domain.watcher.model
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ExternalWatcherResponse(
-    val id: Int,
+data class ExternalWatcherRequest(
     val mangaTitle: String,
-    val mangaId: Long,
+    val mangaId: Int,
     val mangaHid: String,
+    val interval: Long,
     val deviceToken: String,
 )

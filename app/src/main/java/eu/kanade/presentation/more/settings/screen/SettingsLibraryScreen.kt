@@ -32,10 +32,10 @@ import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.category.model.Category
-import tachiyomi.domain.external_watcher.EXTERNAL_WATCHER_HOST_ACHMAD
-import tachiyomi.domain.external_watcher.EXTERNAL_WATCHER_HOST_DISABLED
-import tachiyomi.domain.external_watcher.interactor.DisableExternalWatcher
-import tachiyomi.domain.external_watcher.interactor.EnableExternalWatcher
+import tachiyomi.domain.watcher.EXTERNAL_WATCHER_HOST_ACHMAD
+import tachiyomi.domain.watcher.EXTERNAL_WATCHER_HOST_DISABLED
+import tachiyomi.domain.watcher.interactor.DisableExternalWatcher
+import tachiyomi.domain.watcher.interactor.EnableExternalWatcher
 import tachiyomi.domain.library.model.GroupLibraryMode
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING

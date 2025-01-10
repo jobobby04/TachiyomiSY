@@ -1,6 +1,6 @@
-package tachiyomi.domain.external_watcher.repository
+package tachiyomi.domain.watcher.repository
 
-import tachiyomi.domain.external_watcher.model.ExternalWatcherRequest
+import tachiyomi.domain.watcher.model.ExternalWatcherRequest
 
 interface ExternalWatcherRepository {
 

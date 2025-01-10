@@ -10,9 +10,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import tachiyomi.domain.external_watcher.model.ExternalWatcherRequest
-import tachiyomi.domain.external_watcher.model.ExternalWatcherResponse
-import tachiyomi.domain.external_watcher.repository.ExternalWatcherRepository
+import tachiyomi.domain.watcher.model.ExternalWatcherRequest
+import tachiyomi.domain.watcher.model.ExternalWatcherResponse
+import tachiyomi.domain.watcher.repository.ExternalWatcherRepository
 import tachiyomi.domain.library.service.LibraryPreferences
 
 class ExternalWatcherRepositoryImpl(

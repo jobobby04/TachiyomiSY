@@ -1,7 +1,7 @@
-package tachiyomi.domain.external_watcher.interactor
+package tachiyomi.domain.watcher.interactor
 
-import tachiyomi.domain.external_watcher.model.ExternalWatcherRequest
-import tachiyomi.domain.external_watcher.repository.ExternalWatcherRepository
+import tachiyomi.domain.watcher.model.ExternalWatcherRequest
+import tachiyomi.domain.watcher.repository.ExternalWatcherRepository
 
 class RemoveFromExternalWatcher(
     private val externalWatcherRepository: ExternalWatcherRepository,

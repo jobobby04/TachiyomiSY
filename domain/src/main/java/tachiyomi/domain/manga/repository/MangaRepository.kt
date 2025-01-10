@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
-import tachiyomi.domain.external_watcher.model.ExternalWatcherRequest
 
 interface MangaRepository {
 
