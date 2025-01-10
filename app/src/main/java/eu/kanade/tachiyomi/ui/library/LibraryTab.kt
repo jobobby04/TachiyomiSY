@@ -206,6 +206,8 @@ data object LibraryTab : Tab {
                         }
                     },
                     onClickAddToMangaDex = screenModel::syncMangaToDex.takeIf { state.showAddToMangadex },
+                    onClickAddToWatcher = screenModel::addToWatcherBatch.takeIf { state.showAddToExternalWatcher },
+                    onClickRemoveFromWatcher = screenModel::removeFromWatcherBatch.takeIf { state.showRemoveFromExternalWatcher },
                     onClickResetInfo = screenModel::resetInfo.takeIf { state.showResetInfo },
                     // SY <--
                 )

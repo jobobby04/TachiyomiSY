@@ -24,6 +24,8 @@
     <string name="external_watcher_info_disable" translatable="false">Disable the service to edit the host and interval settings</string>
     <string name="external_watcher_info_enable" translatable="false">Select a host to see the option to enable the service</string>
     <string name="external_watcher_no_host" translatable="false">No host selected</string>
+    <string name="external_watcher_add_batch" translatable="false">Add to external monitoring service</string>
+    <string name="external_watcher_remove_batch" translatable="false">Remove from external monitoring service</string>
 
     <!-- FCM -->
     <string name="fcm" translatable="false">Firebase Token</string>
