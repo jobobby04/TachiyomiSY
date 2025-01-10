@@ -8,6 +8,9 @@
 ## Acknowledgements
 Shinyomi is a fork of TachiyomiSY, which itself is based on Mihon. This version focuses on developing features that I find personally useful. A big thank you to the original authors for their incredible work and for sharing it with the community!
 
+
+Be sure to check out the original projects: [TachiyomiSY](https://github.com/jobobby04/TachiyomiSY) and [Mihon](https://github.com/mihonapp/mihon) for their outstanding work.
+
 [//]: # (![screenshots of app]&#40;./.github/readme-images/screens.png&#41;)
 
 ## Features
