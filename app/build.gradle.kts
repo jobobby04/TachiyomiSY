@@ -33,8 +33,8 @@ android {
     defaultConfig {
         applicationId = "dev.achmad.shinyomi"
 
-        versionCode = 71
-        versionName = "1.11.0"
+        versionCode = 72
+        versionName = "1.0.0"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
