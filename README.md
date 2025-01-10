@@ -69,7 +69,7 @@ Additional features for some extensions, features include custom description, op
 
 Get the app from our [releases page](https://github.com/achmadss/Shinyomi/releases/latest).
 
-[//]: # (Comment the rest of the )
+[//]: # (Comment the rest of the readme)
 [//]: # ()
 [//]: # (If you want to try new features before they get to the stable release, you can download the preview version [here]&#40;https://github.com/jobobby04/tachiyomisypreview/releases&#41;.)
 
