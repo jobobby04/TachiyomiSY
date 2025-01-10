@@ -1,4 +1,4 @@
-package tachiyomi.data.external_watcher
+package tachiyomi.data.watcher
 
 import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.GET
