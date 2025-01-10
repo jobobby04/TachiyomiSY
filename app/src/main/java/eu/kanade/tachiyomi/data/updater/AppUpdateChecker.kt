@@ -3,8 +3,6 @@ package eu.kanade.tachiyomi.data.updater
 import android.content.Context
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.util.system.isInstalledFromFDroid
-import eu.kanade.tachiyomi.util.system.isPreviewBuildType
-import exh.syDebugVersion
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import uy.kohesive.injekt.injectLazy
@@ -22,16 +20,10 @@ class AppUpdateChecker {
         return withIOContext {
             val result = getApplicationRelease.await(
                 GetApplicationRelease.Arguments(
-                    // SY -->
-                    isPreviewBuildType,
-                    // SY <--
                     context.isInstalledFromFDroid(),
                     BuildConfig.COMMIT_COUNT.toInt(),
                     BuildConfig.VERSION_NAME,
                     GITHUB_REPO,
-                    // SY -->
-                    syDebugVersion,
-                    // SY <--
                     forceCheck,
                 ),
             )
@@ -49,12 +41,4 @@ class AppUpdateChecker {
     }
 }
 
-val GITHUB_REPO: String by lazy {
-    // SY -->
-    if (isPreviewBuildType) {
-        "jobobby04/TachiyomiSYPreview"
-    } else {
-        "jobobby04/tachiyomiSY"
-    }
-    // SY <--
-}
+val GITHUB_REPO: String by lazy { "achmadss/Shinyomi" }

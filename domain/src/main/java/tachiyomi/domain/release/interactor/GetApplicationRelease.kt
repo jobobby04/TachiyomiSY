@@ -32,7 +32,7 @@ class GetApplicationRelease(
         // Check if latest version is different from current version
         // SY -->
         val isNewVersion =
-            isNewVersion(arguments.isPreview, arguments.syDebugVersion, arguments.versionName, release.version)
+            isNewVersion(arguments.versionName, release.version)
         // SY <--
         return when {
             isNewVersion && arguments.isThirdParty -> Result.ThirdPartyInstallation
@@ -41,48 +41,36 @@ class GetApplicationRelease(
         }
     }
 
-    // SY -->
+    // Shin -->
     private fun isNewVersion(
-        isPreview: Boolean,
-        syDebugVersion: String,
         versionName: String,
         versionTag: String,
     ): Boolean {
         // Removes prefixes like "r" or "v"
         val newVersion = versionTag.replace("[^\\d.]".toRegex(), "")
-        return if (isPreview) {
-            // Preview builds: based on releases in "jobobby04/TachiyomiSYPreview" repo
-            // tagged as something like "508"
-            val currentInt = syDebugVersion.toIntOrNull()
-            currentInt != null && newVersion.toInt() > currentInt
-        } else {
-            // Release builds: based on releases in "jobobby04/TachiyomiSY" repo
-            // tagged as something like "0.1.2"
-            val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
 
-            val newSemVer = newVersion.split(".").map { it.toInt() }
-            val oldSemVer = oldVersion.split(".").map { it.toInt() }
+        // Release builds: based on releases in "achmadss/Shinyomi" repo
+        // tagged as something like "0.1.2"
+        val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
 
-            oldSemVer.mapIndexed { index, i ->
-                if (newSemVer[index] > i) {
-                    return true
-                }
+        val newSemVer = newVersion.split(".").map { it.toInt() }
+        val oldSemVer = oldVersion.split(".").map { it.toInt() }
+
+        oldSemVer.mapIndexed { index, i ->
+            if (newSemVer[index] > i) {
+                return true
             }
-
-            false
         }
+
+        return false
     }
-    // SY <--
+    // Shin <--
 
     data class Arguments(
-        val isPreview: Boolean,
         val isThirdParty: Boolean,
         val commitCount: Int,
         val versionName: String,
         val repository: String,
-        // SY -->
-        val syDebugVersion: String,
-        // SY <--
         val forceCheck: Boolean = false,
     )
 
