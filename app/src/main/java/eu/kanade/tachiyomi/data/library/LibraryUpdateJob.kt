@@ -221,14 +221,14 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         categoryId: Long,
         group: Int,
         groupExtra: String?,
-        singleMangaUpdateId: Long? = null,
+        singleMangaUpdateId: Long,
     ) {
         val libraryManga = getLibraryManga.await()
         // SY -->
         val groupLibraryUpdateType = libraryPreferences.groupLibraryUpdateType().get()
         // SY <--
 
-        val listToUpdate = /* Shin --> */ if (singleMangaUpdateId != null) {
+        val listToUpdate = /* Shin --> */ if (singleMangaUpdateId != -1L) {
             libraryManga.filter { it.manga.id == singleMangaUpdateId }
         } /* Shin <-- */ else if (categoryId != -1L) {
             libraryManga.filter { it.category == categoryId }
