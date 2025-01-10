@@ -17,11 +17,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.more.LogoHeader
@@ -44,6 +47,7 @@ import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.shin.ShinMR
 import tachiyomi.presentation.core.components.LinkIcon
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -54,6 +58,7 @@ import tachiyomi.presentation.core.icons.Facebook
 import tachiyomi.presentation.core.icons.Github
 import tachiyomi.presentation.core.icons.Reddit
 import tachiyomi.presentation.core.icons.X
+import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.time.Instant
@@ -69,6 +74,7 @@ object AboutScreen : Screen() {
         val uriHandler = LocalUriHandler.current
         val handleBack = LocalBackPress.current
         val navigator = LocalNavigator.currentOrThrow
+        val clipboardManager = LocalClipboardManager.current
         var isCheckingUpdates by remember { mutableStateOf(false) }
 
         // SY -->
@@ -172,6 +178,19 @@ object AboutScreen : Screen() {
                         onPreferenceClick = { uriHandler.openUri("https://mihon.app/privacy/") },
                     )
                 }
+
+                // TODO add functionality to copy fcm token
+//                item {
+//                    TextPreferenceWidget(
+//                        title = stringResource(ShinMR.strings.fcm),
+//                        onPreferenceClick = {
+//                            clipboardManager.setText(
+//                                buildAnnotatedString { append(fcmToken) },
+//                            )
+//                            context.toast("Copied")
+//                        },
+//                    )
+//                }
 
                 item {
                     Row(
