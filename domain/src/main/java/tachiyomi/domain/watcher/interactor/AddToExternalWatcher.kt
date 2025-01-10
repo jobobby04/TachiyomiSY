@@ -10,5 +10,4 @@ class AddToExternalWatcher(
     suspend fun await(externalWatcherRequest: ExternalWatcherRequest): Boolean {
         return externalWatcherRepository.addToExternalWatcher(externalWatcherRequest)
     }
-
 }

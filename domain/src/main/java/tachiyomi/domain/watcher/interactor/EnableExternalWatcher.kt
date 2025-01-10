@@ -9,5 +9,4 @@ class EnableExternalWatcher(
     suspend fun await(fcmToken: String, interval: Long): Boolean {
         return externalWatcherRepository.enableExternalWatcher(fcmToken, interval)
     }
-
 }

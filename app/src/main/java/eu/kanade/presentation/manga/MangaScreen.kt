@@ -271,7 +271,7 @@ fun MangaScreen(
             onChapterSelected = onChapterSelected,
             onAllChapterSelected = onAllChapterSelected,
             onInvertSelection = onInvertSelection,
-            onWatchClicked = onWatchClicked
+            onWatchClicked = onWatchClicked,
         )
     }
 }

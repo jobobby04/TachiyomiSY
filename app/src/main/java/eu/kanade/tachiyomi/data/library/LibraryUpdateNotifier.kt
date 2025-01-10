@@ -164,7 +164,7 @@ class LibraryUpdateNotifier(
     }
 
     fun showNoUpdateNotification(
-        manga: Manga
+        manga: Manga,
     ) {
         context.notify(
             Notifications.ID_WATCHER_ERROR,

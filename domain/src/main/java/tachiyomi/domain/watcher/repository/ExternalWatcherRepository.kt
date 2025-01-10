@@ -13,5 +13,4 @@ interface ExternalWatcherRepository {
     suspend fun disableExternalWatcher(fcmToken: String): Boolean
 
     suspend fun enableExternalWatcher(fcmToken: String, interval: Long): Boolean
-
 }

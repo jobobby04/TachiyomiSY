@@ -10,10 +10,10 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.watcher.model.ExternalWatcherRequest
 import tachiyomi.domain.watcher.model.ExternalWatcherResponse
 import tachiyomi.domain.watcher.repository.ExternalWatcherRepository
-import tachiyomi.domain.library.service.LibraryPreferences
 
 class ExternalWatcherRepositoryImpl(
     private val networkHelper: NetworkHelper,
@@ -44,8 +44,8 @@ class ExternalWatcherRepositoryImpl(
         val result = networkHelper.client.newCall(
             POST(
                 url = "$host/tracks/comick",
-                body = requestBody
-            )
+                body = requestBody,
+            ),
         ).await()
         if (!result.isSuccessful) throw ExternalWatcherException(result.message)
         return true
@@ -60,8 +60,8 @@ class ExternalWatcherRepositoryImpl(
         val result = networkHelper.client.newCall(
             DELETE(
                 url = "$host/tracks/comick",
-                body = requestBody
-            )
+                body = requestBody,
+            ),
         ).await()
         if (!result.isSuccessful) throw ExternalWatcherException(result.message)
         return true
@@ -89,4 +89,4 @@ class ExternalWatcherRepositoryImpl(
     }
 }
 
-data class ExternalWatcherException(override val message: String?): Exception()
+data class ExternalWatcherException(override val message: String?) : Exception()

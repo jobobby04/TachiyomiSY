@@ -39,7 +39,6 @@ import mihon.domain.extensionrepo.service.ExtensionRepoService
 import mihon.domain.upcoming.interactor.GetUpcomingManga
 import tachiyomi.data.category.CategoryRepositoryImpl
 import tachiyomi.data.chapter.ChapterRepositoryImpl
-import tachiyomi.data.watcher.ExternalWatcherRepositoryImpl
 import tachiyomi.data.history.HistoryRepositoryImpl
 import tachiyomi.data.manga.MangaRepositoryImpl
 import tachiyomi.data.release.ReleaseServiceImpl
@@ -47,6 +46,7 @@ import tachiyomi.data.source.SourceRepositoryImpl
 import tachiyomi.data.source.StubSourceRepositoryImpl
 import tachiyomi.data.track.TrackRepositoryImpl
 import tachiyomi.data.updates.UpdatesRepositoryImpl
+import tachiyomi.data.watcher.ExternalWatcherRepositoryImpl
 import tachiyomi.domain.category.interactor.CreateCategoryWithName
 import tachiyomi.domain.category.interactor.DeleteCategory
 import tachiyomi.domain.category.interactor.GetCategories
@@ -71,7 +71,6 @@ import tachiyomi.domain.history.interactor.GetTotalReadDuration
 import tachiyomi.domain.history.interactor.RemoveHistory
 import tachiyomi.domain.history.interactor.UpsertHistory
 import tachiyomi.domain.history.repository.HistoryRepository
-import tachiyomi.domain.watcher.interactor.RemoveFromExternalWatcher
 import tachiyomi.domain.manga.interactor.FetchInterval
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFavorites
@@ -79,11 +78,6 @@ import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaByUrlAndSourceId
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
-import tachiyomi.domain.watcher.interactor.GetExternalWatcher
-import tachiyomi.domain.watcher.interactor.AddToExternalWatcher
-import tachiyomi.domain.watcher.interactor.DisableExternalWatcher
-import tachiyomi.domain.watcher.interactor.EnableExternalWatcher
-import tachiyomi.domain.watcher.repository.ExternalWatcherRepository
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.ResetViewerFlags
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
@@ -101,6 +95,12 @@ import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.repository.TrackRepository
 import tachiyomi.domain.updates.interactor.GetUpdates
 import tachiyomi.domain.updates.repository.UpdatesRepository
+import tachiyomi.domain.watcher.interactor.AddToExternalWatcher
+import tachiyomi.domain.watcher.interactor.DisableExternalWatcher
+import tachiyomi.domain.watcher.interactor.EnableExternalWatcher
+import tachiyomi.domain.watcher.interactor.GetExternalWatcher
+import tachiyomi.domain.watcher.interactor.RemoveFromExternalWatcher
+import tachiyomi.domain.watcher.repository.ExternalWatcherRepository
 import uy.kohesive.injekt.api.InjektRegistrar
 
 class DomainModule : InjektModule {

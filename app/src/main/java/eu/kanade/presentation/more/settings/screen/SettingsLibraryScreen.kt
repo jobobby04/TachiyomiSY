@@ -32,10 +32,6 @@ import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.category.model.Category
-import tachiyomi.domain.watcher.EXTERNAL_WATCHER_HOST_ACHMAD
-import tachiyomi.domain.watcher.EXTERNAL_WATCHER_HOST_DISABLED
-import tachiyomi.domain.watcher.interactor.DisableExternalWatcher
-import tachiyomi.domain.watcher.interactor.EnableExternalWatcher
 import tachiyomi.domain.library.model.GroupLibraryMode
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
@@ -45,6 +41,10 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_U
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.watcher.EXTERNAL_WATCHER_HOST_ACHMAD
+import tachiyomi.domain.watcher.EXTERNAL_WATCHER_HOST_DISABLED
+import tachiyomi.domain.watcher.interactor.DisableExternalWatcher
+import tachiyomi.domain.watcher.interactor.EnableExternalWatcher
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.shin.ShinMR
 import tachiyomi.i18n.sy.SYMR
@@ -355,8 +355,11 @@ object SettingsLibraryScreen : SearchableSettings {
                 externalWatcherPrefLoading = true
                 val fcmToken = basePreferences.fcmToken().get()
                 val result =
-                    if (newValue) enableExternalWatcher.await(fcmToken, externalWatcherIntervalPref.get())
-                    else disableExternalWatcher.await(fcmToken)
+                    if (newValue) {
+                        enableExternalWatcher.await(fcmToken, externalWatcherIntervalPref.get())
+                    } else {
+                        disableExternalWatcher.await(fcmToken)
+                    }
                 externalWatcherPrefLoading = false
                 return result
             } catch (e: ExternalWatcherException) {
@@ -385,8 +388,8 @@ object SettingsLibraryScreen : SearchableSettings {
                     },
                     entries = persistentMapOf(
                         EXTERNAL_WATCHER_HOST_DISABLED to "Disabled",
-                        EXTERNAL_WATCHER_HOST_ACHMAD to EXTERNAL_WATCHER_HOST_ACHMAD
-                    )
+                        EXTERNAL_WATCHER_HOST_ACHMAD to EXTERNAL_WATCHER_HOST_ACHMAD,
+                    ),
                 ),
                 Preference.PreferenceItem.ListPreference(
                     pref = externalWatcherIntervalPref,
@@ -409,7 +412,7 @@ object SettingsLibraryScreen : SearchableSettings {
                     enabled = externalWatcherHost.isNotBlank(),
                     title = stringResource(ShinMR.strings.external_watcher_settings_enable_title),
                     subtitle = stringResource(ShinMR.strings.external_watcher_settings_enable_subtitle),
-                    onValueChanged = { newValue -> onChangeExternalWatcherPref(newValue) }
+                    onValueChanged = { newValue -> onChangeExternalWatcherPref(newValue) },
                 ),
 
                 Preference.PreferenceItem.InfoPreference(
@@ -417,9 +420,9 @@ object SettingsLibraryScreen : SearchableSettings {
                         externalWatcherEnabled -> stringResource(ShinMR.strings.external_watcher_info_disable)
                         else -> stringResource(ShinMR.strings.external_watcher_info_enable)
                     },
-                )
+                ),
                 // TODO add feature to watch all library manga
-            )
+            ),
         )
     }
     // Shin <--

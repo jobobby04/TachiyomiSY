@@ -9,5 +9,4 @@ class GetExternalWatcher(
     suspend fun await(mangaId: Long, fcmToken: String): Boolean? {
         return externalWatcherRepository.getExternalWatcher(mangaId, fcmToken)
     }
-
 }

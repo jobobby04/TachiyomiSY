@@ -262,7 +262,7 @@ class MainActivity : BaseActivity() {
                                     }
                                 }
                                 nextHandler.startInputMethod(modifiedRequest)
-                            }
+                            },
                         ) {
                             // Shows current screen
                             DefaultNavigatorScreenTransition(

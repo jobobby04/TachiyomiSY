@@ -9,5 +9,4 @@ class DisableExternalWatcher(
     suspend fun await(fcmToken: String): Boolean {
         return externalWatcherRepository.disableExternalWatcher(fcmToken)
     }
-
 }

@@ -38,15 +38,14 @@ class TachiyomiMessagingService : FirebaseMessagingService() {
     }
 
     private fun handleSingleMangaUpdate(
-        data: Map<String, String>
+        data: Map<String, String>,
     ) {
         scope.launch {
             val mangaId = data["id"]?.toLong() ?: return@launch
             LibraryUpdateJob.startNow(
                 context = this@TachiyomiMessagingService,
-                singleMangaUpdateId = mangaId
+                singleMangaUpdateId = mangaId,
             )
         }
     }
-
 }

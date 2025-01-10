@@ -8,7 +8,6 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.FlipToBack
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -131,8 +130,8 @@ fun MangaToolbar(
                                             title = stringResource(ShinMR.strings.external_watcher),
                                             icon = watchStatusIcon,
                                             iconTint = watchStatusTint,
-                                            onClick = onClickWatch
-                                        )
+                                            onClick = onClickWatch,
+                                        ),
                                     )
                                 }
                                 // Shin <--

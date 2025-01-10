@@ -221,7 +221,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         categoryId: Long,
         group: Int,
         groupExtra: String?,
-        singleMangaUpdateId: Long? = null
+        singleMangaUpdateId: Long? = null,
     ) {
         val libraryManga = getLibraryManga.await()
         // SY -->
@@ -869,7 +869,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 KEY_GROUP_EXTRA to groupExtra,
                 // SY <--
                 // Shin -->
-                KEY_SINGLE_MANGA_UPDATE to singleMangaUpdateId
+                KEY_SINGLE_MANGA_UPDATE to singleMangaUpdateId,
                 // Shin <--
             )
 

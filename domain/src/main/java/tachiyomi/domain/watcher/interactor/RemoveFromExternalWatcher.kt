@@ -10,5 +10,4 @@ class RemoveFromExternalWatcher(
     suspend fun await(externalWatcherRequest: ExternalWatcherRequest): Boolean {
         return externalWatcherRepository.removeFromExternalWatcher(externalWatcherRequest)
     }
-
 }

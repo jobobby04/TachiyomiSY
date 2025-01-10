@@ -111,16 +111,13 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
 import tachiyomi.domain.manga.interactor.DeleteMangaById
 import tachiyomi.domain.manga.interactor.DeleteMergeById
-import tachiyomi.domain.watcher.interactor.RemoveFromExternalWatcher
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFlatMetadataById
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
-import tachiyomi.domain.watcher.interactor.GetExternalWatcher
 import tachiyomi.domain.manga.interactor.InsertMergedReference
-import tachiyomi.domain.watcher.interactor.AddToExternalWatcher
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
@@ -130,13 +127,16 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
 import tachiyomi.domain.manga.model.MergedMangaReference
-import tachiyomi.domain.watcher.model.ExternalWatcherRequest
 import tachiyomi.domain.manga.model.applyFilter
 import tachiyomi.domain.manga.repository.MangaRepository
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.model.Track
+import tachiyomi.domain.watcher.interactor.AddToExternalWatcher
+import tachiyomi.domain.watcher.interactor.GetExternalWatcher
+import tachiyomi.domain.watcher.interactor.RemoveFromExternalWatcher
+import tachiyomi.domain.watcher.model.ExternalWatcherRequest
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.shin.ShinMR
 import tachiyomi.i18n.sy.SYMR
@@ -797,7 +797,7 @@ class MangaScreenModel(
                 screenModelScope.launchIO {
                     tryUpdateIsWatching(true)
                 }
-            }
+            },
             // Shin <--
         )
     }
@@ -922,22 +922,22 @@ class MangaScreenModel(
                             context.stringResource(ShinMR.strings.external_watcher_added, state.manga.title)
                     }
                 }
-                .onSuccess { (isWatching, message) ->
-                    updateSuccessState {
-                        it.copy(
-                            isWatchingLoading = false,
-                            isWatching = isWatching
+                    .onSuccess { (isWatching, message) ->
+                        updateSuccessState {
+                            it.copy(
+                                isWatchingLoading = false,
+                                isWatching = isWatching,
+                            )
+                        }
+                        snackbarHostState.showSnackbar(message = message)
+                    }
+                    .onFailure {
+                        it.printStackTrace()
+                        updateSuccessState { it.copy(isWatchingLoading = false) }
+                        snackbarHostState.showSnackbar(
+                            message = it.message ?: context.stringResource(ShinMR.strings.external_watcher_error),
                         )
                     }
-                    snackbarHostState.showSnackbar(message = message)
-                }
-                .onFailure {
-                    it.printStackTrace()
-                    updateSuccessState { it.copy(isWatchingLoading = false) }
-                    snackbarHostState.showSnackbar(
-                        message = it.message ?: context.stringResource(ShinMR.strings.external_watcher_error)
-                    )
-                }
             }
         }
     }
@@ -949,7 +949,7 @@ class MangaScreenModel(
             // TODO handle other extensions, currently only supports Comick
             mangaHid = state.manga.url.removePrefix("/comic/").removeSuffix("#"),
             interval = libraryPreferences.externalWatcherInterval().get(),
-            deviceToken = basePreferences.fcmToken().get()
+            deviceToken = basePreferences.fcmToken().get(),
         )
     }
     // Shin <--
