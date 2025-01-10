@@ -39,6 +39,7 @@ import mihon.domain.extensionrepo.service.ExtensionRepoService
 import mihon.domain.upcoming.interactor.GetUpcomingManga
 import tachiyomi.data.category.CategoryRepositoryImpl
 import tachiyomi.data.chapter.ChapterRepositoryImpl
+import tachiyomi.data.external_watcher.ExternalWatcherRepositoryImpl
 import tachiyomi.data.history.HistoryRepositoryImpl
 import tachiyomi.data.manga.MangaRepositoryImpl
 import tachiyomi.data.release.ReleaseServiceImpl
@@ -70,7 +71,7 @@ import tachiyomi.domain.history.interactor.GetTotalReadDuration
 import tachiyomi.domain.history.interactor.RemoveHistory
 import tachiyomi.domain.history.interactor.UpsertHistory
 import tachiyomi.domain.history.repository.HistoryRepository
-import tachiyomi.domain.manga.interactor.DeleteExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.RemoveFromExternalWatcher
 import tachiyomi.domain.manga.interactor.FetchInterval
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFavorites
@@ -78,8 +79,11 @@ import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaByUrlAndSourceId
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
-import tachiyomi.domain.manga.interactor.GetExternalWatcher
-import tachiyomi.domain.manga.interactor.InsertExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.GetExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.AddToExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.DisableExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.EnableExternalWatcher
+import tachiyomi.domain.external_watcher.repository.ExternalWatcherRepository
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.ResetViewerFlags
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
@@ -113,7 +117,7 @@ class DomainModule : InjektModule {
         addFactory { UpdateCategory(get()) }
         addFactory { DeleteCategory(get()) }
 
-        addSingletonFactory<MangaRepository> { MangaRepositoryImpl(get(), get(), get(), get()) }
+        addSingletonFactory<MangaRepository> { MangaRepositoryImpl(get()) }
         addFactory { GetDuplicateLibraryManga(get()) }
         addFactory { GetFavorites(get()) }
         addFactory { GetLibraryManga(get()) }
@@ -132,9 +136,13 @@ class DomainModule : InjektModule {
         addFactory { SetMangaCategories(get()) }
         addFactory { GetExcludedScanlators(get()) }
         addFactory { SetExcludedScanlators(get()) }
+
+        addSingletonFactory<ExternalWatcherRepository> { ExternalWatcherRepositoryImpl(get(), get(), get()) }
         addFactory { GetExternalWatcher(get()) }
-        addFactory { InsertExternalWatcher(get()) }
-        addFactory { DeleteExternalWatcher(get()) }
+        addFactory { AddToExternalWatcher(get()) }
+        addFactory { RemoveFromExternalWatcher(get()) }
+        addFactory { DisableExternalWatcher(get()) }
+        addFactory { EnableExternalWatcher(get()) }
 
         addSingletonFactory<ReleaseService> { ReleaseServiceImpl(get(), get()) }
         addFactory { GetApplicationRelease(get(), get()) }

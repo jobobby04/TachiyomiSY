@@ -50,6 +50,9 @@ include(":i18n")
 // SY -->
 include(":i18n-sy")
 // SY <--
+// Shin -->
+include(":i18n-shin")
+// Shin <--
 include(":macrobenchmark")
 include(":presentation-core")
 include(":presentation-widget")

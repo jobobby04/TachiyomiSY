@@ -234,7 +234,7 @@ class MangaScreen(
             onChapterSelected = screenModel::toggleSelection,
             onAllChapterSelected = screenModel::toggleAllSelection,
             onInvertSelection = screenModel::invertSelection,
-            onWatchClicked = screenModel::toggleWatchStatus
+            onWatchClicked = screenModel::toggleExternalWatcher
         )
 
         var showScanlatorsDialog by remember { mutableStateOf(false) }
@@ -265,7 +265,7 @@ class MangaScreen(
             is MangaScreenModel.Dialog.DuplicateManga -> {
                 DuplicateMangaDialog(
                     onDismissRequest = onDismissRequest,
-                    onConfirm = { screenModel.toggleFavorite(onRemoved = {}, checkDuplicate = false) },
+                    onConfirm = { screenModel.toggleFavorite() },
                     onOpenManga = { navigator.push(MangaScreen(dialog.duplicate.id)) },
                     onMigrate = {
                         // SY -->

@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
-import tachiyomi.domain.manga.model.ExternalWatcherRequest
+import tachiyomi.domain.external_watcher.model.ExternalWatcherRequest
 
 interface MangaRepository {
 
@@ -49,12 +49,4 @@ interface MangaRepository {
 
     suspend fun getReadMangaNotInLibraryView(): List<LibraryManga>
     // SY <--
-
-    // Shin -->
-    suspend fun getExternalWatcher(mangaId: Long, fcmToken: String): Boolean?
-
-    suspend fun insertExternalWatcher(externalWatcherRequest: ExternalWatcherRequest): Boolean
-
-    suspend fun deleteExternalWatcher(externalWatcherRequest: ExternalWatcherRequest): Boolean
-    // Shin <--
 }

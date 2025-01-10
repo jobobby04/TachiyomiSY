@@ -43,7 +43,6 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.HttpException
-import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.PagePreviewSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.getNameForMangaInfo
@@ -112,16 +111,16 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
 import tachiyomi.domain.manga.interactor.DeleteMangaById
 import tachiyomi.domain.manga.interactor.DeleteMergeById
-import tachiyomi.domain.manga.interactor.DeleteExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.RemoveFromExternalWatcher
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFlatMetadataById
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
-import tachiyomi.domain.manga.interactor.GetExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.GetExternalWatcher
 import tachiyomi.domain.manga.interactor.InsertMergedReference
-import tachiyomi.domain.manga.interactor.InsertExternalWatcher
+import tachiyomi.domain.external_watcher.interactor.AddToExternalWatcher
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
@@ -131,7 +130,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
 import tachiyomi.domain.manga.model.MergedMangaReference
-import tachiyomi.domain.manga.model.ExternalWatcherRequest
+import tachiyomi.domain.external_watcher.model.ExternalWatcherRequest
 import tachiyomi.domain.manga.model.applyFilter
 import tachiyomi.domain.manga.repository.MangaRepository
 import tachiyomi.domain.source.service.SourceManager
@@ -139,6 +138,7 @@ import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.model.Track
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.shin.ShinMR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
@@ -195,11 +195,10 @@ class MangaScreenModel(
     private val setMangaCategories: SetMangaCategories = Injekt.get(),
     private val mangaRepository: MangaRepository = Injekt.get(),
     private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get(),
-    private val networkHelper: NetworkHelper = Injekt.get(),
     private val basePreferences: BasePreferences = Injekt.get(),
     private val getExternalWatcher: GetExternalWatcher = Injekt.get(),
-    private val insertExternalWatcher: InsertExternalWatcher = Injekt.get(),
-    private val deleteExternalWatcher: DeleteExternalWatcher = Injekt.get(),
+    private val addToExternalWatcher: AddToExternalWatcher = Injekt.get(),
+    private val removeFromExternalWatcher: RemoveFromExternalWatcher = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : StateScreenModel<MangaScreenModel.State>(State.Loading) {
 
@@ -420,12 +419,6 @@ class MangaScreenModel(
             val needRefreshInfo = !manga.initialized
             val needRefreshChapter = chapters.isEmpty()
 
-            // Shin -->
-            val isWatching = if (libraryPreferences.enableExternalWatcher().get()) {
-                getExternalWatcher.await(mangaId = mangaId, fcmToken = basePreferences.fcmToken().get())
-            } else null
-            // Shin <--
-
             // Show what we have earlier
             mutableState.update {
                 val source = sourceManager.getOrStub(manga.source)
@@ -460,9 +453,6 @@ class MangaScreenModel(
                     readerPreferences.preserveReadingPosition().get() && manga.isEhBasedManga(),
                     previewsRowCount = uiPreferences.previewsRowCount().get(),
                     // SY <--
-                    // Shin -->
-                    isWatching = isWatching
-                    // Shin <--
                 )
             }
 
@@ -478,10 +468,26 @@ class MangaScreenModel(
                 fetchFromSourceTasks.awaitAll()
             }
 
+            tryUpdateIsWatching(isFavorite = manga.favorite)
+
             // Initial loading finished
             updateSuccessState { it.copy(isRefreshingData = false) }
         }
     }
+
+    // Shin -->
+    private suspend fun tryUpdateIsWatching(isFavorite: Boolean) {
+        val state = successState ?: return
+        val isWatching = when {
+            (!isFavorite || !state.source.name.lowercase().contains(COMICK)) -> null
+            libraryPreferences.enableExternalWatcher().get() -> {
+                getExternalWatcher.await(mangaId = mangaId, fcmToken = basePreferences.fcmToken().get())
+            }
+            else -> null
+        }
+        updateSuccessState { it.copy(isWatching = isWatching) }
+    }
+    // Shin <--
 
     fun fetchAllFromSource(manualFetch: Boolean = true) {
         screenModelScope.launch {
@@ -772,15 +778,36 @@ class MangaScreenModel(
                         deleteDownloads()
                     }
                 }
+                // Shin -->
+                screenModelScope.launchIO {
+                    val state = successState ?: return@launchIO
+                    if (state.isWatching == true) {
+                        try {
+                            removeFromExternalWatcher.await(buildExternalWatcherRequest(state))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    tryUpdateIsWatching(false)
+                }
+                // Shin <--
             },
+            // Shin -->
+            onFavorited = {
+                screenModelScope.launchIO {
+                    tryUpdateIsWatching(true)
+                }
+            }
+            // Shin <--
         )
     }
 
     /**
      * Update favorite status of manga, (removes / adds) manga (to / from) library.
      */
-    fun toggleFavorite(
-        onRemoved: () -> Unit,
+    private fun toggleFavorite(
+        onRemoved: () -> Unit = {},
+        onFavorited: () -> Unit = {},
         checkDuplicate: Boolean = true,
     ) {
         val state = successState ?: return
@@ -795,9 +822,6 @@ class MangaScreenModel(
                         updateManga.awaitUpdateCoverLastModified(manga.id)
                     }
                     withUIContext { onRemoved() }
-                    if (state.isWatching == true) {
-                        removeFromExternalWatcher(state)
-                    }
                 }
             } else {
                 // Add to library
@@ -836,6 +860,8 @@ class MangaScreenModel(
 
                 // Finally match with enhanced tracking when available
                 addTracks.bindEnhancedTrackers(manga, state.source)
+
+                withUIContext { onFavorited() }
             }
         }
     }
@@ -878,33 +904,39 @@ class MangaScreenModel(
     }
 
     // Shin -->
-    fun toggleWatchStatus() {
+    fun toggleExternalWatcher() {
         val state = successState ?: return
         if (state.isWatching == null) return
-        if (state.watchStatusLoading) return
+        if (state.isWatchingLoading) return
         val source = state.source
         // TODO handle other extensions, currently only supports Comick
         if (source.name.lowercase().contains(COMICK)) {
             screenModelScope.launchIO {
                 runCatching {
-                    updateSuccessState { it.copy(watchStatusLoading = true) }
+                    updateSuccessState { it.copy(isWatchingLoading = true) }
                     if (state.isWatching) {
-                        removeFromExternalWatcher(state)
-                        context.stringResource(MR.strings.external_watcher_removed)
+                        !removeFromExternalWatcher.await(buildExternalWatcherRequest(state)) to
+                            context.stringResource(ShinMR.strings.external_watcher_removed, state.manga.title)
                     } else {
-                        addToExternalWatcher(state)
-                        context.stringResource(MR.strings.external_watcher_added)
+                        addToExternalWatcher.await(buildExternalWatcherRequest(state)) to
+                            context.stringResource(ShinMR.strings.external_watcher_added, state.manga.title)
                     }
                 }
-                .onSuccess {
-                    snackbarHostState.showSnackbar(message = it)
-                    updateSuccessState { it.copy(watchStatusLoading = false) }
+                .onSuccess { (isWatching, message) ->
+                    updateSuccessState {
+                        it.copy(
+                            isWatchingLoading = false,
+                            isWatching = isWatching
+                        )
+                    }
+                    snackbarHostState.showSnackbar(message = message)
                 }
                 .onFailure {
+                    it.printStackTrace()
+                    updateSuccessState { it.copy(isWatchingLoading = false) }
                     snackbarHostState.showSnackbar(
-                        message = it.message ?: context.stringResource(MR.strings.external_watcher_error)
+                        message = it.message ?: context.stringResource(ShinMR.strings.external_watcher_error)
                     )
-                    updateSuccessState { it.copy(watchStatusLoading = false) }
                 }
             }
         }
@@ -919,14 +951,6 @@ class MangaScreenModel(
             interval = libraryPreferences.externalWatcherInterval().get(),
             deviceToken = basePreferences.fcmToken().get()
         )
-    }
-
-    private suspend fun addToExternalWatcher(state: State.Success): Boolean {
-        return insertExternalWatcher.await(buildExternalWatcherRequest(state))
-    }
-
-    private suspend fun removeFromExternalWatcher(state: State.Success): Boolean {
-        return deleteExternalWatcher.await(buildExternalWatcherRequest(state))
     }
     // Shin <--
 
@@ -1805,8 +1829,8 @@ class MangaScreenModel(
             val previewsRowCount: Int,
             // SY <--
             // Shin -->
-            val isWatching: Boolean?,
-            val watchStatusLoading: Boolean = false,
+            val isWatching: Boolean? = null,
+            val isWatchingLoading: Boolean = false,
             // Shin <--
         ) : State {
             val processedChapters by lazy {

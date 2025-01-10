@@ -4,6 +4,8 @@ import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getEnum
+import tachiyomi.domain.external_watcher.EXTERNAL_WATCHER_HOST_ACHMAD
+import tachiyomi.domain.external_watcher.EXTERNAL_WATCHER_HOST_DISABLED
 import tachiyomi.domain.library.model.GroupLibraryMode
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryGroup
@@ -222,9 +224,9 @@ class LibraryPreferences(
 
     fun enableExternalWatcher() = preferenceStore.getBoolean("pref_enable_external_watcher", false)
 
-    fun externalWatcherInterval() = preferenceStore.getLong("pref_external_watcher_interval", 5L) // in minutes
+    fun externalWatcherInterval() = preferenceStore.getLong("pref_external_watcher_interval", (5L).times(60L)) // in seconds
 
-    fun externalWatcherHost() = preferenceStore.getString("pref_external_watcher_host")
+    fun externalWatcherHost() = preferenceStore.getString("pref_external_watcher_host", EXTERNAL_WATCHER_HOST_DISABLED)
 
     // Shin <--
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- External Watcher -->
+    <string name="external_watcher" translatable="false">External Watcher</string>
+    <string name="external_watcher_removed" translatable="false">Unwatched %s</string>
+    <string name="external_watcher_added" translatable="false">Watching %s</string>
+    <string name="external_watcher_settings_title" translatable="false">External Monitoring Service</string>
+    <string name="external_watcher_settings_enable_title" translatable="false">Enable external monitoring service</string>
+    <string name="external_watcher_settings_enable_subtitle" translatable="false">Real-time updates using an external monitoring service</string>
+    <string name="external_watcher_settings_host_title" translatable="false">Host</string>
+    <string name="external_watcher_settings_host_subtitle" translatable="false">Host address of the service</string>
+    <string name="external_watcher_settings_interval" translatable="false">Interval</string>
+    <string name="watch_10seconds" translatable="false">Every 10 Seconds</string>
+    <string name="watch_5minutes" translatable="false">Every 5 Minutes</string>
+    <string name="watch_10minutes" translatable="false">Every 10 Minutes</string>
+    <string name="watch_30minutes" translatable="false">Every 30 Minutes</string>
+    <string name="watch_1hour" translatable="false">Every hour</string>
+    <string name="watch_3hour" translatable="false">Every 3 hours</string>
+    <string name="watch_6hour" translatable="false">Every 6 hours</string>
+    <string name="watch_12hour" translatable="false">Every 12 hours</string>
+    <string name="watch_24hour" translatable="false">Daily</string>
+    <string name="external_watcher_error" translatable="false">Unknown Error</string>
+    <string name="external_watcher_info_disable" translatable="false">Disable the service to edit the host and interval settings</string>
+    <string name="external_watcher_info_enable" translatable="false">Select a host to see the option to enable the service</string>
+    <string name="external_watcher_no_host" translatable="false">No host selected</string>
+</resources>

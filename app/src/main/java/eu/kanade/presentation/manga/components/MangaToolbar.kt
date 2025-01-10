@@ -31,6 +31,7 @@ import eu.kanade.presentation.components.UpIcon
 import eu.kanade.presentation.manga.DownloadAction
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.shin.ShinMR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.active
@@ -113,24 +114,28 @@ fun MangaToolbar(
                     }
 
                     val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else LocalContentColor.current
+                    // Shin -->
                     val (watchStatusIcon, watchStatusTint) = when (isWatching) {
                         true -> Icons.Outlined.Visibility to MaterialTheme.colorScheme.active
-                        false -> Icons.Outlined.VisibilityOff to LocalContentColor.current
+                        false -> Icons.Outlined.Visibility to LocalContentColor.current
                         else -> null to null
                     }
+                    // Shin <--
                     AppBarActions(
                         actions = persistentListOf<AppBar.AppBarAction>().builder()
                             .apply {
+                                // Shin -->
                                 if (watchStatusIcon != null && watchStatusTint != null) {
                                     add(
                                         AppBar.Action(
-                                            title = "Watch Status", // TODO use string resource
+                                            title = stringResource(ShinMR.strings.external_watcher),
                                             icon = watchStatusIcon,
                                             iconTint = watchStatusTint,
                                             onClick = onClickWatch
                                         )
                                     )
                                 }
+                                // Shin <--
                                 if (onClickDownload != null) {
                                     add(
                                         AppBar.Action(

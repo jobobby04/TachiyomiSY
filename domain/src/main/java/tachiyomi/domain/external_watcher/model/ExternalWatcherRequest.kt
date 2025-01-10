@@ -1,4 +1,4 @@
-package tachiyomi.domain.manga.model
+package tachiyomi.domain.external_watcher.model
 
 import kotlinx.serialization.Serializable
 
