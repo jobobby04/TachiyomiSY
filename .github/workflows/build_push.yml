@@ -1,8 +1,11 @@
 name: Release Builder
+#on:
+#  push:
+#   branches:
+#    - 'release'
+
 on:
-  push:
-   branches: 
-    - 'release'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
