@@ -262,11 +262,78 @@ class Anilist : API("https://graphql.anilist.co/") {
     }
 }
 
+class MangaUpdates : API("https://api.mangaupdates.com/v1/") {
+    override suspend fun getRecsById(id: String): List<SManga> {
+        val apiUrl = endpoint.toHttpUrl()
+            .newBuilder()
+            .addPathSegment("series")
+            .addPathSegment(id)
+            .build()
+
+        val data = with(json) { client.newCall(GET(apiUrl)).awaitSuccess().parseAs<JsonObject>() }
+        return getRecommendations(
+            data["recommendations"]!!.jsonArray,
+            data["category_recommendations"]!!.jsonArray,
+        )
+    }
+
+    private fun getRecommendations(vararg recommendations: JsonArray): List<SManga> {
+        return recommendations
+            .flatMap { it }
+            .map(JsonElement::jsonObject)
+            .map { rec ->
+                logcat { "MANGAUPDATES > RECOMMENDATION: " + rec["series_title"]!!.jsonPrimitive.content }
+                SManga(
+                    title = rec["series_title"]!!.jsonPrimitive.content,
+                    url = rec["series_url"]!!.jsonPrimitive.content,
+                    thumbnail_url = rec["series_image"]
+                        ?.jsonObject
+                        ?.get("url")
+                        ?.jsonObject
+                        ?.get("original")
+                        ?.jsonPrimitive
+                        ?.contentOrNull,
+                    initialized = true,
+                )
+            }
+    }
+
+    override suspend fun getRecsBySearch(search: String): List<SManga> {
+        val url = endpoint.toHttpUrl()
+            .newBuilder()
+            .addPathSegments("series/search")
+            .build()
+            .toString()
+
+        val payload = buildJsonObject {
+            put("search", search)
+            put("stype", "title")
+        }
+
+        val body = payload
+            .toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaType())
+
+        val data = with(json) {
+            client.newCall(POST(url, body=body))
+                .awaitSuccess()
+                .parseAs<JsonObject>()
+        }
+        return getRecsById(
+            data["results"]!!
+                .jsonArray.first()
+                .jsonObject["record"]!!
+                .jsonObject["series_id"]!!
+                .jsonPrimitive.content
+        )
+    }
+}
+
 open class RecommendsPagingSource(
     source: CatalogueSource,
     private val manga: Manga,
-    private val smart: Boolean = true,
-    private var preferredApi: API = API.MYANIMELIST,
+    private val smart: Boolean = true, // TODO: Make this a setting
+    private var preferredApi: API = API.MANGAUPDATES, // TODO: Make this a setting
 ) : SourcePagingSource(source) {
     val trackerManager: TrackerManager by injectLazy()
     val getTracks: GetTracks by injectLazy()
@@ -283,6 +350,7 @@ open class RecommendsPagingSource(
                 val id = when (key) {
                     API.MYANIMELIST -> tracks.find { it.trackerId == trackerManager.myAnimeList.id }?.remoteId
                     API.ANILIST -> tracks.find { it.trackerId == trackerManager.aniList.id }?.remoteId
+                    API.MANGAUPDATES -> tracks.find { it.trackerId == trackerManager.mangaUpdates.id }?.remoteId
                 }
 
                 val recs = if (id != null) {
@@ -305,8 +373,9 @@ open class RecommendsPagingSource(
         val API_MAP = mapOf(
             API.MYANIMELIST to MyAnimeList(),
             API.ANILIST to Anilist(),
+            API.MANGAUPDATES to MangaUpdates(),
         )
 
-        enum class API { MYANIMELIST, ANILIST }
+        enum class API { MYANIMELIST, ANILIST, MANGAUPDATES }
     }
 }
