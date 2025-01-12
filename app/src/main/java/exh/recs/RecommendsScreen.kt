@@ -31,7 +31,7 @@ class RecommendsScreen(val mangaId: Long, val sourceId: Long) : Screen() {
         val screenModel = rememberScreenModel {
             RecommendsScreenModel(
                 mangaId = mangaId,
-                sourceId = sourceId
+                sourceId = sourceId,
             )
         }
 
@@ -59,7 +59,7 @@ class RecommendsScreen(val mangaId: Long, val sourceId: Long) : Screen() {
                 WebViewActivity
                     .newIntent(context, manga.url, 0, manga.title)
                     .let(context::startActivity)
-            }
+            },
         )
     }
 

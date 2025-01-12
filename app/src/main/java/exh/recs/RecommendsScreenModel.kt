@@ -49,7 +49,7 @@ open class RecommendsScreenModel(
         compareBy<RecommendsPagingSource>(
             { (map[it] as? RecommendationItemResult.Success)?.isEmpty ?: true },
             { it.api.name },
-            { it.api.category.resourceId }
+            { it.api.category.resourceId },
         )
     }
 
@@ -148,4 +148,3 @@ sealed interface RecommendationItemResult {
         return !onlyShowHasResults || (this is Success && !this.isEmpty)
     }
 }
-

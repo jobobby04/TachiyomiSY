@@ -38,7 +38,7 @@ fun RecommendsScreen(
                 scrollBehavior = scrollBehavior,
                 navigateUp = navigateUp,
             )
-        }
+        },
     ) { paddingValues ->
         RecommendsContent(
             items = state.filteredItems,
@@ -76,11 +76,13 @@ internal fun RecommendsContent(
                         }
                         is RecommendationItemResult.Success -> {
                             GlobalSearchCardRow(
-                                titles = result.result.map { Manga.create().copy(
-                                    ogTitle = it.title,
-                                    url = it.url,
-                                    ogThumbnailUrl = it.thumbnail_url,
-                                ) },
+                                titles = result.result.map {
+                                    Manga.create().copy(
+                                        ogTitle = it.title,
+                                        url = it.url,
+                                        ogThumbnailUrl = it.thumbnail_url,
+                                    )
+                                },
                                 getManga = getManga,
                                 onClick = onClickItem,
                                 onLongClick = onLongClickItem,
@@ -90,7 +92,7 @@ internal fun RecommendsContent(
                             GlobalSearchErrorResultItem(
                                 message = with(LocalContext.current) {
                                     result.throwable.formattedMessage
-                                }
+                                },
                             )
                         }
                     }

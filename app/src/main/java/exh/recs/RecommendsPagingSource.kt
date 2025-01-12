@@ -41,6 +41,7 @@ abstract class RecommendationApi(val endpoint: String) {
 
     // Display name
     abstract val name: String
+
     // Localized category name
     abstract val category: StringResource
     abstract val associatedTrackerId: Long?
@@ -346,7 +347,7 @@ abstract class MangaUpdates : RecommendationApi("https://api.mangaupdates.com/v1
             .toRequestBody("application/json; charset=utf-8".toMediaType())
 
         val data = with(json) {
-            client.newCall(POST(url, body=body))
+            client.newCall(POST(url, body = body))
                 .awaitSuccess()
                 .parseAs<JsonObject>()
         }
@@ -357,7 +358,7 @@ abstract class MangaUpdates : RecommendationApi("https://api.mangaupdates.com/v1
                 .first()
                 .jsonObject["record"]!!
                 .jsonObject["series_id"]!!
-                .jsonPrimitive.content
+                .jsonPrimitive.content,
         )
     }
 }
@@ -379,7 +380,7 @@ class MangaUpdatesSimilar : MangaUpdates() {
 open class RecommendsPagingSource(
     source: CatalogueSource,
     private val manga: Manga,
-    val api: RecommendationApi
+    val api: RecommendationApi,
 ) : SourcePagingSource(source) {
 
     private val getTracks: GetTracks by injectLazy()

@@ -24,7 +24,7 @@ import tachiyomi.presentation.core.screens.LoadingScreen
 class BrowseRecommendsScreen(
     private val mangaId: Long,
     private val sourceId: Long,
-    private val apiIndex: Int
+    private val apiIndex: Int,
 ) : Screen() {
 
     @Composable
