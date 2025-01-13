@@ -1,6 +1,5 @@
 package exh.recs.sources
 
-import cafe.adriel.voyager.navigator.Navigator
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.NetworkHelper
@@ -8,7 +7,6 @@ import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.all.MangaDex
-import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import exh.md.similar.MangaDexSimilarPagingSource
 import exh.pref.DelegateSourcePreferences
 import exh.source.getMainSource
@@ -45,10 +43,6 @@ abstract class RecommendationPagingSource(
      */
     open val associatedSourceId: Long? = null
 
-    // Called when a recommendation is clicked
-    abstract fun onMangaClick(navigator: Navigator, manga: Manga)
-    abstract fun onMangaLongClick(navigator: Navigator, manga: Manga)
-
     companion object {
         fun createSources(manga: Manga, source: CatalogueSource): List<RecommendationPagingSource> {
             return buildList {
@@ -59,9 +53,7 @@ abstract class RecommendationPagingSource(
 
                 // Only include MangaDex if the delegate sources are enabled and the source is MD-based
                 if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources().get()) {
-                    MangaDexSimilarPagingSource(manga, source.getMainSource() as MangaDex).let {
-                        add(it)
-                    }
+                    add(MangaDexSimilarPagingSource(manga, source.getMainSource() as MangaDex))
                 }
             }.sortedWith(compareBy({ it.name }, { it.category.resourceId }))
         }
@@ -93,16 +85,6 @@ abstract class TrackerRecommendationPagingSource(
 
     abstract suspend fun getRecsBySearch(search: String): List<SManga>
     abstract suspend fun getRecsById(id: String): List<SManga>
-
-    override fun onMangaClick(navigator: Navigator, manga: Manga) {
-        // Open smart search to let the user choose a source
-        val smartSearchConfig = SourcesScreen.SmartSearchConfig(manga.ogTitle)
-        navigator.push(SourcesScreen(smartSearchConfig))
-    }
-
-    override fun onMangaLongClick(navigator: Navigator, manga: Manga) {
-        // Open manga entry on the tracker website
-    }
 
     override suspend fun requestNextPage(currentPage: Int): MangasPage {
         val tracks = getTracks.await(manga.id)

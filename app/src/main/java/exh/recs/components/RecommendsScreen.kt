@@ -28,8 +28,8 @@ fun RecommendsScreen(
     navigateUp: () -> Unit,
     getManga: @Composable (Manga) -> State<Manga>,
     onClickSource: (RecommendationPagingSource) -> Unit,
-    onClickItem: (RecommendationPagingSource, Manga) -> Unit,
-    onLongClickItem: (RecommendationPagingSource, Manga) -> Unit,
+    onClickItem: (Manga) -> Unit,
+    onLongClickItem: (Manga) -> Unit,
 ) {
     Scaffold(
         topBar = { scrollBehavior ->
@@ -57,8 +57,8 @@ internal fun RecommendsContent(
     contentPadding: PaddingValues,
     getManga: @Composable (Manga) -> State<Manga>,
     onClickSource: (RecommendationPagingSource) -> Unit,
-    onClickItem: (RecommendationPagingSource, Manga) -> Unit,
-    onLongClickItem: (RecommendationPagingSource, Manga) -> Unit,
+    onClickItem: (Manga) -> Unit,
+    onLongClickItem: (Manga) -> Unit,
 ) {
     LazyColumn(
         contentPadding = contentPadding,
@@ -78,8 +78,8 @@ internal fun RecommendsContent(
                             GlobalSearchCardRow(
                                 titles = recResult.result,
                                 getManga = getManga,
-                                onClick = { manga -> onClickItem(source, manga) },
-                                onLongClick = { manga -> onLongClickItem(source, manga) },
+                                onClick = onClickItem,
+                                onLongClick = onLongClickItem,
                             )
                         }
                         is RecommendationItemResult.Error -> {

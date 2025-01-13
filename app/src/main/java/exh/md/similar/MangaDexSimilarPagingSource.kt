@@ -1,12 +1,10 @@
 package exh.md.similar
 
-import cafe.adriel.voyager.navigator.Navigator
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.MetadataMangasPage
 import eu.kanade.tachiyomi.source.online.all.MangaDex
-import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import exh.recs.sources.RecommendationPagingSource
 import exh.source.getMainSource
 import kotlinx.coroutines.async
@@ -31,12 +29,6 @@ class MangaDexSimilarPagingSource(
 
     override val associatedSourceId: Long
         get() = mangaDex.getMainSource().id
-
-    override fun onMangaClick(navigator: Navigator, manga: Manga) =
-        navigator.push(MangaScreen(manga.id, true))
-
-    override fun onMangaLongClick(navigator: Navigator, manga: Manga) =
-        onMangaClick(navigator, manga)
 
     override suspend fun requestNextPage(currentPage: Int): MangasPage {
         val mangasPage = coroutineScope {

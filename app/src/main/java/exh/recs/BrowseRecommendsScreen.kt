@@ -5,14 +5,19 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.components.BrowseSourceSimpleToolbar
 import eu.kanade.presentation.util.Screen
+import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
+import eu.kanade.tachiyomi.ui.manga.MangaScreen
+import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import exh.ui.ifSourcesLoaded
 import mihon.presentation.core.util.collectAsLazyPagingItems
+import tachiyomi.domain.manga.model.Manga
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
@@ -30,12 +35,29 @@ class BrowseRecommendsScreen(
             return
         }
 
+        val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
         val screenModel = rememberScreenModel {
             BrowseRecommendsScreenModel(mangaId, sourceId, recommendationSourceName)
         }
         val snackbarHostState = remember { SnackbarHostState() }
+
+        val onClickItem = { manga: Manga ->
+            navigator.push(
+                when (manga.source) {
+                    -1L -> SourcesScreen(SourcesScreen.SmartSearchConfig(manga.ogTitle))
+                    else -> MangaScreen(manga.id, true)
+                }
+            )
+        }
+
+        val onLongClickItem = { manga: Manga ->
+            when (manga.source) {
+                -1L -> WebViewActivity.newIntent(context, manga.url, title = manga.title).let(context::startActivity)
+                else -> onClickItem(manga)
+            }
+        }
 
         Scaffold(
             topBar = { scrollBehavior ->
@@ -64,12 +86,8 @@ class BrowseRecommendsScreen(
                 onWebViewClick = null,
                 onHelpClick = null,
                 onLocalSourceHelpClick = null,
-                onMangaClick = { manga ->
-                    screenModel.recommendationSource.onMangaClick(navigator, manga)
-                },
-                onMangaLongClick = { manga ->
-                    screenModel.recommendationSource.onMangaLongClick(navigator, manga)
-                },
+                onMangaClick = onClickItem,
+                onMangaLongClick = onLongClickItem,
             )
         }
     }
