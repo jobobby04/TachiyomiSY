@@ -24,7 +24,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 
-/*
+/**
  * General class for recommendation sources.
  */
 abstract class RecommendationPagingSource(
@@ -68,7 +68,7 @@ abstract class RecommendationPagingSource(
     }
 }
 
-/*
+/**
  * General class for recommendation sources backed by trackers.
  */
 abstract class TrackerRecommendationPagingSource(
