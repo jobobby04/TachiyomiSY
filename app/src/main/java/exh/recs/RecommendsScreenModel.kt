@@ -81,10 +81,10 @@ open class RecommendsScreenModel(
                         val titles = page.mangas.map {
                             val recSourceId = recSource.associatedSourceId
                             if (recSourceId != null) {
-                                // If the recommendation is associated with a recSource, resolve it
+                                // If the recommendation is associated with a source, resolve it
                                 networkToLocalManga.await(it.toDomainManga(recSourceId))
                             } else {
-                                // Otherwise, skip this step. The user will be prompted to choose a recSource via SmartSearch
+                                // Otherwise, skip this step. The user will be prompted to choose a source via SmartSearch
                                 it.toDomainManga(-1)
                             }
                         }
