@@ -53,12 +53,15 @@ class RecommendsScreen(val mangaId: Long, val sourceId: Long) : Screen() {
             manga = screenModel.manga,
             state = state,
             navigateUp = navigator::pop,
-            getManga = @Composable { manga: Manga ->
-                screenModel.getManga(manga)
-            },
+            getManga = @Composable { manga: Manga -> screenModel.getManga(manga) },
             onClickSource = { pagingSource ->
                 // Pass class name of paging source as screens need to be serializable
-                navigator.push(BrowseRecommendsScreen(mangaId, sourceId, pagingSource::class.qualifiedName!!))
+                navigator.push(BrowseRecommendsScreen(
+                    mangaId,
+                    sourceId,
+                    pagingSource::class.qualifiedName!!,
+                    pagingSource.associatedSourceId == null
+                ))
             },
             onClickItem = onClickItem,
             onLongClickItem = onLongClickItem,

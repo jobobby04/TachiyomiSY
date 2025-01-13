@@ -26,6 +26,7 @@ class BrowseRecommendsScreen(
     private val mangaId: Long,
     private val sourceId: Long,
     private val recommendationSourceName: String,
+    private val isExternalSource: Boolean,
 ) : Screen() {
 
     @Composable
@@ -45,17 +46,17 @@ class BrowseRecommendsScreen(
 
         val onClickItem = { manga: Manga ->
             navigator.push(
-                when (manga.source) {
-                    -1L -> SourcesScreen(SourcesScreen.SmartSearchConfig(manga.ogTitle))
-                    else -> MangaScreen(manga.id, true)
+                when (isExternalSource) {
+                    true -> SourcesScreen(SourcesScreen.SmartSearchConfig(manga.ogTitle))
+                    false -> MangaScreen(manga.id, true)
                 }
             )
         }
 
         val onLongClickItem = { manga: Manga ->
-            when (manga.source) {
-                -1L -> WebViewActivity.newIntent(context, manga.url, title = manga.title).let(context::startActivity)
-                else -> onClickItem(manga)
+            when (isExternalSource) {
+                true -> WebViewActivity.newIntent(context, manga.url, title = manga.title).let(context::startActivity)
+                false -> onClickItem(manga)
             }
         }
 
