@@ -12,8 +12,8 @@ import eu.kanade.presentation.browse.components.GlobalSearchResultItem
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.formattedMessage
 import exh.recs.RecommendationItemResult
-import exh.recs.RecommendsPagingSource
 import exh.recs.RecommendsScreenModel
+import exh.recs.sources.RecommendationPagingSource
 import kotlinx.collections.immutable.ImmutableMap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import tachiyomi.domain.manga.model.Manga
@@ -27,9 +27,9 @@ fun RecommendsScreen(
     state: RecommendsScreenModel.State,
     navigateUp: () -> Unit,
     getManga: @Composable (Manga) -> State<Manga>,
-    onClickSource: (RecommendsPagingSource) -> Unit,
-    onClickItem: (Manga) -> Unit,
-    onLongClickItem: (Manga) -> Unit,
+    onClickSource: (RecommendationPagingSource) -> Unit,
+    onClickItem: (RecommendationPagingSource, Manga) -> Unit,
+    onLongClickItem: (RecommendationPagingSource, Manga) -> Unit,
 ) {
     Scaffold(
         topBar = { scrollBehavior ->
@@ -53,45 +53,39 @@ fun RecommendsScreen(
 
 @Composable
 internal fun RecommendsContent(
-    items: ImmutableMap<RecommendsPagingSource, RecommendationItemResult>,
+    items: ImmutableMap<RecommendationPagingSource, RecommendationItemResult>,
     contentPadding: PaddingValues,
     getManga: @Composable (Manga) -> State<Manga>,
-    onClickSource: (RecommendsPagingSource) -> Unit,
-    onClickItem: (Manga) -> Unit,
-    onLongClickItem: (Manga) -> Unit,
+    onClickSource: (RecommendationPagingSource) -> Unit,
+    onClickItem: (RecommendationPagingSource, Manga) -> Unit,
+    onLongClickItem: (RecommendationPagingSource, Manga) -> Unit,
 ) {
     LazyColumn(
         contentPadding = contentPadding,
     ) {
-        items.forEach { (source, result) ->
-            item(key = source.api::class.name) {
+        items.forEach { (source, recResult) ->
+            item(key = source::class.name) {
                 GlobalSearchResultItem(
-                    title = source.api.name,
-                    subtitle = stringResource(source.api.category),
+                    title = source.name,
+                    subtitle = stringResource(source.category),
                     onClick = { onClickSource(source) },
                 ) {
-                    when (result) {
+                    when (recResult) {
                         RecommendationItemResult.Loading -> {
                             GlobalSearchLoadingResultItem()
                         }
                         is RecommendationItemResult.Success -> {
                             GlobalSearchCardRow(
-                                titles = result.result.map {
-                                    Manga.create().copy(
-                                        ogTitle = it.title,
-                                        url = it.url,
-                                        ogThumbnailUrl = it.thumbnail_url,
-                                    )
-                                },
+                                titles = recResult.result,
                                 getManga = getManga,
-                                onClick = onClickItem,
-                                onLongClick = onLongClickItem,
+                                onClick = { manga -> onClickItem(source, manga) },
+                                onLongClick = { manga -> onLongClickItem(source, manga) },
                             )
                         }
                         is RecommendationItemResult.Error -> {
                             GlobalSearchErrorResultItem(
                                 message = with(LocalContext.current) {
-                                    result.throwable.formattedMessage
+                                    recResult.throwable.formattedMessage
                                 },
                             )
                         }

@@ -4,9 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.produceState
 import cafe.adriel.voyager.core.model.StateScreenModel
+import eu.kanade.domain.manga.model.toDomainManga
 import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.source.CatalogueSource
-import eu.kanade.tachiyomi.source.model.SManga
+import exh.recs.sources.RecommendationPagingSource
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentMapOf
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
@@ -36,58 +38,67 @@ open class RecommendsScreenModel(
     initialState: State = State(),
     sourceManager: SourceManager = Injekt.get(),
     private val getManga: GetManga = Injekt.get(),
+    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
 ) : StateScreenModel<RecommendsScreenModel.State>(initialState) {
 
     val manga = runBlocking { getManga.await(mangaId) }!!
-
-    private val source = sourceManager.getOrStub(sourceId) as CatalogueSource
+    val source = sourceManager.getOrStub(sourceId) as CatalogueSource
 
     private val coroutineDispatcher = Executors.newFixedThreadPool(5).asCoroutineDispatcher()
     private var findRecsJob: Job? = null
 
-    private val sortComparator = { map: Map<RecommendsPagingSource, RecommendationItemResult> ->
-        compareBy<RecommendsPagingSource>(
+    private val sortComparator = { map: Map<RecommendationPagingSource, RecommendationItemResult> ->
+        compareBy<RecommendationPagingSource>(
             { (map[it] as? RecommendationItemResult.Success)?.isEmpty ?: true },
-            { it.api.name },
-            { it.api.category.resourceId },
+            { it.name },
+            { it.category.resourceId },
         )
     }
 
     init {
         findRecsJob?.cancel()
 
-        val sources = RecommendationApi.apis
-            .map { RecommendsPagingSource(source, manga, it) }
+        val recommendationSources = RecommendationPagingSource.createSources(manga, source)
 
         updateItems(
-            sources
+            recommendationSources
                 .associateWith { RecommendationItemResult.Loading }
                 .toPersistentMap(),
         )
 
         findRecsJob = ioCoroutineScope.launch {
-            sources.map { source ->
+            recommendationSources.map { recSource ->
                 async {
-                    if (state.value.items[source] !is RecommendationItemResult.Loading) {
+                    if (state.value.items[recSource] !is RecommendationItemResult.Loading) {
                         return@async
                     }
 
                     try {
                         val page = withContext(coroutineDispatcher) {
-                            source.requestNextPage(1)
+                            recSource.requestNextPage(1)
+                        }
+
+                        val titles = page.mangas.map {
+                            val recSourceId = recSource.associatedSourceId
+                            if (recSourceId != null) {
+                                // If the recommendation is associated with a recSource, resolve it
+                                networkToLocalManga.await(it.toDomainManga(recSourceId))
+                            } else {
+                                // Otherwise, skip this step. The user will be prompted to choose a recSource via SmartSearch
+                                it.toDomainManga(-1)
+                            }
                         }
 
                         if (isActive) {
-                            updateItem(source, RecommendationItemResult.Success(page.mangas))
+                            updateItem(recSource, RecommendationItemResult.Success(titles))
                         }
                     } catch (e: Exception) {
                         if (isActive) {
-                            updateItem(source, RecommendationItemResult.Error(e))
+                            updateItem(recSource, RecommendationItemResult.Error(e))
                         }
                     }
                 }
-            }
-                .awaitAll()
+            }.awaitAll()
         }
     }
 
@@ -102,7 +113,7 @@ open class RecommendsScreenModel(
         }
     }
 
-    private fun updateItems(items: PersistentMap<RecommendsPagingSource, RecommendationItemResult>) {
+    private fun updateItems(items: PersistentMap<RecommendationPagingSource, RecommendationItemResult>) {
         mutableState.update {
             it.copy(
                 items = items
@@ -112,7 +123,7 @@ open class RecommendsScreenModel(
         }
     }
 
-    private fun updateItem(source: RecommendsPagingSource, result: RecommendationItemResult) {
+    private fun updateItem(source: RecommendationPagingSource, result: RecommendationItemResult) {
         val newItems = state.value.items.mutate {
             it[source] = result
         }
@@ -121,7 +132,7 @@ open class RecommendsScreenModel(
 
     @Immutable
     data class State(
-        val items: PersistentMap<RecommendsPagingSource, RecommendationItemResult> = persistentMapOf(),
+        val items: PersistentMap<RecommendationPagingSource, RecommendationItemResult> = persistentMapOf(),
     ) {
         val progress: Int = items.count { it.value !is RecommendationItemResult.Loading }
         val total: Int = items.size
@@ -138,7 +149,7 @@ sealed interface RecommendationItemResult {
     ) : RecommendationItemResult
 
     data class Success(
-        val result: List<SManga>,
+        val result: List<Manga>,
     ) : RecommendationItemResult {
         val isEmpty: Boolean
             get() = result.isEmpty()
