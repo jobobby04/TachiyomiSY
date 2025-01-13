@@ -49,7 +49,7 @@ class BrowseRecommendsScreen(
                 when (isExternalSource) {
                     true -> SourcesScreen(SourcesScreen.SmartSearchConfig(manga.ogTitle))
                     false -> MangaScreen(manga.id, true)
-                }
+                },
             )
         }
 

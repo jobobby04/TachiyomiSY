@@ -38,7 +38,7 @@ class RecommendsScreen(val mangaId: Long, val sourceId: Long) : Screen() {
                 when (manga.source) {
                     -1L -> SourcesScreen(SourcesScreen.SmartSearchConfig(manga.ogTitle))
                     else -> MangaScreen(manga.id, true)
-                }
+                },
             )
         }
 
@@ -56,12 +56,14 @@ class RecommendsScreen(val mangaId: Long, val sourceId: Long) : Screen() {
             getManga = @Composable { manga: Manga -> screenModel.getManga(manga) },
             onClickSource = { pagingSource ->
                 // Pass class name of paging source as screens need to be serializable
-                navigator.push(BrowseRecommendsScreen(
-                    mangaId,
-                    sourceId,
-                    pagingSource::class.qualifiedName!!,
-                    pagingSource.associatedSourceId == null
-                ))
+                navigator.push(
+                    BrowseRecommendsScreen(
+                        mangaId,
+                        sourceId,
+                        pagingSource::class.qualifiedName!!,
+                        pagingSource.associatedSourceId == null,
+                    ),
+                )
             },
             onClickItem = onClickItem,
             onLongClickItem = onLongClickItem,
