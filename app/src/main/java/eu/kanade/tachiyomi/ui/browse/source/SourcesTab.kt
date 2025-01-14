@@ -49,15 +49,18 @@ fun Screen.sourcesTab(
                 icon = Icons.Outlined.TravelExplore,
                 onClick = { navigator.push(GlobalSearchScreen(smartSearchConfig?.origTitle ?: "")) },
             ),
-        ).apply {
-            if (smartSearchConfig == null) {
-                add(
-                    AppBar.Action(
-                        title = stringResource(MR.strings.action_filter),
-                        icon = Icons.Outlined.FilterList,
-                        onClick = { navigator.push(SourcesFilterScreen()) },
-                    ),
-                )
+        ).let {
+            when (smartSearchConfig) {
+                null -> {
+                    it.add(
+                        AppBar.Action(
+                            title = stringResource(MR.strings.action_filter),
+                            icon = Icons.Outlined.FilterList,
+                            onClick = { navigator.push(SourcesFilterScreen()) },
+                        ),
+                    )
+                }
+                else -> it
             }
         },
         // SY <--
