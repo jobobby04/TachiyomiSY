@@ -43,21 +43,22 @@ fun Screen.sourcesTab(
             true -> MR.strings.label_sources
             false -> SYMR.strings.find_in_another_source
         },
-        actions = if (smartSearchConfig == null) {
-            persistentListOf(
-                AppBar.Action(
-                    title = stringResource(MR.strings.action_global_search),
-                    icon = Icons.Outlined.TravelExplore,
-                    onClick = { navigator.push(GlobalSearchScreen()) },
-                ),
-                AppBar.Action(
-                    title = stringResource(MR.strings.action_filter),
-                    icon = Icons.Outlined.FilterList,
-                    onClick = { navigator.push(SourcesFilterScreen()) },
-                ),
-            )
-        } else {
-            persistentListOf()
+        actions = persistentListOf(
+            AppBar.Action(
+                title = stringResource(MR.strings.action_global_search),
+                icon = Icons.Outlined.TravelExplore,
+                onClick = { navigator.push(GlobalSearchScreen(smartSearchConfig?.origTitle ?: "")) },
+            ),
+        ).apply {
+            if (smartSearchConfig == null) {
+                add(
+                    AppBar.Action(
+                        title = stringResource(MR.strings.action_filter),
+                        icon = Icons.Outlined.FilterList,
+                        onClick = { navigator.push(SourcesFilterScreen()) },
+                    ),
+                )
+            }
         },
         // SY <--
         content = { contentPadding, snackbarHostState ->
