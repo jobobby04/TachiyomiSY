@@ -78,7 +78,8 @@ class ComickPagingSource(
                             .jsonArray
                             .map { it.jsonObject["b2key"]!!.jsonPrimitive.content }
                             .first(),
-                        initialized = true,
+                        // Mark as uninitialized to force fetching missing metadata
+                        initialized = false,
                     )
                 },
                 false,
