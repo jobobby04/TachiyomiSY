@@ -55,6 +55,11 @@ abstract class RecommendationPagingSource(
                 if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources().get()) {
                     add(MangaDexSimilarPagingSource(manga, source.getMainSource() as MangaDex))
                 }
+
+                // Only include Comick if the source manga is from there
+                if (source.isComickSource()) {
+                    add(ComickPagingSource(manga, source))
+                }
             }.sortedWith(compareBy({ it.name }, { it.category.resourceId }))
         }
     }
