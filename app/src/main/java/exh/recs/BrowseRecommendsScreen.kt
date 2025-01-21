@@ -62,7 +62,7 @@ class BrowseRecommendsScreen(
 
         Scaffold(
             topBar = { scrollBehavior ->
-                val recSource = screenModel.recommendationSource
+                val recSource = remember { screenModel.recommendationSource }
 
                 BrowseSourceSimpleToolbar(
                     navigateUp = navigator::pop,
