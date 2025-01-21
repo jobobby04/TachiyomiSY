@@ -550,7 +550,7 @@
     <string name="pref_crop_borders_webtoon">Recortar bordes Webtoon</string>
     <string name="feed">Feed</string>
     <string name="feed_delete">¿Borrar artículo de feed?</string>
-    <string name="too_many_in_feed">Demasiadas fuentes en su feed, no puede añadir más de 10</string>
+    <string name="too_many_in_feed">Demasiadas fuentes en tu feed, no se pueden agregar más de 10</string>
     <string name="action_add_tags_message">¡Lee esto! ¡Etiquetas deben ser exactas, no hay coincidencias parciales, no puedes hacer netorare para excluir mujer:netorare o similar!\nEl estilo para etiquetas de nombre es\n\"mujer: solo mujer\"\n¡sin citas!\n¡Se pueden añadir multiples variantes de la misma etiqueta, así que puedes hacer \"etiqueta:netorare\" para NHentai y \"mujer:netorare\" para E-Hentai!</string>
     <string name="select_none">Selecciona ninguno</string>
     <string name="feed_tab_empty">No tiene fuentes en su feed, navegar a la parte superior derecha para añadir una</string>
@@ -572,7 +572,6 @@
     <string name="dedupe_most_chapters">Mostrar fuentes con la mayor cantidad de capítulos</string>
     <string name="dedupe_highest_chapter">Mostrar fuente con el número de capítulo más alto</string>
     <string name="mangadex_preffered_source">Fuente preferida MangaDex</string>
-    <string name="mangadex_similar">Similar MangaDex</string>
     <string name="relation_preserialization">Pre-serialización</string>
     <string name="gallery_adder_uri_map_to_chapter_error">¡Error en el mapa URI de origen al capítulo!</string>
     <string name="gallery_adder_uri_clean_error">¡Error al limpiar la URL de origen!</string>
@@ -609,4 +608,8 @@
     <string name="mangadex_push_favorites_to_mangadex_summary">Sincroniza cualquier entrada rastreada no incluida en MdList con MangaDex como lectura.</string>
     <string name="relation_similar">Similar</string>
     <string name="relation_monochrome">Monocromo</string>
+    <string name="entry_not_tracked">La entrada no se rastrea.</string>
+    <string name="select_tracker">Seleccione un rastreador</string>
+    <string name="fill_from_tracker">Llenar desde el rastreador</string>
+    <string name="favorites_sync_unable_to_add_to_remote">No se puede agregar la galería al servidor remoto: \'%1$s\' (GID: %2$s)!</string>
 </resources>
