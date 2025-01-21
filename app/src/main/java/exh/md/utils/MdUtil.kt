@@ -89,7 +89,7 @@ class MdUtil {
 
         fun cleanDescription(string: String): String {
             return Parser.unescapeEntities(string, false)
-                .substringBefore("---")
+                .substringBefore("\n---")
                 .replace(markdownLinksRegex, "$1")
                 .replace(markdownItalicBoldRegex, "$1")
                 .replace(markdownItalicRegex, "$1")
