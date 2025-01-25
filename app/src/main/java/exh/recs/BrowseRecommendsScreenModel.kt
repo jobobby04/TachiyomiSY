@@ -15,7 +15,10 @@ class BrowseRecommendsScreenModel(
     private val args: BrowseRecommendsScreen.Args,
     private val getManga: GetManga = Injekt.get(),
 ) : BrowseSourceScreenModel(
-    if(args is BrowseRecommendsScreen.Args.SingleSourceManga) args.sourceId else -1,
+    when (args) {
+        is BrowseRecommendsScreen.Args.SingleSourceManga -> args.sourceId
+        is BrowseRecommendsScreen.Args.MergedSourceMangas -> args.results.recAssociatedSourceId ?: -1
+    },
     null
 ) {
     val recommendationSource: RecommendationPagingSource
