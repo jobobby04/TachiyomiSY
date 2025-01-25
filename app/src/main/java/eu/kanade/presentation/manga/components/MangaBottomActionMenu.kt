@@ -28,7 +28,6 @@ import androidx.compose.material.icons.outlined.BookmarkRemove
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material.icons.outlined.SwapCalls
@@ -237,6 +236,7 @@ fun LibraryBottomActionMenu(
     // SY -->
     onClickCleanTitles: (() -> Unit)?,
     onClickMigrate: (() -> Unit)?,
+    onClickCollectRecommendations: (() -> Unit)?,
     onClickAddToMangaDex: (() -> Unit)?,
     onClickResetInfo: (() -> Unit)?,
     // SY <--
@@ -267,7 +267,8 @@ fun LibraryBottomActionMenu(
                 }
             }
             // SY -->
-            val showOverflow = onClickCleanTitles != null || onClickAddToMangaDex != null || onClickResetInfo != null
+            val showOverflow = onClickCleanTitles != null || onClickAddToMangaDex != null ||
+                onClickResetInfo != null || onClickCollectRecommendations != null
             val configuration = LocalConfiguration.current
             val moveMarkPrev = remember { !configuration.isTabletUi() }
             var overFlowOpen by remember { mutableStateOf(false) }
@@ -356,6 +357,12 @@ fun LibraryBottomActionMenu(
                             DropdownMenuItem(
                                 text = { Text(stringResource(MR.strings.migrate)) },
                                 onClick = onClickMigrate,
+                            )
+                        }
+                        if (onClickCollectRecommendations != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(SYMR.strings.az_recommends)) },
+                                onClick = onClickCollectRecommendations,
                             )
                         }
                         if (onClickAddToMangaDex != null) {

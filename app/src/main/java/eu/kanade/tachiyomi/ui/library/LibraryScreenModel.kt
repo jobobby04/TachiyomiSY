@@ -42,6 +42,7 @@ import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
 import exh.metadata.sql.models.SearchTag
 import exh.metadata.sql.models.SearchTitle
+import exh.recs.batch.RecommendationSearchHelper
 import exh.search.Namespace
 import exh.search.QueryComponent
 import exh.search.SearchEngine
@@ -160,6 +161,7 @@ class LibraryScreenModel(
 
     // SY -->
     val favoritesSync = FavoritesSyncHelper(preferences.context)
+    val recommendationSearch = RecommendationSearchHelper(preferences.context)
     // SY <--
 
     init {
@@ -898,6 +900,10 @@ class LibraryScreenModel(
     }
 
     // SY -->
+    fun showRecommendationSearchDialog() {
+        val mangaList = state.value.selection.map { it.manga }
+        mutableState.update { it.copy(dialog = Dialog.RecommendationSearchSheet(mangaList)) }
+    }
 
     fun getCategoryName(
         context: Context,
@@ -1222,8 +1228,12 @@ class LibraryScreenModel(
             val initialSelection: ImmutableList<CheckboxState<Category>>,
         ) : Dialog
         data class DeleteManga(val manga: List<Manga>) : Dialog
+
+        // SY -->
         data object SyncFavoritesWarning : Dialog
         data object SyncFavoritesConfirm : Dialog
+        data class RecommendationSearchSheet(val manga: List<Manga>) : Dialog
+        // SY <--
     }
 
     // SY -->
@@ -1314,6 +1324,10 @@ class LibraryScreenModel(
                 }
             }
         }.toSortedMap(compareBy { it.order })
+    }
+
+    fun runRecommendationSearch(selection: List<Manga>) {
+        recommendationSearch.runSearch(screenModelScope, selection)
     }
 
     fun runSync() {

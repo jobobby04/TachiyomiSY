@@ -15,6 +15,7 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
+import exh.recs.batch.SearchResults
 import exh.ui.ifSourcesLoaded
 import mihon.presentation.core.util.collectAsLazyPagingItems
 import tachiyomi.domain.manga.model.Manga
@@ -22,11 +23,18 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.screens.LoadingScreen
 
 class BrowseRecommendsScreen(
-    private val mangaId: Long,
-    private val sourceId: Long,
-    private val recommendationSourceName: String,
+    private val args: Args,
     private val isExternalSource: Boolean,
 ) : Screen() {
+
+    sealed interface Args {
+        data class SingleSourceManga(
+            val mangaId: Long,
+            val sourceId: Long,
+            val recommendationSourceName: String,
+        ) : Args
+        data class MergedSourceMangas(val results: SearchResults) : Args
+    }
 
     @Composable
     override fun Content() {
@@ -38,9 +46,7 @@ class BrowseRecommendsScreen(
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel {
-            BrowseRecommendsScreenModel(mangaId, sourceId, recommendationSourceName)
-        }
+        val screenModel = rememberScreenModel { BrowseRecommendsScreenModel(args) }
         val snackbarHostState = remember { SnackbarHostState() }
 
         val onClickItem = { manga: Manga ->
