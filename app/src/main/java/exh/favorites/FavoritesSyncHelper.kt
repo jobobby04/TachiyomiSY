@@ -10,12 +10,12 @@ import eu.kanade.tachiyomi.source.online.all.EHentai
 import eu.kanade.tachiyomi.util.system.toast
 import exh.GalleryAddEvent
 import exh.GalleryAdder
-import exh.eh.EHentaiThrottleManager
 import exh.eh.EHentaiUpdateWorker
 import exh.log.xLog
 import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
 import exh.source.isEhBasedManga
+import exh.util.ThrottleManager
 import exh.util.createPartialWakeLock
 import exh.util.createWifiLock
 import exh.util.ignore
@@ -68,7 +68,7 @@ class FavoritesSyncHelper(val context: Context) {
 
     private val galleryAdder by lazy { GalleryAdder() }
 
-    private val throttleManager by lazy { EHentaiThrottleManager() }
+    private val throttleManager by lazy { ThrottleManager() }
 
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null

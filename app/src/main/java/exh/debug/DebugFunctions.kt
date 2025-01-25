@@ -10,7 +10,7 @@ import eu.kanade.tachiyomi.data.sync.SyncDataJob
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.source.online.all.NHentai
 import eu.kanade.tachiyomi.util.system.workManager
-import exh.eh.EHentaiThrottleManager
+import exh.util.ThrottleManager
 import exh.eh.EHentaiUpdateWorker
 import exh.metadata.metadata.EHentaiSearchMetadata
 import exh.source.EH_SOURCE_ID
@@ -76,7 +76,7 @@ object DebugFunctions {
             }
         }
     }
-    private val throttleManager = EHentaiThrottleManager()
+    private val throttleManager = ThrottleManager()
 
     fun getDelegatedSourceList(): String = AndroidSourceManager.currentDelegatedSources.map {
         it.value.sourceName + " : " + it.value.sourceId + " : " + it.value.factory
