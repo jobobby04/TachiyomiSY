@@ -21,13 +21,14 @@ import mihon.presentation.core.util.collectAsLazyPagingItems
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.screens.LoadingScreen
+import java.io.Serializable
 
 class BrowseRecommendsScreen(
     private val args: Args,
     private val isExternalSource: Boolean,
 ) : Screen() {
 
-    sealed interface Args {
+    sealed interface Args : Serializable {
         data class SingleSourceManga(
             val mangaId: Long,
             val sourceId: Long,

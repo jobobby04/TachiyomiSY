@@ -3,7 +3,7 @@ package exh.recs.batch
 import android.content.Context
 import android.net.wifi.WifiManager
 import android.os.PowerManager
-import dev.icerock.moko.resources.StringResource
+import androidx.annotation.StringRes
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.SManga
@@ -26,6 +26,7 @@ import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.injectLazy
+import java.io.Serializable
 import java.util.Collections
 import kotlin.coroutines.coroutineContext
 
@@ -97,7 +98,7 @@ class RecommendationSearchHelper(val context: Context) {
                             resultsMap.getOrPut(recSourceId) {
                                 SearchResults(
                                     recSourceName = source.name,
-                                    recSourceCategory = source.category,
+                                    recSourceCategoryResId = source.category.resourceId,
                                     recAssociatedSourceId = source.associatedSourceId,
                                     recommendations = mutableListOf()
                                 )
@@ -136,10 +137,10 @@ class RecommendationSearchHelper(val context: Context) {
 
 data class SearchResults(
     val recSourceName: String,
-    val recSourceCategory: StringResource,
+    @StringRes val recSourceCategoryResId: Int,
     val recAssociatedSourceId: Long?,
     val recommendations: MutableList<SManga>
-)
+) : Serializable
 
 sealed interface SearchStatus {
     data object Idle : SearchStatus

@@ -21,10 +21,12 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
+import java.io.Serializable
+
 
 class RecommendsScreen(private val args: Args) : Screen() {
 
-    sealed interface Args {
+    sealed interface Args : Serializable {
         data class SingleSourceManga(val mangaId: Long, val sourceId: Long) : Args
         data class MergedSourceMangas(val mergedResults: Map<String, SearchResults>) : Args
     }
@@ -76,11 +78,11 @@ class RecommendsScreen(private val args: Args) : Screen() {
                                 BrowseRecommendsScreen.Args.SingleSourceManga(
                                     args.mangaId,
                                     args.sourceId,
-                                    pagingSource::class.qualifiedName!!
+                                    pagingSource::class.qualifiedName!!,
                                 )
                             is MergedSourceMangas ->
                                 BrowseRecommendsScreen.Args.MergedSourceMangas(
-                                    (pagingSource as StaticResultPagingSource).results
+                                    (pagingSource as StaticResultPagingSource).results,
                                 )
                         },
                         pagingSource.associatedSourceId == null,

@@ -9,7 +9,7 @@ class StaticResultPagingSource(
     val results: SearchResults
 ) : RecommendationPagingSource(Manga.create()) {
     override val name: String get() = results.recSourceName
-    override val category: StringResource get() = results.recSourceCategory
+    override val category: StringResource get() = StringResource(results.recSourceCategoryResId)
     override val associatedSourceId: Long? get() = results.recAssociatedSourceId
 
     override suspend fun requestNextPage(currentPage: Int) = MangasPage(results.recommendations, false)
