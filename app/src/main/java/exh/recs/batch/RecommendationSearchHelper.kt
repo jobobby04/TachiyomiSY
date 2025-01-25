@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.source.model.SManga
 import exh.log.xLog
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.TrackerRecommendationPagingSource
+import exh.util.ThrottleManager
 import exh.util.createPartialWakeLock
 import exh.util.createWifiLock
 import exh.util.ignore
@@ -29,6 +30,8 @@ import uy.kohesive.injekt.injectLazy
 import java.io.Serializable
 import java.util.Collections
 import kotlin.coroutines.coroutineContext
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 typealias RecommendationMap = Map<String, SearchResults>
 
@@ -36,7 +39,6 @@ class RecommendationSearchHelper(val context: Context) {
     private val getLibraryManga: GetLibraryManga by injectLazy()
     private val getManga: GetManga by injectLazy()
     private val sourceManager: SourceManager by injectLazy()
-
     private val prefs: UnsortedPreferences by injectLazy()
 
     private var wifiLock: WifiManager.WifiLock? = null
@@ -58,8 +60,18 @@ class RecommendationSearchHelper(val context: Context) {
     }
 
     private suspend fun beginSearch(mangaList: List<Manga>) {
-        val libraryManga = getLibraryManga.await()
         val flags = prefs.recommendationSearchFlags().get()
+        val libraryManga = getLibraryManga.await()
+
+        // Trackers such as MAL need to be throttled more strictly
+        val stricterThrottling = SearchFlags.hasIncludeTrackers(flags)
+
+        val throttleManager =
+            ThrottleManager(
+                max = 3.seconds,
+                inc = 50.milliseconds,
+                initial = if(stricterThrottling) 2.seconds else 0.seconds
+            )
 
         try {
             // Take wake + wifi locks
@@ -114,6 +126,8 @@ class RecommendationSearchHelper(val context: Context) {
 
                 //TODO filter library manga
                 jobs.awaitAll()
+
+                throttleManager.throttle()
             }
 
             status.value = SearchStatus.Finished(resultsMap)
