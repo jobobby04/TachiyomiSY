@@ -5,7 +5,6 @@ import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
-import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.SManga
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -24,8 +23,8 @@ import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
-abstract class MangaUpdatesPagingSource(manga: Manga, source: CatalogueSource) : TrackerRecommendationPagingSource(
-    "https://api.mangaupdates.com/v1/", source, manga,
+abstract class MangaUpdatesPagingSource(manga: Manga) : TrackerRecommendationPagingSource(
+    "https://api.mangaupdates.com/v1/", manga,
 ) {
     override val name: String
         get() = "MangaUpdates"
@@ -99,14 +98,14 @@ abstract class MangaUpdatesPagingSource(manga: Manga, source: CatalogueSource) :
     }
 }
 
-class MangaUpdatesCommunityPagingSource(manga: Manga, source: CatalogueSource) : MangaUpdatesPagingSource(manga, source) {
+class MangaUpdatesCommunityPagingSource(manga: Manga) : MangaUpdatesPagingSource(manga) {
     override val category: StringResource
         get() = SYMR.strings.community_recommendations
     override val recommendationJsonObjectName: String
         get() = "recommendations"
 }
 
-class MangaUpdatesSimilarPagingSource(manga: Manga, source: CatalogueSource) : MangaUpdatesPagingSource(manga, source) {
+class MangaUpdatesSimilarPagingSource(manga: Manga) : MangaUpdatesPagingSource(manga) {
     override val category: StringResource
         get() = SYMR.strings.similar_titles
     override val recommendationJsonObjectName: String

@@ -18,6 +18,7 @@ import tachiyomi.data.source.NoResultsException
 import tachiyomi.data.source.SourcePagingSource
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.track.interactor.GetTracks
+import tachiyomi.i18n.sy.SYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -26,14 +27,14 @@ import uy.kohesive.injekt.injectLazy
  * General class for recommendation sources.
  */
 abstract class RecommendationPagingSource(
-    source: CatalogueSource,
     protected val manga: Manga,
+    source: CatalogueSource? = null,
 ) : SourcePagingSource(source) {
     // Display name
     abstract val name: String
 
     // Localized category name
-    abstract val category: StringResource
+    open val category: StringResource = SYMR.strings.similar_titles
 
     /**
      * Recommendation sources that display results from a source extension,
@@ -46,10 +47,10 @@ abstract class RecommendationPagingSource(
     companion object {
         fun createSources(manga: Manga, source: CatalogueSource): List<RecommendationPagingSource> {
             return buildList {
-                add(AniListPagingSource(manga, source))
-                add(MangaUpdatesCommunityPagingSource(manga, source))
-                add(MangaUpdatesSimilarPagingSource(manga, source))
-                add(MyAnimeListPagingSource(manga, source))
+                add(AniListPagingSource(manga))
+                add(MangaUpdatesCommunityPagingSource(manga))
+                add(MangaUpdatesSimilarPagingSource(manga))
+                add(MyAnimeListPagingSource(manga))
 
                 // Only include MangaDex if the delegate sources are enabled and the source is MD-based
                 if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources().get()) {
@@ -70,9 +71,8 @@ abstract class RecommendationPagingSource(
  */
 abstract class TrackerRecommendationPagingSource(
     protected val endpoint: String,
-    source: CatalogueSource,
     manga: Manga,
-) : RecommendationPagingSource(source, manga) {
+) : RecommendationPagingSource(manga) {
     private val getTracks: GetTracks by injectLazy()
 
     protected val trackerManager: TrackerManager by injectLazy()
@@ -105,7 +105,10 @@ abstract class TrackerRecommendationPagingSource(
 
             results.ifEmpty { throw NoResultsException() }
         } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e) { name }
+            // 'No results' should not be logged as it happens frequently and is expected
+            if(e !is NoResultsException) {
+                logcat(LogPriority.ERROR, e) { name }
+            }
             throw e
         }
 

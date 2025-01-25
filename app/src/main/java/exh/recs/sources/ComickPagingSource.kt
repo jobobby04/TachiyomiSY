@@ -28,7 +28,7 @@ fun CatalogueSource.isComickSource() = name == "Comick"
 class ComickPagingSource(
     manga: Manga,
     private val comickSource: CatalogueSource,
-) : RecommendationPagingSource(comickSource, manga) {
+) : RecommendationPagingSource(manga, comickSource) {
 
     override val name: String
         get() = "Comick"

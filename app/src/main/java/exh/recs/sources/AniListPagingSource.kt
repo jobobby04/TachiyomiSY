@@ -22,8 +22,8 @@ import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
-class AniListPagingSource(manga: Manga, source: CatalogueSource) : TrackerRecommendationPagingSource(
-    "https://graphql.anilist.co/", source, manga,
+class AniListPagingSource(manga: Manga) : TrackerRecommendationPagingSource(
+    "https://graphql.anilist.co/", manga
 ) {
     override val name: String
         get() = "AniList"

@@ -19,7 +19,7 @@ import tachiyomi.i18n.sy.SYMR
 class MangaDexSimilarPagingSource(
     manga: Manga,
     private val mangaDex: MangaDex,
-) : RecommendationPagingSource(mangaDex, manga) {
+) : RecommendationPagingSource(manga, mangaDex) {
 
     override val name: String
         get() = "MangaDex"
