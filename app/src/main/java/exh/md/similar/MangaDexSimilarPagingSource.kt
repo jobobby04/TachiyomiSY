@@ -2,6 +2,7 @@ package exh.md.similar
 
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.MetadataMangasPage
 import eu.kanade.tachiyomi.source.online.all.MangaDex
@@ -32,16 +33,24 @@ class MangaDexSimilarPagingSource(
 
     override suspend fun requestNextPage(currentPage: Int): MangasPage {
         val mangasPage = coroutineScope {
-            val similarPageDef = async { mangaDex.getMangaSimilar(manga.toSManga()) }
-            val relatedPageDef = async { mangaDex.getMangaRelated(manga.toSManga()) }
-            val similarPage = similarPageDef.await()
-            val relatedPage = relatedPageDef.await()
+            try {
+                val similarPageDef = async { mangaDex.getMangaSimilar(manga.toSManga()) }
+                val relatedPageDef = async { mangaDex.getMangaRelated(manga.toSManga()) }
+                val similarPage = similarPageDef.await()
+                val relatedPage = relatedPageDef.await()
 
-            MetadataMangasPage(
-                relatedPage.mangas + similarPage.mangas,
-                false,
-                relatedPage.mangasMetadata + similarPage.mangasMetadata,
-            )
+                MetadataMangasPage(
+                    relatedPage.mangas + similarPage.mangas,
+                    false,
+                    relatedPage.mangasMetadata + similarPage.mangasMetadata,
+                )
+            }
+            catch (e: HttpException) {
+                when (e.code) {
+                    404 -> throw NoResultsException()
+                    else -> throw e
+                }
+            }
         }
 
         return mangasPage.takeIf { it.mangas.isNotEmpty() } ?: throw NoResultsException()
