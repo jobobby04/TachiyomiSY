@@ -23,7 +23,10 @@ class BrowseRecommendsScreenModel(
 ) {
     val recommendationSource: RecommendationPagingSource
         get() = when (args) {
-            is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
+            is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(
+                args.results,
+                useVirtualPaging = true
+            )
             is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
                 runBlocking { getManga.await(args.mangaId)!! },
                 source as CatalogueSource
