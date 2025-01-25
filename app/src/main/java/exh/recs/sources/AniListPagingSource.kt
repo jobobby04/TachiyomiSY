@@ -18,6 +18,7 @@ import kotlinx.serialization.json.put
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
@@ -84,7 +85,7 @@ class AniListPagingSource(manga: Manga, source: CatalogueSource) : TrackerRecomm
             .jsonObject["Page"]!!
             .jsonObject["media"]!!
             .jsonArray
-            .ifEmpty { throw Exception("'$queryParam' not found") }
+            .ifEmpty { throw NoResultsException() }
             .filter()
 
         return media.flatMap { it.jsonObject["recommendations"]!!.jsonObject["edges"]!!.jsonArray }.map {

@@ -20,6 +20,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
@@ -89,7 +90,7 @@ abstract class MangaUpdatesPagingSource(manga: Manga, source: CatalogueSource) :
         return getRecsById(
             data["results"]!!
                 .jsonArray
-                .ifEmpty { throw Exception("'$search' not found") }
+                .ifEmpty { throw NoResultsException() }
                 .first()
                 .jsonObject["record"]!!
                 .jsonObject["series_id"]!!
