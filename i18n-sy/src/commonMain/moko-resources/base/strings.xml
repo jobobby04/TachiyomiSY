@@ -491,27 +491,6 @@
     <string name="rec_error_string">An error occurred during the search process: %1$s</string>
     <string name="rec_processing_state">Processing entry %1$d of %2$d</string>
     <string name="rec_collecting">Collecting recommendations</string>
-    <string name="favorites_sync_calculating_remote_changes">Calculating remote changes</string>
-    <string name="favorites_sync_calculating_local_changes">Calculating local changes</string>
-    <string name="favorites_sync_syncing_category_names">Updating category names</string>
-    <string name="favorites_sync_cleaning_up">Cleaning up</string>
-    <string name="favorites_sync_complete">Sync complete!</string>
-    <string name="favorites_sync_ignoring_exception">Ignoring exception!</string>
-    <string name="favorites_sync_sync_error">Sync error!</string>
-    <string name="favorites_sync_unknown_error">Unknown error: %1$s</string>
-    <string name="favorites_sync_network_error">Sync network error!</string>
-    <string name="favorites_sync_removing_galleries">Removing %1$d galleries from remote server</string>
-    <string name="favorites_sync_unable_to_delete">Unable to delete galleries from the remote servers!</string>
-    <string name="favorites_sync_adding_to_remote">Adding gallery %1$d of %2$d to remote server</string>
-    <string name="favorites_sync_unable_to_add_to_remote">Unable to add gallery to remote server: '%1$s' (GID: %2$s)!</string>
-    <string name="favorites_sync_remove_from_local">Removing gallery %1$d of %2$d from local library</string>
-    <string name="favorites_sync_add_to_local">Adding gallery %1$d of %2$d to local library</string>
-    <string name="favorites_sync_remote_not_exist">Remote gallery does not exist, skipping: %1$s!</string>
-    <string name="favorites_sync_failed_to_add_to_local">Failed to add gallery to local database: </string>
-    <string name="favorites_sync_failed_to_add_to_local_error">\'%1$s\' %2$s</string>
-    <string name="favorites_sync_failed_to_add_to_local_unknown_type">\'%1$s\' (%2$s) is not a valid gallery!</string>
-    <string name="favorites_sync_waiting_for_start">Waiting for sync to start</string>
-    <string name="favorites_sync_gallery_in_multiple_categories">The gallery: %1$s is in more than one category (%2$s)!</string>
     <string name="rec_initializing">Initializing</string>
 
     <!-- Library -->
