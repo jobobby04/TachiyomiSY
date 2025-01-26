@@ -487,6 +487,7 @@
     <string name="rec_group_source">Source recommendations</string>
     <string name="rec_group_tracker">Tracker recommendations</string>
     <string name="rec_common_recommendations">Common recommendations</string>
+    <string name="rec_no_results">No recommendations found</string>
     <string name="rec_error_title">Search failed</string>
     <string name="rec_error_string">An error occurred during the search process: %1$s</string>
     <string name="rec_processing_state">Processing entry %1$d of %2$d</string>

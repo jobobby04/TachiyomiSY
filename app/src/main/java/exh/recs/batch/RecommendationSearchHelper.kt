@@ -149,7 +149,10 @@ class RecommendationSearchHelper(val context: Context) {
                 )
             }
 
-            status.value = SearchStatus.Finished(rankedMap)
+            status.value = when {
+                rankedMap.isEmpty() -> SearchStatus.Finished.WithResults(rankedMap)
+                else -> SearchStatus.Finished.WithoutResults
+            }
         } catch (e: Exception) {
             status.value = SearchStatus.Error(e.message.orEmpty())
             logger.e("Error during recommendation search", e)
@@ -185,5 +188,9 @@ sealed interface SearchStatus {
     data object Initializing : SearchStatus
     data class Processing(val manga: SManga, val current: Int, val total: Int) : SearchStatus
     data class Error(val message: String) : SearchStatus
-    data class Finished(val results: List<RankedSearchResults>) : SearchStatus
+
+    sealed interface Finished : SearchStatus {
+        data class WithResults(val results: List<RankedSearchResults>) : Finished
+        data object WithoutResults : Finished
+    }
 }

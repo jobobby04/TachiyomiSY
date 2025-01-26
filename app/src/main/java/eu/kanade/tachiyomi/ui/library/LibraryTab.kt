@@ -382,11 +382,15 @@ data object LibraryTab : Tab {
         val recSearchState by screenModel.recommendationSearch.status.collectAsState()
         LaunchedEffect(recSearchState) {
             when (val current = recSearchState) {
-                is SearchStatus.Finished -> {
+                is SearchStatus.Finished.WithResults -> {
                     RecommendsScreen.Args.MergedSourceMangas(current.results)
                         .let(::RecommendsScreen)
                         .let(navigator::push)
 
+                    screenModel.recommendationSearch.status.value = SearchStatus.Idle
+                }
+                is SearchStatus.Finished.WithoutResults -> {
+                    context.toast(SYMR.strings.rec_no_results)
                     screenModel.recommendationSearch.status.value = SearchStatus.Idle
                 }
                 else -> {}
