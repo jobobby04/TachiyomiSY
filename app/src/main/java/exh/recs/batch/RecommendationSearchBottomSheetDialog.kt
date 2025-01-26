@@ -44,6 +44,8 @@ class RecommendationSearchBottomSheetDialogState(private val onSearchRequest: ()
         binding.recHideLibraryEntries.setOnCheckedChangeListener { _, _ -> setFlags(binding) }
 
         binding.recSearchBtn.setOnClickListener { _ -> onSearchRequest() }
+
+        validate(binding)
     }
 
     private fun setFlags(binding: RecommendationSearchBottomSheetBinding) {
@@ -52,5 +54,12 @@ class RecommendationSearchBottomSheetDialogState(private val onSearchRequest: ()
         if (binding.recTrackers.isChecked) flags = flags or SearchFlags.INCLUDE_TRACKERS
         if (binding.recHideLibraryEntries.isChecked) flags = flags or SearchFlags.HIDE_LIBRARY_RESULTS
         preferences.recommendationSearchFlags().set(flags)
+
+        validate(binding)
+    }
+
+    private fun validate(binding: RecommendationSearchBottomSheetBinding) {
+        // Only enable search button if at least one of the checkboxes is checked
+        binding.recSearchBtn.isEnabled = binding.recSources.isChecked || binding.recTrackers.isChecked
     }
 }
