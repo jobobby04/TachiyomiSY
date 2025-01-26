@@ -35,6 +35,7 @@ data class RecommendationSearchProgressProperties(
 fun RecommendationSearchProgressDialog(
     status: SearchStatus,
     setStatusIdle: () -> Unit,
+    setStatusCancelling: () -> Unit,
 ) {
     val context = LocalContext.current
     val currentView = LocalView.current
@@ -48,14 +49,12 @@ fun RecommendationSearchProgressDialog(
 
     val properties by produceState<RecommendationSearchProgressProperties?>(initialValue = null, status) {
         value = when (status) {
-            is SearchStatus.Idle -> null
-            is SearchStatus.Finished -> null
             is SearchStatus.Initializing -> {
                 RecommendationSearchProgressProperties(
                     title = context.stringResource(SYMR.strings.rec_collecting),
                     text = context.stringResource(SYMR.strings.rec_initializing),
                     negativeButtonText = context.stringResource(MR.strings.action_cancel),
-                    negativeButton = setStatusIdle,
+                    negativeButton = setStatusCancelling,
                 )
             }
             is SearchStatus.Error -> {
@@ -71,9 +70,10 @@ fun RecommendationSearchProgressDialog(
                     title = context.stringResource(SYMR.strings.rec_collecting),
                     text = context.stringResource(SYMR.strings.rec_processing_state, status.current, status.total) + "\n\n" + status.manga.title,
                     negativeButtonText = context.stringResource(MR.strings.action_cancel),
-                    negativeButton = setStatusIdle,
+                    negativeButton = setStatusCancelling,
                 )
             }
+            else -> null
         }
     }
     val dialog = properties

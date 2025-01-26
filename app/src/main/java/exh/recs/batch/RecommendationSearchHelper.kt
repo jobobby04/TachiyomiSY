@@ -17,10 +17,13 @@ import exh.util.ThrottleManager
 import exh.util.createPartialWakeLock
 import exh.util.createWifiLock
 import exh.util.ignore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import tachiyomi.data.source.NoResultsException
@@ -56,14 +59,14 @@ class RecommendationSearchHelper(val context: Context) {
     val status: MutableStateFlow<SearchStatus> = MutableStateFlow(SearchStatus.Idle)
 
     @Synchronized
-    fun runSearch(scope: CoroutineScope, mangaList: List<Manga>) {
+    fun runSearch(scope: CoroutineScope, mangaList: List<Manga>): Job? {
         if (status.value !is SearchStatus.Idle) {
-            return
+            return null
         }
 
         status.value = SearchStatus.Initializing
 
-        scope.launch(Dispatchers.IO) { beginSearch(mangaList) }
+        return scope.launch(Dispatchers.IO) { beginSearch(mangaList) }
     }
 
     private suspend fun beginSearch(mangaList: List<Manga>) {
@@ -92,6 +95,9 @@ class RecommendationSearchHelper(val context: Context) {
             val resultsMap = Collections.synchronizedMap(mutableMapOf<String, SearchResults>())
 
             mangaList.forEachIndexed { index, sourceManga ->
+                // Check if the job has been cancelled
+                coroutineContext.ensureActive()
+
                 status.value = SearchStatus.Processing(sourceManga.toSManga(), index + 1, mangaList.size)
 
                 val jobs = RecommendationPagingSource.createSources(
@@ -163,6 +169,7 @@ class RecommendationSearchHelper(val context: Context) {
                 rankedMap.isNotEmpty() -> SearchStatus.Finished.WithResults(rankedMap)
                 else -> SearchStatus.Finished.WithoutResults
             }
+        } catch (_: CancellationException) {
         } catch (e: Exception) {
             status.value = SearchStatus.Error(e.message.orEmpty())
             logger.e("Error during recommendation search", e)
@@ -232,6 +239,7 @@ sealed interface SearchStatus {
     data object Initializing : SearchStatus
     data class Processing(val manga: SManga, val current: Int, val total: Int) : SearchStatus
     data class Error(val message: String) : SearchStatus
+    data object Cancelling : SearchStatus
 
     sealed interface Finished : SearchStatus {
         data class WithResults(val results: List<RankedSearchResults>) : Finished

@@ -363,7 +363,7 @@ fun LibraryBottomActionMenu(
                         }
                         if (onClickCollectRecommendations != null) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(SYMR.strings.az_recommends)) },
+                                text = { Text(stringResource(SYMR.strings.rec_search_short)) },
                                 onClick = onClickCollectRecommendations,
                             )
                         }

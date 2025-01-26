@@ -358,6 +358,7 @@ data object LibraryTab : Tab {
         RecommendationSearchProgressDialog(
             status = screenModel.recommendationSearch.status.collectAsState().value,
             setStatusIdle = { screenModel.recommendationSearch.status.value = SearchStatus.Idle },
+            setStatusCancelling = { screenModel.recommendationSearch.status.value = SearchStatus.Cancelling },
         )
         // SY <--
 
@@ -391,6 +392,10 @@ data object LibraryTab : Tab {
                 }
                 is SearchStatus.Finished.WithoutResults -> {
                     context.toast(SYMR.strings.rec_no_results)
+                    screenModel.recommendationSearch.status.value = SearchStatus.Idle
+                }
+                is SearchStatus.Cancelling -> {
+                    screenModel.cancelRecommendationSearch()
                     screenModel.recommendationSearch.status.value = SearchStatus.Idle
                 }
                 else -> {}
