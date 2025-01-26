@@ -4,12 +4,15 @@ import android.content.Context
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.annotation.StringRes
+import androidx.core.net.toUri
+import eu.kanade.domain.manga.model.toDomainManga
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.SManga
 import exh.log.xLog
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.TrackerRecommendationPagingSource
+import exh.smartsearch.SmartLibrarySearchEngine
 import exh.util.ThrottleManager
 import exh.util.createPartialWakeLock
 import exh.util.createWifiLock
@@ -22,10 +25,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.UnsortedPreferences
+import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.interactor.GetLibraryManga
-import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.domain.track.interactor.GetTracks
+import tachiyomi.domain.track.model.Track
 import uy.kohesive.injekt.injectLazy
 import java.io.Serializable
 import java.util.Collections
@@ -35,12 +41,15 @@ import kotlin.time.Duration.Companion.seconds
 
 class RecommendationSearchHelper(val context: Context) {
     private val getLibraryManga: GetLibraryManga by injectLazy()
-    private val getManga: GetManga by injectLazy()
+    private val getTracks: GetTracks by injectLazy()
+    private val networkToLocalManga: NetworkToLocalManga by injectLazy()
     private val sourceManager: SourceManager by injectLazy()
     private val prefs: UnsortedPreferences by injectLazy()
 
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null
+
+    private val smartSearchEngine by lazy { SmartLibrarySearchEngine() }
 
     private val logger by lazy { xLog() }
 
@@ -60,6 +69,7 @@ class RecommendationSearchHelper(val context: Context) {
     private suspend fun beginSearch(mangaList: List<Manga>) {
         val flags = prefs.recommendationSearchFlags().get()
         val libraryManga = getLibraryManga.await()
+        val tracks = getTracks.await()
 
         // Trackers such as MAL need to be throttled more strictly
         val stricterThrottling = SearchFlags.hasIncludeTrackers(flags)
@@ -68,7 +78,7 @@ class RecommendationSearchHelper(val context: Context) {
             ThrottleManager(
                 max = 3.seconds,
                 inc = 50.milliseconds,
-                initial = if(stricterThrottling) 2.seconds else 0.seconds
+                initial = if (stricterThrottling) 2.seconds else 0.seconds
             )
 
         try {
@@ -88,7 +98,7 @@ class RecommendationSearchHelper(val context: Context) {
                     sourceManga,
                     sourceManager.get(sourceManga.source) as CatalogueSource
                 ).mapNotNull { source ->
-
+                    // Apply source filters
                     if (source is TrackerRecommendationPagingSource && !SearchFlags.hasIncludeTrackers(flags)) {
                         return@mapNotNull null
                     }
@@ -104,6 +114,10 @@ class RecommendationSearchHelper(val context: Context) {
                         try {
                             val page = source.requestNextPage(1)
 
+                            // Try to filter out mangas that are already in the library
+                            val mangas = page.mangas
+                                .filterLibraryItemsIfEnabled(source, libraryManga, tracks)
+
                             // Add or update the result collection for the current source
                             resultsMap.getOrPut(recSourceId) {
                                 SearchResults(
@@ -112,24 +126,20 @@ class RecommendationSearchHelper(val context: Context) {
                                     recAssociatedSourceId = source.associatedSourceId,
                                     results = mutableListOf()
                                 )
-                            }.results.addAll(page.mangas)
-
-                        }
-                        catch (_: NoResultsException) {}
-                        catch (e: Exception) {
+                            }.results.addAll(mangas)
+                        } catch (_: NoResultsException) {
+                        } catch (e: Exception) {
                             logger.e("Error while fetching recommendations for $recSourceId", e)
                         }
                     }
                 }
-
-                //TODO filter library manga
                 jobs.awaitAll()
 
                 // Continuously slow down the search to avoid hitting rate limits
                 throttleManager.throttle()
             }
 
-            val rankedMap = resultsMap.map { it ->
+            val rankedMap = resultsMap.map {
                 RankedSearchResults(
                     recSourceName = it.value.recSourceName,
                     recSourceCategoryResId = it.value.recSourceCategoryResId,
@@ -150,7 +160,7 @@ class RecommendationSearchHelper(val context: Context) {
             }
 
             status.value = when {
-                rankedMap.isEmpty() -> SearchStatus.Finished.WithResults(rankedMap)
+                rankedMap.isNotEmpty() -> SearchStatus.Finished.WithResults(rankedMap)
                 else -> SearchStatus.Finished.WithoutResults
             }
         } catch (e: Exception) {
@@ -167,6 +177,38 @@ class RecommendationSearchHelper(val context: Context) {
                 wifiLock?.release()
                 wifiLock = null
             }
+        }
+    }
+
+    private suspend fun List<SManga>.filterLibraryItemsIfEnabled(
+        recSource: RecommendationPagingSource,
+        libraryManga: List<LibraryManga>,
+        tracks: List<Track>
+    ): List<SManga> {
+        val flags = prefs.recommendationSearchFlags().get()
+
+        if (!SearchFlags.hasHideLibraryResults(flags))
+            return this
+
+        return filterNot { manga ->
+            // Source recommendations can be directly resolved, if the recommendation is from the same source
+            recSource.associatedSourceId?.let { srcId ->
+                return@filterNot networkToLocalManga
+                    .await(manga.toDomainManga(srcId))
+                    .let { local -> libraryManga.any { it.id == local.id } }
+            }
+
+            // Tracker recommendations can be resolved by checking if the tracker is attached to the recommendation
+            if(recSource is TrackerRecommendationPagingSource) {
+                recSource.associatedTrackerId?.let { trackerId ->
+                    return@filterNot tracks.any {
+                        it.trackerId == trackerId && it.remoteUrl.toUri().path == manga.url.toUri().path
+                    }
+                }
+            }
+
+            // Fallback to smart search otherwise
+            smartSearchEngine.smartSearch(libraryManga, manga.title) != null
         }
     }
 }

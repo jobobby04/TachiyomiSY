@@ -86,7 +86,7 @@ abstract class TrackerRecommendationPagingSource(
      * the remote id will be used to directly identify the manga on the tracker.
      * Otherwise, a search will be performed using the manga title.
      */
-    protected abstract val associatedTrackerId: Long?
+    abstract val associatedTrackerId: Long?
 
     abstract suspend fun getRecsBySearch(search: String): List<SManga>
     abstract suspend fun getRecsById(id: String): List<SManga>
