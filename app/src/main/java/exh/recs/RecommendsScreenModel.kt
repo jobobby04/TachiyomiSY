@@ -127,10 +127,12 @@ open class RecommendsScreenModel(
     }
 
     private fun updateItem(source: RecommendationPagingSource, result: RecommendationItemResult) {
-        val newItems = state.value.items.mutate {
-            it[source] = result
+        synchronized(state.value.items) {
+            val newItems = state.value.items.mutate {
+                it[source] = result
+            }
+            updateItems(newItems)
         }
-        updateItems(newItems)
     }
 
     @Immutable
