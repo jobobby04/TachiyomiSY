@@ -24,14 +24,14 @@ class BrowseRecommendsScreenModel(
         is BrowseRecommendsScreen.Args.SingleSourceManga -> args.sourceId
         is BrowseRecommendsScreen.Args.MergedSourceMangas -> args.results.recAssociatedSourceId ?: -1
     },
-    listingQuery = null
+    listingQuery = null,
 ) {
     val recommendationSource: RecommendationPagingSource
         get() = when (args) {
             is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
             is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
                 runBlocking { getManga.await(args.mangaId)!! },
-                source as CatalogueSource
+                source as CatalogueSource,
             ).first {
                 it::class.qualifiedName == args.recommendationSourceName
             }

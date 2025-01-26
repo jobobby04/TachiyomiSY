@@ -8,7 +8,7 @@ import kotlin.time.Duration.Companion.seconds
 class ThrottleManager(
     private val max: Duration = THROTTLE_MAX,
     private val inc: Duration = THROTTLE_INC,
-    private val initial: Duration = Duration.ZERO
+    private val initial: Duration = Duration.ZERO,
 ) {
     private var lastThrottleTime = Duration.ZERO
 

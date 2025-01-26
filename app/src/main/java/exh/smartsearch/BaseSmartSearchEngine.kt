@@ -10,7 +10,7 @@ typealias SearchAction<T> = suspend (String) -> List<T>
 
 abstract class BaseSmartSearchEngine<T>(
     private val extraSearchParams: String? = null,
-    private val eligibleThreshold: Double = MIN_ELIGIBLE_THRESHOLD
+    private val eligibleThreshold: Double = MIN_ELIGIBLE_THRESHOLD,
 ) {
     private val normalizedLevenshtein = NormalizedLevenshtein()
 
@@ -67,7 +67,6 @@ abstract class BaseSmartSearchEngine<T>(
 
         return eligibleManga.maxByOrNull { it.dist }?.manga
     }
-
 
     private fun cleanSmartSearchTitle(title: String): String {
         val preTitle = title.lowercase(Locale.getDefault())

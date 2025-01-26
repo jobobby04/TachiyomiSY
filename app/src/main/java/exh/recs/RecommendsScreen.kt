@@ -23,7 +23,6 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
 import java.io.Serializable
 
-
 class RecommendsScreen(private val args: Args) : Screen() {
 
     sealed interface Args : Serializable {
@@ -61,7 +60,7 @@ class RecommendsScreen(private val args: Args) : Screen() {
         }
 
         RecommendsScreen(
-            title = if(args is SingleSourceManga) {
+            title = if (args is SingleSourceManga) {
                 stringResource(SYMR.strings.similar, state.title.orEmpty())
             } else {
                 stringResource(SYMR.strings.rec_common_recommendations)

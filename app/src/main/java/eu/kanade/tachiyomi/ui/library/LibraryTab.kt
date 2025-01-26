@@ -341,7 +341,7 @@ data object LibraryTab : Tab {
                         onDismissRequest()
                         screenModel.clearSelection()
                         screenModel.runRecommendationSearch(dialog.manga)
-                    }
+                    },
                 )
             }
             // SY <--

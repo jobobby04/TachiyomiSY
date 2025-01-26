@@ -44,8 +44,7 @@ class MangaDexSimilarPagingSource(
                     false,
                     relatedPage.mangasMetadata + similarPage.mangasMetadata,
                 )
-            }
-            catch (e: HttpException) {
+            } catch (e: HttpException) {
                 when (e.code) {
                     404 -> throw NoResultsException()
                     else -> throw e

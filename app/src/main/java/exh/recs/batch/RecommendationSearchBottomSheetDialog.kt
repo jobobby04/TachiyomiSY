@@ -14,7 +14,7 @@ import uy.kohesive.injekt.injectLazy
 @Composable
 fun RecommendationSearchBottomSheetDialog(
     onDismissRequest: () -> Unit,
-    onSearchRequest: () -> Unit
+    onSearchRequest: () -> Unit,
 ) {
     val state = remember { RecommendationSearchBottomSheetDialogState(onSearchRequest) }
     AdaptiveSheet(onDismissRequest = onDismissRequest) {

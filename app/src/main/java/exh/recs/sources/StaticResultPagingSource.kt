@@ -8,7 +8,7 @@ import exh.recs.batch.RankedSearchResults
 import tachiyomi.domain.manga.model.Manga
 
 class StaticResultPagingSource(
-    val data: RankedSearchResults
+    val data: RankedSearchResults,
 ) : RecommendationPagingSource(Manga.create()) {
 
     override val name: String get() = data.recSourceName
@@ -29,7 +29,7 @@ class StaticResultPagingSource(
                         .map { it.value }
                         .map { count ->
                             RankedSearchMetadata().also { it.rank = count }
-                        }
+                        },
                 )
             }
 

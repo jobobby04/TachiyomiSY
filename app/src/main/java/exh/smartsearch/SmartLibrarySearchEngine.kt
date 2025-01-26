@@ -13,6 +13,6 @@ class SmartLibrarySearchEngine(
             { query ->
                 library.filter { it.manga.ogTitle.contains(query, true) }
             },
-            title
+            title,
         )
 }

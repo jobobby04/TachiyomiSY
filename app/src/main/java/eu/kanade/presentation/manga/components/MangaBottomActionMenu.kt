@@ -267,8 +267,10 @@ fun LibraryBottomActionMenu(
                 }
             }
             // SY -->
-            val showOverflow = onClickCleanTitles != null || onClickAddToMangaDex != null ||
-                onClickResetInfo != null || onClickCollectRecommendations != null
+            val showOverflow = onClickCleanTitles != null ||
+                onClickAddToMangaDex != null ||
+                onClickResetInfo != null ||
+                onClickCollectRecommendations != null
             val configuration = LocalConfiguration.current
             val moveMarkPrev = remember { !configuration.isTabletUi() }
             var overFlowOpen by remember { mutableStateOf(false) }

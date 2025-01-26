@@ -111,8 +111,7 @@ private fun BrowseSourceListItem(
                         textColor = MaterialTheme.colorScheme.onTertiary,
                     )
                 }
-            }
-            else if (metadata is RankedSearchMetadata) {
+            } else if (metadata is RankedSearchMetadata) {
                 metadata.rank?.let {
                     Badge(
                         text = "+$it",

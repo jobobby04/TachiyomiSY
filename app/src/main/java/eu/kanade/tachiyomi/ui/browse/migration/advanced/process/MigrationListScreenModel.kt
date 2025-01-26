@@ -17,9 +17,9 @@ import eu.kanade.tachiyomi.ui.browse.migration.MigrationFlags
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.MigrationType
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.process.MigratingManga.SearchResult
 import eu.kanade.tachiyomi.util.system.toast
-import exh.util.ThrottleManager
 import exh.smartsearch.SmartSourceSearchEngine
 import exh.source.MERGED_SOURCE_ID
+import exh.util.ThrottleManager
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException

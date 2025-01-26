@@ -78,7 +78,7 @@ class RecommendationSearchHelper(val context: Context) {
             ThrottleManager(
                 max = 3.seconds,
                 inc = 50.milliseconds,
-                initial = if (stricterThrottling) 2.seconds else 0.seconds
+                initial = if (stricterThrottling) 2.seconds else 0.seconds,
             )
 
         try {
@@ -96,7 +96,7 @@ class RecommendationSearchHelper(val context: Context) {
 
                 val jobs = RecommendationPagingSource.createSources(
                     sourceManga,
-                    sourceManager.get(sourceManga.source) as CatalogueSource
+                    sourceManager.get(sourceManga.source) as CatalogueSource,
                 ).mapNotNull { source ->
                     // Apply source filters
                     if (source is TrackerRecommendationPagingSource && !SearchFlags.hasIncludeTrackers(flags)) {
@@ -124,7 +124,7 @@ class RecommendationSearchHelper(val context: Context) {
                                     recSourceName = source.name,
                                     recSourceCategoryResId = source.category.resourceId,
                                     recAssociatedSourceId = source.associatedSourceId,
-                                    results = mutableListOf()
+                                    results = mutableListOf(),
                                 )
                             }.results.addAll(mangas)
                         } catch (_: NoResultsException) {
@@ -155,7 +155,7 @@ class RecommendationSearchHelper(val context: Context) {
                         .associate { (url, count) ->
                             val manga = it.value.results.first { manga -> manga.url == url }
                             manga to count
-                        }
+                        },
                 )
             }
 
@@ -183,12 +183,13 @@ class RecommendationSearchHelper(val context: Context) {
     private suspend fun List<SManga>.filterLibraryItemsIfEnabled(
         recSource: RecommendationPagingSource,
         libraryManga: List<LibraryManga>,
-        tracks: List<Track>
+        tracks: List<Track>,
     ): List<SManga> {
         val flags = prefs.recommendationSearchFlags().get()
 
-        if (!SearchFlags.hasHideLibraryResults(flags))
+        if (!SearchFlags.hasHideLibraryResults(flags)) {
             return this
+        }
 
         return filterNot { manga ->
             // Source recommendations can be directly resolved, if the recommendation is from the same source
@@ -199,7 +200,7 @@ class RecommendationSearchHelper(val context: Context) {
             }
 
             // Tracker recommendations can be resolved by checking if the tracker is attached to the recommendation
-            if(recSource is TrackerRecommendationPagingSource) {
+            if (recSource is TrackerRecommendationPagingSource) {
                 recSource.associatedTrackerId?.let { trackerId ->
                     return@filterNot tracks.any {
                         it.trackerId == trackerId && it.remoteUrl.toUri().path == manga.url.toUri().path
@@ -215,6 +216,7 @@ class RecommendationSearchHelper(val context: Context) {
 
 // Contains the search results for a single source
 private typealias SearchResults = Results<MutableList<SManga>>
+
 // Contains the ranked search results for a single source
 typealias RankedSearchResults = Results<Map<SManga, Int>>
 
@@ -222,7 +224,7 @@ data class Results<T>(
     val recSourceName: String,
     @StringRes val recSourceCategoryResId: Int,
     val recAssociatedSourceId: Long?,
-    val results: T
+    val results: T,
 ) : Serializable
 
 sealed interface SearchStatus {

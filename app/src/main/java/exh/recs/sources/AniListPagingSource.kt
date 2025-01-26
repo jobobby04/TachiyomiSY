@@ -4,7 +4,6 @@ import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
-import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.SManga
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -23,7 +22,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
 class AniListPagingSource(manga: Manga) : TrackerRecommendationPagingSource(
-    "https://graphql.anilist.co/", manga
+    "https://graphql.anilist.co/", manga,
 ) {
     override val name: String
         get() = "AniList"

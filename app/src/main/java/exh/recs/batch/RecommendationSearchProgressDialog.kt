@@ -105,7 +105,7 @@ fun RecommendationSearchProgressDialog(
                     if (status is SearchStatus.Processing) {
                         LinearProgressIndicator(
                             progress = { status.current.toFloat() / status.total },
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                         )
                     }
                 }
