@@ -60,9 +60,7 @@ open class RecommendsScreenModel(
                     )
                 }
                 is RecommendsScreen.Args.MergedSourceMangas -> {
-                    args.mergedResults
-                        .map { it.value }
-                        .map { StaticResultPagingSource(it) }
+                    args.mergedResults.map(::StaticResultPagingSource)
                 }
             }
 

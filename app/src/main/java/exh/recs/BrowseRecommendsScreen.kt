@@ -15,7 +15,7 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
-import exh.recs.batch.SearchResults
+import exh.recs.batch.RankedSearchResults
 import exh.ui.ifSourcesLoaded
 import mihon.presentation.core.util.collectAsLazyPagingItems
 import tachiyomi.domain.manga.model.Manga
@@ -34,7 +34,7 @@ class BrowseRecommendsScreen(
             val sourceId: Long,
             val recommendationSourceName: String,
         ) : Args
-        data class MergedSourceMangas(val results: SearchResults) : Args
+        data class MergedSourceMangas(val results: RankedSearchResults) : Args
     }
 
     @Composable

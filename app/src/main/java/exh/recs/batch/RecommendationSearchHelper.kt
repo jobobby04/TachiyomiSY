@@ -33,8 +33,6 @@ import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-typealias RecommendationMap = Map<String, SearchResults>
-
 class RecommendationSearchHelper(val context: Context) {
     private val getLibraryManga: GetLibraryManga by injectLazy()
     private val getManga: GetManga by injectLazy()
@@ -112,9 +110,9 @@ class RecommendationSearchHelper(val context: Context) {
                                     recSourceName = source.name,
                                     recSourceCategoryResId = source.category.resourceId,
                                     recAssociatedSourceId = source.associatedSourceId,
-                                    recommendations = mutableListOf()
+                                    results = mutableListOf()
                                 )
-                            }.recommendations.addAll(page.mangas)
+                            }.results.addAll(page.mangas)
 
                         }
                         catch (_: NoResultsException) {}
@@ -127,10 +125,31 @@ class RecommendationSearchHelper(val context: Context) {
                 //TODO filter library manga
                 jobs.awaitAll()
 
+                // Continuously slow down the search to avoid hitting rate limits
                 throttleManager.throttle()
             }
 
-            status.value = SearchStatus.Finished(resultsMap)
+            val rankedMap = resultsMap.map { it ->
+                RankedSearchResults(
+                    recSourceName = it.value.recSourceName,
+                    recSourceCategoryResId = it.value.recSourceCategoryResId,
+                    recAssociatedSourceId = it.value.recAssociatedSourceId,
+                    results = it.value.results
+                        // Group by URL and count occurrences
+                        .groupingBy(SManga::url)
+                        .eachCount()
+                        .entries
+                        // Sort by occurrences desc
+                        .sortedByDescending(Map.Entry<String, Int>::value)
+                        // Resolve SManga instances from URL keys
+                        .associate { (url, count) ->
+                            val manga = it.value.results.first { manga -> manga.url == url }
+                            manga to count
+                        }
+                )
+            }
+
+            status.value = SearchStatus.Finished(rankedMap)
         } catch (e: Exception) {
             status.value = SearchStatus.Error(e.message.orEmpty())
             logger.e("Error during recommendation search", e)
@@ -149,11 +168,16 @@ class RecommendationSearchHelper(val context: Context) {
     }
 }
 
-data class SearchResults(
+// Contains the search results for a single source
+private typealias SearchResults = Results<MutableList<SManga>>
+// Contains the ranked search results for a single source
+typealias RankedSearchResults = Results<Map<SManga, Int>>
+
+data class Results<T>(
     val recSourceName: String,
     @StringRes val recSourceCategoryResId: Int,
     val recAssociatedSourceId: Long?,
-    val recommendations: MutableList<SManga>
+    val results: T
 ) : Serializable
 
 sealed interface SearchStatus {
@@ -161,5 +185,5 @@ sealed interface SearchStatus {
     data object Initializing : SearchStatus
     data class Processing(val manga: SManga, val current: Int, val total: Int) : SearchStatus
     data class Error(val message: String) : SearchStatus
-    data class Finished(val results: RecommendationMap) : SearchStatus
+    data class Finished(val results: List<RankedSearchResults>) : SearchStatus
 }

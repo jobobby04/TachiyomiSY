@@ -13,7 +13,7 @@ import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import exh.recs.RecommendsScreen.Args.MergedSourceMangas
 import exh.recs.RecommendsScreen.Args.SingleSourceManga
-import exh.recs.batch.SearchResults
+import exh.recs.batch.RankedSearchResults
 import exh.recs.components.RecommendsScreen
 import exh.recs.sources.StaticResultPagingSource
 import exh.ui.ifSourcesLoaded
@@ -28,7 +28,7 @@ class RecommendsScreen(private val args: Args) : Screen() {
 
     sealed interface Args : Serializable {
         data class SingleSourceManga(val mangaId: Long, val sourceId: Long) : Args
-        data class MergedSourceMangas(val mergedResults: Map<String, SearchResults>) : Args
+        data class MergedSourceMangas(val mergedResults: List<RankedSearchResults>) : Args
     }
 
     @Composable
@@ -82,7 +82,7 @@ class RecommendsScreen(private val args: Args) : Screen() {
                                 )
                             is MergedSourceMangas ->
                                 BrowseRecommendsScreen.Args.MergedSourceMangas(
-                                    (pagingSource as StaticResultPagingSource).results,
+                                    (pagingSource as StaticResultPagingSource).data,
                                 )
                         },
                         pagingSource.associatedSourceId == null,
