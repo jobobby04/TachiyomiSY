@@ -17,9 +17,9 @@ import eu.kanade.tachiyomi.ui.browse.migration.MigrationFlags
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.MigrationType
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.process.MigratingManga.SearchResult
 import eu.kanade.tachiyomi.util.system.toast
-import exh.eh.EHentaiThrottleManager
-import exh.smartsearch.SmartSearchEngine
+import exh.smartsearch.SmartSourceSearchEngine
 import exh.source.MERGED_SOURCE_ID
+import exh.util.ThrottleManager
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
@@ -84,8 +84,8 @@ class MigrationListScreenModel(
     private val deleteTrack: DeleteTrack = Injekt.get(),
 ) : ScreenModel {
 
-    private val smartSearchEngine = SmartSearchEngine(config.extraSearchParams)
-    private val throttleManager = EHentaiThrottleManager()
+    private val smartSearchEngine = SmartSourceSearchEngine(config.extraSearchParams)
+    private val throttleManager = ThrottleManager()
 
     val migratingItems = MutableStateFlow<ImmutableList<MigratingManga>?>(null)
     val migrationDone = MutableStateFlow(false)
