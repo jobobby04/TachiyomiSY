@@ -177,7 +177,7 @@
     <string name="pref_show_bottom_bar_labels">Always show nav labels</string>
 
     <!-- Tracker settings -->
-    <string name="pref_tracker_resolve_using_source_metadata">Select titles using source metadata</string>
+    <string name="pref_tracker_resolve_using_source_metadata">Select entries using source metadata</string>
     <string name="pref_tracker_resolve_using_source_metadata_summary">Automatically selects the matching title if the source provides links to trackers. Currently supported by MangaDex</string>
 
     <!-- Library settings -->
