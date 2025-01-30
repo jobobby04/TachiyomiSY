@@ -125,4 +125,6 @@ data class DummyTracker(
     ): eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata = eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata(
         0, "test", "test", "test", "test", "test",
     )
+
+    override suspend fun searchById(id: String) = null
 }

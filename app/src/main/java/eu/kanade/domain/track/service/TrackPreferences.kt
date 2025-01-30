@@ -42,4 +42,11 @@ class TrackPreferences(
         "pref_auto_update_manga_on_mark_read",
         AutoTrackState.ALWAYS,
     )
+
+    // SY -->
+    fun resolveUsingSourceMetadata() = preferenceStore.getBoolean(
+        "pref_resolve_using_source_metadata_key",
+        true,
+    )
+    // SY <--
 }

@@ -85,4 +85,8 @@ interface Tracker {
     suspend fun setRemoteFinishDate(track: Track, epochMillis: Long)
 
     suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata?
+
+    // SY -->
+    suspend fun searchById(id: String): TrackSearch?
+    // SY <--
 }

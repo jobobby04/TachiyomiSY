@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALOAuth
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
@@ -160,6 +159,12 @@ class MyAnimeList(id: Long) : BaseTracker(id, "MyAnimeList"), DeletableTracker {
     override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
         return api.getMangaMetadata(track)
     }
+
+    // SY -->
+    override suspend fun searchById(id: String): TrackSearch {
+        return api.getMangaDetails(id.toInt())
+    }
+    // SY <--
 
     fun getIfAuthExpired(): Boolean {
         return trackPreferences.trackAuthExpired(this).get()
