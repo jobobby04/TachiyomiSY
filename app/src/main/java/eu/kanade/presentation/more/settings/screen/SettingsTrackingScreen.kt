@@ -59,6 +59,7 @@ import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
@@ -135,6 +136,13 @@ object SettingsTrackingScreen : SearchableSettings {
                     .associateWith { stringResource(it.titleRes) }
                     .toPersistentMap(),
             ),
+            // SY -->
+            Preference.PreferenceItem.SwitchPreference(
+                pref = trackPreferences.resolveUsingSourceMetadata(),
+                title = stringResource(SYMR.strings.pref_tracker_resolve_using_source_metadata),
+                subtitle = stringResource(SYMR.strings.pref_tracker_resolve_using_source_metadata_summary),
+            ),
+            // SY <--
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.services),
                 preferenceItems = persistentListOf(
