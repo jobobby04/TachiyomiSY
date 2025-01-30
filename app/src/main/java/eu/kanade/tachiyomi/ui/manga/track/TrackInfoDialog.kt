@@ -64,7 +64,7 @@ import eu.kanade.tachiyomi.util.lang.convertEpochMillisZone
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
-import exh.metadata.metadata.MangaDexSearchMetadata
+import exh.metadata.metadata.base.TrackerIdMetadata
 import exh.source.getMainSource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.catch
@@ -298,7 +298,7 @@ data class TrackInfoDialogHomeScreen(
                     ?.getMainSource<MetadataSource<*, *>>() ?: return null
 
                 return getFlatMetadataById.await(mangaId)?.run {
-                    raise(metadataSource.metaClass) as? MangaDexSearchMetadata
+                    raise(metadataSource.metaClass) as? TrackerIdMetadata
                 }?.let { metadata ->
                     when (trackerId) {
                         trackerManager.aniList.id -> metadata.anilistId
