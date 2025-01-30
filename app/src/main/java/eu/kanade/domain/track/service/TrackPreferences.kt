@@ -46,7 +46,7 @@ class TrackPreferences(
     // SY -->
     fun resolveUsingSourceMetadata() = preferenceStore.getBoolean(
         "pref_resolve_using_source_metadata_key",
-        true
+        true,
     )
     // SY <--
 }
