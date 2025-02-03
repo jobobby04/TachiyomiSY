@@ -663,4 +663,5 @@
     <string name="entry_not_tracked">條目還未登錄歷程</string>
     <string name="fill_from_tracker">從歷程平臺獲取資訊</string>
     <string name="favorites_sync_unable_to_add_to_remote">無法將圖庫新增到遠端伺服器：「%1$s」 (GID：%2$s)！</string>
+    <string name="similar_titles">相近標題</string>
 </resources>
