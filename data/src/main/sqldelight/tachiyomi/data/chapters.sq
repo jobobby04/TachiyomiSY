@@ -103,6 +103,27 @@ AND (
     OR ES.scanlator IS NULL
 );
 
+getChapterReadByMangaId:
+SELECT
+    chapters.manga_id AS manga_id,
+    chapters.chapter_number AS chapter_number,
+    max(chapters.read) AS read
+FROM chapters
+WHERE manga_id = :mangaId
+GROUP BY chapter_number
+UNION
+SELECT
+    C.manga_id AS manga_id,
+    C.chapter_number AS chapter_number,
+    max(C.read) AS read
+FROM (
+    SELECT manga_id,merge_id FROM merged WHERE merge_id = :mangaId
+) AS M
+JOIN chapters C
+ON C.manga_id = M.manga_id
+WHERE M.merge_id = :mangaId
+GROUP BY chapter_number;
+
 getScanlatorsByMergeId:
 SELECT scanlator
 FROM (

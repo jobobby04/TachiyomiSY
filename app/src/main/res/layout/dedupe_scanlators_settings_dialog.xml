@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:text="@string/enable_deduplication" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/dedupe_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="16dp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/sorted_scanlators_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sorted_scanlators_title"
+        android:textAppearance="@style/TextAppearance.Widget.Menu" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/sorted_scanlators"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/scanlators_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/scanlators_title"
+        android:textAppearance="@style/TextAppearance.Widget.Menu" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/scanlators"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

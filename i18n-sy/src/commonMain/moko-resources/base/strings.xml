@@ -709,6 +709,14 @@
     <!-- Scanlator filters -->
     <string name="select_scanlators">Scanlator groups to show</string>
 
+    <!-- Scanlator deduplication -->
+    <string name="dedupe_scanlators">Dedupe Scanlators</string>
+    <string name="enable_deduplication">Enable Deduplication</string>"
+    <string name="add_sorted_scanlator_description">Add the scanlator to prioritized scanlators</string>
+    <string name="remove_sorted_scanlator_description">Remove the scanlator from prioritized scanlators</string>
+    <string name="sorted_scanlators_title">Sorted scanlators</string>
+    <string name="scanlators_title">Available scanlators</string>
+
     <!-- Similar -->
     <string name="similar">Similar to %1$s</string>
 

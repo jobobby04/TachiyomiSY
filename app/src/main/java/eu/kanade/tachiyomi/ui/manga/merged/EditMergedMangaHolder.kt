@@ -22,13 +22,13 @@ class EditMergedMangaHolder(view: View, val adapter: EditMergedMangaAdapter) : F
     init {
         setDragHandleView(binding.reorder)
         binding.remove.setOnClickListener {
-            adapter.editMergedMangaItemListener.onDeleteClick(bindingAdapterPosition)
+            adapter.editMergedMangaItemListener.onDeleteClick(adapterPosition)
         }
         binding.getChapterUpdates.setOnClickListener {
-            adapter.editMergedMangaItemListener.onToggleChapterUpdatesClicked(bindingAdapterPosition)
+            adapter.editMergedMangaItemListener.onToggleChapterUpdatesClicked(adapterPosition)
         }
         binding.download.setOnClickListener {
-            adapter.editMergedMangaItemListener.onToggleChapterDownloadsClicked(bindingAdapterPosition)
+            adapter.editMergedMangaItemListener.onToggleChapterDownloadsClicked(adapterPosition)
         }
         setHandelAlpha(adapter.isPriorityOrder)
     }

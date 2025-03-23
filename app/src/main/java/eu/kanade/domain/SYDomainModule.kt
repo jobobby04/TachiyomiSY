@@ -5,7 +5,9 @@ import eu.kanade.domain.manga.interactor.CreateSortTag
 import eu.kanade.domain.manga.interactor.DeleteSortTag
 import eu.kanade.domain.manga.interactor.GetPagePreviews
 import eu.kanade.domain.manga.interactor.GetSortTag
+import eu.kanade.domain.manga.interactor.GetSortedScanlators
 import eu.kanade.domain.manga.interactor.ReorderSortTag
+import eu.kanade.domain.manga.interactor.SetSortedScanlators
 import eu.kanade.domain.source.interactor.CreateSourceCategory
 import eu.kanade.domain.source.interactor.DeleteSourceCategory
 import eu.kanade.domain.source.interactor.GetExhSavedSearch
@@ -27,6 +29,7 @@ import tachiyomi.data.source.FeedSavedSearchRepositoryImpl
 import tachiyomi.data.source.SavedSearchRepositoryImpl
 import tachiyomi.domain.chapter.interactor.DeleteChapters
 import tachiyomi.domain.chapter.interactor.GetChapterByUrl
+import tachiyomi.domain.chapter.interactor.GetChapterReadByMangaId
 import tachiyomi.domain.chapter.interactor.GetMergedChaptersByMangaId
 import tachiyomi.domain.history.interactor.GetHistoryByMangaId
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
@@ -120,6 +123,7 @@ class SYDomainModule : InjektModule {
         addSingletonFactory<MangaMergeRepository> { MangaMergeRepositoryImpl(get()) }
         addFactory { GetMergedManga(get()) }
         addFactory { GetMergedMangaById(get()) }
+        addFactory { GetChapterReadByMangaId(get()) }
         addFactory { GetMergedReferencesById(get()) }
         addFactory { GetMergedChaptersByMangaId(get(), get()) }
         addFactory { InsertMergedReference(get()) }
@@ -154,5 +158,7 @@ class SYDomainModule : InjektModule {
         addSingletonFactory<CustomMangaRepository> { CustomMangaRepositoryImpl(get<Application>()) }
         addFactory { GetCustomMangaInfo(get()) }
         addFactory { SetCustomMangaInfo(get()) }
+        addFactory { GetSortedScanlators(get()) }
+        addFactory { SetSortedScanlators(get()) }
     }
 }

@@ -50,6 +50,7 @@ import eu.kanade.tachiyomi.ui.browse.source.feed.SourceFeedScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
+import eu.kanade.tachiyomi.ui.manga.dedupe.DedupeScanlatorsSettingsDialog
 import eu.kanade.tachiyomi.ui.manga.merged.EditMergedSettingsDialog
 import eu.kanade.tachiyomi.ui.manga.track.TrackInfoDialogHomeScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
@@ -233,6 +234,7 @@ class MangaScreen(
         )
 
         var showScanlatorsDialog by remember { mutableStateOf(false) }
+        var showScanlatorsDedupeDialog by remember { mutableStateOf(false) }
 
         val onDismissRequest = { screenModel.dismissDialog() }
         when (val dialog = successState.dialog) {
@@ -280,7 +282,15 @@ class MangaScreen(
                 onSetAsDefault = screenModel::setCurrentSettingsAsDefault,
                 onResetToDefault = screenModel::resetToDefaultSettings,
                 scanlatorFilterActive = successState.scanlatorFilterActive,
-                onScanlatorFilterClicked = { showScanlatorsDialog = true },
+                onScanlatorFilterClicked = {
+                    showScanlatorsDedupeDialog = false
+                    showScanlatorsDialog = true
+                },
+                dedupeScanlatorFilterActive = successState.scanlatorDeduplicationActive,
+                onDedupeScanlatorClicked = {
+                    showScanlatorsDialog = false
+                    showScanlatorsDedupeDialog = true
+                },
             )
             MangaScreenModel.Dialog.TrackSheet -> {
                 NavigatorAdaptiveSheet(
@@ -353,6 +363,17 @@ class MangaScreen(
                 excludedScanlators = successState.excludedScanlators,
                 onDismissRequest = { showScanlatorsDialog = false },
                 onConfirm = screenModel::setExcludedScanlators,
+            )
+        }
+
+        if (showScanlatorsDedupeDialog) {
+            DedupeScanlatorsSettingsDialog(
+                onDismissRequest = { showScanlatorsDedupeDialog = false },
+                sortedScanlators = successState.sortedScanlators,
+                scanlators = successState.availableScanlators,
+                dedupeEnabled = successState.scanlatorDeduplicationActive,
+                onPositiveClick = screenModel::setSortedScanlators,
+                onEnabledToggled = screenModel::setDeduplicateScanlators,
             )
         }
     }

@@ -1,5 +1,7 @@
 package eu.kanade.tachiyomi.data.backup.restore.restorers
 
+import eu.kanade.domain.manga.interactor.GetSortedScanlators
+import eu.kanade.domain.manga.interactor.SetSortedScanlators
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
 import eu.kanade.tachiyomi.data.backup.models.BackupChapter
@@ -7,6 +9,7 @@ import eu.kanade.tachiyomi.data.backup.models.BackupFlatMetadata
 import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.models.BackupMergedMangaReference
+import eu.kanade.tachiyomi.data.backup.models.BackupSortedScanlator
 import eu.kanade.tachiyomi.data.backup.models.BackupTracking
 import exh.EXHMigrations
 import tachiyomi.data.DatabaseHandler
@@ -23,6 +26,7 @@ import tachiyomi.domain.manga.interactor.InsertFlatMetadata
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.model.CustomMangaInfo
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.manga.model.SortedScanlator
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.model.Track
@@ -47,6 +51,7 @@ class MangaRestorer(
     private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
     private val insertFlatMetadata: InsertFlatMetadata = Injekt.get(),
     private val getFlatMetadataById: GetFlatMetadataById = Injekt.get(),
+    private val setSortedScanlators: SetSortedScanlators = Injekt.get(),
     // SY <--
 ) {
     private var now = ZonedDateTime.now()
@@ -96,6 +101,7 @@ class MangaRestorer(
                 mergedMangaReferences = backupManga.mergedMangaReferences,
                 flatMetadata = backupManga.flatMetadata,
                 customManga = backupManga.getCustomMangaInfo(),
+                sortedScanlators = backupManga.sortedScanlator,
                 // SY <--
             )
 
@@ -309,6 +315,7 @@ class MangaRestorer(
         mergedMangaReferences: List<BackupMergedMangaReference>,
         flatMetadata: BackupFlatMetadata?,
         customManga: CustomMangaInfo?,
+        sortedScanlators: List<BackupSortedScanlator>,
         // SY <--
     ): Manga {
         restoreCategories(manga, categories, backupCategories)
@@ -321,6 +328,7 @@ class MangaRestorer(
         restoreMergedMangaReferencesForManga(manga.id, mergedMangaReferences)
         flatMetadata?.let { restoreFlatMetadata(manga.id, it) }
         restoreEditedInfo(customManga?.copy(id = manga.id))
+        restoreSortedScanlators(manga.id, sortedScanlators)
         // SY <--
 
         return manga
@@ -507,6 +515,18 @@ class MangaRestorer(
                 }
             }
         }
+    }
+
+    private suspend fun restoreSortedScanlators(mangaId: Long, sortedScanlators: List<BackupSortedScanlator>) {
+        setSortedScanlators.await(
+            mangaId,
+            sortedScanlators.map { backupSortedScanlator ->
+                SortedScanlator(
+                    backupSortedScanlator.scanlator,
+                    backupSortedScanlator.rank,
+                )
+            }.toSet(),
+        )
     }
 
     private suspend fun restoreFlatMetadata(mangaId: Long, backupFlatMetadata: BackupFlatMetadata) {

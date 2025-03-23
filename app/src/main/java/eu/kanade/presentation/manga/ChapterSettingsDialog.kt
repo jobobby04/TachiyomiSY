@@ -35,6 +35,7 @@ import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.RadioItem
 import tachiyomi.presentation.core.components.SortItem
@@ -53,6 +54,8 @@ fun ChapterSettingsDialog(
     onBookmarkedFilterChanged: (TriState) -> Unit,
     scanlatorFilterActive: Boolean,
     onScanlatorFilterClicked: (() -> Unit),
+    dedupeScanlatorFilterActive: Boolean,
+    onDedupeScanlatorClicked: (() -> Unit),
     onSortModeChanged: (Long) -> Unit,
     onDisplayModeChanged: (Long) -> Unit,
     onSetAsDefault: (applyToExistingManga: Boolean) -> Unit,
@@ -109,6 +112,8 @@ fun ChapterSettingsDialog(
                         onBookmarkedFilterChanged = onBookmarkedFilterChanged,
                         scanlatorFilterActive = scanlatorFilterActive,
                         onScanlatorFilterClicked = onScanlatorFilterClicked,
+                        dedupeScanlatorFilterActive = dedupeScanlatorFilterActive,
+                        onDedupeScanlatorClicked = onDedupeScanlatorClicked,
                     )
                 }
                 1 -> {
@@ -139,6 +144,8 @@ private fun ColumnScope.FilterPage(
     onBookmarkedFilterChanged: (TriState) -> Unit,
     scanlatorFilterActive: Boolean,
     onScanlatorFilterClicked: (() -> Unit),
+    dedupeScanlatorFilterActive: Boolean,
+    onDedupeScanlatorClicked: (() -> Unit),
 ) {
     TriStateItem(
         label = stringResource(MR.strings.label_downloaded),
@@ -156,13 +163,20 @@ private fun ColumnScope.FilterPage(
         onClick = onBookmarkedFilterChanged,
     )
     ScanlatorFilterItem(
+        label = stringResource(MR.strings.scanlator),
         active = scanlatorFilterActive,
         onClick = onScanlatorFilterClicked,
+    )
+    ScanlatorFilterItem(
+        label = stringResource(SYMR.strings.dedupe_scanlators),
+        active = dedupeScanlatorFilterActive,
+        onClick = onDedupeScanlatorClicked,
     )
 }
 
 @Composable
 fun ScanlatorFilterItem(
+    label: String,
     active: Boolean,
     onClick: () -> Unit,
 ) {
@@ -184,7 +198,7 @@ fun ScanlatorFilterItem(
             },
         )
         Text(
-            text = stringResource(MR.strings.scanlator),
+            text = label,
             style = MaterialTheme.typography.bodyMedium,
         )
     }
