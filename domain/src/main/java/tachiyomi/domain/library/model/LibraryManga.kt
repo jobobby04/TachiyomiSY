@@ -6,7 +6,9 @@ data class LibraryManga(
     val manga: Manga,
     val category: Long,
     val totalChapters: Long,
+    var uniqueChapterCount: Long,
     val readCount: Long,
+    var uniqueChapterReadCount: Long,
     val bookmarkCount: Long,
     val latestUpload: Long,
     val chapterFetchedAt: Long,
@@ -16,6 +18,9 @@ data class LibraryManga(
 
     val unreadCount
         get() = totalChapters - readCount
+
+    val unreadUniqueChaptersCount
+        get() = uniqueChapterCount - uniqueChapterReadCount
 
     val hasBookmarks
         get() = bookmarkCount > 0

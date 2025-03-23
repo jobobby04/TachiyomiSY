@@ -34,13 +34,15 @@ private val mapper = { cursor: SqlCursor ->
         favorite_modified_at = cursor.getLong(22),
         version = cursor.getLong(23)!!,
         is_syncing = cursor.getLong(24)!!,
-        totalCount = cursor.getLong(25)!!,
-        readCount = cursor.getDouble(26)!!,
-        latestUpload = cursor.getLong(27)!!,
-        chapterFetchedAt = cursor.getLong(28)!!,
-        lastRead = cursor.getLong(29)!!,
-        bookmarkCount = cursor.getDouble(30)!!,
-        category = cursor.getLong(31)!!,
+        totalCount = cursor.getDouble(25)!!,
+        uniqueChapterCount = cursor.getLong(26)!!,
+        readCount = cursor.getDouble(27)!!,
+        uniqueChapterReadCount = cursor.getDouble(28)!!,
+        latestUpload = cursor.getLong(29)!!,
+        chapterFetchedAt = cursor.getLong(30)!!,
+        lastRead = cursor.getLong(31)!!,
+        bookmarkCount = cursor.getDouble(32)!!,
+        category = cursor.getLong(33)!!,
     )
 }
 
@@ -55,12 +57,14 @@ class LibraryQuery(
             """
             SELECT
                 M.*,
-                coalesce(C.total, 0) AS totalCount,
-                coalesce(C.readCount, 0) AS readCount,
-                coalesce(C.latestUpload, 0) AS latestUpload,
-                coalesce(C.fetchedAt, 0) AS chapterFetchedAt,
-                coalesce(C.lastRead, 0) AS lastRead,
-                coalesce(C.bookmarkCount, 0) AS bookmarkCount,
+                coalesce(sum(C.total), 0) AS totalCount,
+                count(*) AS uniqueChapterCount,
+                coalesce(sum(C.readCount), 0) AS readCount,
+                coalesce(sum(C.chapterRead), 0) AS uniqueChapterReadCount,
+                coalesce(max(C.latestUpload), 0) AS latestUpload,
+                coalesce(max(C.fetchedAt), 0) AS chapterFetchedAt,
+                coalesce(max(C.lastRead), 0) AS lastRead,
+                coalesce(sum(C.bookmarkCount), 0) AS bookmarkCount,
                 coalesce(MC.category_id, 0) AS category
             FROM mangas M
             LEFT JOIN(
@@ -68,6 +72,7 @@ class LibraryQuery(
                     chapters.manga_id,
                     count(*) AS total,
                     sum(read) AS readCount,
+                    max(read) AS chapterRead,
                     coalesce(max(chapters.date_upload), 0) AS latestUpload,
                     coalesce(max(history.last_read), 0) AS lastRead,
                     coalesce(max(chapters.date_fetch), 0) AS fetchedAt,
@@ -79,21 +84,24 @@ class LibraryQuery(
                 LEFT JOIN history
                 ON chapters._id = history.chapter_id
                 WHERE excluded_scanlators.scanlator IS NULL
-                GROUP BY chapters.manga_id
+                GROUP BY chapters.manga_id, chapters.chapter_number
             ) AS C
             ON M._id = C.manga_id
             LEFT JOIN mangas_categories AS MC
             ON MC.manga_id = M._id
             WHERE $condition AND M.source <> $MERGED_SOURCE_ID
+            GROUP BY M._id
             UNION
             SELECT
                 M.*,
-                coalesce(C.total, 0) AS totalCount,
-                coalesce(C.readCount, 0) AS readCount,
-                coalesce(C.latestUpload, 0) AS latestUpload,
-                coalesce(C.fetchedAt, 0) AS chapterFetchedAt,
-                coalesce(C.lastRead, 0) AS lastRead,
-                coalesce(C.bookmarkCount, 0) AS bookmarkCount,
+                coalesce(sum(C.total), 0) AS totalCount,
+                count(*) AS uniqueChapterCount,
+                coalesce(sum(C.readCount), 0) AS readCount,
+                coalesce(sum(C.chapterRead), 0) AS uniqueChapterReadCount,
+                coalesce(max(C.latestUpload), 0) AS latestUpload,
+                coalesce(max(C.fetchedAt), 0) AS chapterFetchedAt,
+                coalesce(max(C.lastRead), 0) AS lastRead,
+                coalesce(sum(C.bookmarkCount), 0) AS bookmarkCount,
                 coalesce(MC.category_id, 0) AS category
             FROM mangas M
             LEFT JOIN (
@@ -107,6 +115,7 @@ class LibraryQuery(
                     ME.merge_id,
                     count(*) AS total,
                     sum(read) AS readCount,
+                    max(read) AS chapterRead,
                     coalesce(max(chapters.date_upload), 0) AS latestUpload,
                     coalesce(max(history.last_read), 0) AS lastRead,
                     coalesce(max(chapters.date_fetch), 0) AS fetchedAt,
@@ -120,12 +129,13 @@ class LibraryQuery(
                 LEFT JOIN merged as ME
                 ON ME.manga_id = chapters.manga_id
                 WHERE excluded_scanlators.scanlator IS NULL
-                GROUP BY ME.merge_id
+                GROUP BY ME.merge_id, chapters.chapter_number
             ) AS C
             ON ME.merge_id = C.merge_id
             LEFT JOIN mangas_categories AS MC
             ON MC.manga_id = M._id
-            WHERE $condition AND M.source = $MERGED_SOURCE_ID;
+            WHERE $condition AND M.source = $MERGED_SOURCE_ID
+            GROUP BY M._id;
             """.trimIndent(),
             mapper,
             parameters = 0,
