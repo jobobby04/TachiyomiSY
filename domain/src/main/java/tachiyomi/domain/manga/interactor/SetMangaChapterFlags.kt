@@ -69,6 +69,20 @@ class SetMangaChapterFlags(
         )
     }
 
+    suspend fun awaitSetDedupeScanlators(manga: Manga, enabled: Boolean): Boolean {
+        val newFlags = manga.chapterFlags.let {
+            if (enabled) {
+                it.setFlag(Manga.DEDUPE_SCANLATORS_ENABLED, Manga.DEDUPE_SCANLATORS_MASK)
+            } else {
+                it.setFlag(Manga.DEDUPE_SCANLATORS_DISABLED, Manga.DEDUPE_SCANLATORS_MASK)
+            }
+        }
+
+        return mangaRepository.update(
+            MangaUpdate(id = manga.id, chapterFlags = newFlags)
+        )
+    }
+
     suspend fun awaitSetAllFlags(
         mangaId: Long,
         unreadFilter: Long,
@@ -77,6 +91,7 @@ class SetMangaChapterFlags(
         sortingMode: Long,
         sortingDirection: Long,
         displayMode: Long,
+        dedupeScanlators: Long,
     ): Boolean {
         return mangaRepository.update(
             MangaUpdate(
@@ -86,7 +101,8 @@ class SetMangaChapterFlags(
                     .setFlag(bookmarkedFilter, Manga.CHAPTER_BOOKMARKED_MASK)
                     .setFlag(sortingMode, Manga.CHAPTER_SORTING_MASK)
                     .setFlag(sortingDirection, Manga.CHAPTER_SORT_DIR_MASK)
-                    .setFlag(displayMode, Manga.CHAPTER_DISPLAY_MASK),
+                    .setFlag(displayMode, Manga.CHAPTER_DISPLAY_MASK)
+                    .setFlag(dedupeScanlators, Manga.DEDUPE_SCANLATORS_MASK),
             ),
         )
     }
