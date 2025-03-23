@@ -29,6 +29,7 @@ import tachiyomi.data.source.FeedSavedSearchRepositoryImpl
 import tachiyomi.data.source.SavedSearchRepositoryImpl
 import tachiyomi.domain.chapter.interactor.DeleteChapters
 import tachiyomi.domain.chapter.interactor.GetChapterByUrl
+import tachiyomi.domain.chapter.interactor.GetChapterReadByMangaId
 import tachiyomi.domain.chapter.interactor.GetMergedChaptersByMangaId
 import tachiyomi.domain.history.interactor.GetHistoryByMangaId
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
@@ -122,6 +123,7 @@ class SYDomainModule : InjektModule {
         addSingletonFactory<MangaMergeRepository> { MangaMergeRepositoryImpl(get()) }
         addFactory { GetMergedManga(get()) }
         addFactory { GetMergedMangaById(get()) }
+        addFactory { GetChapterReadByMangaId(get()) }
         addFactory { GetMergedReferencesById(get()) }
         addFactory { GetMergedChaptersByMangaId(get(), get()) }
         addFactory { InsertMergedReference(get()) }

@@ -1,6 +1,7 @@
 package tachiyomi.data.chapter
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.toLong
 import tachiyomi.core.common.util.system.logcat
@@ -152,6 +153,24 @@ class ChapterRepositoryImpl(
                 applyScanlatorFilter.toLong(),
                 ChapterMapper::mapChapter,
             )
+        }
+    }
+
+    override suspend fun getChapterReadByMangaId(mangaId: Long): Map<Double, Boolean> {
+        return handler.awaitList {
+            chaptersQueries.getChapterReadByMangaId(mangaId) { _, chapterNumber, read ->
+                chapterNumber to (read ?: false)
+            }
+        }.toMap()
+    }
+
+    override suspend fun getChapterReadByMangaIdAsFlow(mangaId: Long): Flow<Map<Double, Boolean>> {
+        return handler.subscribeToList {
+            chaptersQueries.getChapterReadByMangaId(mangaId) { _, chapterNumber, read ->
+                chapterNumber to (read ?: false)
+            }
+        }.map {
+            it.toMap()
         }
     }
 
