@@ -1,0 +1,11 @@
+ -- Create SortedScanlators table --
+ CREATE TABLE sorted_scanlators (
+     manga_id INTEGER NOT NULL,
+     scanlator TEXT NOT NULL,
+     rank INTEGER NOT NULL,
+     UNIQUE (manga_id, scanlator),
+     FOREIGN KEY(manga_id) REFERENCES mangas (_id)
+     ON DELETE CASCADE
+ );
+
+ CREATE INDEX sorted_scanlators_manga_id_index ON sorted_scanlators(manga_id);
