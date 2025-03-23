@@ -156,6 +156,7 @@ private fun ColumnScope.FilterPage(
         onClick = onBookmarkedFilterChanged,
     )
     ScanlatorFilterItem(
+        label = stringResource(MR.strings.scanlator),
         active = scanlatorFilterActive,
         onClick = onScanlatorFilterClicked,
     )
@@ -163,6 +164,7 @@ private fun ColumnScope.FilterPage(
 
 @Composable
 fun ScanlatorFilterItem(
+    label: String,
     active: Boolean,
     onClick: () -> Unit,
 ) {
@@ -184,7 +186,7 @@ fun ScanlatorFilterItem(
             },
         )
         Text(
-            text = stringResource(MR.strings.scanlator),
+            text = label,
             style = MaterialTheme.typography.bodyMedium,
         )
     }
