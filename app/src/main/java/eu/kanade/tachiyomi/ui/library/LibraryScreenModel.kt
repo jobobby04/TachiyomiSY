@@ -560,7 +560,15 @@ class LibraryScreenModel(
                         } else {
                             0
                         },
-                        unreadCount = if (prefs.unreadBadge) libraryManga.unreadCount else 0,
+                        unreadCount = if (prefs.unreadBadge) {
+                            if (libraryManga.manga.dedupeScanlatorsFilter) {
+                                libraryManga.unreadUniqueChaptersCount
+                            } else {
+                                libraryManga.unreadCount
+                            }
+                        } else {
+                            0
+                        },
                         isLocal = if (prefs.localBadge) libraryManga.manga.isLocal() else false,
                         sourceLanguage = if (prefs.languageBadge) {
                             sourceManager.getOrStub(libraryManga.manga.source).lang

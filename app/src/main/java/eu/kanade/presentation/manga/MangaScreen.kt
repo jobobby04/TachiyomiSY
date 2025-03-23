@@ -575,6 +575,7 @@ private fun MangaScreenSmallImpl(
                     sharedChapterItems(
                         manga = state.manga,
                         mergedData = state.mergedData,
+                        uniqueChapterRead = state.uniqueChapterRead,
                         chapters = listItem,
                         isAnyChapterSelected = chapters.fastAny { it.selected },
                         chapterSwipeStartAction = chapterSwipeStartAction,
@@ -874,6 +875,7 @@ fun MangaScreenLargeImpl(
                             sharedChapterItems(
                                 manga = state.manga,
                                 mergedData = state.mergedData,
+                                uniqueChapterRead = state.uniqueChapterRead,
                                 chapters = listItem,
                                 isAnyChapterSelected = chapters.fastAny { it.selected },
                                 chapterSwipeStartAction = chapterSwipeStartAction,
@@ -939,6 +941,7 @@ private fun SharedMangaBottomActionMenu(
 private fun LazyListScope.sharedChapterItems(
     manga: Manga,
     mergedData: MergedMangaData?,
+    uniqueChapterRead: Map<Double, Boolean>,
     chapters: List<ChapterList>,
     isAnyChapterSelected: Boolean,
     chapterSwipeStartAction: LibraryPreferences.ChapterSwipeAction,
@@ -1005,7 +1008,8 @@ private fun LazyListScope.sharedChapterItems(
                     // SY -->
                     sourceName = item.sourceName,
                     // SY <--
-                    read = item.chapter.read,
+                    read = if (manga.dedupeScanlatorsFilter) (uniqueChapterRead[item.chapter.chapterNumber]
+                        ?: false) else item.chapter.read,
                     bookmark = item.chapter.bookmark,
                     selected = item.selected,
                     downloadIndicatorEnabled =
