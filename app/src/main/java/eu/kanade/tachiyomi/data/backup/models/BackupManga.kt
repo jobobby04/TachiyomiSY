@@ -46,6 +46,7 @@ data class BackupManga(
     @ProtoNumber(601) var flatMetadata: BackupFlatMetadata? = null,
     @ProtoNumber(602) var customStatus: Int = 0,
     @ProtoNumber(603) var customThumbnailUrl: String? = null,
+    @ProtoNumber(604) var sortedScanlator: List<BackupSortedScanlator> = emptyList(),
 
     // J2K specific values
     @ProtoNumber(800) var customTitle: String? = null,
