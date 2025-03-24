@@ -46,7 +46,7 @@ class NHentaiSearchMetadata : RaisedSearchMetadata() {
 
         val cover = if (mediaId != null) {
             typeToExtension(coverImageType)?.let {
-                "https://t3.nhentai.net/galleries/$mediaId/cover.$it"
+                "https://t1.nhentai.net/galleries/$mediaId/cover.$it"
             }
         } else {
             null

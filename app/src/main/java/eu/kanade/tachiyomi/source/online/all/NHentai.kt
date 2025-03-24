@@ -199,7 +199,7 @@ class NHentai(delegate: HttpSource, val context: Context) :
 
     private fun thumbnailUrlFromType(mediaId: String, page: Int, t: String) =
         NHentaiSearchMetadata.typeToExtension(t)?.let {
-            "https://t3.nhentai.net/galleries/$mediaId/${page}t.$it"
+            "https://t1.nhentai.net/galleries/$mediaId/${page}t.$it"
         }
 
     override suspend fun fetchPreviewImage(page: PagePreviewInfo, cacheControl: CacheControl?): Response {
