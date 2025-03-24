@@ -28,6 +28,7 @@ import eu.kanade.domain.manga.model.downloadedFilter
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.interactor.AddTracks
+import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.interactor.TrackChapter
 import eu.kanade.domain.track.model.AutoTrackState
 import eu.kanade.domain.track.model.toDomainTrack
@@ -139,6 +140,8 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import kotlin.collections.filter
+import kotlin.collections.forEach
 import kotlin.math.floor
 
 class MangaScreenModel(
@@ -1274,6 +1277,8 @@ class MangaScreenModel(
                 return@launchIO
             }
 
+            refreshTrackers()
+
             val tracks = getTracks.await(mangaId)
             val maxChapterNumber = chapters.maxOf { it.chapterNumber }
             val shouldPromptTrackingUpdate = tracks.any { track -> maxChapterNumber > track.lastChapterRead }
@@ -1298,6 +1303,27 @@ class MangaScreenModel(
                 trackChapter.await(context, mangaId, maxChapterNumber)
             }
         }
+    }
+
+    private suspend fun refreshTrackers(
+        refreshTracks: RefreshTracks = Injekt.get(),
+    ) {
+        refreshTracks.await(mangaId)
+            .filter { it.first != null }
+            .forEach { (track, e) ->
+                logcat(LogPriority.ERROR, e) {
+                    "Failed to refresh track data mangaId=$mangaId for service ${track!!.id}"
+                }
+                withUIContext {
+                    context.toast(
+                        context.stringResource(
+                            MR.strings.track_error,
+                            track!!.name,
+                            e.message ?: "",
+                        ),
+                    )
+                }
+            }
     }
 
     /**

@@ -17,24 +17,8 @@ data class ALMangaMetadataData(
 @Serializable
 data class ALMangaMetadataMedia(
     val id: Long,
-    val title: ALItemTitle,
+    val title: ALStaffName,
     val coverImage: ItemCover,
     val description: String?,
     val staff: ALStaff,
-)
-
-@Serializable
-data class ALStaff(
-    val edges: List<ALStaffEdge>,
-)
-
-@Serializable
-data class ALStaffEdge(
-    val role: String,
-    val node: ALStaffNode,
-)
-
-@Serializable
-data class ALStaffNode(
-    val name: ALItemTitle,
 )

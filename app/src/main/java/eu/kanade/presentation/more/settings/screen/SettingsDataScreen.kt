@@ -504,7 +504,7 @@ object SettingsDataScreen : SearchableSettings {
         )
     }
 
-    //SY -->
+    // SY -->
     @Composable
     private fun getSyncPreferences(syncPreferences: SyncPreferences, syncService: Int): List<Preference> {
         return listOf(
