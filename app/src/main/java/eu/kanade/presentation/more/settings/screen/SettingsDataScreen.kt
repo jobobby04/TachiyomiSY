@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.core.net.toUri
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.google.zxing.client.android.Intents
 import com.hippo.unifile.UniFile
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -667,6 +668,7 @@ object SettingsDataScreen : SearchableSettings {
         scanOptions.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
         scanOptions.setOrientationLocked(false)
         scanOptions.setPrompt(stringResource(SYMR.strings.scan_qr_code))
+        scanOptions.addExtra(Intents.Scan.SCAN_TYPE, Intents.Scan.MIXED_SCAN)
 
         return listOf(
             Preference.PreferenceItem.EditTextPreference(
