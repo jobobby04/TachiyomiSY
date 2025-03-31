@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -43,6 +44,8 @@ import androidx.core.net.toUri
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.hippo.unifile.UniFile
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.data.CreateBackupScreen
@@ -51,7 +54,9 @@ import eu.kanade.presentation.more.settings.screen.data.StorageInfo
 import eu.kanade.presentation.more.settings.screen.data.SyncSettingsSelector
 import eu.kanade.presentation.more.settings.screen.data.SyncTriggerOptionsScreen
 import eu.kanade.presentation.more.settings.widget.BasePreferenceWidget
+import eu.kanade.presentation.more.settings.widget.EditTextPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.PrefsHorizontalPadding
+import eu.kanade.presentation.more.settings.widget.TrailingWidgetBuffer
 import eu.kanade.presentation.util.relativeTimeSpanString
 import eu.kanade.tachiyomi.data.backup.create.BackupCreateJob
 import eu.kanade.tachiyomi.data.backup.restore.BackupRestoreJob
@@ -82,7 +87,6 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.storage.service.StoragePreferences
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.Injekt
@@ -652,6 +656,18 @@ object SettingsDataScreen : SearchableSettings {
     @Composable
     private fun getSelfHostPreferences(syncPreferences: SyncPreferences): List<Preference> {
         val scope = rememberCoroutineScope()
+
+        val qrScanLauncher = rememberLauncherForActivityResult(ScanContract()) {
+            if (it.contents != null && it.contents.isNotEmpty()) {
+                syncPreferences.clientAPIKey().set(it.contents)
+            }
+        }
+
+        val scanOptions = ScanOptions()
+        scanOptions.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+        scanOptions.setOrientationLocked(false)
+        scanOptions.setPrompt(stringResource(SYMR.strings.scan_qr_code))
+
         return listOf(
             Preference.PreferenceItem.EditTextPreference(
                 title = stringResource(SYMR.strings.pref_sync_host),
@@ -667,11 +683,32 @@ object SettingsDataScreen : SearchableSettings {
                     true
                 },
             ),
-            Preference.PreferenceItem.EditTextPreference(
+            Preference.PreferenceItem.CustomPreference(
                 title = stringResource(SYMR.strings.pref_sync_api_key),
-                subtitle = stringResource(SYMR.strings.pref_sync_api_key_summ),
-                preference = syncPreferences.clientAPIKey(),
-            ),
+            ) {
+                val values by syncPreferences.clientAPIKey().collectAsState()
+                EditTextPreferenceWidget(
+                    title = stringResource(SYMR.strings.pref_sync_api_key),
+                    subtitle = stringResource(SYMR.strings.pref_sync_api_key_summ),
+                    onConfirm = {
+                        syncPreferences.clientAPIKey().set(it)
+                        true
+                    },
+                    icon = null,
+                    value = values,
+                    widget = {
+                        IconButton (
+                            onClick = { qrScanLauncher.launch(scanOptions) },
+                            modifier = Modifier.padding(start = TrailingWidgetBuffer),
+                        ) {
+                            Icon(
+                                Icons.Filled.QrCodeScanner,
+                                contentDescription = stringResource(SYMR.strings.scan_qr_code),
+                            )
+                        }
+                    },
+                )
+            },
         )
     }
 
