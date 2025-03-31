@@ -307,6 +307,9 @@ dependencies {
     // Koin
     implementation(sylibs.koin.core)
     implementation(sylibs.koin.android)
+
+    // ZXing Android Embedded
+    implementation(sylibs.zxing.android.embedded)
 }
 
 androidComponents {
