@@ -63,6 +63,11 @@ class NHentaiSearchMetadata : RaisedSearchMetadata() {
             if (tags.isNotEmpty()) tags.joinToString(transform = { it.name }) else null
         }
 
+        // Set group (if we can find one)
+        val group = tags.ofNamespace(NHENTAI_GROUP_NAMESPACE).let { tags ->
+            if (tags.isNotEmpty()) tags.joinToString(transform = { it.name }) else null
+        }
+
         // Copy tags -> genres
         val genres = tagsToGenreString()
 
@@ -77,16 +82,15 @@ class NHentaiSearchMetadata : RaisedSearchMetadata() {
             }
         }
 
-        val description = "meta"
-
         return manga.copy(
             url = key ?: manga.url,
             thumbnail_url = cover ?: manga.thumbnail_url,
             title = title,
-            artist = artist ?: manga.artist,
+            artist = group ?: manga.artist,
+            author = artist ?: manga.artist,
             genre = genres,
             status = status,
-            description = description,
+            description = null,
         )
     }
 
@@ -126,6 +130,7 @@ class NHentaiSearchMetadata : RaisedSearchMetadata() {
         const val BASE_URL = "https://nhentai.net"
 
         private const val NHENTAI_ARTIST_NAMESPACE = "artist"
+        private const val NHENTAI_GROUP_NAMESPACE = "group"
         const val NHENTAI_CATEGORIES_NAMESPACE = "category"
 
         fun typeToExtension(t: String?) =
