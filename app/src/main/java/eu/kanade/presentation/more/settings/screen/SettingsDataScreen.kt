@@ -664,11 +664,14 @@ object SettingsDataScreen : SearchableSettings {
             }
         }
 
-        val scanOptions = ScanOptions()
-        scanOptions.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-        scanOptions.setOrientationLocked(false)
-        scanOptions.setPrompt(stringResource(SYMR.strings.scan_qr_code))
-        scanOptions.addExtra(Intents.Scan.SCAN_TYPE, Intents.Scan.MIXED_SCAN)
+        val scanOptions = remember {
+            ScanOptions().apply {
+                setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                setOrientationLocked(false)
+                setPrompt(stringResource(SYMR.strings.scan_qr_code))
+                addExtra(Intents.Scan.SCAN_TYPE, Intents.Scan.MIXED_SCAN)
+            }
+        }
 
         return listOf(
             Preference.PreferenceItem.EditTextPreference(
@@ -699,7 +702,7 @@ object SettingsDataScreen : SearchableSettings {
                     icon = null,
                     value = values,
                     widget = {
-                        IconButton (
+                        IconButton(
                             onClick = { qrScanLauncher.launch(scanOptions) },
                             modifier = Modifier.padding(start = TrailingWidgetBuffer),
                         ) {
