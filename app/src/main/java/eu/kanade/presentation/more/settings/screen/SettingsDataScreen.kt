@@ -663,12 +663,12 @@ object SettingsDataScreen : SearchableSettings {
                 syncPreferences.clientAPIKey().set(it.contents)
             }
         }
-
+        val context = LocalContext.current
         val scanOptions = remember {
             ScanOptions().apply {
                 setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                 setOrientationLocked(false)
-                setPrompt(stringResource(SYMR.strings.scan_qr_code))
+                setPrompt(SYMR.strings.scan_qr_code.getString(context))
                 addExtra(Intents.Scan.SCAN_TYPE, Intents.Scan.MIXED_SCAN)
             }
         }
