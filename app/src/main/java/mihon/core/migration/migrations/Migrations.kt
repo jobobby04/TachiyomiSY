@@ -46,4 +46,5 @@ val migrations: List<Migration>
         MoveEncryptionSettingsToAppStateMigration(),
         TrustExtensionRepositoryMigration(),
         CategoryPreferencesCleanupMigration(),
+        RemoveDuplicateReaderPreferenceMigration(),
     )
