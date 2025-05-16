@@ -40,8 +40,10 @@ fun RecommendationSearchProgressDialog(
     val context = LocalContext.current
     val currentView = LocalView.current
 
-    DisposableEffect(Unit) {
-        currentView.keepScreenOn = true
+    DisposableEffect(status) {
+        if (status != SearchStatus.Idle) {
+            currentView.keepScreenOn = true
+        }
         onDispose {
             currentView.keepScreenOn = false
         }
