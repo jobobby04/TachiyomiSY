@@ -10,8 +10,15 @@ class RemoveDuplicateReaderPreferenceMigration : Migration {
     override val version: Float = 74f
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
-        migrationContext.get<SharedPreferences>()?.edit {
-            remove("mark_read_dupe")
+        val prefs = migrationContext.get<SharedPreferences>() ?: return@withIOContext false
+
+        if (prefs.getBoolean("mark_read_dupe", false)) {
+            val readPrefSet = prefs.getStringSet("mark_duplicate_read_chapter_read", emptySet())?.toMutableSet()
+            readPrefSet?.add("existing")
+            prefs.edit {
+                putStringSet("mark_duplicate_read_chapter_read", readPrefSet)
+                remove("mark_read_dupe")
+            }
         }
 
         return@withIOContext true
