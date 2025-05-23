@@ -42,6 +42,7 @@ fun LibraryToolbar(
     // SY -->
     onClickSyncExh: (() -> Unit)?,
     isSyncEnabled: Boolean,
+    onClickTrackerManga: () -> Unit,
     // SY <--
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
@@ -66,6 +67,7 @@ fun LibraryToolbar(
         // SY -->
         onClickSyncExh = onClickSyncExh,
         isSyncEnabled = isSyncEnabled,
+        onClickTrackerManga = onClickTrackerManga,
         // SY <--
         scrollBehavior = scrollBehavior,
     )
@@ -85,6 +87,7 @@ private fun LibraryRegularToolbar(
     // SY -->
     onClickSyncExh: (() -> Unit)?,
     isSyncEnabled: Boolean,
+    onClickTrackerManga: () -> Unit,
     // SY <--
     scrollBehavior: TopAppBarScrollBehavior?,
 ) {
@@ -130,6 +133,10 @@ private fun LibraryRegularToolbar(
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.action_open_random_manga),
                         onClick = onClickOpenRandomManga,
+                    ),
+                    AppBar.OverflowAction(
+                        title = "Tracker Manga",
+                        onClick = onClickTrackerManga,
                     ),
                 ).builder().apply {
                     // SY -->

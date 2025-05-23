@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.data.track.anilist.dto.ALMangaMetadata
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALOAuth
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALSearchResult
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALUserListMangaQueryResult
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALUserMangaListQueryResult
 import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.POST
@@ -432,6 +433,54 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
                     .data.media
                     .toALManga()
                     .toTrack()
+            }
+        }
+    }
+
+    suspend fun getPaginatedMangaList(page: Int, statusId: Long, userId: Int): List<TrackMangaMetadata> {
+        return withIOContext {
+            val query = """
+                |query (${'$'}id: Int!, ${'$'}page: Int!, ${'$'}status: MediaListStatus!) {
+                    |Page(perPage: 50, page: ${'$'}page) {
+                        |mediaList(userId: ${'$'}id, type: MANGA, status: ${'$'}status) {
+                            |media {
+                                |id
+                                |title {
+                                    |userPreferred
+                                |}
+                                |coverImage {
+                                    |large
+                                |}
+                            |}
+                        |}
+                    |}
+                |}
+            """.trimMargin()
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("page", page)
+                    put("id", userId)
+                    put("status", statusId.toApiStatus())
+                }
+            }
+            with(json) {
+                authClient.newCall(
+                    POST(
+                        API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
+                    .awaitSuccess()
+                    .parseAs<ALUserMangaListQueryResult>()
+                    .data.page.mediaList
+                    .map { entry ->
+                        TrackMangaMetadata(
+                            remoteId = entry.media.id,
+                            title = entry.media.title.userPreferred,
+                            thumbnailUrl = entry.media.coverImage.large,
+                        )
+                    }
             }
         }
     }

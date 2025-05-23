@@ -92,5 +92,7 @@ interface Tracker {
     suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata?
 
     suspend fun searchById(id: String): TrackSearch?
+
+    suspend fun getPaginatedMangaList(page: Int, statusId: Long): List<TrackMangaMetadata>
     // SY <--
 }
