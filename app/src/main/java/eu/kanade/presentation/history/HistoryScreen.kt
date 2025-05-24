@@ -20,6 +20,7 @@ import eu.kanade.presentation.history.components.HistoryItem
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import eu.kanade.presentation.util.animateItemFastScroll
 import eu.kanade.tachiyomi.ui.history.HistoryScreenModel
+import eu.kanade.tachiyomi.ui.home.HomeScreen
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.domain.history.model.HistoryWithRelations
@@ -42,6 +43,7 @@ fun HistoryScreen(
     onClickFavorite: (mangaId: Long) -> Unit,
     onDialogChange: (HistoryScreenModel.Dialog?) -> Unit,
 ) {
+    val homeScreenInsets = HomeScreen.LocalHomeScreenInsetsProvider.current
     Scaffold(
         topBar = { scrollBehavior ->
             SearchToolbar(
@@ -65,6 +67,7 @@ fun HistoryScreen(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        contentWindowInsets = homeScreenInsets,
     ) { contentPadding ->
         state.list.let {
             if (it == null) {

@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -183,10 +184,14 @@ object HomeScreen : Screen() {
                                 },
                             ),
                     ) {
+                        val contentWindowInsets = ScaffoldDefaults.contentWindowInsets
                         val insets = remember {
                             object : WindowInsets {
                                 override fun getBottom(density: Density): Int {
-                                    return with(density) { contentPadding.calculateBottomPadding().roundToPx() }
+                                    return with(density) {
+                                        contentPadding.calculateBottomPadding().roundToPx()
+                                            .plus(contentWindowInsets.getBottom(density))
+                                    }
                                 }
 
                                 override fun getTop(density: Density): Int {
