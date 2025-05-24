@@ -25,6 +25,7 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.manga.components.MangaBottomActionMenu
 import eu.kanade.tachiyomi.data.download.model.Download
+import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
 import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel
 import kotlinx.collections.immutable.persistentListOf
@@ -60,6 +61,8 @@ fun UpdateScreen(
     onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
     onOpenChapter: (UpdatesItem) -> Unit,
 ) {
+    val homeScreenInsets = HomeScreen.LocalHomeScreenInsetsProvider.current
+
     BackHandler(enabled = state.selectionMode) {
         onSelectAll(false)
     }
@@ -86,6 +89,7 @@ fun UpdateScreen(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        contentWindowInsets = homeScreenInsets,
     ) { contentPadding ->
         when {
             state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
