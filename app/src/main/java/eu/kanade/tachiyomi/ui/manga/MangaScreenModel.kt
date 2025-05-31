@@ -141,8 +141,6 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
-import kotlin.collections.filter
-import kotlin.collections.forEach
 import kotlin.math.floor
 
 class MangaScreenModel(
@@ -1657,7 +1655,7 @@ class MangaScreenModel(
         data class DuplicateManga(val manga: Manga, val duplicates: List<MangaWithChapterCount>) : Dialog
 
         /* SY -->
-        data class Migrate(val newManga: Manga, val oldManga: Manga) : Dialog
+        data class Migrate(val target: Manga, val current: Manga) : Dialog
         SY <-- */
         data class SetFetchInterval(val manga: Manga) : Dialog
 
@@ -1694,7 +1692,7 @@ class MangaScreenModel(
     /* SY -->
     fun showMigrateDialog(duplicate: Manga) {
         val manga = successState?.manga ?: return
-        updateSuccessState { it.copy(dialog = Dialog.Migrate(newManga = manga, oldManga = duplicate)) }
+        updateSuccessState { it.copy(dialog = Dialog.Migrate(target = manga, current = duplicate)) }
     } SY <-- */
 
     fun setExcludedScanlators(excludedScanlators: Set<String>) {
