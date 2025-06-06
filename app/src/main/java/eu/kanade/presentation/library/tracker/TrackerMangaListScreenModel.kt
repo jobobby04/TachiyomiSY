@@ -5,9 +5,12 @@ import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
+import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.track.interactor.GetTracks
@@ -21,18 +24,21 @@ class TrackerMangaListScreenModel(
 ) : StateScreenModel<TrackerMangaListState>(TrackerMangaListState()) {
 
     private var remoteIds: Set<Long> = emptySet()
+    val trackers: List<Tracker> = trackerManager.loggedInTrackers()
+    private var tracker: Tracker = trackers.first()
 
     init {
         screenModelScope.launchIO {
-            val tracker = trackerManager.loggedInTrackers().firstOrNull() ?: return@launchIO
-            val mangaIds = getLibraryManga.await().map { it.id }.toSet()
-            remoteIds = getTracks.await().filter { it.mangaId in mangaIds && it.trackerId == tracker.id }.map { it.remoteId }.toSet()
-            mutableState.update {
-                TrackerMangaListState(
-                    trackerId = tracker.id,
-                    statusList = tracker.getStatusList(),
-                    getStatusRes = tracker::getStatus,
-                )
+            getLibraryManga.subscribe().collectLatest { mangaList->
+                val mangaIds = mangaList.map{ it.id }.toSet()
+                remoteIds = getTracks.await().filter { it.mangaId in mangaIds && it.trackerId == tracker.id}.map { it.remoteId }.toSet()
+                mutableState.update {
+                    TrackerMangaListState(
+                        trackerId = tracker.id,
+                        statusList = tracker.getStatusList(),
+                        getStatusRes = tracker::getStatus,
+                    )
+                }
             }
         }
     }
@@ -51,9 +57,6 @@ class TrackerMangaListScreenModel(
         if (currentTab.isLoading || currentTab.endReached) return
 
         screenModelScope.launchIO {
-            val trackerId = mutableState.value.trackerId ?: return@launchIO
-            val tracker = trackerManager.get(trackerId) ?: return@launchIO
-
             val statusId = mutableState.value.statusList.getOrNull(tabIndex) ?: return@launchIO
             val currentPage = currentTab.page
 
@@ -76,6 +79,28 @@ class TrackerMangaListScreenModel(
             }
         }
     }
+
+    fun getTrackerName(): String {
+        return tracker.name
+    }
+
+    fun changeTracker(trackerId: Long) {
+        tracker = trackerManager.get(trackerId)!!
+        mutableState.update {
+            TrackerMangaListState(
+                trackerId = trackerId,
+                statusList = tracker.getStatusList(),
+                getStatusRes = tracker::getStatus,
+                trackerSelectDialog = false,
+            )
+        }
+    }
+
+    fun toggleTrackerSelectDialog() {
+        mutableState.update {
+            it.copy(trackerSelectDialog = !it.trackerSelectDialog)
+        }
+    }
 }
 
 @Immutable
@@ -85,6 +110,7 @@ data class TrackerMangaListState(
     val trackerId: Long? = null,
     val currentTabIndex: Int = 0,
     val tabs: Map<Int, TabMangaList> = emptyMap(),
+    val trackerSelectDialog: Boolean = false,
 )
 
 @Immutable

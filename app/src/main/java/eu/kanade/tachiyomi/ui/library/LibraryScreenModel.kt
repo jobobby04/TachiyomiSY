@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.ui.library
 import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastAll
@@ -288,6 +289,14 @@ class LibraryScreenModel(
                 mutableState.update { it.copy(isSyncEnabled = syncService != 0) }
             }
             .launchIn(screenModelScope)
+
+        screenModelScope.launchIO {
+            trackerManager.loggedInTrackersFlow().collectLatest { trackerList ->
+                mutableState.update {
+                    it.copy(hasLoggedInTrackers = trackerList.isNotEmpty())
+                }
+            }
+        }
         // SY <--
     }
 
@@ -1399,6 +1408,7 @@ class LibraryScreenModel(
         val isSyncEnabled: Boolean = false,
         val ogCategories: List<Category> = emptyList(),
         val groupType: Int = LibraryGroup.BY_DEFAULT,
+        val hasLoggedInTrackers: Boolean = false,
         // SY <--
     ) {
         private val libraryCount by lazy {

@@ -179,6 +179,7 @@ data object LibraryTab : Tab {
                     onClickSyncExh = screenModel::openFavoritesSyncDialog.takeIf { state.showSyncExh },
                     isSyncEnabled = state.isSyncEnabled,
                     onClickTrackerManga = { navigator.push(TrackerMangaListScreen()) },
+                    hasLoggedInTrackers = state.hasLoggedInTrackers,
                     // SY <--
                     searchQuery = state.searchQuery,
                     onSearchQueryChange = screenModel::search,
