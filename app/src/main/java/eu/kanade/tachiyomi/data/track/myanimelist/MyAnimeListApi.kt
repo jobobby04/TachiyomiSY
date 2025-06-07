@@ -230,6 +230,35 @@ class MyAnimeListApi(
         }
     }
 
+    suspend fun getPaginatedMangaList(page: Int, statusId: Long): List<TrackMangaMetadata> {
+        return withIOContext {
+            val urlBuilder = "$BASE_API_URL/users/@me/mangalist".toUri().buildUpon()
+                .appendQueryParameter("status", "${statusId.toMyAnimeListStatus()}")
+                .appendQueryParameter("fields", "list_status")
+                .appendQueryParameter("limit", 50.toString())
+                .appendQueryParameter("offset", ((page-1) * 50).toString())
+
+            val request = Request.Builder().url(urlBuilder.build().toString()).get().build()
+            with (json) {
+                val data = authClient.newCall(request)
+                    .awaitSuccess()
+                    .parseAs<MALUserSearchResult>()
+                    .data
+                data.mapNotNull {
+                    if (statusId == MyAnimeList.REREADING && !it.listStatus!!.isRereading) {
+                        null
+                    } else {
+                        TrackMangaMetadata(
+                            remoteId = it.node.id.toLong(),
+                            title = it.node.title,
+                            thumbnailUrl = it.node.covers?.large,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private suspend fun getListPage(offset: Int): MALUserSearchResult {
         return withIOContext {
             val urlBuilder = "$BASE_API_URL/users/@me/mangalist".toUri().buildUpon()
