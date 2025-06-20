@@ -37,6 +37,7 @@ import eu.kanade.presentation.library.components.LibraryToolbar
 import eu.kanade.presentation.library.components.SyncFavoritesConfirmDialog
 import eu.kanade.presentation.library.components.SyncFavoritesProgressDialog
 import eu.kanade.presentation.library.components.SyncFavoritesWarningDialog
+import eu.kanade.presentation.library.tracker.TrackerMangaListScreen
 import eu.kanade.presentation.manga.components.LibraryBottomActionMenu
 import eu.kanade.presentation.more.onboarding.GETTING_STARTED_URL
 import eu.kanade.presentation.util.Tab
@@ -177,6 +178,8 @@ data object LibraryTab : Tab {
                     // SY -->
                     onClickSyncExh = screenModel::openFavoritesSyncDialog.takeIf { state.showSyncExh },
                     isSyncEnabled = state.isSyncEnabled,
+                    onClickTrackerManga = { navigator.push(TrackerMangaListScreen()) },
+                    hasLoggedInTrackers = state.hasLoggedInTrackers,
                     // SY <--
                     searchQuery = state.searchQuery,
                     onSearchQueryChange = screenModel::search,

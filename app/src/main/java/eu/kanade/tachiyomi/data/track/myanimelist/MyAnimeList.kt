@@ -156,13 +156,17 @@ class MyAnimeList(id: Long) : BaseTracker(id, "MyAnimeList"), DeletableTracker {
         interceptor.setAuth(null)
     }
 
+    // SY -->
     override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
         return api.getMangaMetadata(track)
     }
 
-    // SY -->
     override suspend fun searchById(id: String): TrackSearch {
         return api.getMangaDetails(id.toInt())
+    }
+
+    override suspend fun getPaginatedMangaList(page: Int, statusId: Long): List<TrackMangaMetadata> {
+        return api.getPaginatedMangaList(page, statusId)
     }
     // SY <--
 

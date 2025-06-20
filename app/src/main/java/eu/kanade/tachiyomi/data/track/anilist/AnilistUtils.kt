@@ -5,6 +5,16 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
+fun Long.toApiStatus() = when (this) {
+    Anilist.READING -> "CURRENT"
+    Anilist.COMPLETED -> "COMPLETED"
+    Anilist.ON_HOLD -> "PAUSED"
+    Anilist.DROPPED -> "DROPPED"
+    Anilist.PLAN_TO_READ -> "PLANNING"
+    Anilist.REREADING -> "REPEATING"
+    else -> throw NotImplementedError("Unknown status: $this")
+}
+
 fun Track.toApiStatus() = when (status) {
     Anilist.READING -> "CURRENT"
     Anilist.COMPLETED -> "COMPLETED"

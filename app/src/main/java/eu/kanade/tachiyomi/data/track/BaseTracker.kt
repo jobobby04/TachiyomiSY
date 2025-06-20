@@ -137,6 +137,10 @@ abstract class BaseTracker(
     override suspend fun searchById(id: String): TrackSearch? {
         throw NotImplementedError("Not implemented.")
     }
+
+    override suspend fun getPaginatedMangaList(page: Int, statusId: Long): List<TrackMangaMetadata> {
+        throw NotImplementedError("Not implemented.")
+    }
     // SY <--
 
     private suspend fun updateRemote(track: Track): Unit = withIOContext {

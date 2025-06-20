@@ -7,4 +7,5 @@ data class TrackMangaMetadata(
     val description: String? = null,
     val authors: String? = null,
     val artists: String? = null,
+    val libraryStatus: Int? = null,
 )
