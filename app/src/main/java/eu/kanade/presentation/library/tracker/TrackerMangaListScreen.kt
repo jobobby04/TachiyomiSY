@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.library.tracker.components.TrackStatusTabs
 import eu.kanade.presentation.library.tracker.components.mangaListItem
@@ -123,11 +122,13 @@ class TrackerMangaListScreen : Screen() {
                                         try {
                                             screenModel.loadNextPage(page)
                                         } catch (e: Exception) {
-                                            context.toast(context.stringResource(
-                                                MR.strings.track_error,
-                                                screenModel.getTrackerName(),
-                                                e.message ?: "",
-                                            ))
+                                            context.toast(
+                                                context.stringResource(
+                                                    MR.strings.track_error,
+                                                    screenModel.getTrackerName(),
+                                                    e.message ?: "",
+                                                ),
+                                            )
                                         }
                                     }
                                 }
@@ -143,11 +144,13 @@ class TrackerMangaListScreen : Screen() {
                                 try {
                                     screenModel.changeTab(page)
                                 } catch (e: Exception) {
-                                    context.toast(context.stringResource(
-                                        MR.strings.track_error,
-                                        screenModel.getTrackerName(),
-                                        e.message ?: "",
-                                    ))
+                                    context.toast(
+                                        context.stringResource(
+                                            MR.strings.track_error,
+                                            screenModel.getTrackerName(),
+                                            e.message ?: "",
+                                        ),
+                                    )
                                 }
                             }
 
@@ -205,7 +208,6 @@ class TrackerMangaListScreen : Screen() {
                 currentTrackerId = state.trackerId!!,
             )
         }
-
     }
 }
 

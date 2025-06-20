@@ -236,10 +236,10 @@ class MyAnimeListApi(
                 .appendQueryParameter("status", "${statusId.toMyAnimeListStatus()}")
                 .appendQueryParameter("fields", "list_status")
                 .appendQueryParameter("limit", 50.toString())
-                .appendQueryParameter("offset", ((page-1) * 50).toString())
+                .appendQueryParameter("offset", ((page - 1) * 50).toString())
 
             val request = Request.Builder().url(urlBuilder.build().toString()).get().build()
-            with (json) {
+            with(json) {
                 val data = authClient.newCall(request)
                     .awaitSuccess()
                     .parseAs<MALUserSearchResult>()

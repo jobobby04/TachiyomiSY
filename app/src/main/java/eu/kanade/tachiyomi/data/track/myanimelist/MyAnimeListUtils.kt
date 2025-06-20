@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.data.track.myanimelist
 
 import eu.kanade.tachiyomi.data.database.models.Track
 
-fun Long.toMyAnimeListStatus() = when(this) {
+fun Long.toMyAnimeListStatus() = when (this) {
     MyAnimeList.READING -> "reading"
     MyAnimeList.COMPLETED -> "completed"
     MyAnimeList.ON_HOLD -> "on_hold"

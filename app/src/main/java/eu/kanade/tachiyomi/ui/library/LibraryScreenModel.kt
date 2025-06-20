@@ -295,11 +295,12 @@ class LibraryScreenModel(
         screenModelScope.launchIO {
             trackerManager.loggedInTrackersFlow().collectLatest { trackerList ->
                 mutableState.update { state ->
-                    state.copy(hasLoggedInTrackers = trackerList.filterNot { it is EnhancedTracker }.any { tracker ->
-                        tracker::class in listOf(
-                            Anilist::class, MyAnimeList::class,
-                        )
-                    }
+                    state.copy(
+                        hasLoggedInTrackers = trackerList.filterNot { it is EnhancedTracker }.any { tracker ->
+                            tracker::class in listOf(
+                                Anilist::class, MyAnimeList::class,
+                            )
+                        },
                     )
                 }
             }
