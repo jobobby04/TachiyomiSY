@@ -34,10 +34,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.library.tracker.components.TrackStatusTabs
 import eu.kanade.presentation.library.tracker.components.mangaListItem
@@ -45,7 +47,9 @@ import eu.kanade.presentation.track.components.TrackLogoIcon
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
+import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.launch
+import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
@@ -59,6 +63,7 @@ class TrackerMangaListScreen : Screen() {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val context = LocalContext.current
 
         val screenModel = rememberScreenModel { TrackerMangaListScreenModel() }
         val state by screenModel.state.collectAsState()
@@ -82,7 +87,7 @@ class TrackerMangaListScreen : Screen() {
                     )
 
                     LaunchedEffect(state.trackerId) {
-                        pagerState.animateScrollToPage(0)
+                        pagerState.scrollToPage(0)
                     }
 
                     Column(modifier = Modifier.padding(contentPadding)) {
@@ -101,7 +106,7 @@ class TrackerMangaListScreen : Screen() {
                         ) { page ->
                             val currentTabState = state.tabs[page] ?: TabMangaList()
 
-                            val currentScrollState = remember {
+                            val currentScrollState = remember(page, state.trackerId) {
                                 LazyListState(
                                     firstVisibleItemIndex = scrollStates[page]?.first ?: 0,
                                     firstVisibleItemScrollOffset = scrollStates[page]?.second ?: 0,
@@ -115,7 +120,15 @@ class TrackerMangaListScreen : Screen() {
                                     lastVisible >= layoutInfo.totalItemsCount - 20
                                 }.collect { shouldLoadMore ->
                                     if (shouldLoadMore) {
-                                        screenModel.loadNextPage(page)
+                                        try {
+                                            screenModel.loadNextPage(page)
+                                        } catch (e: Exception) {
+                                            context.toast(context.stringResource(
+                                                MR.strings.track_error,
+                                                screenModel.getTrackerName(),
+                                                e.message ?: "",
+                                            ))
+                                        }
                                     }
                                 }
                             }
@@ -127,7 +140,15 @@ class TrackerMangaListScreen : Screen() {
                                     .collect { (index, offset) ->
                                         scrollStates[page] = index to offset
                                     }
-                                screenModel.changeTab(page)
+                                try {
+                                    screenModel.changeTab(page)
+                                } catch (e: Exception) {
+                                    context.toast(context.stringResource(
+                                        MR.strings.track_error,
+                                        screenModel.getTrackerName(),
+                                        e.message ?: "",
+                                    ))
+                                }
                             }
 
                             val isFirstLoad = currentTabState.isLoading && currentTabState.items.isEmpty()

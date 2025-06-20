@@ -155,7 +155,7 @@ private fun LibraryRegularToolbar(
                             ),
                         )
                     }
-                    if (hasLoggedInTrackers) {
+                    if (hasLoggedInTrackers) { // TODO: Add a check for implemented trackers
                         add(
                             AppBar.OverflowAction(
                                 title = "Tracker Manga",

@@ -1,16 +1,17 @@
 package eu.kanade.presentation.library.tracker
 
-import android.content.Context
 import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
+import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
+import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
+import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.track.interactor.GetTracks
@@ -24,14 +25,17 @@ class TrackerMangaListScreenModel(
 ) : StateScreenModel<TrackerMangaListState>(TrackerMangaListState()) {
 
     private var remoteIds: Set<Long> = emptySet()
-    val trackers: List<Tracker> = trackerManager.loggedInTrackers()
+
+    // TODO: Implement getPaginatedMangaList for all trackers
+    // When changing, also update in LibraryScreenModel
+    val trackers: List<Tracker> = trackerManager.loggedInTrackers().filterNot { it is EnhancedTracker }.filter { tracker -> tracker::class in listOf(Anilist::class, MyAnimeList::class) }
     private var tracker: Tracker = trackers.first()
 
     init {
         screenModelScope.launchIO {
-            getLibraryManga.subscribe().collectLatest { mangaList->
-                val mangaIds = mangaList.map{ it.id }.toSet()
-                remoteIds = getTracks.await().filter { it.mangaId in mangaIds && it.trackerId == tracker.id}.map { it.remoteId }.toSet()
+            getLibraryManga.subscribe().collectLatest { mangaList ->
+                val mangaIds = mangaList.map { it.id }.toSet()
+                remoteIds = getTracks.await().filter { it.mangaId in mangaIds && it.trackerId == tracker.id }.map { it.remoteId }.toSet()
                 mutableState.update {
                     TrackerMangaListState(
                         trackerId = tracker.id,
