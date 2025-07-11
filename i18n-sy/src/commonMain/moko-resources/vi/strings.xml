@@ -116,4 +116,7 @@
     <string name="pref_sync_service_category">Đồng bộ</string>
     <string name="last_synchronization">Lần đồng bộ gần nhất:%1$s</string>
     <string name="google_drive_sync_data_not_found">Không tìm thấy dữ liệu đồng bộ trong Google Drive</string>
+    <string name="author">Tác giả</string>
+    <string name="artist">Họa sĩ</string>
+    <string name="clear_db_exclude_read">Giữ các mục có chương đã đọc</string>
 </resources>
