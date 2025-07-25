@@ -48,4 +48,7 @@
     <plurals name="migrate_entry">
         <item quantity="other">Di chuyển %1$d%2$s mục?</item>
     </plurals>
+    <plurals name="row_count">
+        <item quantity="other">%d Hàng</item>
+    </plurals>
 </resources>
