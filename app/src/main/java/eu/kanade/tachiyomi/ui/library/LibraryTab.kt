@@ -28,7 +28,6 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.library.DeleteLibraryMangaDialog
 import eu.kanade.presentation.library.LibrarySettingsDialog
@@ -43,7 +42,6 @@ import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.sync.SyncDataJob
-import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.PreMigrationScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
@@ -62,6 +60,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import mihon.feature.migration.config.MigrationConfigScreen
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.category.model.Category
@@ -76,8 +75,6 @@ import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 data object LibraryTab : Tab {
 
@@ -190,23 +187,23 @@ data object LibraryTab : Tab {
                     onDownloadClicked = screenModel::performDownloadAction
                         .takeIf { state.selectedManga.fastAll { !it.isLocal() } },
                     onDeleteClicked = screenModel::openDeleteMangaDialog,
-                    // SY -->
-                    onClickCleanTitles = screenModel::cleanTitles.takeIf { state.showCleanTitles },
-                    onClickMigrate = {
-                        val selectedMangaIds = state.selectedManga
+                    onMigrateClicked = {
+                        val selection = state.selectedManga
+                            // SY -->
                             .filterNot { it.source == MERGED_SOURCE_ID }
                             .map { it.id }
+                        // <-- SY
                         screenModel.clearSelection()
-                        if (selectedMangaIds.isNotEmpty()) {
-                            PreMigrationScreen.navigateToMigration(
-                                Injekt.get<SourcePreferences>().skipPreMigration().get(),
-                                navigator,
-                                selectedMangaIds,
-                            )
-                        } else {
-                            context.toast(SYMR.strings.no_valid_entry)
-                        }
+                        /* SY --> */if (selection.isNotEmpty()) { /* <-- SY */
+                        navigator.push(MigrationConfigScreen(selection))
+                        // SY ->>
+                    } else {
+                        context.toast(SYMR.strings.no_valid_entry)
+                    }
+                        // <-- SY
                     },
+                    // SY -->
+                    onClickCleanTitles = screenModel::cleanTitles.takeIf { state.showCleanTitles },
                     onClickCollectRecommendations = screenModel::showRecommendationSearchDialog.takeIf { state.selection.size > 1 },
                     onClickAddToMangaDex = screenModel::syncMangaToDex.takeIf { state.showAddToMangadex },
                     onClickResetInfo = screenModel::resetInfo.takeIf { state.showResetInfo },

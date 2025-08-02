@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -30,7 +31,6 @@ import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.RemoveDone
-import androidx.compose.material.icons.outlined.SwapCalls
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DownloadDropdownMenu
 import eu.kanade.presentation.components.DropdownMenu
@@ -192,7 +193,7 @@ private fun RowScope.Button(
         targetValue = if (toConfirm) 2f else 1f,
         label = "weight",
     )
-    Column(
+    Box(
         modifier = Modifier
             .size(48.dp)
             .weight(animatedWeight)
@@ -202,24 +203,28 @@ private fun RowScope.Button(
                 onLongClick = onLongClick,
                 onClick = onClick,
             ),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-        )
-        AnimatedVisibility(
-            visible = toConfirm,
-            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                text = title,
-                overflow = TextOverflow.Visible,
-                maxLines = 1,
-                style = MaterialTheme.typography.labelSmall,
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
             )
+            AnimatedVisibility(
+                visible = toConfirm,
+                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+            ) {
+                Text(
+                    text = title,
+                    overflow = TextOverflow.Visible,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
         }
         content?.invoke()
     }
@@ -233,9 +238,9 @@ fun LibraryBottomActionMenu(
     onMarkAsUnreadClicked: () -> Unit,
     onDownloadClicked: ((DownloadAction) -> Unit)?,
     onDeleteClicked: () -> Unit,
+    onMigrateClicked: (() -> Unit)?,
     // SY -->
     onClickCleanTitles: (() -> Unit)?,
-    onClickMigrate: (() -> Unit)?,
     onClickCollectRecommendations: (() -> Unit)?,
     onClickAddToMangaDex: (() -> Unit)?,
     onClickResetInfo: (() -> Unit)?,
@@ -254,12 +259,11 @@ fun LibraryBottomActionMenu(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             val haptic = LocalHapticFeedback.current
-            val confirm =
-                remember { mutableStateListOf(false, false, false, false, false /* SY --> */, false /* SY <-- */) }
+            val confirm = remember { mutableStateListOf(false, false, false, false, false, false) }
             var resetJob: Job? = remember { null }
             val onLongClickItem: (Int) -> Unit = { toConfirmIndex ->
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                (0..<5).forEach { i -> confirm[i] = i == toConfirmIndex }
+                (0..5).forEach { i -> confirm[i] = i == toConfirmIndex }
                 resetJob?.cancel()
                 resetJob = scope.launch {
                     delay(1.seconds)
@@ -270,7 +274,8 @@ fun LibraryBottomActionMenu(
             val showOverflow = onClickCleanTitles != null ||
                 onClickAddToMangaDex != null ||
                 onClickResetInfo != null ||
-                onClickCollectRecommendations != null
+                onClickCollectRecommendations != null ||
+                onMigrateClicked != null
             val configuration = LocalConfiguration.current
             val moveMarkPrev = remember { !configuration.isTabletUi() }
             var overFlowOpen by remember { mutableStateOf(false) }
@@ -299,11 +304,11 @@ fun LibraryBottomActionMenu(
                         onLongClick = { onLongClickItem(3) },
                         onClick = { downloadExpanded = !downloadExpanded },
                     ) {
-                        val onDismissRequest = { downloadExpanded = false }
                         DownloadDropdownMenu(
                             expanded = downloadExpanded,
-                            onDismissRequest = onDismissRequest,
+                            onDismissRequest = { downloadExpanded = false },
                             onDownloadClicked = onDownloadClicked,
+                            offset = BottomBarMenuDpOffset,
                         )
                     }
                 }
@@ -355,10 +360,10 @@ fun LibraryBottomActionMenu(
                                 onClick = onClickCleanTitles,
                             )
                         }
-                        if (onClickMigrate != null) {
+                        if (onMigrateClicked != null) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(MR.strings.migrate)) },
-                                onClick = onClickMigrate,
+                                onClick = onMigrateClicked,
                             )
                         }
                         if (onClickCollectRecommendations != null) {
@@ -388,18 +393,11 @@ fun LibraryBottomActionMenu(
                         onLongClick = { onLongClickItem(2) },
                         onClick = onMarkAsUnreadClicked,
                     )
-                    if (onClickMigrate != null) {
-                        Button(
-                            title = stringResource(MR.strings.migrate),
-                            icon = Icons.Outlined.SwapCalls,
-                            toConfirm = confirm[5],
-                            onLongClick = { onLongClickItem(5) },
-                            onClick = onClickMigrate,
-                        )
-                    }
                 }
                 // SY <--
             }
         }
     }
 }
+
+private val BottomBarMenuDpOffset = DpOffset(0.dp, 0.dp)
