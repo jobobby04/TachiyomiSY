@@ -291,7 +291,7 @@
     <string name="bandwidth_hero">Bandwidth Hero (necessita di un server proxy Bandwidth Hero)</string>
     <string name="bandwidth_data_saver_server">Server Proxy Bandwidth Hero Proxy</string>
     <string name="data_saver_server_summary">Inserisci l\'url del proxy server Bandwidth Hero</string>
-    <string name="clear_db_exclude_read">Mantieni i capitoli letti</string>
+    <string name="clear_db_exclude_read">Mantieni entità con capitoli letti</string>
     <string name="put_recommends_in_overflow_summary">Inserisci il pulsante Raccomandazioni nel menu Overflow invece che nella pagina iniziale</string>
     <string name="put_merge_in_overflow">Unisci in overflow</string>
     <string name="put_merge_in_overflow_summary">Inserisci il pulsante di unione nel menu di overflow invece che nella pagina iniziale</string>
