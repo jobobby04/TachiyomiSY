@@ -137,7 +137,7 @@ data object LibraryTab : Tab {
                 val title = state.getToolbarTitle(
                     defaultTitle = stringResource(MR.strings.label_library),
                     defaultCategoryTitle = stringResource(MR.strings.label_default),
-                    page = screenModel.activeCategoryIndex,
+                    page = state.coercedActiveCategoryIndex,
                 )
                 LibraryToolbar(
                     hasActiveFilters = state.hasActiveFilters,
@@ -147,7 +147,7 @@ data object LibraryTab : Tab {
                     onClickSelectAll = screenModel::selectAll,
                     onClickInvertSelection = screenModel::invertSelection,
                     onClickFilter = screenModel::showSettingsDialog,
-                    onClickRefresh = { onClickRefresh(screenModel.activeCategory) },
+                    onClickRefresh = { onClickRefresh(state.activeCategory) },
                     onClickGlobalUpdate = { onClickRefresh(null) },
                     onClickOpenRandomManga = {
                         scope.launch {
@@ -238,10 +238,10 @@ data object LibraryTab : Tab {
                         searchQuery = state.searchQuery,
                         selection = state.selection,
                         contentPadding = contentPadding,
-                        currentPage = { screenModel.activeCategoryIndex },
+                        currentPage = state.coercedActiveCategoryIndex,
                         hasActiveFilters = state.hasActiveFilters,
                         showPageTabs = state.showCategoryTabs || !state.searchQuery.isNullOrEmpty(),
-                        onChangeCurrentPage = { screenModel.activeCategoryIndex = it },
+                        onChangeCurrentPage = screenModel::updateActiveCategoryIndex,
                         onClickManga = { navigator.push(MangaScreen(it)) },
                         onContinueReadingClicked = { it: LibraryManga ->
                             scope.launchIO {
@@ -261,7 +261,7 @@ data object LibraryTab : Tab {
                             screenModel.toggleRangeSelection(category, manga)
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
-                        onRefresh = { onClickRefresh(screenModel.activeCategory) },
+                        onRefresh = { onClickRefresh(state.activeCategory) },
                         onGlobalSearchClicked = {
                             navigator.push(GlobalSearchScreen(screenModel.state.value.searchQuery ?: ""))
                         },
@@ -280,7 +280,7 @@ data object LibraryTab : Tab {
                 LibrarySettingsDialog(
                     onDismissRequest = onDismissRequest,
                     screenModel = settingsScreenModel,
-                    category = screenModel.activeCategory,
+                    category = state.activeCategory,
                     // SY -->
                     hasCategories = state.libraryData.categories.fastAny { !it.isSystemCategory },
                     // SY <--
