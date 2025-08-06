@@ -96,9 +96,9 @@ actual class LocalSource(
             .filter {
                 it.isDirectory &&
                     /* SY --> */ (
-                        !it.name.orEmpty().startsWith('.') ||
-                            allowLocalSourceHiddenFolders
-                        ) /* SY <-- */
+                    !it.name.orEmpty().startsWith('.') ||
+                        allowLocalSourceHiddenFolders
+                    ) /* SY <-- */
             }
             .distinctBy { it.name }
             .filter {
@@ -257,7 +257,7 @@ actual class LocalSource(
                 noXmlFile == null -> {
                     val chapterArchives = mangaDirFiles.filter(Archive::isSupported)
 
-                    val copiedFile = copyComicInfoFileFromArchive(chapterArchives, mangaDir)
+                    val copiedFile = copyComicInfoFileFromChapters(chapterArchives, mangaDir)
 
                     // SY -->
                     if (copiedFile != null && copiedFile.name != COMIC_INFO_ARCHIVE) {
@@ -279,13 +279,28 @@ actual class LocalSource(
         return@withIOContext manga
     }
 
-    private fun copyComicInfoFileFromArchive(chapterArchives: List<UniFile>, folder: UniFile): UniFile? {
-        for (chapter in chapterArchives) {
-            chapter.archiveReader(context).use { reader ->
-                reader.getInputStream(COMIC_INFO_FILE)?.use { stream ->
-                    return copyComicInfoFile(stream, folder, /* SY --> */ reader.encrypted /* SY <-- */)
+    private fun <T> getComicInfoForChapter(chapter: UniFile, block: (InputStream, /* SY --> */ Boolean /* <-- SY */) -> T): T? {
+        if (chapter.isDirectory) {
+            return chapter.findFile(COMIC_INFO_FILE)?.let { file ->
+                file.openInputStream().use {
+                    block(it, /* SY --> */ false /* SY <-- */)
                 }
             }
+        } else {
+            return chapter.archiveReader(context).use { reader ->
+                reader.getInputStream(COMIC_INFO_FILE)?.use {
+                    block(it, /* SY --> */ reader.encrypted /* SY <-- */)
+                }
+            }
+        }
+    }
+
+    private fun copyComicInfoFileFromChapters(chapterArchives: List<UniFile>, folder: UniFile): UniFile? {
+        for (chapter in chapterArchives) {
+            val file = getComicInfoForChapter(chapter) f@{ stream, /* SY --> */ encrypted /* SY <-- */ ->
+                return@f copyComicInfoFile(stream, folder, /* SY --> */ encrypted /* SY <-- */)
+            }
+            if (file != null) return file
         }
         return null
     }
@@ -316,12 +331,22 @@ actual class LocalSource(
         }
     }
 
-    private fun setMangaDetailsFromComicInfoFile(stream: InputStream, manga: SManga) {
-        val comicInfo = AndroidXmlReader(stream, StandardCharsets.UTF_8.name()).use {
+    private fun parseComicInfo(stream: InputStream): ComicInfo {
+        return AndroidXmlReader(stream, StandardCharsets.UTF_8.name()).use {
             xml.decodeFromReader<ComicInfo>(it)
         }
+    }
 
-        manga.copyFromComicInfo(comicInfo)
+    private fun setMangaDetailsFromComicInfoFile(stream: InputStream, manga: SManga) {
+        manga.copyFromComicInfo(parseComicInfo(stream))
+    }
+
+    private fun setChapterDetailsFromComicInfoFile(stream: InputStream, chapter: SChapter) {
+        val comicInfo = parseComicInfo(stream)
+
+        comicInfo.title?.let { chapter.name = it.value }
+        comicInfo.number?.value?.toFloatOrNull()?.let { chapter.chapter_number = it }
+        comicInfo.translator?.let { chapter.scanlator = it.value }
     }
 
     // Chapters
@@ -347,6 +372,10 @@ actual class LocalSource(
                     if (format is Format.Epub) {
                         EpubFile(format.file.archiveReader(context)).use { epub ->
                             epub.fillMetadata(manga, this)
+                        }
+                    } else {
+                        getComicInfoForChapter(chapterFile) { stream, encrypted ->
+                            setChapterDetailsFromComicInfoFile(stream, this)
                         }
                     }
                 }
