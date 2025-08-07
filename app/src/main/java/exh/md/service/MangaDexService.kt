@@ -143,6 +143,7 @@ class MangaDexService(
                 blockedUploaders.splitString().forEach {
                     addQueryParameter("excludedUploaders[]", it)
                 }
+                addQueryParameter("excludeExternalUrl", "blinktoon.com")
             }
             .build()
 
