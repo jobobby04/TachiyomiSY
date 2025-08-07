@@ -862,8 +862,9 @@ class LibraryScreenModel(
      * Marks mangas' chapters read status.
      */
     fun markReadSelection(read: Boolean) {
+        val selection = state.value.selectedManga
         screenModelScope.launchNonCancellable {
-            state.value.selectedManga.forEach { manga ->
+            selection.forEach { manga ->
                 setReadStatus.await(
                     manga = manga,
                     read = read,
@@ -948,7 +949,7 @@ class LibraryScreenModel(
 
     fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
         val state = state.value
-        return state.getItemsForCategoryId(state.activeCategory.id).randomOrNull()
+        return state.getItemsForCategoryId(state.activeCategory?.id).randomOrNull()
     }
 
     fun showSettingsDialog() {
@@ -1189,7 +1190,7 @@ class LibraryScreenModel(
         lastSelectionCategory = null
         mutableState.update { state ->
             val newSelection = state.selection.mutate { list ->
-                state.getItemsForCategoryId(state.activeCategory.id).map { it.id }.let(list::addAll)
+                state.getItemsForCategoryId(state.activeCategory?.id).map { it.id }.let(list::addAll)
             }
             state.copy(selection = newSelection)
         }
@@ -1199,7 +1200,7 @@ class LibraryScreenModel(
         lastSelectionCategory = null
         mutableState.update { state ->
             val newSelection = state.selection.mutate { list ->
-                val itemIds = state.getItemsForCategoryId(state.activeCategory.id).fastMap { it.id }
+                val itemIds = state.getItemsForCategoryId(state.activeCategory?.id).fastMap { it.id }
                 val (toRemove, toAdd) = itemIds.partition { it in list }
                 list.removeAll(toRemove.toSet())
                 list.addAll(toAdd)
@@ -1457,7 +1458,7 @@ class LibraryScreenModel(
             maximumValue = displayedCategories.lastIndex.coerceAtLeast(0),
         )
 
-        val activeCategory: Category by lazy { displayedCategories[coercedActiveCategoryIndex] }
+        val activeCategory: Category? = displayedCategories.getOrNull(coercedActiveCategoryIndex)
 
         val isLibraryEmpty = libraryData.favorites.isEmpty()
 
@@ -1490,7 +1491,8 @@ class LibraryScreenModel(
         }
         // SY <--
 
-        fun getItemsForCategoryId(categoryId: Long): List<LibraryItem> {
+        fun getItemsForCategoryId(categoryId: Long?): List<LibraryItem> {
+            if (categoryId == null) return emptyList()
             val category = displayedCategories.find { it.id == categoryId } ?: return emptyList()
             return getItemsForCategory(category)
         }
