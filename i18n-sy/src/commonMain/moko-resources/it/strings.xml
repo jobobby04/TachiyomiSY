@@ -291,7 +291,7 @@
     <string name="bandwidth_hero">Bandwidth Hero (necessita di un server proxy Bandwidth Hero)</string>
     <string name="bandwidth_data_saver_server">Server Proxy Bandwidth Hero Proxy</string>
     <string name="data_saver_server_summary">Inserisci l\'url del proxy server Bandwidth Hero</string>
-    <string name="clear_db_exclude_read">Mantieni i capitoli letti</string>
+    <string name="clear_db_exclude_read">Mantieni entità con capitoli letti</string>
     <string name="put_recommends_in_overflow_summary">Inserisci il pulsante Raccomandazioni nel menu Overflow invece che nella pagina iniziale</string>
     <string name="put_merge_in_overflow">Unisci in overflow</string>
     <string name="put_merge_in_overflow_summary">Inserisci il pulsante di unione nel menu di overflow invece che nella pagina iniziale</string>
@@ -307,4 +307,9 @@
     <string name="pref_tracker_resolve_using_source_metadata_summary">Seleziona automaticamente il titolo corrispondente se la fonte fornisce collegamenti ai tracker. Attualmente supportato da MangaDex</string>
     <string name="library_group_updates">Aggiornamenti dinamici categorie della libreria</string>
     <string name="library_group_updates_all">Avvia aggiornamento categorie tutte le volte</string>
+    <string name="scan_qr_code">Scansiona un codice QR</string>
+    <string name="pref_google_drive_sign_in">Accedi</string>
+    <string name="auto_webtoon_mode">Modalità Webtoon automatica</string>
+    <string name="action_set_first_page_cover">Usa la prima pagina come copertina</string>
+    <string name="action_set_second_page_cover">Usa la seconda pagina come copertina</string>
 </resources>

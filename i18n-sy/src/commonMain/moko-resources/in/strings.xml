@@ -134,7 +134,7 @@
     <string name="data_saver_image_format_summary_off">Ukuran file Jpeg jauh lebih kecil daripada Webp (artinya lebih banyak menghemat data), tetapi itu juga membuat kualitas gambar menjadi lebih buruk.\nSaat ini kompres ke Webp</string>
     <string name="data_saver_color_bw">Konversi ke Hitam Putih</string>
     <string name="data_saver_server_summary">Masukkan url server Bandwidth Hero Proxy disini</string>
-    <string name="clear_db_exclude_read">Abaikab manga yang sudah dibaca</string>
+    <string name="clear_db_exclude_read">Simpan entri dengan bab yang sudah dibaca</string>
     <!-- Log Level -->
     <string name="log_minimal">Mode Minimum</string>
     <string name="log_extra">Mode Ekstra</string>
