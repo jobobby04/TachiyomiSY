@@ -1025,12 +1025,11 @@ class MangaScreenModel(
                 true
             } else {
                 downloadManager.isChapterDownloaded(
-                    // SY -->
                     chapter.name,
                     chapter.scanlator,
-                    manga.ogTitle,
+                    chapter.url,
+                    /* SY --> */ manga.ogTitle, /* <-- SY */
                     manga.source,
-                    // SY <--
                 )
             }
             val downloadState = when {

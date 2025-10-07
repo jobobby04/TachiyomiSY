@@ -92,10 +92,11 @@ class ChapterLoader(
     private fun getPageLoader(chapter: ReaderChapter): PageLoader {
         val dbChapter = chapter.chapter
         val isDownloaded = downloadManager.isChapterDownloaded(
-            chapterName = dbChapter.name,
-            chapterScanlator = dbChapter.scanlator, /* SY --> */
-            mangaTitle = manga.ogTitle /* SY <-- */,
-            sourceId = manga.source,
+            dbChapter.name,
+            dbChapter.scanlator,
+            dbChapter.url,
+           /* SY --> */ manga.ogTitle, /* SY <-- */
+            manga.source,
             skipCache = true,
         )
         return when {

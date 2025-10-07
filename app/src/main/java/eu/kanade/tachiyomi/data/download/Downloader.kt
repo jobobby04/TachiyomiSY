@@ -285,7 +285,13 @@ class Downloader(
         val chaptersToQueue = chapters.asSequence()
             // Filter out those already downloaded.
             .filter {
-                provider.findChapterDir(it.name, it.scanlator, /* SY --> */ manga.ogTitle /* SY <-- */, source) == null
+                provider.findChapterDir(
+                    it.name,
+                    it.scanlator,
+                    it.url,
+                    /* SY --> */ manga.ogTitle, /* SY <-- */
+                    source,
+                ) == null
             }
             // Add chapters to queue from the start.
             .sortedByDescending { it.sourceOrder }
@@ -330,11 +336,12 @@ class Downloader(
      * @param download the chapter to be downloaded.
      */
     private suspend fun downloadChapter(download: Download) {
-        val mangaDir = provider.getMangaDir(/* SY --> */ download.manga.ogTitle /* SY <-- */, download.source).getOrElse { e ->
-            download.status = Download.State.ERROR
-            notifier.onError(e.message, download.chapter.name, download.manga.title, download.manga.id)
-            return
-        }
+        val mangaDir =
+            provider.getMangaDir(/* SY --> */ download.manga.ogTitle /* SY <-- */, download.source).getOrElse { e ->
+                download.status = Download.State.ERROR
+                notifier.onError(e.message, download.chapter.name, download.manga.title, download.manga.id)
+                return
+            }
 
         val availSpace = DiskUtil.getAvailableStorageSpace(mangaDir)
         if (availSpace != -1L && availSpace < MIN_DISK_SPACE) {
@@ -348,7 +355,11 @@ class Downloader(
             return
         }
 
-        val chapterDirname = provider.getChapterDirName(download.chapter.name, download.chapter.scanlator)
+        val chapterDirname = provider.getChapterDirName(
+            download.chapter.name,
+            download.chapter.scanlator,
+            download.chapter.url,
+        )
         val tmpDir = mangaDir.createDirectory(chapterDirname + TMP_DIR_SUFFIX)!!
 
         try {
@@ -468,6 +479,7 @@ class Downloader(
                 imageFile != null -> imageFile
                 chapterCache.isImageInCache(page.imageUrl!!) ->
                     copyImageFromCache(chapterCache.getImageFile(page.imageUrl!!), tmpDir, filename)
+
                 else -> downloadImage(page, download.source, tmpDir, filename, dataSaver)
             }
 
