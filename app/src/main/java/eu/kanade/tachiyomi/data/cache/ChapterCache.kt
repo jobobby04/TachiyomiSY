@@ -148,7 +148,7 @@ class ChapterCache(
     fun isImageInCache(imageUrl: String): Boolean {
         return try {
             diskCache.get(DiskUtil.hashKeyForDisk(imageUrl)).use { it != null }
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             false
         }
     }
@@ -180,7 +180,7 @@ class ChapterCache(
         try {
             // Get editor from md5 key.
             val key = DiskUtil.hashKeyForDisk(imageUrl)
-            editor = diskCache.edit(key) ?: throw IOException("Unable to edit key")
+            editor = diskCache.edit(key) ?: return
 
             // Get OutputStream and write image with Okio.
             response.body.source().saveTo(editor.newOutputStream(0))
