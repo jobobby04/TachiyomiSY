@@ -88,6 +88,9 @@ fun WebView.setDefaultSettings() {
         loadWithOverviewMode = true
         cacheMode = WebSettings.LOAD_DEFAULT
 
+        // Handle popups properly
+        setSupportMultipleWindows(true)
+
         // Allow zooming
         setSupportZoom(true)
         builtInZoomControls = true
