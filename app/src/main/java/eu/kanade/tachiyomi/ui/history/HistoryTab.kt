@@ -34,6 +34,7 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import mihon.feature.migration.dialog.MigrateMangaDialog
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.i18n.MR
@@ -129,7 +130,7 @@ data object HistoryTab : Tab {
                     },
                 )
             }
-            /*SY -->is HistoryScreenModel.Dialog.Migrate -> {
+            is HistoryScreenModel.Dialog.Migrate -> {
                 MigrateMangaDialog(
                     current = dialog.current,
                     target = dialog.target,
@@ -137,7 +138,7 @@ data object HistoryTab : Tab {
                     onClickTitle = { navigator.push(MangaScreen(dialog.current.id)) },
                     onDismissRequest = onDismissRequest,
                 )
-            } SY <--*/
+            }
             null -> {}
         }
 

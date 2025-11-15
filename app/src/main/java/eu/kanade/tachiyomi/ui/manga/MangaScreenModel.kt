@@ -52,9 +52,6 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.removeCovers
 import eu.kanade.tachiyomi.util.system.toast
-import exh.metadata.metadata.RaisedSearchMetadata
-import exh.source.getMainSource
-import exh.source.isEhBasedManga
 import exh.debug.DebugToggles
 import exh.eh.EHentaiUpdateHelper
 import exh.log.xLogD
@@ -1656,9 +1653,7 @@ class MangaScreenModel(
         data class DeleteChapters(val chapters: List<Chapter>) : Dialog
         data class DuplicateManga(val manga: Manga, val duplicates: List<MangaWithChapterCount>) : Dialog
 
-        /* SY -->
         data class Migrate(val target: Manga, val current: Manga) : Dialog
-        SY <-- */
         data class SetFetchInterval(val manga: Manga) : Dialog
 
         // SY -->
@@ -1691,11 +1686,10 @@ class MangaScreenModel(
         updateSuccessState { it.copy(dialog = Dialog.FullCover) }
     }
 
-    /* SY -->
     fun showMigrateDialog(duplicate: Manga) {
         val manga = successState?.manga ?: return
         updateSuccessState { it.copy(dialog = Dialog.Migrate(target = manga, current = duplicate)) }
-    } SY <-- */
+    }
 
     fun setExcludedScanlators(excludedScanlators: Set<String>) {
         screenModelScope.launchIO {

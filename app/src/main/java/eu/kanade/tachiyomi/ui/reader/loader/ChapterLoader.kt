@@ -111,6 +111,7 @@ class ChapterLoader(
                 val isMergedMangaDownloaded = downloadManager.isChapterDownloaded(
                     chapterName = chapter.chapter.name,
                     chapterScanlator = chapter.chapter.scanlator,
+                    chapterUrl = chapter.chapter.url,
                     mangaTitle = manga.ogTitle,
                     sourceId = manga.source,
                     skipCache = true,

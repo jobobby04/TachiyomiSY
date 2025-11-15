@@ -145,7 +145,7 @@ class DownloadProvider(
         val mangaDir = findMangaDir(/* SY --> */ manga.ogTitle /* SY <-- */, source) ?: return emptyList()
         return mangaDir.listFiles().orEmpty().asList().filter {
             chapters.find { chp ->
-                getValidChapterDirNames(chp.name, chp.scanlator).any { dir ->
+                getValidChapterDirNames(chp.name, chp.scanlator, chp.url).any { dir ->
                     mangaDir.findFile(dir) != null
                 }
             } == null ||
