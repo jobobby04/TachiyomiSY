@@ -100,6 +100,7 @@ class UpdatesRepositoryImpl(
             chapterId = updatesView.chapterId,
             chapterName = updatesView.chapterName,
             scanlator = updatesView.scanlator,
+            chapterUrl = updatesView.chapterUrl,
             read = updatesView.read,
             bookmark = updatesView.bookmark,
             lastPageRead = updatesView.last_page_read,

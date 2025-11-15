@@ -103,7 +103,7 @@ object MangaMapper {
         chapterFetchedAt: Long,
         lastRead: Long,
         bookmarkCount: Double,
-        category: Long,
+        categories: String,
     ): LibraryManga = LibraryManga(
         manga = mapManga(
             id,
@@ -135,7 +135,7 @@ object MangaMapper {
             isSyncing,
             notes,
         ),
-        category = category,
+        categories = categories.split(",").map { it.toLong() },
         totalChapters = totalCount,
         readCount = readCount.toLong(),
         bookmarkCount = bookmarkCount.toLong(),
@@ -237,7 +237,7 @@ object MangaMapper {
                 version = libraryView.version,
                 notes = libraryView.notes,
             ),
-            category = libraryView.category,
+            categories = libraryView.categories.split(",").map { it.toLong() },
             totalChapters = libraryView.totalCount,
             readCount = libraryView.readCount.toLong(),
             bookmarkCount = libraryView.bookmarkCount.toLong(),
