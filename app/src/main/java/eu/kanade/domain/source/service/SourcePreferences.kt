@@ -95,7 +95,7 @@ class SourcePreferences(
 
     fun defaultMangaOrder() = preferenceStore.getString("default_manga_order", "")
 
-    //fun migrationSources() = preferenceStore.getString("migrate_sources", "")
+    // fun migrationSources() = preferenceStore.getString("migrate_sources", "")
 
     fun smartMigration() = preferenceStore.getBoolean("smart_migrate", false)
 

@@ -183,7 +183,7 @@ class LibraryScreenModel(
                 ),
                 // SY <--
                 getLibraryItemPreferencesFlow(),
-            ) { (searchQuery, categories, favorites), (tracksMap, trackingFilters), /* SY --> */ (groupType, sortingMode) /* <-- SY */, itemPreferences ->
+            ) { (searchQuery, categories, favorites), (tracksMap, trackingFilters), /* SY --> */ (groupType, sortingMode)/* <-- SY */, itemPreferences ->
                 val showSystemCategory = favorites.any { it.libraryManga.categories.contains(0) }
                 val filteredFavorites = favorites
                     .applyFilters(tracksMap, trackingFilters, itemPreferences)

@@ -63,8 +63,8 @@ fun Screen.migrateSourceTab(): TabContent {
                         withUIContext {
                             navigator.push(
                                 MigrationConfigScreen(
-                                    sourceMangas
-                                )
+                                    sourceMangas,
+                                ),
                             )
                         }
                     }

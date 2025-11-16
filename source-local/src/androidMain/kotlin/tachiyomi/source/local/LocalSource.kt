@@ -96,9 +96,9 @@ actual class LocalSource(
             .filter {
                 it.isDirectory &&
                     /* SY --> */ (
-                    !it.name.orEmpty().startsWith('.') ||
-                        allowLocalSourceHiddenFolders
-                    ) /* SY <-- */
+                        !it.name.orEmpty().startsWith('.') ||
+                            allowLocalSourceHiddenFolders
+                        ) /* SY <-- */
             }
             .distinctBy { it.name }
             .filter {

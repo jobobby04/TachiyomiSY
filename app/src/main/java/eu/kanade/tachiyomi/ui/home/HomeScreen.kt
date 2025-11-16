@@ -200,7 +200,7 @@ object HomeScreen : Screen() {
 
     @Composable
     private fun RowScope.NavigationBarItem(
-        tab: eu.kanade.presentation.util.Tab,/* SY --> */
+        tab: eu.kanade.presentation.util.Tab, /* SY --> */
         alwaysShowLabel: Boolean, /* SY <-- */
     ) {
         val tabNavigator = LocalTabNavigator.current

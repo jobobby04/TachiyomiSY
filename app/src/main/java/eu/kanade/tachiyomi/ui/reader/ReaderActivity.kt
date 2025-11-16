@@ -106,7 +106,6 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
@@ -142,7 +141,8 @@ class ReaderActivity : BaseActivity() {
             context: Context,
             mangaId: Long?,
             chapterId: Long?,
-            /* SY --> */ page: Int? = null, /* SY <-- */
+            /* SY --> */
+            page: Int? = null, /* SY <-- */
         ): Intent {
             return Intent(context, ReaderActivity::class.java).apply {
                 putExtra("manga", mangaId)

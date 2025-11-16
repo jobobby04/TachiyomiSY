@@ -320,7 +320,7 @@ fun ReaderAppBars(
                             .fillMaxWidth()
                             .background(backgroundColor)
                             .padding(horizontal = MaterialTheme.padding.small)
-                            .windowInsetsPadding(WindowInsets.navigationBars)
+                            .windowInsetsPadding(WindowInsets.navigationBars),
                     )
                 }
             }

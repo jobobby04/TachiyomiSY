@@ -95,7 +95,7 @@ class ChapterLoader(
             dbChapter.name,
             dbChapter.scanlator,
             dbChapter.url,
-           /* SY --> */ manga.ogTitle, /* SY <-- */
+            /* SY --> */ manga.ogTitle, /* SY <-- */
             manga.source,
             skipCache = true,
         )

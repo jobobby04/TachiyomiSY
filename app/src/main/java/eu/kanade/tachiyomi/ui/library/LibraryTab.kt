@@ -194,12 +194,13 @@ data object LibraryTab : Tab {
                             .map { it.id }
                         // <-- SY
                         screenModel.clearSelection()
-                        /* SY --> */if (selection.isNotEmpty()) { /* <-- SY */
-                        navigator.push(MigrationConfigScreen(selection))
-                        // SY ->>
-                    } else {
-                        context.toast(SYMR.strings.no_valid_entry)
-                    }
+                        /* SY --> */if (selection.isNotEmpty()) {
+                            /* <-- SY */
+                            navigator.push(MigrationConfigScreen(selection))
+                            // SY ->>
+                        } else {
+                            context.toast(SYMR.strings.no_valid_entry)
+                        }
                         // <-- SY
                     },
                     // SY -->
