@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.reader.components.ChapterNavigator
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
@@ -206,41 +205,15 @@ fun ReaderAppBars(
                 ) + fadeOut(animationSpec = readerBarsFadeAnimationSpec),
             ) {
                 // SY -->
-                Column(modifierWithInsetsPadding) {
+                Column {
                     // SY <--
-                    // TODO: Use ReaderTopBar
-                    AppBar(
-                        modifier = /*SY --> */ Modifier /*SY <-- */
+                    ReaderTopBar(
+                        modifier = Modifier
+                            .background(backgroundColor)
                             .clickable(onClick = onClickTopAppBar),
-                        backgroundColor = backgroundColor,
-                        title = mangaTitle,
-                        subtitle = chapterTitle,
+                        mangaTitle = mangaTitle,
+                        chapterTitle = chapterTitle,
                         navigateUp = navigateUp,
-                        /* SY --> actions = {
-                            AppBarActions(
-                                listOfNotNull(
-                                    AppBar.Action(
-                                        title = stringResource(
-                                            if (bookmarked) MR.strings.action_remove_bookmark else MR.strings.action_bookmark
-                                        ),
-                                        icon = if (bookmarked) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
-                                        onClick = onToggleBookmarked,
-                                    ),
-                                    onOpenInWebView?.let {
-                                        AppBar.OverflowAction(
-                                            title = stringResource(MR.strings.action_open_in_web_view),
-                                            onClick = it,
-                                        )
-                                    },
-                                    onShare?.let {
-                                        AppBar.OverflowAction(
-                                            title = stringResource(MR.strings.action_share),
-                                            onClick = it,
-                                        )
-                                    },
-                                ),
-                            )
-                        }, SY <-- */
                     )
                     // SY -->
                     ExhUtils(
@@ -258,8 +231,8 @@ fun ReaderAppBars(
                         onClickBoostPage = onClickBoostPage,
                         onClickBoostPageHelp = onClickBoostPageHelp,
                     )
-                    // SY <--
                 }
+                // SY <--
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -276,10 +249,10 @@ fun ReaderAppBars(
                 ) + fadeOut(animationSpec = readerBarsFadeAnimationSpec),
             ) {
                 Column(
-                    modifier = modifierWithInsetsPadding,
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
                 ) {
-                    if (navBarType == NavBarType.Bottom) {
+                    // SY -->
+                    if (navBarType == NavBarType.Bottom) { // <-- SY
                         ChapterNavigator(
                             isRtl = isRtl,
                             onNextChapter = onNextChapter,
@@ -315,7 +288,7 @@ fun ReaderAppBars(
                         onClickShare = onShare,
                         onClickPageLayout = onClickPageLayout,
                         onClickShiftPage = onClickShiftPage,
-                        // <-- SY
+                        // SY <--
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(backgroundColor)

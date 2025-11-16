@@ -1,27 +1,20 @@
 package eu.kanade.presentation.reader.appbars
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bookmark
-import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.components.AppBarActions
-import kotlinx.collections.immutable.persistentListOf
-import tachiyomi.i18n.MR
-import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun ReaderTopBar(
     mangaTitle: String?,
     chapterTitle: String?,
     navigateUp: () -> Unit,
-    bookmarked: Boolean,
-    onToggleBookmarked: () -> Unit,
-    onOpenInWebView: (() -> Unit)?,
-    onOpenInBrowser: (() -> Unit)?,
-    onShare: (() -> Unit)?,
+    //bookmarked: Boolean,
+    //onToggleBookmarked: () -> Unit,
+    //onOpenInWebView: (() -> Unit)?,
+    //onOpenInBrowser: (() -> Unit)?,
+    //onShare: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     AppBar(
@@ -30,6 +23,7 @@ fun ReaderTopBar(
         title = mangaTitle,
         subtitle = chapterTitle,
         navigateUp = navigateUp,
+        /* SY ->
         actions = {
             AppBarActions(
                 actions = persistentListOf<AppBar.AppBarAction>().builder()
@@ -79,5 +73,6 @@ fun ReaderTopBar(
                     .build(),
             )
         },
+        <- SY */
     )
 }
