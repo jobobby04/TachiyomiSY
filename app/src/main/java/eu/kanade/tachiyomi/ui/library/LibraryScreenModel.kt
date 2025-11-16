@@ -3,8 +3,6 @@ package eu.kanade.tachiyomi.ui.library
 import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
@@ -116,7 +114,6 @@ import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import kotlin.collections.map
 import kotlin.random.Random
 
 class LibraryScreenModel(

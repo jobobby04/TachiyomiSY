@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import exh.util.nullIfBlank
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull

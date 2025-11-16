@@ -5,7 +5,6 @@ import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.BackupStrategy
 import com.elvishew.xlog.printer.file.naming.FileNameGenerator
 import com.hippo.unifile.UniFile
-import exh.log.EnhancedFilePrinter.Builder
 import java.io.BufferedWriter
 import java.io.IOException
 import java.util.concurrent.BlockingQueue

@@ -11,7 +11,6 @@ import exh.metadata.sql.models.SearchTitle
 import exh.util.plusAssign
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
