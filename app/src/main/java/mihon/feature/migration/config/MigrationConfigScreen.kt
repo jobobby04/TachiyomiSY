@@ -48,6 +48,7 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import exh.source.MERGED_SOURCE_ID
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.update
 import mihon.feature.migration.list.MigrationListScreen
@@ -348,6 +349,7 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
             val sources = sourceManager.getCatalogueSources()
                 .asSequence()
                 .filterIsInstance<HttpSource>()
+                .filterNot { it.id == MERGED_SOURCE_ID }
                 .filter { it.lang in languages }
                 .map {
                     val source = Source(
