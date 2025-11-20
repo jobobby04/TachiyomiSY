@@ -291,9 +291,6 @@ dependencies {
     testImplementation(kotlinx.coroutines.test)
 
     // SY -->
-    // Text distance (EH)
-    implementation(sylibs.simularity)
-
     // Firebase (EH)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
