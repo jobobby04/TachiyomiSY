@@ -9,6 +9,8 @@ import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.getNameForMangaInfo
+import eu.kanade.tachiyomi.source.online.all.EHentai
+import exh.util.ThrottleManager
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -56,6 +58,10 @@ class MigrationListScreenModel(
 ) : StateScreenModel<MigrationListScreenModel.State>(State()) {
 
     private val smartSearchEngine = SmartSourceSearchEngine(extraSearchQuery)
+
+    // SY -->
+    private val throttleManager = ThrottleManager()
+    // SY <--
 
     val items
         inline get() = state.value.items
@@ -110,6 +116,9 @@ class MigrationListScreenModel(
     }
 
     private suspend fun runMigrations(mangas: List<MigratingManga>) {
+        // SY -->
+        throttleManager.resetThrottle()
+        // SY <--
         val prioritizeByChapters = preferences.migrationPrioritizeByChapters().get()
         val deepSearchMode = preferences.migrationDeepSearchMode().get()
 
@@ -192,7 +201,13 @@ class MigrationListScreenModel(
 
             val localManga = networkToLocalManga(searchResult)
             try {
-                val chapters = source.getChapterList(localManga.toSManga())
+                // SY -->
+                val chapters = if (source is EHentai) {
+                    source.getChapterList(localManga.toSManga(), throttleManager::throttle)
+                } else {
+                    source.getChapterList(localManga.toSManga())
+                }
+                // SY <--
                 syncChaptersWithSource.await(chapters, localManga, source)
             } catch (e: Exception) {
                 logcat(LogPriority.ERROR, e)
@@ -228,7 +243,13 @@ class MigrationListScreenModel(
                 val manga = getManga.await(target) ?: return@async null
                 try {
                     val source = sourceManager.get(manga.source)!!
-                    val chapters = source.getChapterList(manga.toSManga())
+                    // SY -->
+                    val chapters = if (source is EHentai) {
+                        source.getChapterList(manga.toSManga(), throttleManager::throttle)
+                    } else {
+                        source.getChapterList(manga.toSManga())
+                    }
+                    // SY <--
                     syncChaptersWithSource.await(chapters, manga, source)
                 } catch (_: Exception) {
                     return@async null
