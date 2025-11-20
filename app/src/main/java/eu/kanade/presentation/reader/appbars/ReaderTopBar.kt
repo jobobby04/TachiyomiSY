@@ -10,11 +10,11 @@ fun ReaderTopBar(
     mangaTitle: String?,
     chapterTitle: String?,
     navigateUp: () -> Unit,
-    //bookmarked: Boolean,
-    //onToggleBookmarked: () -> Unit,
-    //onOpenInWebView: (() -> Unit)?,
-    //onOpenInBrowser: (() -> Unit)?,
-    //onShare: (() -> Unit)?,
+    // bookmarked: Boolean,
+    // onToggleBookmarked: () -> Unit,
+    // onOpenInWebView: (() -> Unit)?,
+    // onOpenInBrowser: (() -> Unit)?,
+    // onShare: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     AppBar(

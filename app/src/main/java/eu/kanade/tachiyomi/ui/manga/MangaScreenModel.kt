@@ -1041,7 +1041,7 @@ class MangaScreenModel(
                 downloadProgress = activeDownload?.progress ?: 0,
                 selected = chapter.id in selectedChapterIds,
                 // SY -->
-                sourceName = source?.getNameForMangaInfo(null, enabledLanguages = enabledLanguages),
+                sourceName = source?.getNameForMangaInfo(enabledLanguages = enabledLanguages),
                 showScanlator = !isExhManga,
                 // SY <--
             )
