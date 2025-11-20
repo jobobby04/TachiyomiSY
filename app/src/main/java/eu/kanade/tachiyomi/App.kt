@@ -130,7 +130,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         // SY <--
 
         setupExhLogging() // EXH logging
-        LogcatLogger.install(XLogLogcatLogger()) // SY Redirect Logcat to XLog
+        LogcatLogger.install()
+        LogcatLogger.loggers += XLogLogcatLogger() // SY Redirect Logcat to XLog
 
         setupNotificationChannels()
 

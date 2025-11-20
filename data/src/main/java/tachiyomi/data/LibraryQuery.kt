@@ -64,7 +64,7 @@ class LibraryQuery(
                 coalesce(C.bookmarkCount, 0) AS bookmarkCount,
                 coalesce(MC.categories, '0') AS categories
             FROM mangas M
-            LEFT JOIN(
+            LEFT JOIN (
                 SELECT
                     chapters.manga_id,
                     count(*) AS total,
@@ -107,7 +107,7 @@ class LibraryQuery(
                 GROUP BY merged.merge_id
             ) as ME
             ON ME.merge_id = M._id
-            LEFT JOIN(
+            LEFT JOIN (
                 SELECT
                     ME.merge_id,
                     count(*) AS total,
