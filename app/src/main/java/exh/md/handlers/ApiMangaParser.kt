@@ -76,7 +76,9 @@ class ApiMangaParser(
                 val mangaAttributesDto = mangaDto.data.attributes
                 mdUuid = mangaDto.data.id
                 title = MdUtil.getTitleFromManga(mangaAttributesDto, lang)
-                altTitles = mangaAttributesDto.altTitles.mapNotNull { it[lang] }.nullIfEmpty()
+                altTitles = mangaAttributesDto.altTitles
+                    .filter { it.containsKey(lang) || it.containsKey("${mangaAttributesDto.originalLanguage}-ro") }
+                    .mapNotNull { it.values.singleOrNull() }.nullIfEmpty()
 
                 val mangaRelationshipsDto = mangaDto.data.relationships
                 cover = if (!coverFileName.isNullOrEmpty()) {
