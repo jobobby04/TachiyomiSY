@@ -91,6 +91,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
     private fun tryUsingFirstVolumeCover() = sourcePreferences.getBoolean(getTryUsingFirstVolumeCoverKey(mdLang.lang), false)
     private fun altTitlesInDesc() = sourcePreferences.getBoolean(getAltTitlesInDescKey(mdLang.lang), false)
     private fun finalChapterInDesc() = sourcePreferences.getBoolean(getFinalChapterInDescPrefKey(mdLang.lang), false)
+    private fun preferExtensionLangTitle() = sourcePreferences.getBoolean(getPreferExtensionLangTitlePrefKey(mdLang.extLang), true)
 
     private val mangadexService by lazy {
         MangaDexService(client)
@@ -200,6 +201,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
             tryUsingFirstVolumeCover(),
             altTitlesInDesc(),
             finalChapterInDesc(),
+            preferExtensionLangTitle(),
         )
     }
 
@@ -211,6 +213,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
             tryUsingFirstVolumeCover(),
             altTitlesInDesc(),
             finalChapterInDesc(),
+            preferExtensionLangTitle(),
         )
     }
 
@@ -269,6 +272,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
             coverQuality(),
             altTitlesInDesc(),
             finalChapterInDesc(),
+            preferExtensionLangTitle(),
         )
     }
 
@@ -348,6 +352,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
             tryUsingFirstVolumeCover(),
             altTitlesInDesc(),
             finalChapterInDesc(),
+            preferExtensionLangTitle(),
         )
     }
 
@@ -397,6 +402,11 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         private const val finalChapterInDescPref = "finalChapterInDesc"
         fun getFinalChapterInDescPrefKey(dexLang: String): String {
             return "${finalChapterInDescPref}_$dexLang"
+        }
+
+        private const val preferExtensionLangTitlePref = "preferExtensionLangTitle"
+        fun getPreferExtensionLangTitlePrefKey(dexLang: String): String {
+            return "${preferExtensionLangTitlePref}_$dexLang"
         }
     }
 }

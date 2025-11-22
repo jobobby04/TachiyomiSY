@@ -145,7 +145,7 @@ class MdUtil {
         fun createMangaEntry(json: MangaDataDto, lang: String): SManga {
             return SManga(
                 url = buildMangaUrl(json.id),
-                title = getTitleFromManga(json.attributes, lang),
+                title = getTitleFromManga(json.attributes, lang, true),
                 thumbnail_url = json.relationships
                     .firstOrNull { relationshipDto -> relationshipDto.type == MdConstants.Types.coverArt }
                     ?.attributes
@@ -156,12 +156,30 @@ class MdUtil {
             )
         }
 
-        fun getTitleFromManga(json: MangaAttributesDto, lang: String): String {
-            return getFromLangMap(json.title.asMdMap(), lang, json.originalLanguage)
-                ?: getAltTitle(json.altTitles, lang, json.originalLanguage)
-                ?: json.title.asMdMap<String>()[json.originalLanguage]
-                ?: json.altTitles.firstNotNullOfOrNull { it[json.originalLanguage] }
-                    .orEmpty()
+        fun getTitleFromManga(json: MangaAttributesDto, lang: String, preferExtensionLangTitle: Boolean): String {
+            val titleMap = json.title.asMdMap<String>()
+            val altTitles = json.altTitles
+            val originalLang = json.originalLanguage
+
+            titleMap[lang]?.let { return it }
+
+            val mainTitle = titleMap.values.firstOrNull()
+            val langTitle = findTitleInMaps(lang, titleMap, altTitles)
+            val enTitle = findTitleInMaps("en", titleMap, altTitles)
+            val originalLangTitle = findTitleInMaps("$originalLang-ro", titleMap, altTitles) ?: findTitleInMaps(
+                originalLang,
+                titleMap,
+                altTitles,
+            )
+
+            val ordered = if (preferExtensionLangTitle) {
+                listOf(langTitle, mainTitle, enTitle, originalLangTitle)
+            } else {
+                listOf(mainTitle, langTitle, enTitle, originalLangTitle)
+            }
+
+            return ordered.firstOrNull { it != null }
+                ?: ""
         }
 
         fun getFromLangMap(langMap: Map<String, String>, currentLang: String, originalLanguage: String): String? {
@@ -175,15 +193,12 @@ class MdUtil {
                 }
         }
 
-        fun getAltTitle(langMaps: List<Map<String, String>>, currentLang: String, originalLanguage: String): String? {
-            return langMaps.firstNotNullOfOrNull { it[currentLang] }
-                ?: langMaps.firstNotNullOfOrNull { it["en"] }
-                ?: if (originalLanguage == "ja") {
-                    langMaps.firstNotNullOfOrNull { it["ja-ro"] }
-                        ?: langMaps.firstNotNullOfOrNull { it["jp-ro"] }
-                } else {
-                    null
-                }
+        fun findTitleInMaps(
+            lang: String,
+            titleMap: Map<String, String>,
+            altTitleMaps: List<Map<String, String>>,
+        ): String? {
+            return titleMap[lang] ?: altTitleMaps.firstNotNullOfOrNull { it[lang] }
         }
 
         fun cdnCoverUrl(dexId: String, fileName: String): String {

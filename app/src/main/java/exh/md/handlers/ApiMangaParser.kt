@@ -45,6 +45,7 @@ class ApiMangaParser(
         coverQuality: String,
         altTitlesInDesc: Boolean,
         finalChapterInDesc: Boolean,
+        preferExtensionLangTitle: Boolean,
     ): SManga {
         val mangaId = getManga.await(manga.url, sourceId)?.id
         val metadata = if (mangaId != null) {
@@ -63,6 +64,7 @@ class ApiMangaParser(
             coverQuality,
             altTitlesInDesc,
             finalChapterInDesc,
+            preferExtensionLangTitle,
         )
         if (mangaId != null) {
             metadata.mangaId = mangaId
@@ -81,12 +83,13 @@ class ApiMangaParser(
         coverQuality: String,
         altTitlesInDesc: Boolean,
         finalChapterInDesc: Boolean,
+        preferExtensionLangTitle: Boolean,
     ) {
         with(metadata) {
             try {
                 val mangaAttributesDto = mangaDto.data.attributes
                 mdUuid = mangaDto.data.id
-                title = MdUtil.getTitleFromManga(mangaAttributesDto, lang)
+                title = MdUtil.getTitleFromManga(mangaAttributesDto, lang, preferExtensionLangTitle)
                 altTitles = mangaAttributesDto.altTitles
                     .filter { it.containsKey(lang) || it.containsKey("${mangaAttributesDto.originalLanguage}-ro") }
                     .mapNotNull { it.values.singleOrNull() }.nullIfEmpty()

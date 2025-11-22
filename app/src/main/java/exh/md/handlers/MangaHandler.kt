@@ -30,6 +30,7 @@ class MangaHandler(
         tryUsingFirstVolumeCover: Boolean,
         altTitlesInDesc: Boolean,
         finalChapterInDesc: Boolean,
+        preferExtensionLangTitle: Boolean,
     ): SManga {
         return coroutineScope {
             val mangaId = MdUtil.getMangaId(manga.url)
@@ -57,6 +58,7 @@ class MangaHandler(
                 coverQuality,
                 altTitlesInDesc,
                 finalChapterInDesc,
+                preferExtensionLangTitle
             )
         }
     }
@@ -68,6 +70,7 @@ class MangaHandler(
         tryUsingFirstVolumeCover: Boolean,
         altTitlesInDesc: Boolean,
         finalChapterInDesc: Boolean,
+        preferExtensionLangTitle: Boolean,
     ): Observable<SManga> {
         return runAsObservable {
             getMangaDetails(
@@ -77,6 +80,7 @@ class MangaHandler(
                 tryUsingFirstVolumeCover,
                 altTitlesInDesc,
                 finalChapterInDesc,
+                preferExtensionLangTitle,
             )
         }
     }
@@ -150,7 +154,8 @@ class MangaHandler(
         coverQuality: String,
         tryUsingFirstVolumeCover: Boolean,
         altTitlesInDesc: Boolean,
-        finalChapterInDesc: Boolean
+        finalChapterInDesc: Boolean,
+        preferExtensionLangTitle: Boolean
     ): SManga? {
         return withIOContext {
             val mangaId = MdUtil.getMangaId(track.tracking_url)
@@ -172,6 +177,7 @@ class MangaHandler(
                 coverQuality,
                 altTitlesInDesc,
                 finalChapterInDesc,
+                preferExtensionLangTitle
             )
         }
     }
