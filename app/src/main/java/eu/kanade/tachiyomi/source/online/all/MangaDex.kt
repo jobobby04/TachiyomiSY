@@ -109,7 +109,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         FollowsHandler(mdLang.lang, mangadexAuthService)
     }
     private val mangaHandler by lazy {
-        MangaHandler(mdLang.lang, mangadexService, apiMangaParser, followsHandler)
+        MangaHandler(mdLang.lang, mangadexService, apiMangaParser)
     }
     private val similarHandler by lazy {
         SimilarHandler(mdLang.lang, mangadexService, similarService)
@@ -327,10 +327,6 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         return followsHandler.updateRating(track)
     }
 
-    suspend fun getTrackingAndMangaInfo(track: Track): Pair<Track, MangaDexSearchMetadata?> {
-        return mangaHandler.getTrackingInfo(track)
-    }
-
     // RandomMangaSource method
     override suspend fun fetchRandomMangaUrl(): String {
         return mangaHandler.fetchRandomMangaId()
@@ -344,7 +340,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         return similarHandler.getRelated(manga)
     }
 
-    suspend fun getMangaMetadata(track: Track): SManga? {
+    suspend fun getMangaMetadata(track: Track): SManga {
         return mangaHandler.getMangaMetadata(
             track,
             id,
@@ -358,43 +354,36 @@ class MangaDex(delegate: HttpSource, val context: Context) :
 
     companion object {
         private const val dataSaverPref = "dataSaverV5"
-
         fun getDataSaverPreferenceKey(dexLang: String): String {
             return "${dataSaverPref}_$dexLang"
         }
 
         private const val standardHttpsPortPref = "usePort443"
-
         fun getStandardHttpsPreferenceKey(dexLang: String): String {
             return "${standardHttpsPortPref}_$dexLang"
         }
 
         private const val blockedGroupsPref = "blockedGroups"
-
         fun getBlockedGroupsPrefKey(dexLang: String): String {
             return "${blockedGroupsPref}_$dexLang"
         }
 
         private const val blockedUploaderPref = "blockedUploader"
-
         fun getBlockedUploaderPrefKey(dexLang: String): String {
             return "${blockedUploaderPref}_$dexLang"
         }
 
         private const val coverQualityPref = "thumbnailQuality"
-
         fun getCoverQualityPrefKey(dexLang: String): String {
             return "${coverQualityPref}_$dexLang"
         }
 
         private const val tryUsingFirstVolumeCoverPref = "tryUsingFirstVolumeCover"
-
         fun getTryUsingFirstVolumeCoverKey(dexLang: String): String {
             return "${tryUsingFirstVolumeCoverPref}_$dexLang"
         }
 
         private const val altTitlesInDescPref = "altTitlesInDesc"
-
         fun getAltTitlesInDescKey(dexLang: String): String {
             return "${altTitlesInDescPref}_$dexLang"
         }

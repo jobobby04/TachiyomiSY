@@ -8,7 +8,6 @@ import exh.md.service.MangaDexService
 import exh.md.utils.MdConstants
 import exh.md.utils.MdUtil
 import exh.md.utils.mdListCall
-import exh.metadata.metadata.MangaDexSearchMetadata
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -21,7 +20,6 @@ class MangaHandler(
     private val lang: String,
     private val service: MangaDexService,
     private val apiMangaParser: ApiMangaParser,
-    private val followsHandler: FollowsHandler,
 ) {
     suspend fun getMangaDetails(
         manga: SManga,
@@ -58,7 +56,7 @@ class MangaHandler(
                 coverQuality,
                 altTitlesInDesc,
                 finalChapterInDesc,
-                preferExtensionLangTitle
+                preferExtensionLangTitle,
             )
         }
     }
@@ -112,33 +110,15 @@ class MangaHandler(
     }
 
     private fun getGroupMap(results: List<ChapterDataDto>): Map<String, String> {
-        return results.map { chapter -> chapter.relationships }
-            .flatten()
+        return results
+            .flatMap { it.relationships }
             .filter { it.type == MdConstants.Types.scanlator }
-            .map { it.id to it.attributes!!.name!! }
-            .toMap()
+            .associate { it.id to it.attributes!!.name!! }
     }
 
     suspend fun fetchRandomMangaId(): String {
         return withIOContext {
             service.randomManga().data.id
-        }
-    }
-
-    suspend fun getTrackingInfo(track: Track): Pair<Track, MangaDexSearchMetadata?> {
-        return withIOContext {
-            /*val metadata = async {
-                val mangaUrl = MdUtil.buildMangaUrl(MdUtil.getMangaId(track.tracking_url))
-                val manga = MangaInfo(mangaUrl, track.title)
-                val response = client.newCall(mangaRequest(manga)).await()
-                val metadata = MangaDexSearchMetadata()
-                apiMangaParser.parseIntoMetadata(metadata, response, emptyList())
-                metadata
-            }*/
-            val remoteTrack = async {
-                followsHandler.fetchTrackingInfo(track.tracking_url)
-            }
-            remoteTrack.await() to null
         }
     }
 
@@ -155,8 +135,8 @@ class MangaHandler(
         tryUsingFirstVolumeCover: Boolean,
         altTitlesInDesc: Boolean,
         finalChapterInDesc: Boolean,
-        preferExtensionLangTitle: Boolean
-    ): SManga? {
+        preferExtensionLangTitle: Boolean,
+    ): SManga {
         return withIOContext {
             val mangaId = MdUtil.getMangaId(track.tracking_url)
             val response = service.viewManga(mangaId)
@@ -177,7 +157,7 @@ class MangaHandler(
                 coverQuality,
                 altTitlesInDesc,
                 finalChapterInDesc,
-                preferExtensionLangTitle
+                preferExtensionLangTitle,
             )
         }
     }

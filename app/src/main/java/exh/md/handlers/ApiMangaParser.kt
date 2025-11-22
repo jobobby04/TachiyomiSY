@@ -115,11 +115,15 @@ class ApiMangaParser(
                 description = MdUtil.cleanDescription(rawDesc)
                     .let { if (altTitlesInDesc) MdUtil.addAltTitleToDesc(it, altTitles) else it }
                     .let {
-                        if (finalChapterInDesc) MdUtil.addFinalChapterToDesc(
-                            it,
-                            mangaAttributesDto.lastVolume,
-                            mangaAttributesDto.lastChapter,
-                        ) else it
+                        if (finalChapterInDesc) {
+                            MdUtil.addFinalChapterToDesc(
+                                it,
+                                mangaAttributesDto.lastVolume,
+                                mangaAttributesDto.lastChapter,
+                            )
+                        } else {
+                            it
+                        }
                     }
 
                 authors = mangaRelationshipsDto.filter { relationshipDto ->

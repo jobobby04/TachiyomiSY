@@ -6,15 +6,12 @@ import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.track.mdlist.MdList
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALOAuth
 import eu.kanade.tachiyomi.network.POST
-import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.all.MangaDex
 import eu.kanade.tachiyomi.util.PkceUtil
 import exh.md.dto.MangaAttributesDto
 import exh.md.dto.MangaDataDto
 import exh.source.getMainSource
-import exh.util.dropBlank
-import exh.util.floor
 import exh.util.nullIfZero
 import kotlinx.serialization.json.Json
 import okhttp3.FormBody
@@ -40,20 +37,9 @@ class MdUtil {
         const val baseUrl = "https://mangadex.org"
         const val chapterSuffix = "/chapter/"
 
-        const val similarCacheMapping = "https://api.similarmanga.com/mapping/mdex2search.csv"
-        const val similarCacheMangas = "https://api.similarmanga.com/manga/"
         const val similarBaseApi = "https://api.similarmanga.com/similar/"
 
-        const val groupSearchUrl = "$baseUrl/groups/0/1/"
-        const val reportUrl = "https://api.mangadex.network/report"
-
-        const val mdAtHomeTokenLifespan = 10 * 60 * 1000
         const val mangaLimit = 20
-
-        /**
-         * Get the manga offset pages are 1 based, so subtract 1
-         */
-        fun getMangaListOffset(page: Int): String = (mangaLimit * (page - 1)).toString()
 
         val jsonParser =
             Json {
@@ -66,15 +52,8 @@ class MdUtil {
 
         private const val scanlatorSeparator = " & "
 
-        const val contentRatingSafe = "safe"
-        const val contentRatingSuggestive = "suggestive"
-        const val contentRatingErotica = "erotica"
-        const val contentRatingPornographic = "pornographic"
-
-        val validOneShotFinalChapters = listOf("0", "1")
-
-        val markdownLinksRegex = "\\[([^]]+)\\]\\(([^)]+)\\)".toRegex()
-        val markdownItalicBoldRegex = "\\*+\\s*([^\\*]*)\\s*\\*+".toRegex()
+        val markdownLinksRegex = "\\[([^]]+)]\\(([^)]+)\\)".toRegex()
+        val markdownItalicBoldRegex = "\\*+\\s*([^*]*)\\s*\\*+".toRegex()
         val markdownItalicRegex = "_+\\s*([^_]*)\\s*_+".toRegex()
 
         fun buildMangaUrl(mangaUuid: String): String {
@@ -95,45 +74,8 @@ class MdUtil {
                 .trim()
         }
 
-        fun getImageUrl(attr: String): String {
-            // Some images are hosted elsewhere
-            if (attr.startsWith("http")) {
-                return attr
-            }
-            return baseUrl + attr
-        }
-
-        fun getScanlators(scanlators: String?): Set<String> {
-            return scanlators?.split(scanlatorSeparator)?.dropBlank()?.toSet().orEmpty()
-        }
-
         fun getScanlatorString(scanlators: Set<String>): String {
             return scanlators.sorted().joinToString(scanlatorSeparator)
-        }
-
-        fun getMissingChapterCount(chapters: List<SChapter>, mangaStatus: Int): String? {
-            if (mangaStatus == SManga.COMPLETED) return null
-
-            val remove0ChaptersFromCount = chapters.distinctBy {
-                /*if (it.chapter_txt.isNotEmpty()) {
-                    it.vol + it.chapter_txt
-                } else {*/
-                it.name
-                /*}*/
-            }.sortedByDescending { it.chapter_number }
-
-            remove0ChaptersFromCount.firstOrNull()?.let { chapter ->
-                val chpNumber = chapter.chapter_number.floor()
-                val allChapters = (1..chpNumber).toMutableSet()
-
-                remove0ChaptersFromCount.forEach {
-                    allChapters.remove(it.chapter_number.floor())
-                }
-
-                if (allChapters.isEmpty()) return null
-                return allChapters.size.toString()
-            }
-            return null
         }
 
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+SSS", Locale.US)
@@ -216,7 +158,7 @@ class MdUtil {
         fun loadOAuth(preferences: TrackPreferences, mdList: MdList): MALOAuth? {
             return try {
                 jsonParser.decodeFromString<MALOAuth>(preferences.trackToken(mdList).get())
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
