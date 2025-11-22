@@ -44,6 +44,7 @@ class ApiMangaParser(
         coverFileName: String?,
         coverQuality: String,
         altTitlesInDesc: Boolean,
+        finalChapterInDesc: Boolean,
     ): SManga {
         val mangaId = getManga.await(manga.url, sourceId)?.id
         val metadata = if (mangaId != null) {
@@ -53,7 +54,16 @@ class ApiMangaParser(
             newMetaInstance()
         }
 
-        parseIntoMetadata(metadata, input, simpleChapters, statistics, coverFileName, coverQuality, altTitlesInDesc)
+        parseIntoMetadata(
+            metadata,
+            input,
+            simpleChapters,
+            statistics,
+            coverFileName,
+            coverQuality,
+            altTitlesInDesc,
+            finalChapterInDesc,
+        )
         if (mangaId != null) {
             metadata.mangaId = mangaId
             insertFlatMetadata.await(metadata.flatten())
@@ -70,6 +80,7 @@ class ApiMangaParser(
         coverFileName: String?,
         coverQuality: String,
         altTitlesInDesc: Boolean,
+        finalChapterInDesc: Boolean,
     ) {
         with(metadata) {
             try {
@@ -98,9 +109,15 @@ class ApiMangaParser(
                     originalLanguage = mangaAttributesDto.originalLanguage,
                 ).orEmpty()
 
-                val cleanDesc = MdUtil.cleanDescription(rawDesc)
-
-                description = if (altTitlesInDesc) MdUtil.addAltTitleToDesc(cleanDesc, altTitles) else cleanDesc
+                description = MdUtil.cleanDescription(rawDesc)
+                    .let { if (altTitlesInDesc) MdUtil.addAltTitleToDesc(it, altTitles) else it }
+                    .let {
+                        if (finalChapterInDesc) MdUtil.addFinalChapterToDesc(
+                            it,
+                            mangaAttributesDto.lastVolume,
+                            mangaAttributesDto.lastChapter,
+                        ) else it
+                    }
 
                 authors = mangaRelationshipsDto.filter { relationshipDto ->
                     relationshipDto.type.equals(MdConstants.Types.author, true)
@@ -150,7 +167,11 @@ class ApiMangaParser(
                     mangaAttributesDto.contentRating
                         ?.takeUnless { it == "safe" }
                         ?.let {
-                            RaisedTag("Content Rating", it.capitalize(Locale.US), MangaDexSearchMetadata.TAG_TYPE_DEFAULT)
+                            RaisedTag(
+                                "Content Rating",
+                                it.capitalize(Locale.US),
+                                MangaDexSearchMetadata.TAG_TYPE_DEFAULT,
+                            )
                         },
                 )
 

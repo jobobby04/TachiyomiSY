@@ -90,6 +90,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
     private fun coverQuality() = sourcePreferences.getString(getCoverQualityPrefKey(mdLang.lang), "").orEmpty()
     private fun tryUsingFirstVolumeCover() = sourcePreferences.getBoolean(getTryUsingFirstVolumeCoverKey(mdLang.lang), false)
     private fun altTitlesInDesc() = sourcePreferences.getBoolean(getAltTitlesInDescKey(mdLang.lang), false)
+    private fun finalChapterInDesc() = sourcePreferences.getBoolean(getFinalChapterInDescPrefKey(mdLang.lang), false)
 
     private val mangadexService by lazy {
         MangaDexService(client)
@@ -192,11 +193,25 @@ class MangaDex(delegate: HttpSource, val context: Context) :
 
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
-        return mangaHandler.fetchMangaDetailsObservable(manga, id, coverQuality(), tryUsingFirstVolumeCover(), altTitlesInDesc())
+        return mangaHandler.fetchMangaDetailsObservable(
+            manga,
+            id,
+            coverQuality(),
+            tryUsingFirstVolumeCover(),
+            altTitlesInDesc(),
+            finalChapterInDesc(),
+        )
     }
 
     override suspend fun getMangaDetails(manga: SManga): SManga {
-        return mangaHandler.getMangaDetails(manga, id, coverQuality(), tryUsingFirstVolumeCover(), altTitlesInDesc())
+        return mangaHandler.getMangaDetails(
+            manga,
+            id,
+            coverQuality(),
+            tryUsingFirstVolumeCover(),
+            altTitlesInDesc(),
+            finalChapterInDesc(),
+        )
     }
 
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getChapterList"))
@@ -241,8 +256,20 @@ class MangaDex(delegate: HttpSource, val context: Context) :
 
     override fun newMetaInstance() = MangaDexSearchMetadata()
 
-    override suspend fun parseIntoMetadata(metadata: MangaDexSearchMetadata, input: Triple<MangaDto, List<String>, StatisticsMangaDto>) {
-        apiMangaParser.parseIntoMetadata(metadata, input.first, input.second, input.third, null, coverQuality(), altTitlesInDesc())
+    override suspend fun parseIntoMetadata(
+        metadata: MangaDexSearchMetadata,
+        input: Triple<MangaDto, List<String>, StatisticsMangaDto>,
+    ) {
+        apiMangaParser.parseIntoMetadata(
+            metadata,
+            input.first,
+            input.second,
+            input.third,
+            null,
+            coverQuality(),
+            altTitlesInDesc(),
+            finalChapterInDesc(),
+        )
     }
 
     // LoginSource methods
@@ -314,7 +341,14 @@ class MangaDex(delegate: HttpSource, val context: Context) :
     }
 
     suspend fun getMangaMetadata(track: Track): SManga? {
-        return mangaHandler.getMangaMetadata(track, id, coverQuality(), tryUsingFirstVolumeCover(), altTitlesInDesc())
+        return mangaHandler.getMangaMetadata(
+            track,
+            id,
+            coverQuality(),
+            tryUsingFirstVolumeCover(),
+            altTitlesInDesc(),
+            finalChapterInDesc(),
+        )
     }
 
     companion object {
@@ -348,16 +382,21 @@ class MangaDex(delegate: HttpSource, val context: Context) :
             return "${coverQualityPref}_$dexLang"
         }
 
-        private const val tryUsingFirstVolumeCover = "tryUsingFirstVolumeCover"
+        private const val tryUsingFirstVolumeCoverPref = "tryUsingFirstVolumeCover"
 
         fun getTryUsingFirstVolumeCoverKey(dexLang: String): String {
-            return "${tryUsingFirstVolumeCover}_$dexLang"
+            return "${tryUsingFirstVolumeCoverPref}_$dexLang"
         }
 
-        private const val altTitlesInDesc = "altTitlesInDesc"
+        private const val altTitlesInDescPref = "altTitlesInDesc"
 
         fun getAltTitlesInDescKey(dexLang: String): String {
-            return "${altTitlesInDesc}_$dexLang"
+            return "${altTitlesInDescPref}_$dexLang"
+        }
+
+        private const val finalChapterInDescPref = "finalChapterInDesc"
+        fun getFinalChapterInDescPrefKey(dexLang: String): String {
+            return "${finalChapterInDescPref}_$dexLang"
         }
     }
 }

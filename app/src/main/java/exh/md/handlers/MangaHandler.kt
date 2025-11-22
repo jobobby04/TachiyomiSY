@@ -29,6 +29,7 @@ class MangaHandler(
         coverQuality: String,
         tryUsingFirstVolumeCover: Boolean,
         altTitlesInDesc: Boolean,
+        finalChapterInDesc: Boolean,
     ): SManga {
         return coroutineScope {
             val mangaId = MdUtil.getMangaId(manga.url)
@@ -55,13 +56,28 @@ class MangaHandler(
                 coverFileName?.await(),
                 coverQuality,
                 altTitlesInDesc,
+                finalChapterInDesc,
             )
         }
     }
 
-    fun fetchMangaDetailsObservable(manga: SManga, sourceId: Long, coverQuality: String, tryUsingFirstVolumeCover: Boolean, altTitlesInDesc: Boolean): Observable<SManga> {
+    fun fetchMangaDetailsObservable(
+        manga: SManga,
+        sourceId: Long,
+        coverQuality: String,
+        tryUsingFirstVolumeCover: Boolean,
+        altTitlesInDesc: Boolean,
+        finalChapterInDesc: Boolean,
+    ): Observable<SManga> {
         return runAsObservable {
-            getMangaDetails(manga, sourceId, coverQuality, tryUsingFirstVolumeCover, altTitlesInDesc)
+            getMangaDetails(
+                manga,
+                sourceId,
+                coverQuality,
+                tryUsingFirstVolumeCover,
+                altTitlesInDesc,
+                finalChapterInDesc,
+            )
         }
     }
 
@@ -134,6 +150,7 @@ class MangaHandler(
         coverQuality: String,
         tryUsingFirstVolumeCover: Boolean,
         altTitlesInDesc: Boolean,
+        finalChapterInDesc: Boolean
     ): SManga? {
         return withIOContext {
             val mangaId = MdUtil.getMangaId(track.tracking_url)
@@ -154,6 +171,7 @@ class MangaHandler(
                 coverFileName,
                 coverQuality,
                 altTitlesInDesc,
+                finalChapterInDesc,
             )
         }
     }

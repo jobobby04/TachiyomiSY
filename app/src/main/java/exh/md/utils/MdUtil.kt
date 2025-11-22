@@ -3,7 +3,6 @@ package exh.md.utils
 import android.app.Application
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.service.TrackPreferences
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.track.mdlist.MdList
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALOAuth
 import eu.kanade.tachiyomi.network.POST
@@ -25,7 +24,9 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.jsoup.parser.Parser
+import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.i18n.sy.SYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.text.SimpleDateFormat
@@ -230,7 +231,10 @@ class MdUtil {
             return codeVerifier ?: PkceUtil.generateCodeVerifier().also { codeVerifier = it }
         }
 
-        fun getEnabledMangaDex(sourcePreferences: SourcePreferences = Injekt.get(), sourceManager: SourceManager = Injekt.get()): MangaDex? {
+        fun getEnabledMangaDex(
+            sourcePreferences: SourcePreferences = Injekt.get(),
+            sourceManager: SourceManager = Injekt.get(),
+        ): MangaDex? {
             return getEnabledMangaDexs(sourcePreferences, sourceManager).let { mangadexs ->
                 sourcePreferences.preferredMangaDexId().get().toLongOrNull()?.nullIfZero()
                     ?.let { preferredMangaDexId ->
@@ -240,7 +244,10 @@ class MdUtil {
             }
         }
 
-        fun getEnabledMangaDexs(preferences: SourcePreferences, sourceManager: SourceManager = Injekt.get()): List<MangaDex> {
+        fun getEnabledMangaDexs(
+            preferences: SourcePreferences,
+            sourceManager: SourceManager = Injekt.get(),
+        ): List<MangaDex> {
             val languages = preferences.enabledLanguages().get()
             val disabledSourceIds = preferences.disabledSources().get()
 
@@ -262,8 +269,30 @@ class MdUtil {
                 description
             } else {
                 val altTitlesDesc = altTitles
-                    .joinToString("\n", "${Injekt.get<Application>().getString(R.string.alt_titles)}:\n") { "• $it" }
-                description + (if (description.isBlank()) "" else "\n\n") + Parser.unescapeEntities(altTitlesDesc, false)
+                    .joinToString(
+                        "\n",
+                        "${Injekt.get<Application>().stringResource(SYMR.strings.alt_titles)}:\n",
+                    ) { "• $it" }
+                description + (if (description.isBlank()) "" else "\n\n") + Parser.unescapeEntities(
+                    altTitlesDesc,
+                    false,
+                )
+            }
+        }
+
+        fun addFinalChapterToDesc(description: String, lastVolume: String?, lastChapter: String?): String {
+            val parts = listOfNotNull(
+                lastVolume?.takeIf { it.isNotEmpty() }?.let { "Vol.$it" },
+                lastChapter?.takeIf { it.isNotEmpty() }?.let { "Ch.$it" },
+            )
+
+            return if (parts.isEmpty()) {
+                description
+            } else {
+                description + (if (description.isBlank()) "" else "\n\n") + parts.joinToString(
+                    " ",
+                    "${Injekt.get<Application>().stringResource(SYMR.strings.final_chapter)}:\n",
+                )
             }
         }
     }
