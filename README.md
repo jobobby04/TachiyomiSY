@@ -61,6 +61,7 @@ Additional features for some extensions, features include custom description, op
 * NHentai
 * Puruin
 * Tsumino
+* LANraragi
 
 ## Download
 Get the app from our [releases page](https://github.com/jobobby04/tachiyomisy/releases/latest).
