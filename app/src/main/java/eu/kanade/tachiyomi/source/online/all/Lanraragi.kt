@@ -104,20 +104,20 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
                             RaisedTag(
                                 tag.substringBefore(':'),
                                 formattedTag,
-                                LanraragiSearchMetadata.TAG_TYPE_DEFAULT
+                                LanraragiSearchMetadata.TAG_TYPE_DEFAULT,
                             )
                         } else {
                             RaisedTag(
                                 tag.substringBefore(':'),
                                 tag.substringAfter(':'),
-                                LanraragiSearchMetadata.TAG_TYPE_DEFAULT
+                                LanraragiSearchMetadata.TAG_TYPE_DEFAULT,
                             )
                         }
                     } else {
                         RaisedTag(
                             tag.substringBefore(':', LanraragiSearchMetadata.LANRARAGI_NAMESPACE_OTHER),
                             tag.substringAfter(':'),
-                            LanraragiSearchMetadata.TAG_TYPE_DEFAULT
+                            LanraragiSearchMetadata.TAG_TYPE_DEFAULT,
                         )
                     }
                 }
@@ -144,7 +144,6 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
         val extension: String,
     )
 
-
     override suspend fun getPagePreviewList(manga: SManga, chapters: List<SChapter>, page: Int): PagePreviewPage {
         val metadata = fetchOrLoadMetadata(manga.id()) {
             client.newCall(customMangaDetailsRequest(manga)).awaitSuccess()
@@ -161,7 +160,6 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
             1,
         )
     }
-
 
     private suspend fun requestPreviewImage(page: PagePreviewInfo, cacheControl: CacheControl?): Response {
         return client.newCachelessCallWithProgress(
@@ -190,8 +188,8 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
         return client.newCall(
             GET(
                 getApiUriBuilder("/api/minion/$jobId").build().toString(),
-                headers = headers
-            )
+                headers = headers,
+            ),
         ).awaitSuccess().let {
             with(jsonParser) {
                 it.parseAs<TaskProgress>().state == "finished"
