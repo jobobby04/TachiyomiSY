@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.data.track.shikimori
 
-import android.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -102,9 +101,7 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
         return api.getMangaMetadata(track)
     }
 
-    override fun getLogo() = R.drawable.ic_tracker_shikimori
-
-    override fun getLogoColor() = Color.rgb(40, 40, 40)
+    override fun getLogo() = R.drawable.brand_shikimori
 
     override fun getStatusList(): List<Long> {
         return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ, REREADING)
