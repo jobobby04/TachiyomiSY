@@ -168,17 +168,17 @@ class MdList(id: Long) : BaseTracker(id, "MDList") {
         trackPreferences.trackToken(this).delete()
     }
 
-    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
         return withIOContext {
             val mdex = mdex ?: throw MangaDexNotFoundException()
             val manga = mdex.getMangaMetadata(track.toDbTrack())
             TrackMangaMetadata(
                 remoteId = 0,
-                title = manga?.title,
-                thumbnailUrl = manga?.thumbnail_url, // Doesn't load the actual cover because of Refer header
-                description = manga?.description,
-                authors = manga?.author,
-                artists = manga?.artist,
+                title = manga.title,
+                thumbnailUrl = manga.thumbnail_url, // Doesn't load the actual cover because of Refer header
+                description = manga.description,
+                authors = manga.author,
+                artists = manga.artist,
             )
         }
     }
