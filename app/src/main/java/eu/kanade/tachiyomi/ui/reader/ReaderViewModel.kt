@@ -767,14 +767,17 @@ class ReaderViewModel @JvmOverloads constructor(
                     chapter.chapterNumber.toFloat() == readerChapter.chapter.chapter_number
                 ) {
                     ChapterUpdate(id = chapter.id, read = true)
-                        // SY -->
-                        .also { deleteChapterIfNeeded(ReaderChapter(chapter)) }
-                    // SY <--
                 } else {
                     null
                 }
             }
         updateChapter.awaitAll(duplicateUnreadChapters)
+        // SY -->
+        duplicateUnreadChapters.forEach { chapterUpdate ->
+            val chapter = unfilteredChapterList.first { it.id == chapterUpdate.id }
+            deleteChapterIfNeeded(ReaderChapter(chapter))
+        }
+        // SY <--
     }
 
     fun restartReadTimer() {
