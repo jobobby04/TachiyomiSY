@@ -620,4 +620,7 @@
     <string name="rec_collecting">Öneriler toplanıyor</string>
     <string name="rec_initializing">Başlatılıyor</string>
     <string name="scan_qr_code">QR kod tarayın</string>
+    <string name="filename">Dosya adı</string>
+    <string name="file_extension">Dosya uzantısı</string>
+    <string name="base_url">Ana url</string>
 </resources>
