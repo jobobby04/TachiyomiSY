@@ -146,7 +146,7 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
 
         // Will skip insert page otherwise
         if (insertPageLastPage != null) {
-            viewer.moveToPage(insertPageLastPage!!)
+            viewer.moveToPage(insertPageLastPage)
         }
     }
 

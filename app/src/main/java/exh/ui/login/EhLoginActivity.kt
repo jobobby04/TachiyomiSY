@@ -155,9 +155,9 @@ class EhLoginActivity : BaseActivity() {
             if (memberId == null || passHash == null || igneous == null) return false
 
             // Update prefs
-            exhPreferences.memberIdVal().set(memberId!!)
-            exhPreferences.passHashVal().set(passHash!!)
-            exhPreferences.igneousVal().set(igneous!!)
+            exhPreferences.memberIdVal().set(memberId)
+            exhPreferences.passHashVal().set(passHash)
+            exhPreferences.igneousVal().set(igneous)
 
             return true
         }
