@@ -10,6 +10,7 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.displayablePath
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.storage.service.StorageManager
@@ -28,6 +29,7 @@ class DownloadProvider(
     private val context: Context,
     private val storageManager: StorageManager = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
+    private val downloadPreferences: DownloadPreferences = Injekt.get(),
 ) {
 
     private val downloadsDir: UniFile?
@@ -190,6 +192,7 @@ class DownloadProvider(
         chapterScanlator: String?,
         chapterUrl: String,
         disallowNonAsciiFilenames: Boolean = libraryPreferences.disallowNonAsciiFilenames().get(),
+        includeChapterUrlHash: Boolean = downloadPreferences.includeChapterUrlHash().get(),
     ): String {
         var dirName = sanitizeChapterName(chapterName)
         if (!chapterScanlator.isNullOrBlank()) {
@@ -197,7 +200,7 @@ class DownloadProvider(
         }
         // Subtract 7 bytes for hash and underscore, 4 bytes for .cbz
         dirName = DiskUtil.buildValidFilename(dirName, DiskUtil.MAX_FILE_NAME_BYTES - 11, disallowNonAsciiFilenames)
-        dirName += "_" + md5(chapterUrl).take(6)
+        if (includeChapterUrlHash) dirName += "_" + md5(chapterUrl).take(6)
         return dirName
     }
 
@@ -233,6 +236,7 @@ class DownloadProvider(
                 chapterScanlator,
                 chapterUrl,
                 !libraryPreferences.disallowNonAsciiFilenames().get(),
+                !downloadPreferences.includeChapterUrlHash().get(),
             )
 
         return buildList(2) {
