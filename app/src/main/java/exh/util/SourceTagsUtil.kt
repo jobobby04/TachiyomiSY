@@ -6,6 +6,7 @@ import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
 import exh.source.PURURIN_SOURCE_ID
 import exh.source.TSUMINO_SOURCE_ID
+import exh.source.lanraragiSourceIds
 import exh.source.mangaDexSourceIds
 import exh.source.nHentaiSourceIds
 import java.util.Locale
@@ -23,7 +24,8 @@ object SourceTagsUtil {
             sourceId in nHentaiSourceIds ||
             sourceId in mangaDexSourceIds ||
             sourceId == PURURIN_SOURCE_ID ||
-            sourceId == TSUMINO_SOURCE_ID
+            sourceId == TSUMINO_SOURCE_ID ||
+            sourceId in lanraragiSourceIds
         ) {
             val parsed = when {
                 fullTag != null -> parseTag(fullTag)

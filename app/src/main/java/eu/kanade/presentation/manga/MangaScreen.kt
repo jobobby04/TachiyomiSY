@@ -529,7 +529,7 @@ private fun MangaScreenSmallImpl(
                             // SY -->
                             doSearch = onSearch,
                             searchMetadataChips = remember(state.meta, state.source.id, state.manga.genre) {
-                                SearchMetadataChips(state.meta, state.source, state.manga.genre)
+                                SearchMetadataChips(state.meta, state.source.id, state.manga.genre)
                             },
                             // SY <--
                         )
@@ -824,7 +824,7 @@ fun MangaScreenLargeImpl(
                             // SY -->
                             doSearch = onSearch,
                             searchMetadataChips = remember(state.meta, state.source.id, state.manga.genre) {
-                                SearchMetadataChips(state.meta, state.source, state.manga.genre)
+                                SearchMetadataChips(state.meta, state.source.id, state.manga.genre)
                             },
                             // SY <--
                         )
