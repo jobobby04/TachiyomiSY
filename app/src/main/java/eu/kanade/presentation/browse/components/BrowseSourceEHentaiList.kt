@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import com.gowtham.ratingbar.RatingBar
+import com.gowtham.ratingbar.ComposeStars
 import com.gowtham.ratingbar.RatingBarConfig
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.manga.components.MangaCover
@@ -222,10 +222,8 @@ fun BrowseSourceEHentaiListItem(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
                     horizontalAlignment = Alignment.Start,
                 ) {
-                    RatingBar(
+                    ComposeStars(
                         value = rating,
-                        onValueChange = {},
-                        onRatingChanged = {},
                         config = RatingBarConfig().apply {
                             isIndicator(true)
                             numStars(5)
