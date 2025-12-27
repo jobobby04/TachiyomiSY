@@ -669,4 +669,10 @@
     <string name="mangadex_push_favorites_to_mangadex_summary">Synchronise toutes les séries non suivies par MdList vers MangaDex en tant que lecture en cours.</string>
     <string name="similar_titles">Titres similaires</string>
     <string name="select_scanlators">Groupes de scantrad à afficher</string>
+    <string name="pref_include_chapter_url_hash">Inclure le hash de l\'URL du chapitre</string>
+    <string name="pref_include_chapter_url_hash_desc">Ajoutez les six premiers caractères du hachage MD5 de l\'URL du chapitre au nom du fichier ou du dossier du chapitre.</string>
+    <string name="filename">Nom du fichier</string>
+    <string name="file_extension">Extension du fichier</string>
+    <string name="base_url">URL de base</string>
+    <string name="final_chapter">Chapitre final</string>
 </resources>
