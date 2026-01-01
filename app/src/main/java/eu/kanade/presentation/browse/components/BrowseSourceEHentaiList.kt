@@ -17,9 +17,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -105,6 +109,13 @@ fun BrowseSourceEHentaiListItem(
     val overlayColor = MaterialTheme.colorScheme.background.copy(alpha = 0.66f)
 
     val context = LocalContext.current
+
+    var isActive by remember { mutableStateOf(false) }
+    DisposableEffect(Unit) {
+        isActive = true
+        onDispose { isActive = false }
+    }
+
     val languageText by produceState("", metadata) {
         value = withIOContext {
             val locale = SourceTagsUtil.getLocaleSourceUtil(
@@ -222,16 +233,18 @@ fun BrowseSourceEHentaiListItem(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
                     horizontalAlignment = Alignment.Start,
                 ) {
-                    ComposeStars(
-                        value = rating,
-                        config = RatingBarConfig().apply {
-                            isIndicator(true)
-                            numStars(5)
-                            size(18.dp)
-                            activeColor(Color(0xFF005ED7))
-                            inactiveColor(Color(0xE1E2ECFF))
-                        },
-                    )
+                    if (isActive) {
+                        ComposeStars(
+                            value = rating,
+                            config = RatingBarConfig().apply {
+                                isIndicator(true)
+                                numStars(5)
+                                size(18.dp)
+                                activeColor(Color(0xFF005ED7))
+                                inactiveColor(Color(0xE1E2ECFF))
+                            },
+                        )
+                    }
                     val color = genre?.first?.color
                     val res = genre?.second
                     Card(
