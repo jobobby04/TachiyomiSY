@@ -53,20 +53,13 @@ fun BrowseSourceComfortableGrid(
             val stateFlow = mangaList[index] ?: return@items
             val initialPair = stateFlow.value
             key(initialPair.first.url) {
-                val pair by stateFlow.collectAsState()
-                val manga = pair.first
-                val metadata = pair.second
-                // SY <--
-
-                BrowseSourceComfortableGridItem(
-                    manga = manga,
-                    // SY -->
-                    metadata = metadata,
-                    // SY <--
-                    onClick = { onMangaClick(manga) },
-                    onLongClick = { onMangaLongClick(manga) },
+                BrowseSourceComfortableGridItemWithState(
+                    stateFlow = stateFlow,
+                    onMangaClick = onMangaClick,
+                    onMangaLongClick = onMangaLongClick,
                 )
             }
+            // SY <--
         }
 
         if (mangaList.loadState.refresh is LoadState.Loading || mangaList.loadState.append is LoadState.Loading) {
@@ -75,6 +68,26 @@ fun BrowseSourceComfortableGrid(
             }
         }
     }
+}
+
+@Composable
+private fun BrowseSourceComfortableGridItemWithState(
+    stateFlow: StateFlow<Pair<Manga, RaisedSearchMetadata?>>,
+    onMangaClick: (Manga) -> Unit,
+    onMangaLongClick: (Manga) -> Unit,
+) {
+    val pair by stateFlow.collectAsState()
+    val manga = pair.first
+    val metadata = pair.second
+
+    BrowseSourceComfortableGridItem(
+        manga = manga,
+        // SY -->
+        metadata = metadata,
+        // SY <--
+        onClick = { onMangaClick(manga) },
+        onLongClick = { onMangaLongClick(manga) },
+    )
 }
 
 @Composable

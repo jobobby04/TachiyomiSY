@@ -46,20 +46,13 @@ fun BrowseSourceList(
             val stateFlow = mangaList[index] ?: return@items
             val initialPair = stateFlow.value
             key(initialPair.first.url) {
-                val pair by stateFlow.collectAsState()
-                val manga = pair.first
-                val metadata = pair.second
-                // SY <--
-
-                BrowseSourceListItem(
-                    manga = manga,
-                    // SY -->
-                    metadata = metadata,
-                    // SY <--
-                    onClick = { onMangaClick(manga) },
-                    onLongClick = { onMangaLongClick(manga) },
+                BrowseSourceListItemWithState(
+                    stateFlow = stateFlow,
+                    onMangaClick = onMangaClick,
+                    onMangaLongClick = onMangaLongClick,
                 )
             }
+            // SY <--
         }
 
         item {
@@ -68,6 +61,26 @@ fun BrowseSourceList(
             }
         }
     }
+}
+
+@Composable
+private fun BrowseSourceListItemWithState(
+    stateFlow: StateFlow<Pair<Manga, RaisedSearchMetadata?>>,
+    onMangaClick: (Manga) -> Unit,
+    onMangaLongClick: (Manga) -> Unit,
+) {
+    val pair by stateFlow.collectAsState()
+    val manga = pair.first
+    val metadata = pair.second
+
+    BrowseSourceListItem(
+        manga = manga,
+        // SY -->
+        metadata = metadata,
+        // SY <--
+        onClick = { onMangaClick(manga) },
+        onLongClick = { onMangaLongClick(manga) },
+    )
 }
 
 @Composable

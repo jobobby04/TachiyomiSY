@@ -53,20 +53,13 @@ fun BrowseSourceCompactGrid(
             val stateFlow = mangaList[index] ?: return@items
             val initialPair = stateFlow.value
             key(initialPair.first.url) {
-                val pair by stateFlow.collectAsState()
-                val manga = pair.first
-                val metadata = pair.second
-                // SY <--
-
-                BrowseSourceCompactGridItem(
-                    manga = manga,
-                    // SY -->
-                    metadata = metadata,
-                    // SY <--
-                    onClick = { onMangaClick(manga) },
-                    onLongClick = { onMangaLongClick(manga) },
+                BrowseSourceCompactGridItemWithState(
+                    stateFlow = stateFlow,
+                    onMangaClick = onMangaClick,
+                    onMangaLongClick = onMangaLongClick,
                 )
             }
+            // SY <--
         }
 
         if (mangaList.loadState.refresh is LoadState.Loading || mangaList.loadState.append is LoadState.Loading) {
@@ -75,6 +68,26 @@ fun BrowseSourceCompactGrid(
             }
         }
     }
+}
+
+@Composable
+private fun BrowseSourceCompactGridItemWithState(
+    stateFlow: StateFlow<Pair<Manga, RaisedSearchMetadata?>>,
+    onMangaClick: (Manga) -> Unit,
+    onMangaLongClick: (Manga) -> Unit,
+) {
+    val pair by stateFlow.collectAsState()
+    val manga = pair.first
+    val metadata = pair.second
+
+    BrowseSourceCompactGridItem(
+        manga = manga,
+        // SY -->
+        metadata = metadata,
+        // SY <--
+        onClick = { onMangaClick(manga) },
+        onLongClick = { onMangaLongClick(manga) },
+    )
 }
 
 @Composable

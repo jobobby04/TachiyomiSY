@@ -74,17 +74,10 @@ fun BrowseSourceEHentaiList(
             val stateFlow = mangaList[index] ?: return@items
             val initialPair = stateFlow.value
             key(initialPair.first.url) {
-                val pair by stateFlow.collectAsState()
-                val manga = pair.first
-                val metadata = pair.second
-
-                BrowseSourceEHentaiListItem(
-                    manga = manga,
-                    // SY -->
-                    metadata = metadata,
-                    // SY <--
-                    onClick = { onMangaClick(manga) },
-                    onLongClick = { onMangaLongClick(manga) },
+                BrowseSourceEHentaiListItemWithState(
+                    stateFlow = stateFlow,
+                    onMangaClick = onMangaClick,
+                    onMangaLongClick = onMangaLongClick,
                 )
             }
         }
@@ -95,6 +88,26 @@ fun BrowseSourceEHentaiList(
             }
         }
     }
+}
+
+@Composable
+private fun BrowseSourceEHentaiListItemWithState(
+    stateFlow: StateFlow<Pair<Manga, RaisedSearchMetadata?>>,
+    onMangaClick: (Manga) -> Unit,
+    onMangaLongClick: (Manga) -> Unit,
+) {
+    val pair by stateFlow.collectAsState()
+    val manga = pair.first
+    val metadata = pair.second
+
+    BrowseSourceEHentaiListItem(
+        manga = manga,
+        // SY -->
+        metadata = metadata,
+        // SY <--
+        onClick = { onMangaClick(manga) },
+        onLongClick = { onMangaLongClick(manga) },
+    )
 }
 
 @Composable
