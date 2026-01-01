@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,18 +71,21 @@ fun BrowseSourceEHentaiList(
         }
 
         items(count = mangaList.itemCount) { index ->
-            val pair by mangaList[index]?.collectAsState() ?: return@items
-            val manga = pair.first
-            val metadata = pair.second
+            val stateFlow = mangaList[index] ?: return@items
+            key(stateFlow) {
+                val pair by stateFlow.collectAsState()
+                val manga = pair.first
+                val metadata = pair.second
 
-            BrowseSourceEHentaiListItem(
-                manga = manga,
-                // SY -->
-                metadata = metadata,
-                // SY <--
-                onClick = { onMangaClick(manga) },
-                onLongClick = { onMangaLongClick(manga) },
-            )
+                BrowseSourceEHentaiListItem(
+                    manga = manga,
+                    // SY -->
+                    metadata = metadata,
+                    // SY <--
+                    onClick = { onMangaClick(manga) },
+                    onLongClick = { onMangaLongClick(manga) },
+                )
+            }
         }
 
         item {

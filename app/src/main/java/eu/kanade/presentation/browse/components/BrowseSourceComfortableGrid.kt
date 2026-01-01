@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -49,19 +50,22 @@ fun BrowseSourceComfortableGrid(
 
         items(count = mangaList.itemCount) { index ->
             // SY -->
-            val pair by mangaList[index]?.collectAsState() ?: return@items
-            val manga = pair.first
-            val metadata = pair.second
-            // SY <--
-
-            BrowseSourceComfortableGridItem(
-                manga = manga,
-                // SY -->
-                metadata = metadata,
+            val stateFlow = mangaList[index] ?: return@items
+            key(stateFlow) {
+                val pair by stateFlow.collectAsState()
+                val manga = pair.first
+                val metadata = pair.second
                 // SY <--
-                onClick = { onMangaClick(manga) },
-                onLongClick = { onMangaLongClick(manga) },
-            )
+
+                BrowseSourceComfortableGridItem(
+                    manga = manga,
+                    // SY -->
+                    metadata = metadata,
+                    // SY <--
+                    onClick = { onMangaClick(manga) },
+                    onLongClick = { onMangaLongClick(manga) },
+                )
+            }
         }
 
         if (mangaList.loadState.refresh is LoadState.Loading || mangaList.loadState.append is LoadState.Loading) {
