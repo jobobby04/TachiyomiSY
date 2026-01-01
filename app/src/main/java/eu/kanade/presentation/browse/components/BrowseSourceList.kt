@@ -44,7 +44,8 @@ fun BrowseSourceList(
         items(count = mangaList.itemCount) { index ->
             // SY -->
             val stateFlow = mangaList[index] ?: return@items
-            key(stateFlow) {
+            val initialPair = stateFlow.value
+            key(initialPair.first.url) {
                 val pair by stateFlow.collectAsState()
                 val manga = pair.first
                 val metadata = pair.second
