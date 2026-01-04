@@ -620,4 +620,8 @@
     <string name="feed_tab_empty">Nemaš nijedan izvor u svom feedu, idi gore desno za dodavanje izvora</string>
     <string name="feed_add">Dodati %1$s u feed?</string>
     <string name="download_threads">Preuzmi teme</string>
+    <string name="filename">Ime datoteke</string>
+    <string name="file_extension">Sufiks datoteke</string>
+    <string name="base_url">Osnovni URL</string>
+    <string name="final_chapter">Završno poglavlje</string>
 </resources>
