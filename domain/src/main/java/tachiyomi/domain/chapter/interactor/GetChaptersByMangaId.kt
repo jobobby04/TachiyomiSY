@@ -11,7 +11,11 @@ class GetChaptersByMangaId(
 
     suspend fun await(mangaId: Long, applyScanlatorFilter: Boolean = false): List<Chapter> {
         return try {
-            chapterRepository.getChapterByMangaId(mangaId, applyScanlatorFilter, includeDeleted = false)
+            chapterRepository.getChapterByMangaId(
+                mangaId,
+                applyScanlatorFilter,
+                includeDeleted = false,
+            )
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
             emptyList()

@@ -152,8 +152,6 @@ SET manga_id = coalesce(:mangaId, manga_id),
     deleted = coalesce(:deleted, deleted)
 WHERE _id = :chapterId;
 
--- removed getChaptersByMangaIdIncludeDeleted: merged into getChaptersByMangaId with :includeDeleted flag
-
 softDeleteChaptersWithIds:
 UPDATE chapters
 SET deleted = 1

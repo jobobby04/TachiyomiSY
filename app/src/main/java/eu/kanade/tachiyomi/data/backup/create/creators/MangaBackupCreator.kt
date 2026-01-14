@@ -31,31 +31,31 @@ class MangaBackupCreator(
     private val sourceManager: SourceManager = Injekt.get(),
     private val getCustomMangaInfo: GetCustomMangaInfo = Injekt.get(),
     private val getFlatMetadataById: GetFlatMetadataById = Injekt.get(),
-    // SY <--
+// SY <--
 ) {
 
     suspend operator fun invoke(mangas: List<Manga>, options: BackupOptions): List<BackupManga> {
-        return mangas.map {
-            backupManga(it, options)
-        }
+        return mangas.map { backupManga(it, options) }
     }
 
     private suspend fun backupManga(manga: Manga, options: BackupOptions): BackupManga {
         // Entry for this manga
-        val mangaObject = manga.toBackupManga(
-            // SY -->
-            if (options.customInfo) {
-                getCustomMangaInfo.get(manga.id)
-            } else {
-                null
-            }, /* SY <-- */
-        )
+        val mangaObject =
+            manga.toBackupManga(
+                // SY -->
+                if (options.customInfo) {
+                    getCustomMangaInfo.get(manga.id)
+                } else {
+                    null
+                }, /* SY <-- */
+            )
 
         // SY -->
         if (manga.source == MERGED_SOURCE_ID) {
-            mangaObject.mergedMangaReferences = handler.awaitList {
-                mergedQueries.selectByMergeId(manga.id, backupMergedMangaReferenceMapper)
-            }
+            mangaObject.mergedMangaReferences =
+                handler.awaitList {
+                    mergedQueries.selectByMergeId(manga.id, backupMergedMangaReferenceMapper)
+                }
         }
 
         val source = sourceManager.get(manga.source)?.getMainSource<MetadataSource<*, *>>()
@@ -66,20 +66,22 @@ class MangaBackupCreator(
         }
         // SY <--
 
-        mangaObject.excludedScanlators = handler.awaitList {
-            excluded_scanlatorsQueries.getExcludedScanlatorsByMangaId(manga.id)
-        }
+        mangaObject.excludedScanlators =
+            handler.awaitList {
+                excluded_scanlatorsQueries.getExcludedScanlatorsByMangaId(manga.id)
+            }
 
         if (options.chapters) {
             // Backup all the chapters, including deleted ones for sync
-            handler.awaitList {
-                chaptersQueries.getChaptersByMangaId(
-                    mangaId = manga.id,
-                    includeDeleted = 1, // include soft-deleted chapters in backups
-                    applyScanlatorFilter = 0, // false
-                    mapper = backupChapterMapper,
-                )
-            }
+            handler
+                .awaitList {
+                    chaptersQueries.getChaptersByMangaId(
+                        mangaId = manga.id,
+                        includeDeleted = 1, // include soft-deleted chapters in backups
+                        applyScanlatorFilter = 0, // false
+                        mapper = backupChapterMapper,
+                    )
+                }
                 .takeUnless(List<BackupChapter>::isEmpty)
                 ?.let { mangaObject.chapters = it }
         }
@@ -93,7 +95,10 @@ class MangaBackupCreator(
         }
 
         if (options.tracking) {
-            val tracks = handler.awaitList { manga_syncQueries.getTracksByMangaId(manga.id, backupTrackMapper) }
+            val tracks =
+                handler.awaitList {
+                    manga_syncQueries.getTracksByMangaId(manga.id, backupTrackMapper)
+                }
             if (tracks.isNotEmpty()) {
                 mangaObject.tracking = tracks
             }
@@ -102,10 +107,18 @@ class MangaBackupCreator(
         if (options.history) {
             val historyByMangaId = getHistory.await(manga.id)
             if (historyByMangaId.isNotEmpty()) {
-                val history = historyByMangaId.map { history ->
-                    val chapter = handler.awaitOne { chaptersQueries.getChapterById(history.chapterId) }
-                    BackupHistory(chapter.url, history.readAt?.time ?: 0L, history.readDuration)
-                }
+                val history =
+                    historyByMangaId.map { history ->
+                        val chapter =
+                            handler.awaitOne {
+                                chaptersQueries.getChapterById(history.chapterId)
+                            }
+                        BackupHistory(
+                            chapter.url,
+                            history.readAt?.time ?: 0L,
+                            history.readDuration,
+                        )
+                    }
                 if (history.isNotEmpty()) {
                     mangaObject.history = history
                 }
@@ -116,7 +129,7 @@ class MangaBackupCreator(
     }
 }
 
-private fun Manga.toBackupManga(/* SY --> */customMangaInfo: CustomMangaInfo?/* SY <-- */) =
+private fun Manga.toBackupManga(/* SY --> */ customMangaInfo: CustomMangaInfo? /* SY <-- */) =
     BackupManga(
         url = this.url,
         // SY -->
@@ -141,15 +154,16 @@ private fun Manga.toBackupManga(/* SY --> */customMangaInfo: CustomMangaInfo?/* 
         notes = this.notes,
         initialized = this.initialized,
         // SY -->
-    ).also { backupManga ->
-        customMangaInfo?.let {
-            backupManga.customTitle = it.title
-            backupManga.customArtist = it.artist
-            backupManga.customAuthor = it.author
-            backupManga.customThumbnailUrl = it.thumbnailUrl
-            backupManga.customDescription = it.description
-            backupManga.customGenre = it.genre
-            backupManga.customStatus = it.status?.toInt() ?: 0
+    )
+        .also { backupManga ->
+            customMangaInfo?.let {
+                backupManga.customTitle = it.title
+                backupManga.customArtist = it.artist
+                backupManga.customAuthor = it.author
+                backupManga.customThumbnailUrl = it.thumbnailUrl
+                backupManga.customDescription = it.description
+                backupManga.customGenre = it.genre
+                backupManga.customStatus = it.status?.toInt() ?: 0
+            }
         }
-    }
 // SY <--

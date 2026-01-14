@@ -103,8 +103,6 @@ class ChapterRepositoryImpl(
             )
         }
     }
-        }
-    }
 
     override suspend fun getScanlatorsByMangaId(mangaId: Long): List<String> {
         return handler.awaitList {
@@ -143,8 +141,6 @@ class ChapterRepositoryImpl(
                 applyScanlatorFilter = applyScanlatorFilter.toLong(),
                 mapper = ChapterMapper::mapChapter,
             )
-        }
-    }
         }
     }
 
