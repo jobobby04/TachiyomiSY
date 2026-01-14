@@ -126,7 +126,9 @@ class ChapterRepositoryImpl(
     }
 
     override suspend fun getChapterById(id: Long): Chapter? {
-        return handler.awaitOneOrNull { chaptersQueries.getChapterById(id, ChapterMapper::mapChapter) }
+        return handler.awaitOneOrNull {
+            chaptersQueries.getChapterById(id, ChapterMapper::mapChapter)
+        }
     }
 
     override suspend fun getChapterByMangaIdAsFlow(
@@ -159,7 +161,10 @@ class ChapterRepositoryImpl(
         return handler.awaitList { chaptersQueries.getChapterByUrl(url, ChapterMapper::mapChapter) }
     }
 
-    override suspend fun getMergedChapterByMangaId(mangaId: Long, applyScanlatorFilter: Boolean): List<Chapter> {
+    override suspend fun getMergedChapterByMangaId(
+        mangaId: Long,
+        applyScanlatorFilter: Boolean,
+    ): List<Chapter> {
         return handler.awaitList {
             chaptersQueries.getMergedChaptersByMangaId(
                 mangaId,
