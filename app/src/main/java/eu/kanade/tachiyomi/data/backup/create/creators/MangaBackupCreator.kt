@@ -71,10 +71,11 @@ class MangaBackupCreator(
         }
 
         if (options.chapters) {
-            // Backup all the chapters
+            // Backup all the chapters, including deleted ones for sync
             handler.awaitList {
                 chaptersQueries.getChaptersByMangaId(
                     mangaId = manga.id,
+                    includeDeleted = 1, // include soft-deleted chapters in backups
                     applyScanlatorFilter = 0, // false
                     mapper = backupChapterMapper,
                 )
