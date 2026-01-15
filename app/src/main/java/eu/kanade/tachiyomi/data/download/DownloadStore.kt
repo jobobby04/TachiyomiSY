@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.core.content.edit
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.online.HttpSource
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import logcat.LogPriority
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.interactor.GetChapter
+import tachiyomi.domain.download.model.DownloadPriority
+import tachiyomi.domain.download.repository.DownloadQueueRepository
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
@@ -16,6 +19,7 @@ import uy.kohesive.injekt.api.get
 
 /**
  * This class is used to persist active downloads across application restarts.
+ * Now migrates to database-backed queue for better reliability.
  */
 class DownloadStore(
     context: Context,
@@ -23,10 +27,12 @@ class DownloadStore(
     private val json: Json = Injekt.get(),
     private val getManga: GetManga = Injekt.get(),
     private val getChapter: GetChapter = Injekt.get(),
+    private val downloadQueueRepository: DownloadQueueRepository = Injekt.get(),
 ) {
 
     /**
      * Preference file where active downloads are stored.
+     * Used for migration only - new downloads go to database.
      */
     private val preferences = context.getSharedPreferences("active_downloads", Context.MODE_PRIVATE)
 
@@ -78,38 +84,85 @@ class DownloadStore(
     }
 
     /**
-     * Returns the preference's key for the given download.
+     * Compute the SharedPreferences key for a download using its chapter id.
      *
-     * @param download the download.
+     * @param download The download whose chapter id is used to form the key.
+     * @return The preference key as the download's chapter id string.
      */
     private fun getKey(download: Download): String {
         return download.chapter.id.toString()
     }
 
     /**
-     * Returns the list of downloads to restore. It should be called in a background thread.
-     */
-    fun restore(): List<Download> {
-        val objs = preferences.all
-            .mapNotNull { it.value as? String }
-            .mapNotNull { deserialize(it) }
-            .sortedBy { it.order }
+     * Restores the active downloads queue, performing a one-time migration from SharedPreferences to the database if needed.
+     *
+     * If migration is attempted and any entry fails to migrate, the function returns an empty list so the migration can be retried on the next launch; on successful migration the old SharedPreferences entries are cleared and subsequent restores are loaded from the database-backed queue.
+     *
+     * @return A list of Download objects reconstructed from the persistent download queue. */
+    suspend fun restore(): List<Download> {
+        val migrationCompleted = preferences.getBoolean("queue_migrated_to_db", false)
 
+        // If not migrated yet, migrate SharedPreferences to database
+        if (!migrationCompleted) {
+            val objs = preferences.all
+                .mapNotNull { it.value as? String }
+                .mapNotNull { deserialize(it) }
+                .sortedBy { it.order }
+
+            if (objs.isNotEmpty()) {
+                logcat(LogPriority.INFO) { "Migrating ${objs.size} downloads to database..." }
+                var failed = 0
+                objs.forEach { obj ->
+                    try {
+                        downloadQueueRepository.add(
+                            mangaId = obj.mangaId,
+                            chapterId = obj.chapterId,
+                            priority = DownloadPriority.NORMAL.value,
+                        )
+                    } catch (e: Exception) {
+                        failed++
+                        logcat(LogPriority.ERROR, e) { "Failed to migrate download: ${obj.chapterId}" }
+                    }
+                }
+                if (failed == 0) {
+                    logcat(LogPriority.INFO) { "Migration to database completed" }
+                } else {
+                    logcat(LogPriority.ERROR) { "Migration incomplete ($failed failures). Will retry next launch." }
+                    // Return empty list - old data remains in preferences for retry on next launch
+                    return emptyList()
+                }
+            }
+
+            // Mark migration as complete BEFORE clearing to prevent data loss on crash
+            // Only mark complete if all inserts succeeded (checked above)
+            preferences.edit {
+                putBoolean("queue_migrated_to_db", true)
+            }
+
+            // Then clear old entries in a separate transaction
+            // Only clear if migration fully succeeded (checked above)
+            val keysToRemove = preferences.all.keys.filter { it != "queue_migrated_to_db" }
+            preferences.edit {
+                keysToRemove.forEach { remove(it) }
+            }
+        }
+
+        // Now load from database
         val downloads = mutableListOf<Download>()
-        if (objs.isNotEmpty()) {
+        val queueEntries = downloadQueueRepository.getPendingByPriority()
+
+        if (queueEntries.isNotEmpty()) {
             val cachedManga = mutableMapOf<Long, Manga?>()
-            for ((mangaId, chapterId) in objs) {
-                val manga = cachedManga.getOrPut(mangaId) {
-                    runBlocking { getManga.await(mangaId) }
+            for (entry in queueEntries) {
+                val manga = cachedManga.getOrPut(entry.mangaId) {
+                    getManga.await(entry.mangaId)
                 } ?: continue
                 val source = sourceManager.get(manga.source) as? HttpSource ?: continue
-                val chapter = runBlocking { getChapter.await(chapterId) } ?: continue
+                val chapter = getChapter.await(entry.chapterId) ?: continue
                 downloads.add(Download(source, manga, chapter))
             }
         }
 
-        // Clear the store, downloads will be added again immediately.
-        clear()
         return downloads
     }
 

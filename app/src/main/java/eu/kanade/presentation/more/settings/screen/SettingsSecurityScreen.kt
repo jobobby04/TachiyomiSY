@@ -79,6 +79,16 @@ object SettingsSecurityScreen : SearchableSettings {
         )
     }
 
+    /**
+     * Builds the security preferences group shown on the security settings screen.
+     *
+     * The returned group contains preferences for biometric authentication, app lock timing,
+     * notification content hiding, secure-screen mode, CBZ archive password and encryption,
+     * biometric lock times and days, and category lock settings.
+     *
+     * @param securityPreferences Source of persisted security-related preferences used to back the UI.
+     * @return A Preference.PreferenceGroup containing the security-related preference items.
+     */
     @Composable
     private fun getSecurityGroup(
         securityPreferences: SecurityPreferences,
@@ -213,6 +223,23 @@ object SettingsSecurityScreen : SearchableSettings {
                         subtitle = stringResource(SYMR.strings.biometric_lock_days_summary),
                         onClick = { dialogOpen = true },
                         enabled = useAuth,
+                    )
+                },
+                kotlin.run {
+                    val navigator = LocalNavigator.currentOrThrow
+                    val lockedCategoryIds by eu.kanade.tachiyomi.util.storage.CategoryLockCrypto.getLockedCategoryIdsFlow()
+                        .collectAsState(initial = eu.kanade.tachiyomi.util.storage.CategoryLockCrypto.getLockedCategoryIds())
+                    val lockedCount = lockedCategoryIds.size
+                    Preference.PreferenceItem.TextPreference(
+                        title = stringResource(SYMR.strings.category_lock_settings),
+                        subtitle = pluralStringResource(
+                            SYMR.plurals.num_locked_categories,
+                            lockedCount,
+                            lockedCount,
+                        ),
+                        onClick = {
+                            navigator.push(SettingsCategoryLockScreen)
+                        },
                     )
                 },
                 // SY <--

@@ -47,6 +47,9 @@ import eu.kanade.tachiyomi.data.coil.MangaKeyer
 import eu.kanade.tachiyomi.data.coil.PagePreviewFetcher
 import eu.kanade.tachiyomi.data.coil.PagePreviewKeyer
 import eu.kanade.tachiyomi.data.coil.TachiyomiImageDecoder
+import eu.kanade.tachiyomi.data.download.AutoDownloadPollingWorker
+import eu.kanade.tachiyomi.data.download.DownloadJob
+import eu.kanade.tachiyomi.data.download.TempFolderCleanupWorker
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.sync.SyncDataJob
 import eu.kanade.tachiyomi.di.AppModule
@@ -102,6 +105,15 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     private val disableIncognitoReceiver = DisableIncognitoReceiver()
 
+    /**
+     * Performs application startup initialization.
+     *
+     * Initializes core services and app-wide configuration including Firebase and crash handling,
+     * security providers, WebView process handling, dependency injection modules, logging, notification
+     * channels, lifecycle observation, preference observers (incognito, analytics, crashlytics,
+     * hardware bitmap threshold), UI theme, widget manager, WorkManager and periodic background jobs,
+     * optional immediate sync startup, and migration initialization.
+     */
     @SuppressLint("LaunchActivityFromNotification")
     override fun onCreate() {
         super<Application>.onCreate()
@@ -199,6 +211,10 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         if (!WorkManager.isInitialized()) {
             WorkManager.initialize(this, Configuration.Builder().build())
         }
+        DownloadJob.setupPeriodicWork(this)
+        AutoDownloadPollingWorker.setupPeriodicWork(this)
+        TempFolderCleanupWorker.setupPeriodicWork(this)
+
         val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
         if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {

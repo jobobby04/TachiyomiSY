@@ -42,6 +42,7 @@ import mihon.domain.migration.usecases.MigrateMangaUseCase
 import mihon.domain.upcoming.interactor.GetUpcomingManga
 import tachiyomi.data.category.CategoryRepositoryImpl
 import tachiyomi.data.chapter.ChapterRepositoryImpl
+import tachiyomi.data.download.DownloadQueueRepositoryImpl
 import tachiyomi.data.history.HistoryRepositoryImpl
 import tachiyomi.data.manga.MangaRepositoryImpl
 import tachiyomi.data.release.ReleaseServiceImpl
@@ -67,6 +68,8 @@ import tachiyomi.domain.chapter.interactor.SetMangaDefaultChapterFlags
 import tachiyomi.domain.chapter.interactor.ShouldUpdateDbChapter
 import tachiyomi.domain.chapter.interactor.UpdateChapter
 import tachiyomi.domain.chapter.repository.ChapterRepository
+import tachiyomi.domain.download.interactor.GetChaptersForAutoDownload
+import tachiyomi.domain.download.repository.DownloadQueueRepository
 import tachiyomi.domain.history.interactor.GetHistory
 import tachiyomi.domain.history.interactor.GetNextChapters
 import tachiyomi.domain.history.interactor.GetTotalReadDuration
@@ -102,6 +105,13 @@ import uy.kohesive.injekt.api.InjektRegistrar
 
 class DomainModule : InjektModule {
 
+    /**
+     * Registers domain-layer injectable bindings for repositories, services, and use-case interactors.
+     *
+     * Adds singleton and factory bindings mapping domain interfaces and interactors to their concrete implementations so they are available for injection.
+     *
+     * @receiver InjektRegistrar Registrar into which the domain bindings are registered.
+     */
     override fun InjektRegistrar.registerInjectables() {
         addSingletonFactory<CategoryRepository> { CategoryRepositoryImpl(get()) }
         addFactory { GetCategories(get()) }
@@ -169,6 +179,10 @@ class DomainModule : InjektModule {
         addFactory { UpsertHistory(get()) }
         addFactory { RemoveHistory(get()) }
         addFactory { GetTotalReadDuration(get()) }
+
+        addSingletonFactory<DownloadQueueRepository> { DownloadQueueRepositoryImpl(get(), get()) }
+
+        addFactory { GetChaptersForAutoDownload(get(), get(), get(), get()) }
 
         addFactory { DeleteDownload(get(), get()) }
 

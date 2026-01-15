@@ -25,6 +25,33 @@ import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.presentation.core.components.material.PullRefresh
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Renders the library UI: optional category tabs, a paged category layout, selection handling, and pull-to-refresh.
+ *
+ * Supports navigating between category pages, displaying items per category, toggling item selection and range
+ * selection, invoking a continue-reading action, and requesting or checking category locks before navigation.
+ *
+ * @param categories List of library categories to display in tabs and pages.
+ * @param searchQuery Current search query to filter visible items.
+ * @param selection Set of selected manga IDs; selection state affects click behavior and refresh availability.
+ * @param contentPadding Padding to apply around the composable's content.
+ * @param currentPage Index of the currently selected category page; coerced to the valid range of categories.
+ * @param hasActiveFilters True when filters are active and the UI may reflect filtered state.
+ * @param showPageTabs Whether to show the category tabs above the pager.
+ * @param onChangeCurrentPage Called when the visible page changes with the new page index.
+ * @param onClickManga Called when a manga is activated (click) while no selection is active; receives the manga id.
+ * @param onContinueReadingClicked Optional callback invoked when the continue-reading action is triggered for a manga.
+ * @param onToggleSelection Toggle the selection state for a single manga within a category.
+ * @param onToggleRangeSelection Toggle a range selection starting/ending at the provided manga within a category.
+ * @param onRefresh Invoked to start a refresh; should return `true` if a refresh was started, `false` to cancel.
+ * @param onGlobalSearchClicked Callback invoked when the global search control is activated.
+ * @param getItemCountForCategory Returns the number of items for a given category (may be null if unknown).
+ * @param getDisplayMode Returns the display mode preference for a category index.
+ * @param getColumnsForOrientation Returns the column count preference for the current orientation (isLandscape).
+ * @param getItemsForCategory Returns the list of items to display for a given category.
+ * @param isCategoryLocked Predicate used to check whether a category is locked; locked categories prevent navigation.
+ * @param onRequestUnlock Invoked when a locked category is requested (e.g., tab click) to trigger an unlock flow.
+ */
 @Composable
 fun LibraryContent(
     categories: List<Category>,
@@ -45,6 +72,10 @@ fun LibraryContent(
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
     getItemsForCategory: (Category) -> List<LibraryItem>,
+    // SY -->
+    isCategoryLocked: (Category) -> Boolean = { false },
+    onRequestUnlock: (Category) -> Unit = {},
+    // SY <--
 ) {
     Column(
         modifier = Modifier.padding(
@@ -70,11 +101,23 @@ fun LibraryContent(
                 categories = categories,
                 pagerState = pagerState,
                 getItemCountForCategory = getItemCountForCategory,
-                onTabItemClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(it)
+                onTabItemClick = { index ->
+                    val category = categories[index]
+                    // SY -->
+                    if (isCategoryLocked(category)) {
+                        onRequestUnlock(category)
+                    } else {
+                        // SY <--
+                        scope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                        // SY -->
                     }
+                    // SY <--
                 },
+                // SY -->
+                isCategoryLocked = isCategoryLocked,
+                // SY <--
             )
         }
 
@@ -112,6 +155,10 @@ fun LibraryContent(
                 },
                 onLongClickManga = onToggleRangeSelection,
                 onClickContinueReading = onContinueReadingClicked,
+                // SY -->
+                isCategoryLocked = isCategoryLocked,
+                onUnlockRequest = onRequestUnlock,
+                // SY <--
             )
         }
 

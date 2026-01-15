@@ -18,5 +18,6 @@ google-api-client-oauth = "com.google.oauth-client:google-oauth-client:1.39.0"
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 
 zxing-android-embedded = "com.journeyapps:zxing-android-embedded:4.3.0"

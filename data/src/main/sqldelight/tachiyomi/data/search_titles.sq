@@ -1,4 +1,5 @@
 import kotlin.Int;
+import kotlin.collections.List;
 
 CREATE TABLE search_titles (
     _id INTEGER NOT NULL PRIMARY KEY,
@@ -15,6 +16,10 @@ CREATE INDEX search_titles_title_index ON search_titles(title);
 selectByMangaId:
 SELECT * FROM search_titles
 WHERE manga_id = ?;
+
+selectByMangaIds:
+SELECT * FROM search_titles
+WHERE manga_id IN ?;
 
 deleteByManga:
 DELETE FROM search_titles WHERE manga_id = ?;

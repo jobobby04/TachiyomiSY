@@ -35,10 +35,48 @@ class MangaMetadataRepositoryImpl(
         return handler.awaitList { search_titlesQueries.selectByMangaId(id, ::searchTitleMapper) }
     }
 
+    /**
+     * Provides a reactive Flow of titles for the specified manga.
+     *
+     * @param id The manga ID whose titles should be observed.
+     * @return A Flow that emits the list of `SearchTitle` for the manga and updates whenever those titles change (emits an empty list if none exist).
+     */
     override fun subscribeTitlesById(id: Long): Flow<List<SearchTitle>> {
         return handler.subscribeToList { search_titlesQueries.selectByMangaId(id, ::searchTitleMapper) }
     }
 
+    /**
+     * Retrieve search tags for multiple manga IDs and group them by their manga ID.
+     *
+     * @param ids The manga IDs to fetch tags for.
+     * @return A map from mangaId to the list of `SearchTag` associated with that mangaId. If `ids` is empty or a manga has no tags, it will not appear in the map.
+     */
+    override suspend fun getTagsByIds(ids: List<Long>): Map<Long, List<SearchTag>> {
+        if (ids.isEmpty()) return emptyMap()
+        return handler.awaitList<SearchTag> {
+            search_tagsQueries.selectByMangaIds(ids, ::searchTagMapper)
+        }.groupBy { it.mangaId }
+    }
+
+    /**
+     * Fetches titles for multiple manga IDs and groups them by manga ID.
+     *
+     * @param ids The manga IDs to fetch titles for.
+     * @return A map from each manga ID to its list of `SearchTitle`. Returns an empty map if `ids` is empty or no titles are found.
+     */
+    override suspend fun getTitlesByIds(ids: List<Long>): Map<Long, List<SearchTitle>> {
+        if (ids.isEmpty()) return emptyMap()
+        return handler.awaitList<SearchTitle> {
+            search_titlesQueries.selectByMangaIds(ids, ::searchTitleMapper)
+        }.groupBy { it.mangaId }
+    }
+
+    /**
+     * Inserts or updates a manga's metadata and replaces its associated tags and titles in a single transactional operation.
+     *
+     * @param flatMetadata Container holding metadata, tags, and titles for a single manga; its `metadata.mangaId` must be a valid ID.
+     * @throws IllegalArgumentException if `flatMetadata.metadata.mangaId` is -1.
+     */
     override suspend fun insertFlatMetadata(flatMetadata: FlatMetadata) {
         require(flatMetadata.metadata.mangaId != -1L)
 

@@ -1,0 +1,150 @@
+import kotlin.Boolean;
+
+CREATE TABLE download_queue(
+    _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    manga_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 0,
+    added_at INTEGER NOT NULL,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    last_attempt_at INTEGER,
+    last_error_message TEXT,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    FOREIGN KEY(manga_id) REFERENCES mangas(_id) ON DELETE CASCADE,
+    FOREIGN KEY(chapter_id) REFERENCES chapters(_id) ON DELETE CASCADE,
+    UNIQUE(chapter_id)
+);
+
+CREATE INDEX download_queue_status_priority_idx ON download_queue(status, priority DESC, added_at ASC);
+CREATE INDEX download_queue_chapter_idx ON download_queue(chapter_id);
+CREATE INDEX download_queue_manga_idx ON download_queue(manga_id);
+
+-- Get all pending downloads ordered by priority
+getPendingByPriority:
+SELECT *
+FROM download_queue
+WHERE status = 'PENDING'
+ORDER BY priority DESC, added_at ASC;
+
+-- Get pending downloads that are ready for retry (after backoff period)
+getPendingWithBackoff:
+SELECT *
+FROM download_queue
+WHERE status = 'PENDING'
+AND (
+    last_attempt_at IS NULL
+    OR (CAST(strftime('%s', 'now') AS INTEGER) * 1000 - last_attempt_at) >=
+        CASE
+            WHEN retry_count = 0 THEN 120000      -- 2 minutes
+            WHEN retry_count = 1 THEN 240000      -- 4 minutes
+            WHEN retry_count = 2 THEN 480000      -- 8 minutes
+            WHEN retry_count = 3 THEN 960000      -- 16 minutes
+            WHEN retry_count = 4 THEN 1920000     -- 32 minutes
+            WHEN retry_count = 5 THEN 3840000     -- 64 minutes
+            WHEN retry_count = 6 THEN 7680000     -- 128 minutes
+            ELSE 21600000                          -- 360 minutes (6 hours) for retry_count >= 7
+        END
+)
+ORDER BY priority DESC, added_at ASC;
+
+-- Get all downloads (any status)
+getAll:
+SELECT *
+FROM download_queue
+ORDER BY priority DESC, added_at ASC;
+
+-- Get download by chapter ID
+getByChapterId:
+SELECT *
+FROM download_queue
+WHERE chapter_id = :chapterId
+LIMIT 1;
+
+-- Get downloads by manga ID
+getByMangaId:
+SELECT *
+FROM download_queue
+WHERE manga_id = :mangaId
+ORDER BY priority DESC, added_at ASC;
+
+-- Insert new download
+insert:
+INSERT OR IGNORE INTO download_queue(manga_id, chapter_id, priority, added_at, status)
+VALUES (:mangaId, :chapterId, :priority, :addedAt, 'PENDING');
+
+-- Update status
+updateStatus:
+UPDATE download_queue
+SET status = :status,
+    last_attempt_at = :lastAttemptAt,
+    last_error_message = :lastErrorMessage
+WHERE _id = :id;
+
+-- Update for retry (increment retry count)
+updateForRetry:
+UPDATE download_queue
+SET status = 'PENDING',
+    last_attempt_at = :lastAttemptAt,
+    last_error_message = :lastErrorMessage,
+    retry_count = :retryCount
+WHERE _id = :id;
+
+-- Update priority
+updatePriority:
+UPDATE download_queue
+SET priority = :priority
+WHERE _id = :id;
+
+-- Remove download by chapter ID
+removeByChapterId:
+DELETE FROM download_queue
+WHERE chapter_id = :chapterId;
+
+-- Remove download by ID
+removeById:
+DELETE FROM download_queue
+WHERE _id = :id;
+
+-- Remove all downloads by manga ID
+removeByMangaId:
+DELETE FROM download_queue
+WHERE manga_id = :mangaId;
+
+-- Clear all completed downloads
+clearCompleted:
+DELETE FROM download_queue
+WHERE status = 'COMPLETED';
+
+-- Clear all downloads
+clearAll:
+DELETE FROM download_queue;
+
+-- Reset failed downloads to pending
+resetFailedToPending:
+UPDATE download_queue
+SET status = 'PENDING',
+    retry_count = 0,
+    last_error_message = NULL
+WHERE status = 'FAILED';
+
+-- Get count by status
+countByStatus:
+SELECT COUNT(*)
+FROM download_queue
+WHERE status = :status;
+
+-- Get downloads that are stuck in DOWNLOADING status (older than threshold)
+getStuckDownloads:
+SELECT *
+FROM download_queue
+WHERE status = 'DOWNLOADING'
+AND last_attempt_at IS NOT NULL
+AND (CAST(strftime('%s', 'now') AS INTEGER) * 1000 - last_attempt_at) > :thresholdMillis;
+
+-- Reset stuck downloads to pending
+resetStuckDownloads:
+UPDATE download_queue
+SET status = 'PENDING'
+WHERE status = 'DOWNLOADING'
+AND last_attempt_at IS NOT NULL
+AND (CAST(strftime('%s', 'now') AS INTEGER) * 1000 - last_attempt_at) > :thresholdMillis;

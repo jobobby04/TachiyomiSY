@@ -47,7 +47,9 @@ import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.interactor.GetReadMangaNotInLibraryView
 import tachiyomi.domain.manga.interactor.GetSearchMetadata
 import tachiyomi.domain.manga.interactor.GetSearchTags
+import tachiyomi.domain.manga.interactor.GetSearchTagsBatch
 import tachiyomi.domain.manga.interactor.GetSearchTitles
+import tachiyomi.domain.manga.interactor.GetSearchTitlesBatch
 import tachiyomi.domain.manga.interactor.InsertFavoriteEntries
 import tachiyomi.domain.manga.interactor.InsertFavoriteEntryAlternative
 import tachiyomi.domain.manga.interactor.InsertFlatMetadata
@@ -78,6 +80,13 @@ import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 
 class SYDomainModule : InjektModule {
 
+    /**
+     * Registers domain-layer interactors, repositories, and metadata adapters into the Injekt dependency container.
+     *
+     * Binds factory registrations for use-case interactors and utilities, adapter implementations required by
+     * MetadataSource, singleton repository implementations (e.g., manga metadata, merge, favorites, saved search,
+     * feed saved search, and custom manga repositories), and related interactor factories that consume those repositories.
+     */
     override fun InjektRegistrar.registerInjectables() {
         addFactory { GetShowLatest(get()) }
         addFactory { ToggleExcludeFromDataSaver(get()) }
@@ -113,6 +122,8 @@ class SYDomainModule : InjektModule {
         addFactory { GetSearchMetadata(get()) }
         addFactory { GetSearchTags(get()) }
         addFactory { GetSearchTitles(get()) }
+        addFactory { GetSearchTagsBatch(get()) }
+        addFactory { GetSearchTitlesBatch(get()) }
         addFactory { GetIdsOfFavoriteMangaWithMetadata(get()) }
 
         addSingletonFactory<MangaMergeRepository> { MangaMergeRepositoryImpl(get()) }

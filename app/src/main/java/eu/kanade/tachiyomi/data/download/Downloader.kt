@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
+import android.system.ErrnoException
+import android.system.OsConstants
 import com.hippo.unifile.UniFile
 import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.model.getComicInfo
@@ -9,6 +11,7 @@ import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.library.LibraryUpdateNotifier
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
+import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
@@ -58,6 +61,8 @@ import tachiyomi.core.metadata.comicinfo.COMIC_INFO_FILE
 import tachiyomi.core.metadata.comicinfo.ComicInfo
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.download.model.DownloadErrorType
+import tachiyomi.domain.download.repository.DownloadQueueRepository
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
@@ -91,8 +96,14 @@ class Downloader(
 
     /**
      * Store for persisting downloads across restarts.
+     * Migrates to database on first run.
      */
     private val store = DownloadStore(context)
+
+    /**
+     * Repository for database-backed download queue.
+     */
+    private val downloadQueueRepository: DownloadQueueRepository = Injekt.get()
 
     /**
      * Queue where active downloads are kept.
@@ -122,8 +133,21 @@ class Downloader(
 
     init {
         launchNow {
-            val chapters = async { store.restore() }
-            addAllToQueue(chapters.await())
+            try {
+                val chapters = store.restore()
+                addAllToQueue(chapters)
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Failed to restore download queue" }
+            }
+        }
+        if (downloadPreferences.cleanupOrphanedFoldersOnStartup().get()) {
+            launchNow {
+                try {
+                    TempFolderCleanupWorker.cleanupOrphanedTempFolders()
+                } catch (e: Exception) {
+                    logcat(LogPriority.ERROR, e) { "Failed to cleanup orphaned temp folders" }
+                }
+            }
         }
     }
 
@@ -334,15 +358,19 @@ class Downloader(
     }
 
     /**
-     * Downloads a chapter.
+     * Downloads the specified chapter into the provider storage, updating the download's status and persisting completion or failure.
      *
-     * @param download the chapter to be downloaded.
+     * On success the download is marked as downloaded and persisted as completed; on failure it is marked as error and the failure is recorded.
+     *
+     * @param download The Download entry representing the chapter to download.
+     * @throws CancellationException If the coroutine is cancelled during download.
      */
     private suspend fun downloadChapter(download: Download) {
         val mangaDir =
             provider.getMangaDir(/* SY --> */ download.manga.ogTitle /* SY <-- */, download.source).getOrElse { e ->
                 download.status = Download.State.ERROR
                 notifier.onError(e.message, download.chapter.name, download.manga.title, download.manga.id)
+                recordFailure(download, e.message, DownloadErrorType.UNKNOWN)
                 return
             }
 
@@ -355,6 +383,7 @@ class Downloader(
                 download.manga.title,
                 download.manga.id,
             )
+            recordFailure(download, context.stringResource(MR.strings.download_insufficient_space), DownloadErrorType.DISK_FULL)
             return
         }
 
@@ -363,7 +392,19 @@ class Downloader(
             download.chapter.scanlator,
             download.chapter.url,
         )
-        val tmpDir = mangaDir.createDirectory(chapterDirname + TMP_DIR_SUFFIX)!!
+        val tmpDirName = chapterDirname + TMP_DIR_SUFFIX
+        mangaDir.findFile(tmpDirName)?.delete()
+        val tmpDir = mangaDir.createDirectory(tmpDirName) ?: run {
+            download.status = Download.State.ERROR
+            notifier.onError(
+                "Failed to create temporary directory",
+                download.chapter.name,
+                download.manga.title,
+                download.manga.id,
+            )
+            recordFailure(download, "Failed to create temporary directory", DownloadErrorType.UNKNOWN)
+            return
+        }
 
         try {
             // If the page list already exists, start from the file
@@ -441,12 +482,81 @@ class Downloader(
             DiskUtil.createNoMediaFile(tmpDir, context)
 
             download.status = Download.State.DOWNLOADED
+            downloadQueueRepository.markCompleted(download.chapter.id)
         } catch (error: Throwable) {
             if (error is CancellationException) throw error
             // If the page list threw, it will resume here
             logcat(LogPriority.ERROR, error)
             download.status = Download.State.ERROR
             notifier.onError(error.message, download.chapter.name, download.manga.title, download.manga.id)
+            val errorType = classifyError(error)
+            recordFailure(download, error.message, errorType)
+        }
+    }
+
+    /**
+     * Records a failure for a download and removes the download from the queue if the error is not retryable.
+     *
+     * Persists the provided error message (or a localized "unknown error" string when `errorMessage` is null)
+     * to the download queue repository. If `errorType.canRetry` is false, the download is removed from both
+     * the persistent queue and the in-memory queue.
+     *
+     * @param download The download entry for which the failure is being recorded.
+     * @param errorMessage Optional human-readable error message; when null a localized "unknown error" message is used.
+     * @param errorType The classified type of the error which determines whether the download may be retried.
+     */
+    private suspend fun recordFailure(
+        download: Download,
+        errorMessage: String?,
+        errorType: DownloadErrorType,
+    ) {
+        val message = errorMessage ?: context.stringResource(MR.strings.unknown_error)
+        downloadQueueRepository.recordFailure(download.chapter.id, message, errorType)
+        if (!errorType.canRetry) {
+            downloadQueueRepository.removeByChapterId(download.chapter.id)
+            removeFromQueue(download)
+        }
+    }
+
+    /**
+     * Classifies a Throwable into a corresponding DownloadErrorType.
+     *
+     * Maps ErrnoException with ENOSPC or error messages mentioning "space", "disk", "storage", "enospc", or "no space left" to `DISK_FULL`; HTTP 404/410 to `CHAPTER_NOT_FOUND`; other HTTP errors to `SOURCE_ERROR`; `IOException` to `NETWORK_ERROR`; and all other cases to `UNKNOWN`.
+     *
+     * @param error The throwable to classify.
+     * @return The corresponding DownloadErrorType.
+     */
+    private fun classifyError(error: Throwable): DownloadErrorType {
+        // Check for ErrnoException with ENOSPC (no space left on device)
+        var cause: Throwable? = error
+        while (cause != null) {
+            if (cause is ErrnoException && cause.errno == OsConstants.ENOSPC) {
+                return DownloadErrorType.DISK_FULL
+            }
+            cause = cause.cause
+        }
+
+        // Fallback: check for disk space errors by message (for compatibility)
+        val message = error.message?.lowercase() ?: ""
+        if (message.contains("space") ||
+            message.contains("disk") ||
+            message.contains("storage") ||
+            message.contains("enospc") || // Linux error code
+            message.contains("no space left")
+        ) {
+            return DownloadErrorType.DISK_FULL
+        }
+
+        return when (error) {
+            is HttpException -> {
+                if (error.code == 404 || error.code == 410) {
+                    DownloadErrorType.CHAPTER_NOT_FOUND
+                } else {
+                    DownloadErrorType.SOURCE_ERROR
+                }
+            }
+            is java.io.IOException -> DownloadErrorType.NETWORK_ERROR
+            else -> DownloadErrorType.UNKNOWN
         }
     }
 

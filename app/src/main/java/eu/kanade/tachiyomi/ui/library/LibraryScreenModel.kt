@@ -33,6 +33,7 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.removeCovers
+import eu.kanade.tachiyomi.util.storage.CategoryLockCrypto
 import exh.favorites.FavoritesSyncHelper
 import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
@@ -98,7 +99,9 @@ import tachiyomi.domain.manga.interactor.GetIdsOfFavoriteMangaWithMetadata
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetSearchTags
+import tachiyomi.domain.manga.interactor.GetSearchTagsBatch
 import tachiyomi.domain.manga.interactor.GetSearchTitles
+import tachiyomi.domain.manga.interactor.GetSearchTitlesBatch
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.model.CustomMangaInfo
 import tachiyomi.domain.manga.model.Manga
@@ -140,6 +143,8 @@ class LibraryScreenModel(
     private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata = Injekt.get(),
     private val getSearchTags: GetSearchTags = Injekt.get(),
     private val getSearchTitles: GetSearchTitles = Injekt.get(),
+    private val getSearchTagsBatch: GetSearchTagsBatch = Injekt.get(),
+    private val getSearchTitlesBatch: GetSearchTitlesBatch = Injekt.get(),
     private val searchEngine: SearchEngine = Injekt.get(),
     private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
     private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
@@ -153,6 +158,24 @@ class LibraryScreenModel(
     val recommendationSearch = RecommendationSearchHelper(preferences.context)
 
     private var recommendationSearchJob: Job? = null
+
+    // Cache for metadata to avoid re-querying during filtering
+    private var metadataCache: MetadataCache? = null
+
+    private data class MetadataCache(
+        val tags: Map<Long, List<SearchTag>>,
+        val titles: Map<Long, List<SearchTitle>>,
+        val mangaIds: Set<Long>,
+    )
+
+    /**
+     * Clears the cached batch metadata used for library filtering.
+     *
+     * After calling this, batch metadata will be reloaded on next use.
+     */
+    private fun invalidateMetadataCache() {
+        metadataCache = null
+    }
     // SY <--
 
     init {
@@ -206,6 +229,8 @@ class LibraryScreenModel(
             }
                 .distinctUntilChanged()
                 .collectLatest { libraryData ->
+                    // Invalidate cache when library data changes
+                    invalidateMetadataCache()
                     mutableState.update { state ->
                         state.copy(libraryData = libraryData)
                     }
@@ -961,14 +986,25 @@ class LibraryScreenModel(
         mutableState.update { it.copy(dialog = Dialog.RecommendationSearchSheet(mangaList)) }
     }
 
+    /**
+     * Filters a list of library items by a textual search query and tracking filters.
+     *
+     * Applies the parsed query to each LibraryItem, supporting special "id:<number>" lookup,
+     * track-service-based constraints, and optimized batch metadata lookup for sources that provide metadata.
+     *
+     * @param unfiltered The input list of LibraryItem to filter.
+     * @param query The textual search query; may be null or blank to skip filtering.
+     * @param loggedInTrackServices Map of tracker service IDs to their TriState filter values used when evaluating tracking-related query components.
+     * @return A list containing only the LibraryItem values from `unfiltered` that match the provided query and tracking filters.
+     */
     private suspend fun filterLibrary(
         unfiltered: List<LibraryItem>,
         query: String?,
         loggedInTrackServices: Map<Long, TriState>,
     ): List<LibraryItem> {
         return if (unfiltered.isNotEmpty() && !query.isNullOrBlank()) {
-            // Prepare filter object
             val parsedQuery = searchEngine.parseQuery(query)
+            // NOTE: This list MUST be sorted for binarySearch to work correctly (SQL query has ORDER BY)
             val mangaWithMetaIds = getIdsOfFavoriteMangaWithMetadata.await()
             val tracks = if (loggedInTrackServices.isNotEmpty()) {
                 getTracks.await().groupBy { it.mangaId }
@@ -979,6 +1015,38 @@ class LibraryScreenModel(
                 .distinctBy { it.libraryManga.manga.source }
                 .fastMapNotNull { sourceManager.get(it.libraryManga.manga.source) }
                 .associateBy { it.id }
+
+            // OPTIMIZATION: Batch-load metadata for all manga with metadata
+            val metadataSourceMangaIds = unfiltered
+                .filter { isMetadataSource(it.libraryManga.manga.source) }
+                .map { it.libraryManga.manga.id }
+                .filter { mangaWithMetaIds.binarySearch(it) >= 0 }
+
+            // Check if cache is valid, otherwise rebuild it
+            val currentCache = metadataCache
+            val cache = if (currentCache != null &&
+                currentCache.mangaIds == metadataSourceMangaIds.toSet()
+            ) {
+                currentCache
+            } else {
+                // Rebuild cache with batch queries
+                val tags = if (metadataSourceMangaIds.isNotEmpty()) {
+                    getSearchTagsBatch.await(metadataSourceMangaIds)
+                } else {
+                    emptyMap()
+                }
+                val titles = if (metadataSourceMangaIds.isNotEmpty()) {
+                    getSearchTitlesBatch.await(metadataSourceMangaIds)
+                } else {
+                    emptyMap()
+                }
+                MetadataCache(
+                    tags = tags,
+                    titles = titles,
+                    mangaIds = metadataSourceMangaIds.toSet(),
+                ).also { metadataCache = it }
+            }
+
             unfiltered.asFlow().cancellable().filter { item ->
                 val mangaId = item.libraryManga.manga.id
                 if (query.startsWith("id:", true)) {
@@ -988,7 +1056,6 @@ class LibraryScreenModel(
                 val sourceId = item.libraryManga.manga.source
                 if (isMetadataSource(sourceId)) {
                     if (mangaWithMetaIds.binarySearch(mangaId) < 0) {
-                        // No meta? Filter using title
                         filterManga(
                             queries = parsedQuery,
                             libraryManga = item.libraryManga,
@@ -997,8 +1064,9 @@ class LibraryScreenModel(
                             loggedInTrackServices = loggedInTrackServices,
                         )
                     } else {
-                        val tags = getSearchTags.await(mangaId)
-                        val titles = getSearchTitles.await(mangaId)
+                        // Use cached metadata instead of individual queries
+                        val tags = cache.tags[mangaId].orEmpty()
+                        val titles = cache.titles[mangaId].orEmpty()
                         filterManga(
                             queries = parsedQuery,
                             libraryManga = item.libraryManga,
@@ -1212,6 +1280,14 @@ class LibraryScreenModel(
         mutableState.update { it.copy(searchQuery = query) }
     }
 
+    /**
+     * Sets the active category index in the UI state and persists the resulting coerced index as the last used category.
+     *
+     * The provided `index` is written into state, then the state's `coercedActiveCategoryIndex` (validated within bounds)
+     * is saved to `libraryPreferences.lastUsedCategory()`.
+     *
+     * @param index The desired active category index (zero-based); the persisted value is the state's coerced index.
+     */
     fun updateActiveCategoryIndex(index: Int) {
         val newIndex = mutableState.updateAndGet { state ->
             state.copy(activeCategoryIndex = index)
@@ -1220,6 +1296,79 @@ class LibraryScreenModel(
 
         libraryPreferences.lastUsedCategory().set(newIndex)
     }
+
+    // SY -->
+
+    /**
+     * Ensure the given category is accessible, showing the unlock dialog if it is locked and not yet unlocked.
+     *
+     * @param category The category to check access for.
+     * @return `true` if the category is accessible, `false` if it is locked and the unlock dialog was shown.
+     */
+    fun requestCategoryAccess(category: Category): Boolean {
+        if (CategoryLockCrypto.hasLock(category.id) && !CategoryLockManager.isUnlocked(category.id)) {
+            mutableState.update { it.copy(dialog = Dialog.UnlockCategory(category)) }
+            return false
+        }
+        return true
+    }
+
+    /**
+     * Unlocks a locked category using the provided PIN.
+     *
+     * If the PIN matches the category's PIN or the master PIN, the category is unlocked,
+     * the failed-attempts counter for that category is reset, and the unlock dialog is closed.
+     * If the PIN does not match, the failed-attempts counter for the category is incremented.
+     *
+     * @param categoryId The id of the category to unlock.
+     * @param pin The PIN to validate for unlocking.
+     * @return `true` if the category was unlocked, `false` otherwise.
+     */
+    fun unlockCategory(categoryId: Long, pin: String): Boolean {
+        // Check if the PIN matches the category PIN or the master PIN
+        val categoryPinValid = CategoryLockCrypto.verifyPin(categoryId, pin)
+        val masterPinValid = CategoryLockCrypto.verifyMasterPin(pin)
+
+        return if (categoryPinValid || masterPinValid) {
+            // Successful unlock - reset failed attempts counter
+            CategoryLockCrypto.resetFailedAttempts(categoryId)
+            CategoryLockManager.unlock(categoryId)
+            closeDialog()
+            true
+        } else {
+            // Failed unlock - increment failed attempts counter
+            CategoryLockCrypto.incrementFailedAttempts(categoryId)
+            false
+        }
+    }
+
+    /**
+     * Determine whether a category has a PIN lock set.
+     *
+     * @param categoryId The database id of the category to check.
+     * @return `true` if the category has a lock (PIN) set, `false` otherwise.
+     */
+    fun isCategoryLocked(categoryId: Long): Boolean {
+        return CategoryLockCrypto.hasLock(categoryId)
+    }
+
+    /**
+     * Determines whether the given category is unlocked for the current session.
+     *
+     * @param categoryId ID of the category to check.
+     * @return `true` if the category is unlocked in this session, `false` otherwise.
+     */
+    fun isCategoryUnlocked(categoryId: Long): Boolean {
+        return CategoryLockManager.isUnlocked(categoryId)
+    }
+
+    /**
+     * Opens the "Change Category" dialog for the current selection and populates it with preselected category states.
+     *
+     * The dialog is initialized with the currently selected mangas and a list of categories (excluding the default
+     * category with id 0). Categories present in every selected manga are marked as checked, categories present in some
+     * but not all selected mangas are marked as excluded, and all others are left unselected.
+     */
 
     fun openChangeCategoryDialog() {
         screenModelScope.launchIO {
@@ -1269,6 +1418,7 @@ class LibraryScreenModel(
         data object SyncFavoritesWarning : Dialog
         data object SyncFavoritesConfirm : Dialog
         data class RecommendationSearchSheet(val manga: List<Manga>) : Dialog
+        data class UnlockCategory(val category: Category) : Dialog
         // SY <--
     }
 

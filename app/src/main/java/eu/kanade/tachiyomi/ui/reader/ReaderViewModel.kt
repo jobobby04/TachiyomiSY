@@ -33,7 +33,6 @@ import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.ui.reader.chapter.ReaderChapterItem
 import eu.kanade.tachiyomi.ui.reader.loader.ChapterLoader
-import eu.kanade.tachiyomi.ui.reader.loader.DownloadPageLoader
 import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
@@ -615,26 +614,20 @@ class ReaderViewModel @JvmOverloads constructor(
         eventChannel.trySend(Event.PageChanged)
     }
 
+    /**
+     * Enqueues downloads for up to `downloadAheadAmount` upcoming chapters for the currently loaded manga.
+     *
+     * If the "skip duplicates" preference is enabled, duplicate chapters relative to the immediate next chapter are removed from the selection. The operation is a no-op when `downloadAheadAmount` is zero or when no manga or next chapter is available.
+     */
     private fun downloadNextChapters() {
         if (downloadAheadAmount == 0) return
         val manga = manga ?: return
 
-        // Only download ahead if current + next chapter is already downloaded too to avoid jank
-        if (getCurrentChapter()?.pageLoader !is DownloadPageLoader) return
         val nextChapter = state.value.viewerChapters?.nextChapter?.chapter ?: return
 
         viewModelScope.launchIO {
-            val isNextChapterDownloaded = downloadManager.isChapterDownloaded(
-                nextChapter.name,
-                nextChapter.scanlator,
-                nextChapter.url,
-                // SY -->
-                manga.ogTitle,
-                // SY <--
-                manga.source,
-            )
-            if (!isNextChapterDownloaded) return@launchIO
-
+            // OPTIMIZATION: Removed download requirement check - auto-download should work
+            // regardless of whether current chapter is downloaded (fixes issue #1434)
             val chaptersToDownload = getNextChapters.await(manga.id, nextChapter.id!!).run {
                 if (readerPreferences.skipDupe().get()) {
                     removeDuplicates(nextChapter.toDomainChapter()!!)

@@ -265,7 +265,8 @@ getIdsOfFavoriteMangaWithMetadata:
 SELECT mangas._id FROM mangas
 INNER JOIN search_metadata
     ON mangas._id = search_metadata.manga_id
-WHERE mangas.favorite = 1;
+WHERE mangas.favorite = 1
+ORDER BY mangas._id;
 
 getBySource:
 SELECT * FROM mangas WHERE source = :sourceId;

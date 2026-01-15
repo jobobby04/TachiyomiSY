@@ -651,4 +651,6 @@
     <string name="file_extension">Extension ng file</string>
     <string name="final_chapter">Huling Kabanata</string>
     <string name="base_url">Base url</string>
+    <string name="category_lock_error_setting_master_pin">May error sa pagtatakda ng master PIN</string>
+    <string name="category_lock_error_setting_pin">May error sa pagtatakda ng PIN</string>
 </resources>

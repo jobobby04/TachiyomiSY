@@ -25,6 +25,9 @@ jobs:
 
       - name: Build app
         run: ./gradlew spotlessCheck assembleDevDebug
+        env:
+          GRADLE_OPTS: -Xmx4g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=512m
+          KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
       - name: Upload APK
         uses: actions/upload-artifact@v6

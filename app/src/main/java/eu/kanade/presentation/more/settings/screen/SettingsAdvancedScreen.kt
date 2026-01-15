@@ -7,7 +7,6 @@ import android.os.Build
 import android.provider.Settings
 import android.webkit.WebStorage
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,12 +16,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.window.DialogProperties
@@ -40,10 +39,10 @@ import eu.kanade.presentation.more.settings.screen.debug.DebugInfoScreen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.download.DownloadCache
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
+import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.PREF_DOH_360
 import eu.kanade.tachiyomi.network.PREF_DOH_ADGUARD
 import eu.kanade.tachiyomi.network.PREF_DOH_ALIDNS
@@ -56,10 +55,11 @@ import eu.kanade.tachiyomi.network.PREF_DOH_NJALLA
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD101
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.network.PREF_DOH_SHECAN
+import eu.kanade.tachiyomi.network.interceptor.FlareSolverrInterceptor
+import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.CrashLogUtil
-import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.isDevFlavor
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
@@ -78,22 +78,22 @@ import exh.util.toAnnotatedString
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import okhttp3.Headers
-import tachiyomi.core.common.i18n.pluralStringResource
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.manga.interactor.GetAllManga
 import tachiyomi.domain.manga.interactor.ResetViewerFlags
-import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
@@ -101,9 +101,14 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.injectLazy
 import java.io.File
+import tachiyomi.core.common.preference.Preference as BasePreference
 
 object SettingsAdvancedScreen : SearchableSettings {
+
+    private val networkHelper: NetworkHelper by injectLazy()
+    private val json: Json by injectLazy()
 
     @ReadOnlyComposable
     @Composable
@@ -180,6 +185,14 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
+    /**
+     * Creates the Background Activity preference group used on the Advanced settings screen.
+     *
+     * The group includes a preference to request ignoring battery optimizations for the app
+     * (opens the system settings when available) and a link to the "Don't kill my app!" guide.
+     *
+     * @return A `PreferenceGroup` containing the battery optimization request and the external guide link.
+     */
     @Composable
     private fun getBackgroundActivityGroup(): Preference.PreferenceGroup {
         val context = LocalContext.current
@@ -203,6 +216,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                                 }
                                 context.startActivity(intent)
                             } catch (e: ActivityNotFoundException) {
+                                logcat(LogPriority.ERROR, e)
                                 context.toast(MR.strings.battery_optimization_setting_activity_not_found)
                             }
                         } else {
@@ -244,15 +258,32 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
+    /**
+     * Builds the network preference group for the advanced settings screen.
+     *
+     * Contains actions and preferences for cookie and WebView cleanup, DNS-over-HTTPS selection,
+     * user-agent editing and reset, and FlareSolverr configuration (enable toggle, URL, notifications,
+     * and a test action that can update the user-agent).
+     *
+     * @param networkPreferences Preferences provider used to read and persist network-related settings
+     *        (DoH provider, user agent, FlareSolverr settings, and related flags).
+     * @return A PreferenceGroup with network-related preference items.
+     */
     @Composable
     private fun getNetworkGroup(
         networkPreferences: NetworkPreferences,
     ): Preference.PreferenceGroup {
+        val scope = rememberCoroutineScope()
+
         val context = LocalContext.current
         val networkHelper = remember { Injekt.get<NetworkHelper>() }
 
         val userAgentPref = networkPreferences.defaultUserAgent()
         val userAgent by userAgentPref.collectAsState()
+
+        val flareSolverrUrlPref = networkPreferences.flareSolverrUrl()
+        val enableFlareSolverrPref = networkPreferences.enableFlareSolverr()
+        val enableFlareSolverr by enableFlareSolverrPref.collectAsState()
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_network),
@@ -330,6 +361,33 @@ object SettingsAdvancedScreen : SearchableSettings {
                     onClick = {
                         userAgentPref.delete()
                         context.toast(MR.strings.requires_app_restart)
+                    },
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = enableFlareSolverrPref,
+                    title = stringResource(MR.strings.pref_enable_flare_solverr),
+                    subtitle = stringResource(MR.strings.pref_enable_flare_solverr_summary),
+                ),
+                Preference.PreferenceItem.EditTextPreference(
+                    preference = flareSolverrUrlPref,
+                    title = stringResource(MR.strings.pref_flare_solverr_url),
+                    enabled = enableFlareSolverr,
+                    subtitle = stringResource(MR.strings.pref_flare_solverr_url_summary),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = networkPreferences.showFlareSolverrNotifications(),
+                    title = stringResource(MR.strings.pref_show_flare_solverr_notifications),
+                    subtitle = stringResource(MR.strings.pref_show_flare_solverr_notifications_summary),
+                    enabled = enableFlareSolverr,
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(MR.strings.pref_test_flare_solverr_and_update_user_agent),
+                    enabled = enableFlareSolverr,
+                    subtitle = stringResource(MR.strings.pref_test_flare_solverr_and_update_user_agent_summary_full),
+                    onClick = {
+                        scope.launch {
+                            testFlareSolverrAndUpdateUserAgent(flareSolverrUrlPref, userAgentPref, context)
+                        }
                     },
                 ),
             ),
@@ -524,7 +582,14 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
-    // SY -->
+    /**
+     * Shows a modal dialog that lets the user pick cleanup options for downloaded chapters and confirms the selection.
+     *
+     * The dialog lists options from R.array.clean_up_downloads and invokes [onCleanupDownloads] when the user confirms.
+     *
+     * @param onDismissRequest Called when the dialog should be dismissed without performing cleanup.
+     * @param onCleanupDownloads Called when the user confirms cleanup. The first boolean (`removeRead`) is true if the "remove read" option (the second entry in the resource array) was selected. The second boolean (`removeNonFavorite`) is true if the "remove non-favorite" option (the third entry in the resource array) was selected.
+     */
     @Composable
     fun CleanupDownloadsDialog(
         onDismissRequest: () -> Unit,
@@ -533,7 +598,12 @@ object SettingsAdvancedScreen : SearchableSettings {
         val context = LocalContext.current
         val options = remember { context.resources.getStringArray(R.array.clean_up_downloads).toList() }
         val selection = remember {
-            options.toMutableStateList()
+            // Option 0 is always required and shown as checked via the UI logic.
+            // Expected array structure: [0] = mandatory option, [1] = remove read, [2] = remove non-favorite
+            mutableStateListOf<String>().apply {
+                options.getOrNull(1)?.let { add(it) }
+                options.getOrNull(2)?.let { add(it) }
+            }
         }
         AlertDialog(
             onDismissRequest = onDismissRequest,
@@ -562,8 +632,8 @@ object SettingsAdvancedScreen : SearchableSettings {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val removeRead = options[1] in selection
-                        val removeNonFavorite = options[2] in selection
+                        val removeRead = options.getOrNull(1)?.let { it in selection } ?: false
+                        val removeNonFavorite = options.getOrNull(2)?.let { it in selection } ?: false
                         onCleanupDownloads(removeRead, removeNonFavorite)
                     },
                 ) {
@@ -578,82 +648,19 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
-    @Composable
-    private fun getDownloaderGroup(): Preference.PreferenceGroup {
-        val scope = rememberCoroutineScope()
-        val context = LocalContext.current
-        var dialogOpen by remember { mutableStateOf(false) }
-        if (dialogOpen) {
-            CleanupDownloadsDialog(
-                onDismissRequest = { dialogOpen = false },
-                onCleanupDownloads = { removeRead, removeNonFavorite ->
-                    dialogOpen = false
-                    if (job?.isActive == true) return@CleanupDownloadsDialog
-                    context.toast(SYMR.strings.starting_cleanup)
-                    job = scope.launchNonCancellable {
-                        val mangaList = Injekt.get<GetAllManga>().await()
-                        val downloadManager: DownloadManager = Injekt.get()
-                        var foldersCleared = 0
-                        Injekt.get<SourceManager>().getOnlineSources().forEach { source ->
-                            val mangaFolders = downloadManager.getMangaFolders(source)
-                            val sourceManga = mangaList
-                                .asSequence()
-                                .filter { it.source == source.id }
-                                .map { it to DiskUtil.buildValidFilename(it.ogTitle) }
-                                .toList()
+// TODO: Re-enable getDownloaderGroup() for download cleanup feature.
 
-                            mangaFolders.forEach mangaFolder@{ mangaFolder ->
-                                val manga =
-                                    sourceManga.find { (_, folderName) ->
-                                        folderName == mangaFolder.name
-                                    }?.first
-                                if (manga == null) {
-                                    // download is orphaned delete it
-                                    foldersCleared += 1 + (
-                                        mangaFolder.listFiles()
-                                            .orEmpty().size
-                                        )
-                                    mangaFolder.delete()
-                                } else {
-                                    val chapterList = Injekt.get<GetChaptersByMangaId>().await(manga.id)
-                                    foldersCleared += downloadManager.cleanupChapters(
-                                        chapterList,
-                                        manga,
-                                        source,
-                                        removeRead,
-                                        removeNonFavorite,
-                                    )
-                                }
-                            }
-                        }
-                        withUIContext {
-                            val cleanupString =
-                                if (foldersCleared == 0) {
-                                    context.stringResource(SYMR.strings.no_folders_to_cleanup)
-                                } else {
-                                    context.pluralStringResource(
-                                        SYMR.plurals.cleanup_done,
-                                        foldersCleared,
-                                        foldersCleared,
-                                    )
-                                }
-                            context.toast(cleanupString, Toast.LENGTH_LONG)
-                        }
-                    }
-                },
-            )
-        }
-        return Preference.PreferenceGroup(
-            title = stringResource(MR.strings.download_notifier_downloader_title),
-            preferenceItems = persistentListOf(
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(SYMR.strings.clean_up_downloaded_chapters),
-                    subtitle = stringResource(SYMR.strings.delete_unused_chapters),
-                    onClick = { dialogOpen = true },
-                ),
-            ),
-        )
-    }
+    /**
+     * Creates the "Data Saver" preference group that exposes settings for source data-saver behavior.
+     *
+     * The group contains preferences for selecting the data-saver mode, configuring the Bandwidth Hero
+     * server, toggles for using the data-saver downloader and ignoring JPEG/GIF, image quality options,
+     * an image-format toggle with a dynamic subtitle, and a black-and-white color toggle. Preference
+     * enabled/disabled states reflect the current data-saver mode (for example, server and color-BW are
+     * only enabled for `Bandwidth Hero`, and most controls are disabled when the mode is `None`).
+     *
+     * @return A Preference.PreferenceGroup containing the Data Saver preferences and their configured states.
+     */
 
     @Composable
     private fun getDataSaverGroup(): Preference.PreferenceGroup {
@@ -732,6 +739,16 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
+    /**
+     * Builds the Developer Tools preference group for the advanced settings screen.
+     *
+     * The group contains developer-focused preferences including toggles for hentai features
+     * and delegated sources, log level selection, source blacklist toggle, database
+     * encryption toggle (shows a confirmation dialog when enabling), and a shortcut to the
+     * debug menu.
+     *
+     * @return A Preference.PreferenceGroup containing the developer tools preference items.
+     */
     @Composable
     private fun getDeveloperToolsGroup(): Preference.PreferenceGroup {
         val context = LocalContext.current
@@ -849,6 +866,131 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
-    private var job: Job? = null
+    /**
+     * Tests the configured FlareSolverr endpoint and updates the stored user agent when a valid solution is returned.
+     *
+     * Attempts a request against the FlareSolverr API at the URL in [flareSolverrUrlPref]; if the service returns a successful
+     * challenge solution, stores the returned user agent into [userAgentPref]. Shows user-facing toasts for success, validation
+     * failures, HTTP errors, and network exceptions.
+     *
+     * @param flareSolverrUrlPref Preference that contains the FlareSolverr API base URL (expected to end with `/v1`).
+     * @param userAgentPref Preference to be updated with the user agent returned by FlareSolverr on success.
+     * @param context Android context used for displaying toasts.
+     */
+    private suspend fun testFlareSolverrAndUpdateUserAgent(
+        flareSolverrUrlPref: BasePreference<String>,
+        userAgentPref: BasePreference<String>,
+        context: android.content.Context,
+    ) {
+        val jsonMediaType = "application/json".toMediaType()
+
+        try {
+            withContext(Dispatchers.IO) {
+                var flareSolverUrl = flareSolverrUrlPref.get().trim()
+
+                if (flareSolverUrl.isBlank()) {
+                    withContext(Dispatchers.Main) {
+                        context.toast(SYMR.strings.flare_solver_url_not_configured)
+                    }
+                    return@withContext
+                }
+
+                // Ensure URL ends with /v1 (FlareSolverr API endpoint)
+                if (!flareSolverUrl.endsWith("/v1")) {
+                    flareSolverUrl = flareSolverUrl.trimEnd('/') + "/v1"
+                    logcat(LogPriority.DEBUG, tag = "FlareSolverr") {
+                        "Appended /v1 to URL: $flareSolverUrl"
+                    }
+                }
+
+                val requestBody = Json.encodeToString(
+                    FlareSolverrInterceptor.CFClearance.FlareSolverRequest(
+                        cmd = "request.get",
+                        url = "http://www.google.com/",
+                        maxTimeout = 60000,
+                    ),
+                ).toRequestBody(jsonMediaType)
+
+                logcat(LogPriority.DEBUG, tag = "FlareSolverr") {
+                    "Testing FlareSolverr at: $flareSolverUrl"
+                }
+
+                val request = POST(
+                    url = flareSolverUrl,
+                    headers = Headers.Builder()
+                        .add("Content-Type", "application/json")
+                        .build(),
+                    body = requestBody,
+                )
+
+                // Create a custom client with extended timeouts for FlareSolverr
+                // FlareSolverr can take up to 60 seconds to solve challenges
+                val customClient = networkHelper.client.newBuilder()
+                    .readTimeout(90, java.util.concurrent.TimeUnit.SECONDS)
+                    .callTimeout(90, java.util.concurrent.TimeUnit.SECONDS)
+                    .build()
+
+                customClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        val errorBody = response.body?.string() ?: "No error details"
+                        logcat(LogPriority.ERROR, tag = "FlareSolverr") {
+                            "HTTP ${response.code}: $errorBody"
+                        }
+                        withContext(Dispatchers.Main) {
+                            val errorMsg = when (response.code) {
+                                405 -> context.stringResource(SYMR.strings.flare_solver_http_405)
+                                else -> context.stringResource(SYMR.strings.flare_solver_http_error, response.code)
+                            }
+                            context.toast(errorMsg)
+                        }
+                        return@withContext
+                    }
+
+                    val flareSolverResponse = with(json) {
+                        response.parseAs<FlareSolverrInterceptor.CFClearance.FlareSolverResponse>()
+                    }
+
+                    logcat(LogPriority.DEBUG, tag = "FlareSolverr") {
+                        "FlareSolverr response: status=${flareSolverResponse.status}, solution.status=${flareSolverResponse.solution.status}"
+                    }
+
+                    if (flareSolverResponse.solution.status in 200..299) {
+                        // Set the user agent to the one provided by FlareSolverr
+                        userAgentPref.set(flareSolverResponse.solution.userAgent)
+
+                        withContext(Dispatchers.Main) {
+                            context.toast(SYMR.strings.flare_solver_user_agent_update_success)
+                        }
+                    } else {
+                        logcat(LogPriority.ERROR, tag = "FlareSolverr") {
+                            "Solution failed with status: ${flareSolverResponse.solution.status}, message: ${flareSolverResponse.message}"
+                        }
+                        withContext(Dispatchers.Main) {
+                            context.toast(context.stringResource(SYMR.strings.flare_solver_failed, flareSolverResponse.message))
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, tag = "FlareSolverr", throwable = e) {
+                "Failed to resolve with FlareSolverr: ${e.message}"
+            }
+            withContext(Dispatchers.Main) {
+                val errorMsg = when {
+                    e is java.net.UnknownHostException -> {
+                        context.stringResource(SYMR.strings.flare_solver_dns_error)
+                    }
+
+                    e.message?.contains("timeout", ignoreCase = true) == true -> {
+                        context.stringResource(SYMR.strings.flare_solver_timeout_error)
+                    }
+
+                    else -> context.stringResource(SYMR.strings.flare_solver_unknown_error, e.message ?: "Unknown error")
+                }
+                context.toast(errorMsg)
+            }
+        }
+    }
+
     // SY <--
 }

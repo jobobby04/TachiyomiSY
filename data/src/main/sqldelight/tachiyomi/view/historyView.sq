@@ -62,3 +62,22 @@ FROM historyView
 WHERE historyView.readAt > 0
 ORDER BY readAt DESC
 LIMIT 1;
+
+getHistoryForAutoDownload:
+SELECT
+id,
+mangaId,
+chapterId,
+title,
+thumbnailUrl,
+source,
+favorite,
+cover_last_modified,
+chapterNumber,
+readAt,
+readDuration
+FROM historyView
+WHERE historyView.readAt > :readAfter
+AND maxReadAtChapterId = historyView.chapterId
+AND favorite = 1
+ORDER BY readAt DESC;

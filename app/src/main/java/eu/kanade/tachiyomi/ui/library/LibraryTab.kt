@@ -31,6 +31,7 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.library.DeleteLibraryMangaDialog
 import eu.kanade.presentation.library.LibrarySettingsDialog
+import eu.kanade.presentation.library.components.CategoryPinDialog
 import eu.kanade.presentation.library.components.LibraryContent
 import eu.kanade.presentation.library.components.LibraryToolbar
 import eu.kanade.presentation.library.components.SyncFavoritesConfirmDialog
@@ -94,6 +95,15 @@ data object LibraryTab : Tab {
         requestOpenSettingsSheet()
     }
 
+    /**
+     * Renders the Library tab UI, composing the toolbar, library content, bottom action menu, dialog flows,
+     * snackbars, and lifecycle effects tied to library and settings screen models.
+     *
+     * Binds to LibraryScreenModel and LibrarySettingsScreenModel for state and actions; exposes handlers for
+     * refreshing, selection, navigation (manga, reader, migration, global search), category locking/unlocking,
+     * favorites sync, and recommendation search. Also manages back handling, bottom navigation visibility, and
+     * transient progress dialogs.
+     */
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -270,6 +280,14 @@ data object LibraryTab : Tab {
                         getDisplayMode = { screenModel.getDisplayMode() },
                         getColumnsForOrientation = { screenModel.getColumnsForOrientation(it) },
                         getItemsForCategory = { state.getItemsForCategory(it) },
+                        // SY -->
+                        isCategoryLocked = { category ->
+                            screenModel.isCategoryLocked(category.id) && !screenModel.isCategoryUnlocked(category.id)
+                        },
+                        onRequestUnlock = { category ->
+                            screenModel.requestCategoryAccess(category)
+                        },
+                        // SY <--
                     )
                 }
             }
@@ -342,6 +360,17 @@ data object LibraryTab : Tab {
                         screenModel.clearSelection()
                         screenModel.runRecommendationSearch(dialog.manga)
                     },
+                )
+            }
+
+            is LibraryScreenModel.Dialog.UnlockCategory -> {
+                CategoryPinDialog(
+                    categoryName = dialog.category.name,
+                    onDismiss = onDismissRequest,
+                    onPinEntered = { pin ->
+                        screenModel.unlockCategory(dialog.category.id, pin)
+                    },
+                    isSettingPin = false,
                 )
             }
             // SY <--

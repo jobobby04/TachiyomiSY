@@ -2,6 +2,7 @@ plugins {
     id("mihon.library")
     kotlin("android")
     kotlin("plugin.serialization")
+    id("mihon.code.coverage")
 }
 
 android {
@@ -39,5 +40,6 @@ dependencies {
 
     testImplementation(libs.bundles.test)
     testImplementation(kotlinx.coroutines.test)
+    testImplementation(sylibs.koin.test)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

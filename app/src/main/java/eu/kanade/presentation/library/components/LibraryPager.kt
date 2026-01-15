@@ -27,6 +27,31 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.util.plus
 
+/**
+ * Renders a horizontally swipeable pager where each page displays a category's manga in the chosen display mode and layout.
+ *
+ * For each visible page this composable:
+ * - Obtains the category for the page.
+ * - If the category is locked, shows an unlock overlay and invokes `onUnlockRequest` when requested.
+ * - If the category has no items, shows an empty-state screen with optional global-search affordance.
+ * - Otherwise selects a display mode and column count (columns depend on display mode and device orientation) and renders the appropriate list or grid with selection and click handlers.
+ *
+ * @param state PagerState controlling the HorizontalPager.
+ * @param contentPadding Padding applied around page content.
+ * @param hasActiveFilters Whether any library filters are active (affects empty-state message).
+ * @param selection Set of selected manga IDs.
+ * @param searchQuery Current search text, or null if none.
+ * @param onGlobalSearchClicked Callback invoked when the global search action is requested from an empty page.
+ * @param getCategoryForPage Maps a page index to its Category.
+ * @param getDisplayMode Maps a page index to a PreferenceMutableState of the page's LibraryDisplayMode.
+ * @param getColumnsForOrientation Given isLandscape boolean, returns a PreferenceMutableState for the desired column count.
+ * @param getItemsForCategory Returns the list of LibraryItem for a given Category.
+ * @param onClickManga Callback invoked when a manga is clicked; receives the page's Category and the clicked LibraryManga.
+ * @param onLongClickManga Callback invoked when a manga is long-clicked; receives the page's Category and the long-clicked LibraryManga.
+ * @param onClickContinueReading Optional callback invoked to continue reading a manga.
+ * @param isCategoryLocked Predicate that returns true when a category is locked and should show the locked overlay.
+ * @param onUnlockRequest Callback invoked with the Category when an unlock is requested from the locked overlay.
+ */
 @Composable
 fun LibraryPager(
     state: PagerState,
@@ -42,6 +67,10 @@ fun LibraryPager(
     onClickManga: (Category, LibraryManga) -> Unit,
     onLongClickManga: (Category, LibraryManga) -> Unit,
     onClickContinueReading: ((LibraryManga) -> Unit)?,
+    // SY -->
+    isCategoryLocked: (Category) -> Boolean = { false },
+    onUnlockRequest: (Category) -> Unit = {},
+    // SY <--
 ) {
     HorizontalPager(
         modifier = Modifier.fillMaxSize(),
@@ -53,6 +82,17 @@ fun LibraryPager(
             return@HorizontalPager
         }
         val category = getCategoryForPage(page)
+
+        // SY -->
+        // Show locked overlay if category is locked
+        if (isCategoryLocked(category)) {
+            LockedCategoryOverlay(
+                onUnlockClick = { onUnlockRequest(category) },
+            )
+            return@HorizontalPager
+        }
+        // SY <--
+
         val items = getItemsForCategory(category)
 
         if (items.isEmpty()) {

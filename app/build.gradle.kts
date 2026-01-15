@@ -12,6 +12,7 @@ plugins {
     // id("com.github.zellius.shortcut-helper")
     alias(libs.plugins.aboutLibraries)
     id("com.github.ben-manes.versions")
+    id("mihon.code.coverage.app")
 }
 
 if (gradle.startParameter.taskRequests.toString().contains("Standard")) {

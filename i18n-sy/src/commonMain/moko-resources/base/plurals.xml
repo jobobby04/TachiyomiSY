@@ -8,6 +8,11 @@
         <item quantity="one">%d lock time</item>
         <item quantity="other">%d lock times</item>
     </plurals>
+    <plurals name="num_locked_categories">
+        <item quantity="zero">No locked categories</item>
+        <item quantity="one">%d locked category</item>
+        <item quantity="other">%d locked categories</item>
+    </plurals>
     <plurals name="eh_retry_toast">
         <item quantity="zero">Retrying 0 failed pages…</item>
         <item quantity="one">Retrying %1$d failed page…</item>

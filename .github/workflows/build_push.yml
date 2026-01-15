@@ -48,12 +48,21 @@ jobs:
 
       - name: Check code format
         run: ./gradlew spotlessCheck
+        env:
+          GRADLE_OPTS: -Xmx4g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=512m
+          KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
       - name: Build app
         run: ./gradlew assembleStandardRelease
+        env:
+          GRADLE_OPTS: -Xmx4g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=512m
+          KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
       - name: Run unit tests
         run: ./gradlew testReleaseUnitTest testStandardReleaseUnitTest
+        env:
+          GRADLE_OPTS: -Xmx4g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=512m
+          KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1

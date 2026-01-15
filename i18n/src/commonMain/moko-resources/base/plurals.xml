@@ -35,6 +35,11 @@
         <item quantity="other">%1$s remaining</item>
     </plurals>
 
+    <plurals name="cleanup_temp_folders_done">
+        <item quantity="one">Cleanup done. Removed %d temp folder</item>
+        <item quantity="other">Cleanup done. Removed %d temp folders</item>
+    </plurals>
+
     <plurals name="day">
         <item quantity="one">1 day</item>
         <item quantity="other">%d days</item>

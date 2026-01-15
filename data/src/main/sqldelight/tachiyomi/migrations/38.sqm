@@ -1,0 +1,19 @@
+-- Create download_queue table for persistent download queue with retry tracking
+CREATE TABLE IF NOT EXISTS download_queue(
+    _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    manga_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 0,
+    added_at INTEGER NOT NULL,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    last_attempt_at INTEGER,
+    last_error_message TEXT,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    FOREIGN KEY(manga_id) REFERENCES mangas(_id) ON DELETE CASCADE,
+    FOREIGN KEY(chapter_id) REFERENCES chapters(_id) ON DELETE CASCADE,
+    UNIQUE(chapter_id)
+);
+
+CREATE INDEX download_queue_status_priority_idx ON download_queue(status, priority DESC, added_at ASC);
+CREATE INDEX download_queue_chapter_idx ON download_queue(chapter_id);
+CREATE INDEX download_queue_manga_idx ON download_queue(manga_id);

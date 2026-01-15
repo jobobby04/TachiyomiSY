@@ -279,6 +279,10 @@
     <string name="pref_category_library_update">Global update</string>
     <string name="pref_library_update_interval">Automatic updates</string>
     <string name="update_never">Off</string>
+    <string name="update_15min">Every 15 minutes</string>
+    <string name="update_30min">Every 30 minutes</string>
+    <string name="update_60min">Every hour</string>
+    <string name="update_3hour">Every 3 hours</string>
     <string name="update_6hour">Every 6 hours</string>
     <string name="update_12hour">Every 12 hours</string>
     <string name="update_24hour">Daily</string>
@@ -526,6 +530,23 @@
     <string name="pref_download_concurrent_sources">Concurrent source downloads</string>
     <string name="pref_download_concurrent_pages">Concurrent page downloads</string>
     <string name="pref_download_concurrent_pages_summary">Pages downloaded simultaneously per source</string>
+    <string name="pref_category_download_queue">Download queue</string>
+    <string name="pref_download_worker_interval">Background download interval</string>
+    <string name="pref_download_worker_interval_summary">Controls how often the downloader wakes up in the background</string>
+    <string name="pref_max_download_retries">Max download retries</string>
+    <string name="pref_category_auto_download_advanced">Auto-download advanced</string>
+    <string name="pref_auto_download_reading_history">Auto-download from reading history</string>
+    <string name="pref_auto_download_reading_history_summary">Periodically queue the next unread chapters for recently read entries</string>
+    <string name="pref_reading_history_lookback">Reading history lookback</string>
+    <string name="pref_reading_history_lookback_summary">How far back to look for recent reading activity</string>
+    <string name="pref_category_storage_cleanup">Storage cleanup</string>
+    <string name="pref_cleanup_on_startup">Clean up temp folders on startup</string>
+    <string name="pref_cleanup_on_startup_summary">Remove leftover _tmp download folders</string>
+    <string name="pref_cleanup_now">Clean up temp folders now</string>
+    <string name="pref_cleanup_now_summary">Remove leftover temporary download folders</string>
+    <string name="cleanup_temp_folders_started">Starting temp folder cleanup</string>
+    <string name="cleanup_temp_folders_none">No temp folders to clean</string>
+    <string name="unlimited">Unlimited</string>
 
     <!-- Tracking section -->
     <string name="tracking_guide">Tracking guide</string>
@@ -639,7 +660,20 @@
     <string name="pref_update_library_manga_titles">Update library manga titles to match source</string>
     <string name="pref_update_library_manga_titles_summary">Warning: if a manga is renamed, it will be removed from the download queue (if present).</string>
 
-      <!-- About section -->
+    <string name="pref_enable_flare_solverr">Enable FlareSolverr</string>
+    <string name="pref_enable_flare_solverr_summary">Use FlareSolverr to bypass Cloudflare\'s anti-bot protection</string>
+    <string name="pref_flare_solverr_url">FlareSolverr URL</string>
+    <string name="pref_flare_solverr_url_summary">URL of the FlareSolverr instance to use for example http://192.168.1.202:8191/v1</string>
+    <string name="pref_show_flare_solverr_notifications">Show FlareSolverr notifications</string>
+    <string name="pref_show_flare_solverr_notifications_summary">Display toast notifications when FlareSolverr is actively solving Cloudflare challenges</string>
+    <string name="pref_test_flare_solverr_and_update_user_agent">Test FlareSolverr and update user agent</string>
+    <string name="pref_test_flare_solverr_and_update_user_agent_summary">Test FlareSolverr to update the user agent. Only required once; then toggle as needed.</string>
+    <string name="pref_test_flare_solverr_and_update_user_agent_summary_full">Test FlareSolverr to update the user agent. Only required once; then toggle as needed. If you get DNS errors, try disabling DNS-over-HTTPS above.</string>
+    <string name="flare_solverr_solving_challenge">FlareSolverr: Solving Cloudflare challenge...</string>
+    <string name="flare_solverr_challenge_solved">FlareSolverr: Challenge solved successfully</string>
+    <string name="flare_solverr_challenge_failed">FlareSolverr: Failed to solve challenge</string>
+
+    <!-- About section -->
     <string name="website">Website</string>
     <string name="version">Version</string>
     <string name="whats_new">What\'s new</string>

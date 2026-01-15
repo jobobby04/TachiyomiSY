@@ -8,6 +8,7 @@ import tachiyomi.domain.history.model.History
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.history.model.HistoryWithRelations
 import tachiyomi.domain.history.repository.HistoryRepository
+import java.util.Date
 
 class HistoryRepositoryImpl(
     private val handler: DatabaseHandler,
@@ -19,12 +20,34 @@ class HistoryRepositoryImpl(
         }
     }
 
+    /**
+     * Fetches the most recent history entry together with its related data.
+     *
+     * @return The most recent `HistoryWithRelations`, or `null` if no history exists.
+     */
     override suspend fun getLastHistory(): HistoryWithRelations? {
         return handler.awaitOneOrNull {
             historyViewQueries.getLatestHistory(HistoryMapper::mapHistoryWithRelations)
         }
     }
 
+    /**
+     * Retrieve history entries that were read after the given date for auto-download.
+     *
+     * @param readAfter The cutoff date; only history entries read strictly after this date are returned.
+     * @return A list of HistoryWithRelations for entries read after `readAfter`.
+     */
+    override suspend fun getHistoryForAutoDownload(readAfter: Date): List<HistoryWithRelations> {
+        return handler.awaitList {
+            historyViewQueries.getHistoryForAutoDownload(readAfter, HistoryMapper::mapHistoryWithRelations)
+        }
+    }
+
+    /**
+     * Get the total cumulative read duration across all history entries.
+     *
+     * @return The total read duration across all history entries as stored by the database.
+     */
     override suspend fun getTotalReadDuration(): Long {
         return handler.awaitOne { historyQueries.getReadDuration() }
     }

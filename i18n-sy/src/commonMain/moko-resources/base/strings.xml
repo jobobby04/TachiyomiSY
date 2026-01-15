@@ -155,6 +155,15 @@
     <string name="clear_db_exclude_read">Keep entries with read chapters</string>
     <string name="pref_include_chapter_url_hash">Include chapter URL hash</string>
     <string name="pref_include_chapter_url_hash_desc">Append the first six characters of the chapter URL's MD5 hash to the chapter file or folder name.</string>
+    <string name="flare_solver_user_agent_update_success">FlareSolverr is working. User agent updated. Please restart the app.</string>
+    <string name="flare_solver_error">Error connecting to FlareSolverr</string>
+    <string name="flare_solver_url_not_configured">FlareSolverr URL is not configured</string>
+    <string name="flare_solver_http_405">HTTP 405: Wrong endpoint? Make sure URL ends with /v1</string>
+    <string name="flare_solver_http_error">FlareSolverr error: HTTP %d</string>
+    <string name="flare_solver_failed">FlareSolverr failed: %s</string>
+    <string name="flare_solver_dns_error">DNS error: Cannot resolve hostname. Try disabling DNS-over-HTTPS in Advanced settings, or check your network connection.</string>
+    <string name="flare_solver_timeout_error">Timeout: FlareSolverr took too long to respond. Check if the server is running and accessible.</string>
+    <string name="flare_solver_unknown_error">FlareSolverr error: %s</string>
 
     <!-- Log Level -->
     <string name="log_minimal">Minimal</string>
@@ -744,4 +753,34 @@
 
     <!-- Humanize time -->
     <string name="humanize_fallback">moments ago</string>
+
+    <!-- Category Lock -->
+    <string name="category_lock_settings">Category lock settings</string>
+    <string name="category_lock_enter_pin">Enter PIN for %1$s</string>
+    <string name="category_lock_set_pin">Set PIN for %1$s</string>
+    <string name="category_lock_confirm_pin">Confirm PIN</string>
+    <string name="category_lock_change_pin">Change PIN</string>
+    <string name="category_lock_remove_pin">Remove PIN</string>
+    <string name="category_lock_wrong_pin">Wrong PIN</string>
+    <string name="category_lock_pin_set">PIN set successfully</string>
+    <string name="category_lock_pin_removed">PIN removed</string>
+    <string name="category_lock_pin_requirement">Enter 4-10 digit PIN</string>
+    <string name="category_lock_pins_mismatch">PINs do not match</string>
+    <string name="category_lock_failed_to_set">Failed to set PIN</string>
+    <string name="category_lock_timeout">Lock timeout</string>
+    <string name="category_lock_timeout_never">Never re-lock during session</string>
+    <string name="category_lock_timeout_always">Always require PIN</string>
+    <string name="category_lock_show_locked">Show locked categories</string>
+    <string name="category_lock_tap_to_unlock">Tap to unlock</string>
+    <string name="category_locked">Private Categories</string>
+    <string name="category_locked_icon">Locked category</string>
+    <string name="category_lock_master_pin">Master recovery PIN</string>
+    <string name="category_lock_master_pin_set">Set master PIN (can unlock any locked category)</string>
+    <string name="category_lock_master_pin_change">Change master PIN</string>
+    <string name="category_lock_master_pin_remove">Remove master PIN</string>
+    <string name="category_lock_master_pin_removed">Master PIN removed</string>
+    <string name="category_lock_error_setting_master_pin">Error setting master PIN</string>
+    <string name="category_lock_error_setting_pin">Error setting PIN</string>
+    <string name="action_unlock">Unlock</string>
+    <string name="action_next">Next</string>
 </resources>
