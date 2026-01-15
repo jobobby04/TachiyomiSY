@@ -119,7 +119,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 </details>
 
-## FAQ
+## FAQ 
 
 [See our website.](https://mihon.app/)
 You can also reach out to us on [Discord](https://discord.gg/mihon).
