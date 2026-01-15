@@ -8,33 +8,48 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkAll
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.InjektModule
-import uy.kohesive.injekt.api.InjektRegistrar
-import uy.kohesive.injekt.api.addSingletonFactory
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 
 class CategoryLockManagerTest {
 
-    private lateinit var securityPreferences: SecurityPreferences
+    companion object {
+        // Reuse the same mock instance across all tests to work with injectLazy() caching
+        private val securityPreferences: SecurityPreferences = mockk(relaxed = true)
+
+        @JvmStatic
+        @BeforeAll
+        fun setUpClass() {
+            // Stop any existing Koin instance and start fresh with our module
+            stopKoin()
+            startKoin {
+                modules(
+                    module {
+                        single { securityPreferences }
+                    },
+                )
+            }
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun tearDownClass() {
+            // Stop Koin after all tests complete
+            stopKoin()
+        }
+    }
 
     @BeforeEach
     fun setup() {
-        securityPreferences = mockk(relaxed = true)
-
-        // Mock Injekt
-        mockkObject(Injekt)
-        val module = InjektModule {
-            addSingletonFactory { securityPreferences }
-        }
-        InjektRegistrar.registerInjectModule(module)
-
         // Reset the manager state
         CategoryLockManager.lockAll()
 
@@ -44,8 +59,10 @@ class CategoryLockManagerTest {
 
     @AfterEach
     fun teardown() {
-        unmockkAll()
+        // Reset the manager state for next test
         CategoryLockManager.lockAll()
+        // Clear recorded calls but keep stubbings (setup() will re-stub as needed)
+        clearMocks(securityPreferences, answers = false)
     }
 
     @Test

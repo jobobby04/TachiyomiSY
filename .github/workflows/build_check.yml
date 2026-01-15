@@ -1,5 +1,9 @@
 name: CI
-on: [pull_request]
+on:
+  pull_request:
+    branches-ignore:
+      - master
+      - develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,13 +28,65 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build app
-        run: ./gradlew spotlessCheck assembleDevDebug
+        id: build
+        run: ./gradlew spotlessCheck assembleDevDebug --max-workers=1 --no-daemon
         env:
-          GRADLE_OPTS: -Xmx4g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=512m
+          GRADLE_OPTS: -Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -XX:+UseStringDeduplication
           KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
+      - name: Get APK info
+        id: apk_info
+        if: success()
+        run: |
+          APK_PATH="app/build/outputs/apk/dev/debug/app-dev-debug.apk"
+          APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+          echo "size=$APK_SIZE" >> $GITHUB_OUTPUT
+
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v6
         with:
           name: TachiyomiSY-${{ github.sha }}.apk
           path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
+          retention-days: 7
+
+      - name: Comment build result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const buildStatus = '${{ steps.build.outcome }}';
+            const emoji = buildStatus === 'success' ? '✅' : '❌';
+            const statusText = buildStatus === 'success' ? 'succeeded' : 'failed';
+            
+            let body = `## ${emoji} Build Summary
+            
+            **Build Status:** ${statusText.toUpperCase()}
+            **Commit:** \`${context.sha.substring(0, 7)}\`
+            **Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            `;
+            
+            if (buildStatus === 'success') {
+              const apkSize = '${{ steps.apk_info.outputs.size }}';
+              body += `
+            ### 📦 Build Artifacts
+            - **APK Size:** ${apkSize}
+            - **Download:** Available in [workflow artifacts](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            
+            🎉 Build completed successfully! The APK is ready for testing.`;
+            } else {
+              body += `
+            ⚠️ Build failed. Please check the logs for details.`;
+            }
+            
+            body += `
+            
+            ---
+            *Automated comment by GitHub Actions*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

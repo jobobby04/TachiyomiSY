@@ -4,14 +4,14 @@ import android.content.Context
 
 object FirebaseConfig {
     fun init(context: Context) {
-        // No-op for dev variant
+        // No-op for F-Droid variant
     }
 
     fun setAnalyticsEnabled(enabled: Boolean) {
-        // No-op for dev variant
+        // No-op for F-Droid variant
     }
 
     fun setCrashlyticsEnabled(enabled: Boolean) {
-        // No-op for dev variant
+        // No-op for F-Droid variant
     }
 }
