@@ -1,36 +1,37 @@
 name: Remote Dispatch Action Initiator
 
 on:
-  push:
-   branches:
-    - 'preview'
+    push:
+        branches:
+            - 'preview'
 
 jobs:
-  trigger_preview_build:
-    name: Trigger preview build
-    runs-on: ubuntu-latest
+    trigger_preview_build:
+        name: Trigger preview build
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@v6
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v6
 
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          java-version: 17
-          distribution: temurin
+            - name: Set up JDK
+              uses: actions/setup-java@v5
+              with:
+                  java-version: 17
+                  distribution: temurin
+                  cache: gradle
 
-      - name: Set up gradle
-        uses: gradle/actions/setup-gradle@v5
+            - name: Grant execute permission for gradlew
+              run: chmod +x gradlew
 
-      - name: Create Tag
-        run: |
-          git tag "preview-${{ github.run_number }}"
-          git push origin "preview-${{ github.run_number }}"
+            - name: Create Tag
+              run: |
+                  git tag "preview-${{ github.run_number }}"
+                  git push origin "preview-${{ github.run_number }}"
 
-      - name: PING - Dispatch initiating repository event
-        run: |
-          curl -X POST https://api.github.com/repos/jobobby04/TachiyomiSYPreview/dispatches \
-          -H 'Accept: application/vnd.github.everest-preview+json' \
-          -u ${{ secrets.ACCESS_TOKEN }} \
-          --data '{"event_type": "ping", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
+            - name: Dispatch preview build event
+              run: |
+                  curl -X POST https://api.github.com/repos/jobobby04/TachiyomiSYPreview/dispatches \
+                  -H 'Accept: application/vnd.github.everest-preview+json' \
+                  -u ${{ secrets.ACCESS_TOKEN }} \
+                  --data '{"event_type": "ping", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'

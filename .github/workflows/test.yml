@@ -1,157 +1,158 @@
 name: Run Tests
 
 on:
-  push:
-    branches:
-      - master
-      - develop
-  pull_request:
-    types: [opened, synchronize, reopened]
+    push:
+        branches:
+            - master
+            - develop
+    pull_request:
+        types: [opened, synchronize, reopened]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  test:
-    name: Run unit tests with coverage
-    runs-on: ubuntu-latest
+    test:
+        name: Run unit tests with coverage
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@v6
+        steps:
+            - name: Clone repo
+              uses: actions/checkout@v6
 
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          java-version: 17
-          distribution: temurin
+            - name: Set up JDK
+              uses: actions/setup-java@v5
+              with:
+                  java-version: 17
+                  distribution: temurin
+                  cache: gradle
 
-      - name: Set up gradle
-        uses: gradle/actions/setup-gradle@v5
+            - name: Grant execute permission for gradlew
+              run: chmod +x gradlew
 
-      - name: Create dummy google-services.json
-        run: |
-          cat > app/google-services.json << 'EOF'
-          {
-            "project_info": {
-              "project_number": "123456789",
-              "project_id": "dummy-project",
-              "storage_bucket": "dummy-project.appspot.com"
-            },
-            "client": [
-              {
-                "client_info": {
-                  "mobilesdk_app_id": "1:123456789:android:abcdef123456",
-                  "android_client_info": {
-                    "package_name": "eu.kanade.tachiyomi.sy"
-                  }
-                },
-                "oauth_client": [],
-                "api_key": [
+            - name: Create dummy google-services.json
+              run: |
+                  cat > app/google-services.json << 'EOF'
                   {
-                    "current_key": "AIzaSyDummyKeyForTestingPurposes123456"
+                    "project_info": {
+                      "project_number": "123456789",
+                      "project_id": "dummy-project",
+                      "storage_bucket": "dummy-project.appspot.com"
+                    },
+                    "client": [
+                      {
+                        "client_info": {
+                          "mobilesdk_app_id": "1:123456789:android:abcdef123456",
+                          "android_client_info": {
+                            "package_name": "eu.kanade.tachiyomi.sy"
+                          }
+                        },
+                        "oauth_client": [],
+                        "api_key": [
+                          {
+                            "current_key": "AIzaSyDummyKeyForTestingPurposes123456"
+                          }
+                        ],
+                        "services": {
+                          "appinvite_service": {
+                            "other_platform_oauth_client": []
+                          }
+                        }
+                      }
+                    ],
+                    "configuration_version": "1"
                   }
-                ],
-                "services": {
-                  "appinvite_service": {
-                    "other_platform_oauth_client": []
-                  }
-                }
-              }
-            ],
-            "configuration_version": "1"
-          }
-          EOF
+                  EOF
 
-      - name: Run unit tests
-        id: test
-        run: ./gradlew test --stacktrace --max-workers=1 --no-daemon
-        env:
-          GRADLE_OPTS: -Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -XX:+UseStringDeduplication
-          KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
+            - name: Run unit tests
+              id: test
+              run: ./gradlew test --stacktrace --max-workers=1 --no-daemon
+              env:
+                  GRADLE_OPTS: -Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -XX:+UseStringDeduplication
+                  KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
-      - name: Generate coverage report
-        if: success() || failure()
-        run: ./gradlew jacocoTestReport --max-workers=1 --no-daemon
-        env:
-          GRADLE_OPTS: -Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -XX:+UseStringDeduplication
-          KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
+            - name: Generate coverage report
+              if: success() || failure()
+              run: ./gradlew jacocoTestReport --max-workers=1 --no-daemon
+              env:
+                  GRADLE_OPTS: -Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -XX:+UseStringDeduplication
+                  KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
-      - name: Publish test results
-        if: github.event_name == 'pull_request' && (success() || failure())
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: |
-            **/build/test-results/test/**/*.xml
-          check_name: Test Results
-          comment_mode: always
-          compare_to_earlier_commit: true
-          report_individual_runs: true
+            - name: Publish test results
+              if: github.event_name == 'pull_request' && (success() || failure())
+              uses: EnricoMi/publish-unit-test-result-action@v2
+              with:
+                  files: |
+                      **/build/test-results/test/**/*.xml
+                  check_name: Test Results
+                  comment_mode: always
+                  compare_to_earlier_commit: true
+                  report_individual_runs: true
 
-      - name: Add coverage to PR
-        if: github.event_name == 'pull_request' && success()
-        uses: madrapps/jacoco-report@v1.7.2
-        with:
-          paths: |
-            ${{ github.workspace }}/**/build/reports/jacoco/**/jacocoTestReport.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 0
-          min-coverage-changed-files: 0
-          title: 📊 Code Coverage Report
-          update-comment: true
-          pass-emoji: "✅"
-          fail-emoji: "❌"
+            - name: Add coverage to PR
+              if: github.event_name == 'pull_request' && success()
+              uses: madrapps/jacoco-report@v1.7.2
+              with:
+                  paths: |
+                      ${{ github.workspace }}/**/build/reports/jacoco/**/jacocoTestReport.xml
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  min-coverage-overall: 0
+                  min-coverage-changed-files: 0
+                  title: 📊 Code Coverage Report
+                  update-comment: true
+                  pass-emoji: "✅"
+                  fail-emoji: "❌"
 
-      - name: Comment test summary
-        if: github.event_name == 'pull_request' && (success() || failure())
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const commentMarker = '<!-- test-summary-comment -->';
-            const testStatus = '${{ steps.test.outcome }}';
-            const emoji = testStatus === 'success' ? '✅' : '❌';
-            const statusText = testStatus === 'success' ? 'passed' : 'failed';
+            - name: Comment test summary
+              if: github.event_name == 'pull_request' && (success() || failure())
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const commentMarker = '<!-- test-summary-comment -->';
+                      const testStatus = '${{ steps.test.outcome }}';
+                      const emoji = testStatus === 'success' ? '✅' : '❌';
+                      const statusText = testStatus === 'success' ? 'passed' : 'failed';
 
-            const body = `${commentMarker}
-            ## ${emoji} Test & Build Summary
+                      const body = `${commentMarker}
+                      ## ${emoji} Test & Build Summary
 
-            **Test Status:** ${statusText.toUpperCase()}
-            **Commit:** \`${context.sha.substring(0, 7)}\`
-            **Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})
+                      **Test Status:** ${statusText.toUpperCase()}
+                      **Commit:** \`${context.sha.substring(0, 7)}\`
+                      **Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})
 
-            ${testStatus === 'success' ? '🎉 All tests passed successfully!' : '⚠️ Some tests failed. Please check the details above.'}
+                      ${testStatus === 'success' ? '🎉 All tests passed successfully!' : '⚠️ Some tests failed. Please check the details above.'}
 
-            ---
-            *Automated comment by GitHub Actions*`;
+                      ---
+                      *Automated comment by GitHub Actions*`;
 
-            try {
-              // Find existing comment
-              const { data: comments } = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-              });
-              
-              const existingComment = comments.find(c => c.body.includes(commentMarker));
-              
-              if (existingComment) {
-                // Update existing comment
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingComment.id,
-                  body: body
-                });
-              } else {
-                // Create new comment
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: body
-                });
-              }
-            } catch (error) {
-              console.log(`Failed to post comment: ${error.message}`);
-            }
+                      try {
+                          // Find existing comment
+                          const { data: comments } = await github.rest.issues.listComments({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: context.issue.number,
+                          });
+
+                          const existingComment = comments.find(c => c.body.includes(commentMarker));
+
+                          if (existingComment) {
+                              // Update existing comment
+                              await github.rest.issues.updateComment({
+                                  owner: context.repo.owner,
+                                  repo: context.repo.repo,
+                                  comment_id: existingComment.id,
+                                  body: body
+                              });
+                          } else {
+                              // Create new comment
+                              await github.rest.issues.createComment({
+                                  issue_number: context.issue.number,
+                                  owner: context.repo.owner,
+                                  repo: context.repo.repo,
+                                  body: body
+                              });
+                          }
+                      } catch (error) {
+                          console.log(`Failed to post comment: ${error.message}`);
+                      }

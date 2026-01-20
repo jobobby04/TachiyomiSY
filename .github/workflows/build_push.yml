@@ -1,95 +1,95 @@
 name: Release Builder
+
 on:
-  push:
-   branches:
-    - 'release'
+    push:
+        branches:
+            - 'release'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build release app
-    runs-on: ubuntu-latest
+    build:
+        name: Build release app
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@v6
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v6
 
-      - name: Setup Android SDK
-        run: |
-          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;29.0.3"
+            - name: Setup Android SDK
+              run: |
+                  ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;29.0.3"
 
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          java-version: 17
-          distribution: temurin
+            - name: Set up JDK
+              uses: actions/setup-java@v5
+              with:
+                  java-version: 17
+                  distribution: temurin
+                  cache: gradle
 
-      - name: Set up gradle
-        uses: gradle/actions/setup-gradle@v5
+            - name: Grant execute permission for gradlew
+              run: chmod +x gradlew
 
-      # SY -->
-      - name: Write google-services.json
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: app/google-services.json
-          contents: ${{ secrets.GOOGLE_SERVICES_TEXT }}
-          write-mode: overwrite
+            - name: Write google-services.json
+              uses: DamianReeves/write-file-action@v1.3
+              with:
+                  path: app/google-services.json
+                  contents: ${{ secrets.GOOGLE_SERVICES_TEXT }}
+                  write-mode: overwrite
 
-      - name: Write client_secrets.json
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: app/src/main/assets/client_secrets.json
-          contents: ${{ secrets.CLIENT_SECRETS_TEXT }}
-          write-mode: overwrite
-      # SY <--
+            - name: Write client_secrets.json
+              uses: DamianReeves/write-file-action@v1.3
+              with:
+                  path: app/src/main/assets/client_secrets.json
+                  contents: ${{ secrets.CLIENT_SECRETS_TEXT }}
+                  write-mode: overwrite
 
-      - name: Build and test app
-        run: ./gradlew spotlessCheck testReleaseUnitTest testStandardReleaseUnitTest assembleStandardRelease --max-workers=1 --no-daemon
-        env:
-          GRADLE_OPTS: -Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -XX:+UseStringDeduplication
-          KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
+            - name: Build and test app
+              run: ./gradlew spotlessCheck testReleaseUnitTest testStandardReleaseUnitTest assembleStandardRelease --max-workers=1 --no-daemon
+              env:
+                  GRADLE_OPTS: -Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -XX:+UseStringDeduplication
+                  KOTLIN_DAEMON_JVMARGS: -Xmx2g -XX:MaxMetaspaceSize=512m
 
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/standard/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: '35.0.1'
+            - name: Sign APK
+              uses: r0adkll/sign-android-release@v1
+              with:
+                  releaseDirectory: app/build/outputs/apk/standard/release
+                  signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+                  alias: ${{ secrets.ALIAS }}
+                  keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+                  keyPassword: ${{ secrets.KEY_PASSWORD }}
+              env:
+                  BUILD_TOOLS_VERSION: '35.0.1'
 
-      - name: Clean up build artifacts
-        run: |
-          set -e
+            - name: Clean up build artifacts
+              run: |
+                  set -e
 
-          mv app/build/outputs/apk/standard/release/app-standard-universal-release-unsigned-signed.apk TachiyomiSY.apk
-          mv app/build/outputs/apk/standard/release/app-standard-arm64-v8a-release-unsigned-signed.apk TachiyomiSY-arm64-v8a.apk
-          mv app/build/outputs/apk/standard/release/app-standard-armeabi-v7a-release-unsigned-signed.apk TachiyomiSY-armeabi-v7a.apk
-          mv app/build/outputs/apk/standard/release/app-standard-x86-release-unsigned-signed.apk TachiyomiSY-x86.apk
-          mv app/build/outputs/apk/standard/release/app-standard-x86_64-release-unsigned-signed.apk TachiyomiSY-x86_64.apk
+                  mv app/build/outputs/apk/standard/release/app-standard-universal-release-unsigned-signed.apk TachiyomiSY.apk
+                  mv app/build/outputs/apk/standard/release/app-standard-arm64-v8a-release-unsigned-signed.apk TachiyomiSY-arm64-v8a.apk
+                  mv app/build/outputs/apk/standard/release/app-standard-armeabi-v7a-release-unsigned-signed.apk TachiyomiSY-armeabi-v7a.apk
+                  mv app/build/outputs/apk/standard/release/app-standard-x86-release-unsigned-signed.apk TachiyomiSY-x86.apk
+                  mv app/build/outputs/apk/standard/release/app-standard-x86_64-release-unsigned-signed.apk TachiyomiSY-x86_64.apk
 
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.run_number }}
-          name: TachiyomiSY
-          body: |
-            <!-->
-            > [!TIP]
-            >
-            > ### If you are unsure which version to download then go with `TachiyomiSY.apk`
-          files: |
-            TachiyomiSY.apk
-            TachiyomiSY-arm64-v8a.apk
-            TachiyomiSY-armeabi-v7a.apk
-            TachiyomiSY-x86.apk
-            TachiyomiSY-x86_64.apk
-          draft: true
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ github.run_number }}
+                  name: TachiyomiSY
+                  body: |
+                      <!-->
+                      > [!TIP]
+                      >
+                      > ### If you are unsure which version to download then go with `TachiyomiSY.apk`
+                  files: |
+                      TachiyomiSY.apk
+                      TachiyomiSY-arm64-v8a.apk
+                      TachiyomiSY-armeabi-v7a.apk
+                      TachiyomiSY-x86.apk
+                      TachiyomiSY-x86_64.apk
+                  draft: true
+                  prerelease: false
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
