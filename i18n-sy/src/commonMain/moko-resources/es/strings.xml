@@ -632,4 +632,7 @@
     <string name="final_chapter">Capítulo final</string>
     <string name="file_extension">Extensión de archivo</string>
     <string name="base_url">URL base</string>
+    <string name="filename">Nombre de archivo</string>
+    <string name="pref_include_chapter_url_hash_desc">Añade las primeras seis letras del hash MD5 de la dirección URL del capítulo al nombre de archivo o carpeta local.</string>
+    <string name="pref_include_chapter_url_hash">Incluir el hash de la URL del capítulo</string>
 </resources>
