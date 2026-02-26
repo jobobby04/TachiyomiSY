@@ -27,7 +27,7 @@ jobs:
         run: ./gradlew spotlessCheck assembleDevDebug
 
       - name: Upload APK
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: TachiyomiSY-${{ github.sha }}.apk
           path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
