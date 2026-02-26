@@ -32,6 +32,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,7 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.AddToLibraryFirst
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Error
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Success
+import eu.kanade.tachiyomi.ui.reader.chapter.ReaderChapterItem
 import eu.kanade.tachiyomi.ui.reader.loader.HttpPageLoader
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
@@ -101,6 +103,8 @@ import exh.source.isEhBasedSource
 import exh.ui.ifSourcesLoaded
 import exh.util.defaultReaderType
 import exh.util.mangaType
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
@@ -121,6 +125,7 @@ import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
+import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.service.SourceManager
@@ -394,28 +399,36 @@ class ReaderActivity : BaseActivity() {
 
             is ReaderViewModel.Dialog.ChapterList -> {
                 var chapters by remember {
-                    mutableStateOf(viewModel.getChapters().toImmutableList())
+                    mutableStateOf<ImmutableList<ReaderChapterItem>?>(null)
                 }
-                ChapterListDialog(
-                    onDismissRequest = onDismissRequest,
-                    screenModel = settingsScreenModel,
-                    chapters = chapters,
-                    onClickChapter = {
-                        viewModel.loadNewChapterFromDialog(it)
-                        onDismissRequest()
-                    },
-                    onBookmark = { chapter ->
-                        viewModel.toggleBookmark(chapter.id, !chapter.bookmark)
-                        chapters = chapters.map {
-                            if (it.chapter.id == chapter.id) {
-                                it.copy(chapter = chapter.copy(bookmark = !chapter.bookmark))
-                            } else {
-                                it
-                            }
-                        }.toImmutableList()
-                    },
-                    state.dateRelativeTime,
-                )
+                LaunchedEffect(state.dialog) {
+                    withIOContext {
+                        chapters = viewModel.getChapters().toImmutableList()
+                    }
+                }
+
+                if (chapters != null) {
+                    ChapterListDialog(
+                        onDismissRequest = onDismissRequest,
+                        screenModel = settingsScreenModel,
+                        chapters = chapters ?: persistentListOf(),
+                        onClickChapter = {
+                            viewModel.loadNewChapterFromDialog(it)
+                            onDismissRequest()
+                        },
+                        onBookmark = { chapter ->
+                            viewModel.toggleBookmark(chapter.id, !chapter.bookmark)
+                            chapters = chapters?.map {
+                                if (it.chapter.id == chapter.id) {
+                                    it.copy(chapter = chapter.copy(bookmark = !chapter.bookmark))
+                                } else {
+                                    it
+                                }
+                            }?.toImmutableList()
+                        },
+                        state.dateRelativeTime,
+                    )
+                }
             }
             // SY -->
             ReaderViewModel.Dialog.AutoScrollHelp -> AlertDialog(
@@ -591,8 +604,9 @@ class ReaderActivity : BaseActivity() {
         } else {
             cropBorderContinuousVertical
         }
-        val readerBottomButtons by readerPreferences.readerBottomButtons().changes().map { it.toImmutableSet() }
-            .collectAsState(persistentSetOf())
+        val readerBottomButtons by remember {
+            readerPreferences.readerBottomButtons().changes().map { it.toImmutableSet() }
+        }.collectAsState(persistentSetOf())
         val dualPageSplitPaged by readerPreferences.dualPageSplitPaged().collectAsState()
 
         val forceHorizontalSeekbar by readerPreferences.forceHorizontalSeekbar().collectAsState()
