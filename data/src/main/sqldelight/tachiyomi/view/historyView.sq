@@ -22,9 +22,11 @@ JOIN (
     SELECT chapters.manga_id,chapters._id AS chapter_id, MAX(history.last_read) AS last_read
     FROM chapters JOIN history
     ON chapters._id = history.chapter_id
+    WHERE chapters.deleted = 0
     GROUP BY chapters.manga_id
 ) AS max_last_read
-ON chapters.manga_id = max_last_read.manga_id;
+ON chapters.manga_id = max_last_read.manga_id
+WHERE chapters.deleted = 0;
 
 history:
 SELECT

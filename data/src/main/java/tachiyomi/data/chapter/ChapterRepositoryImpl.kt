@@ -67,6 +67,7 @@ class ChapterRepositoryImpl(
                     chapterId = chapterUpdate.id,
                     version = chapterUpdate.version,
                     isSyncing = 0,
+                    deleted = chapterUpdate.deleted,
                 )
             }
         }
@@ -80,9 +81,26 @@ class ChapterRepositoryImpl(
         }
     }
 
-    override suspend fun getChapterByMangaId(mangaId: Long, applyScanlatorFilter: Boolean): List<Chapter> {
+    override suspend fun softDeleteChaptersWithIds(chapterIds: List<Long>) {
+        try {
+            handler.await { chaptersQueries.softDeleteChaptersWithIds(chapterIds) }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e)
+        }
+    }
+
+    override suspend fun getChapterByMangaId(
+        mangaId: Long,
+        applyScanlatorFilter: Boolean,
+        includeDeleted: Boolean,
+    ): List<Chapter> {
         return handler.awaitList {
-            chaptersQueries.getChaptersByMangaId(mangaId, applyScanlatorFilter.toLong(), ChapterMapper::mapChapter)
+            chaptersQueries.getChaptersByMangaId(
+                mangaId = mangaId,
+                includeDeleted = includeDeleted.toLong(),
+                applyScanlatorFilter = applyScanlatorFilter.toLong(),
+                mapper = ChapterMapper::mapChapter,
+            )
         }
     }
 
@@ -108,20 +126,32 @@ class ChapterRepositoryImpl(
     }
 
     override suspend fun getChapterById(id: Long): Chapter? {
-        return handler.awaitOneOrNull { chaptersQueries.getChapterById(id, ChapterMapper::mapChapter) }
-    }
-
-    override suspend fun getChapterByMangaIdAsFlow(mangaId: Long, applyScanlatorFilter: Boolean): Flow<List<Chapter>> {
-        return handler.subscribeToList {
-            chaptersQueries.getChaptersByMangaId(mangaId, applyScanlatorFilter.toLong(), ChapterMapper::mapChapter)
+        return handler.awaitOneOrNull {
+            chaptersQueries.getChapterById(id, ChapterMapper::mapChapter)
         }
     }
 
-    override suspend fun getChapterByUrlAndMangaId(url: String, mangaId: Long): Chapter? {
+    override suspend fun getChapterByMangaIdAsFlow(
+        mangaId: Long,
+        applyScanlatorFilter: Boolean,
+        includeDeleted: Boolean,
+    ): Flow<List<Chapter>> {
+        return handler.subscribeToList {
+            chaptersQueries.getChaptersByMangaId(
+                mangaId = mangaId,
+                includeDeleted = includeDeleted.toLong(),
+                applyScanlatorFilter = applyScanlatorFilter.toLong(),
+                mapper = ChapterMapper::mapChapter,
+            )
+        }
+    }
+
+    override suspend fun getChapterByUrlAndMangaId(url: String, mangaId: Long, includeDeleted: Boolean): Chapter? {
         return handler.awaitOneOrNull {
             chaptersQueries.getChapterByUrlAndMangaId(
                 url,
                 mangaId,
+                includeDeleted.toLong(),
                 ChapterMapper::mapChapter,
             )
         }
@@ -132,7 +162,10 @@ class ChapterRepositoryImpl(
         return handler.awaitList { chaptersQueries.getChapterByUrl(url, ChapterMapper::mapChapter) }
     }
 
-    override suspend fun getMergedChapterByMangaId(mangaId: Long, applyScanlatorFilter: Boolean): List<Chapter> {
+    override suspend fun getMergedChapterByMangaId(
+        mangaId: Long,
+        applyScanlatorFilter: Boolean,
+    ): List<Chapter> {
         return handler.awaitList {
             chaptersQueries.getMergedChaptersByMangaId(
                 mangaId,

@@ -17,7 +17,7 @@ SELECT
     chapters.date_fetch AS datefetch
 FROM mangas JOIN chapters
 ON mangas._id = chapters.manga_id
-WHERE favorite = 1
+WHERE favorite = 1 AND chapters.deleted = 0
 AND date_fetch > date_added
 ORDER BY date_fetch DESC;
 
