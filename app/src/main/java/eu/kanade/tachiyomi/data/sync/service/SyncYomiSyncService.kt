@@ -54,7 +54,7 @@ class SyncYomiSyncService(
         SYNC_SUCCESS,
         SYNC_FAILED,
         SYNC_ERROR,
-        SYNC_CANCELLED
+        SYNC_CANCELLED,
     }
 
     override suspend fun doSync(syncData: SyncData): Backup? {
