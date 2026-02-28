@@ -2,7 +2,15 @@ ALTER TABLE categories ADD COLUMN version INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE categories ADD COLUMN uid INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE categories ADD COLUMN last_modified_at INTEGER NOT NULL DEFAULT 0;
 
-UPDATE categories SET uid = _id;
+UPDATE categories SET uid = abs(random());
+
+CREATE TRIGGER insert_category_uid AFTER INSERT ON categories
+BEGIN
+    UPDATE categories
+    SET uid = CASE WHEN uid = 0 THEN abs(random()) ELSE uid END,
+        last_modified_at = CASE WHEN last_modified_at = 0 THEN strftime('%s', 'now') ELSE last_modified_at END
+    WHERE _id = new._id;
+END;
 
 CREATE TRIGGER update_category_version AFTER UPDATE ON categories
 WHEN (

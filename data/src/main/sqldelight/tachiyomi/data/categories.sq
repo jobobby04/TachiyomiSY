@@ -36,6 +36,14 @@ BEGIN
     WHERE _id = new._id;
 END;
 
+CREATE TRIGGER insert_category_uid AFTER INSERT ON categories
+BEGIN
+    UPDATE categories
+    SET uid = CASE WHEN uid = 0 THEN abs(random()) ELSE uid END,
+        last_modified_at = CASE WHEN last_modified_at = 0 THEN strftime('%s', 'now') ELSE last_modified_at END
+    WHERE _id = new._id;
+END;
+
 getCategory:
 SELECT _id,name,sort,flags,version,uid,last_modified_at
 FROM categories
