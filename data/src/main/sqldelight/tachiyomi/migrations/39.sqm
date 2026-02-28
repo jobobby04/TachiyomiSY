@@ -1,6 +1,7 @@
 ALTER TABLE categories ADD COLUMN version INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE categories ADD COLUMN uid INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE categories ADD COLUMN last_modified_at INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE categories ADD COLUMN is_syncing INTEGER NOT NULL DEFAULT 0;
 
 UPDATE categories SET uid = abs(random());
 
@@ -13,7 +14,7 @@ BEGIN
 END;
 
 CREATE TRIGGER update_category_version AFTER UPDATE ON categories
-WHEN (
+WHEN new.is_syncing = 0 AND (
     new.name != old.name OR
     new.sort != old.sort OR
     new.flags != old.flags

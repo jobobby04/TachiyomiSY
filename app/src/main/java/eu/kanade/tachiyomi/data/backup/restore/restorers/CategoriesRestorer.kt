@@ -43,6 +43,7 @@ class CategoriesRestorer(
                                 version = backupCategory.version,
                                 uid = backupCategory.uid,
                                 last_modified_at = backupCategory.lastModifiedAt,
+                                isSyncing = 1,
                                 categoryId = dbCategory.id,
                             )
                         }
@@ -63,6 +64,10 @@ class CategoriesRestorer(
                     }
                         .let { id -> backupCategory.toCategory(id).copy(order = order) }
                 }
+
+            handler.await {
+                categoriesQueries.resetIsSyncing()
+            }
 
             libraryPreferences.categorizedDisplaySettings().set(
                 (dbCategories + categories)

@@ -73,6 +73,7 @@ class SyncManager(
         handler.await(inTransaction = true) {
             mangasQueries.resetIsSyncing()
             chaptersQueries.resetIsSyncing()
+            categoriesQueries.resetIsSyncing()
         }
 
         val syncOptions = syncPreferences.getSyncSettings()

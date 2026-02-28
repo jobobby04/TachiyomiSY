@@ -42,6 +42,7 @@ class MoveSortingModeSettingsMigration : Migration {
                         version = it.version,
                         uid = it.uid,
                         last_modified_at = null,
+                        isSyncing = null,
                         order = null,
                     )
                 }

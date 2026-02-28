@@ -73,6 +73,7 @@ class CategoryRepositoryImpl(
             version = update.version,
             uid = update.uid,
             last_modified_at = update.lastModifiedAt,
+            isSyncing = null,
             categoryId = update.id,
         )
     }

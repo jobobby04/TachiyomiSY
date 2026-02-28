@@ -9,11 +9,12 @@ CREATE TABLE categories(
     manga_order TEXT AS List<Long> NOT NULL,
     version INTEGER NOT NULL DEFAULT 0,
     uid INTEGER NOT NULL DEFAULT 0,
-    last_modified_at INTEGER NOT NULL DEFAULT 0
+    last_modified_at INTEGER NOT NULL DEFAULT 0,
+    is_syncing INTEGER NOT NULL DEFAULT 0
 );
 
 -- Insert system category
-INSERT OR IGNORE INTO categories(_id, name, sort, flags, manga_order, version, uid, last_modified_at) VALUES (0, "", -1, 0, "", 0, 0, 0);
+INSERT OR IGNORE INTO categories(_id, name, sort, flags, manga_order, version, uid, last_modified_at, is_syncing) VALUES (0, "", -1, 0, "", 0, 0, 0, 0);
 -- Disallow deletion of default category
 CREATE TRIGGER IF NOT EXISTS system_category_delete_trigger BEFORE DELETE
 ON categories
@@ -24,7 +25,7 @@ BEGIN SELECT CASE
 END;
 
 CREATE TRIGGER update_category_version AFTER UPDATE ON categories
-WHEN (
+WHEN new.is_syncing = 0 AND (
     new.name != old.name OR
     new.sort != old.sort OR
     new.flags != old.flags
@@ -91,7 +92,8 @@ SET name = coalesce(:name, name),
     flags = coalesce(:flags, flags),
     version = coalesce(:version, version),
     uid = coalesce(:uid, uid),
-    last_modified_at = coalesce(:last_modified_at, last_modified_at)
+    last_modified_at = coalesce(:last_modified_at, last_modified_at),
+    is_syncing = coalesce(:isSyncing, is_syncing)
 WHERE _id = :categoryId;
 
 updateAllFlags:
@@ -100,3 +102,8 @@ flags = coalesce(?, flags);
 
 selectLastInsertedRowId:
 SELECT last_insert_rowid();
+
+resetIsSyncing:
+UPDATE categories
+SET is_syncing = 0
+WHERE is_syncing = 1;
