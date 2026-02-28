@@ -26,7 +26,14 @@ class CategoriesRestorer(
                     if (dbCategory != null) return@map dbCategory
                     val order = nextOrder++
                     handler.awaitOneExecutable {
-                        categoriesQueries.insert(it.name, order, it.flags)
+                        categoriesQueries.insert(
+                            it.name,
+                            order,
+                            it.flags,
+                            it.version,
+                            it.uid,
+                            it.lastModifiedAt,
+                        )
                         categoriesQueries.selectLastInsertedRowId()
                     }
                         .let { id -> it.toCategory(id).copy(order = order) }

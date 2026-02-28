@@ -39,6 +39,9 @@ class MoveSortingModeSettingsMigration : Migration {
                         categoryId = it.id,
                         flags = it.flags and 0b00111100L.inv(),
                         name = null,
+                        version = it.version,
+                        uid = it.uid,
+                        last_modified_at = null,
                         order = null,
                     )
                 }
