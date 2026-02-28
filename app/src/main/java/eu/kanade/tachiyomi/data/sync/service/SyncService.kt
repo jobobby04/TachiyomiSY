@@ -274,37 +274,60 @@ abstract class SyncService(
         localCategoriesList: List<BackupCategory>?,
         remoteCategoriesList: List<BackupCategory>?,
     ): List<BackupCategory> {
+        val logTag = "MergeCategories"
         if (localCategoriesList == null) return remoteCategoriesList ?: emptyList()
         if (remoteCategoriesList == null) return localCategoriesList
-        val localCategoriesMap = localCategoriesList.associateBy { it.name }
-        val remoteCategoriesMap = remoteCategoriesList.associateBy { it.name }
 
-        val mergedCategoriesMap = mutableMapOf<String, BackupCategory>()
+        val result = mutableListOf<BackupCategory>()
+        val processedLocals = mutableSetOf<Long>() // UIDs
 
-        localCategoriesMap.forEach { (name, localCategory) ->
-            val remoteCategory = remoteCategoriesMap[name]
-            if (remoteCategory != null) {
-                // Compare and merge local and remote categories
-                val mergedCategory = if (localCategory.order > remoteCategory.order) {
-                    localCategory
+        val localMap = localCategoriesList.associateBy { it.uid }
+
+        remoteCategoriesList.forEach { remote ->
+            var localMatch: BackupCategory? = null
+
+            // Try match by UID
+            if (remote.uid != 0L) {
+                localMatch = localMap[remote.uid]
+            }
+
+            // Fallback: Try match by Name for legacy remote categories (UID == 0)
+            if (localMatch == null && remote.uid == 0L) {
+                localMatch = localCategoriesList.find { it.name == remote.name }
+            }
+
+            if (localMatch != null) {
+                processedLocals.add(localMatch.uid)
+                // Conflict resolution
+                if (localMatch.version >= remote.version) {
+                    logcat(LogPriority.DEBUG, logTag) { "Keeping local category: ${localMatch.name} (UID: ${localMatch.uid})" }
+                    result.add(localMatch)
                 } else {
-                    remoteCategory
+                    logcat(LogPriority.DEBUG, logTag) { "Keeping remote category: ${remote.name} (UID: ${remote.uid})" }
+                    // Preserve Local UID if Remote was 0
+                    if (remote.uid == 0L) {
+                        remote.uid = localMatch.uid
+                    }
+                    result.add(remote)
                 }
-                mergedCategoriesMap[name] = mergedCategory
             } else {
-                // If the category is only in the local list, add it to the merged list
-                mergedCategoriesMap[name] = localCategory
+                logcat(LogPriority.DEBUG, logTag) { "Adding new remote category: ${remote.name} (UID: ${remote.uid})" }
+                result.add(remote)
             }
         }
 
-        // Add any categories from the remote list that are not in the local list
-        remoteCategoriesMap.forEach { (name, remoteCategory) ->
-            if (!mergedCategoriesMap.containsKey(name)) {
-                mergedCategoriesMap[name] = remoteCategory
+        // Add remaining Local Categories
+        localCategoriesList.forEach { local ->
+            // If local.uid is 0 (shouldn't happen with migration) and we matched it by name?
+            // processedLocals stores UIDs. If local.uid is 0, we might have issues if multiple have 0.
+            // But assume unique IDs.
+            if (local.uid !in processedLocals) {
+                logcat(LogPriority.DEBUG, logTag) { "Keeping local only category: ${local.name} (UID: ${local.uid})" }
+                result.add(local)
             }
         }
 
-        return mergedCategoriesMap.values.toList()
+        return result.sortedBy { it.order }
     }
 
     private fun mergeSourcesLists(
