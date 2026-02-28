@@ -6,11 +6,14 @@ CREATE TABLE categories(
     name TEXT NOT NULL,
     sort INTEGER NOT NULL,
     flags INTEGER NOT NULL,
-    manga_order TEXT AS List<Long> NOT NULL
+    manga_order TEXT AS List<Long> NOT NULL,
+    version INTEGER NOT NULL DEFAULT 0,
+    uid INTEGER NOT NULL DEFAULT 0,
+    last_modified_at INTEGER NOT NULL DEFAULT 0
 );
 
 -- Insert system category
-INSERT OR IGNORE INTO categories(_id, name, sort, flags, manga_order) VALUES (0, "", -1, 0, "");
+INSERT OR IGNORE INTO categories(_id, name, sort, flags, manga_order, version, uid, last_modified_at) VALUES (0, "", -1, 0, "", 0, 0, 0);
 -- Disallow deletion of default category
 CREATE TRIGGER IF NOT EXISTS system_category_delete_trigger BEFORE DELETE
 ON categories
@@ -20,8 +23,21 @@ BEGIN SELECT CASE
     END;
 END;
 
+CREATE TRIGGER update_category_version AFTER UPDATE ON categories
+WHEN (
+    new.name != old.name OR
+    new.sort != old.sort OR
+    new.flags != old.flags
+)
+BEGIN
+    UPDATE categories
+    SET version = version + 1,
+        last_modified_at = strftime('%s', 'now')
+    WHERE _id = new._id;
+END;
+
 getCategory:
-SELECT _id,name,sort,flags
+SELECT _id,name,sort,flags,version,uid,last_modified_at
 FROM categories
 WHERE _id = :id
 LIMIT 1;
@@ -31,7 +47,10 @@ SELECT
 _id AS id,
 name,
 sort AS `order`,
-flags
+flags,
+version,
+uid,
+last_modified_at
 FROM categories
 ORDER BY sort;
 
@@ -40,15 +59,18 @@ SELECT
 C._id AS id,
 C.name,
 C.sort AS `order`,
-C.flags
+C.flags,
+C.version,
+C.uid,
+C.last_modified_at
 FROM categories C
 JOIN mangas_categories MC
 ON C._id = MC.category_id
 WHERE MC.manga_id = :mangaId;
 
 insert:
-INSERT INTO categories(name, sort, flags, manga_order)
-VALUES (:name, :order, :flags, "");
+INSERT INTO categories(name, sort, flags, manga_order, version, uid, last_modified_at)
+VALUES (:name, :order, :flags, "", :version, :uid, :last_modified_at);
 
 delete:
 DELETE FROM categories
@@ -58,7 +80,10 @@ update:
 UPDATE categories
 SET name = coalesce(:name, name),
     sort = coalesce(:order, sort),
-    flags = coalesce(:flags, flags)
+    flags = coalesce(:flags, flags),
+    version = coalesce(:version, version),
+    uid = coalesce(:uid, uid),
+    last_modified_at = coalesce(:last_modified_at, last_modified_at)
 WHERE _id = :categoryId;
 
 updateAllFlags:
