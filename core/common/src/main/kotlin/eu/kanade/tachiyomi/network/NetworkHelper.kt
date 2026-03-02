@@ -72,7 +72,7 @@ open /* SY <-- */ class NetworkHelper(
     /* SY --> */
     open /* SY <-- */ val client = clientBuilder
         .addInterceptor(
-            CloudflareInterceptor(context, cookieJar, ::defaultUserAgentProvider),
+            CloudflareInterceptor(context, cookieJar, preferences,::defaultUserAgentProvider),
         )
         .build()
 
