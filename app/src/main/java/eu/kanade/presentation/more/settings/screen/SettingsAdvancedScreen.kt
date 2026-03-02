@@ -3,6 +3,7 @@ package eu.kanade.presentation.more.settings.screen
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import android.webkit.WebStorage
 import android.webkit.WebView
@@ -85,7 +86,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import okhttp3.Headers
@@ -349,12 +350,12 @@ object SettingsAdvancedScreen : SearchableSettings {
                     },
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = enableFlareSolverrPref,
+                    preference = enableFlareSolverrPref,
                     title = stringResource(MR.strings.pref_enable_flare_solverr),
-                    subtitle = stringResource(MR.strings.pref_enable_flare_solverr_summary)
+                    subtitle = stringResource(MR.strings.pref_enable_flare_solverr_summary),
                 ),
                 Preference.PreferenceItem.EditTextPreference(
-                    pref = flareSolverrUrlPref,
+                    preference = flareSolverrUrlPref,
                     title = stringResource(MR.strings.pref_flare_solverr_url),
                     enabled = enableFlareSolverr,
                     subtitle = stringResource(MR.strings.pref_flare_solverr_url_summary),
@@ -368,7 +369,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                             testFlareSolverrAndUpdateUserAgent(flareSolverrUrlPref, userAgentPref, context)
                         }
                     },
-                )
+                ),
 
             ),
         )
@@ -887,10 +888,11 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
+    @OptIn(InternalSerializationApi::class)
     private suspend fun testFlareSolverrAndUpdateUserAgent(
         flareSolverrUrlPref: BasePreference<String>,
         userAgentPref: BasePreference<String>,
-        context: android.content.Context
+        context: android.content.Context,
     ) {
         val json: Json by injectLazy()
         val jsonMediaType = "application/json".toMediaType()
@@ -899,22 +901,22 @@ object SettingsAdvancedScreen : SearchableSettings {
         try {
             withContext(Dispatchers.IO) {
                 val flareSolverUrl = flareSolverrUrlPref.get().trim()
-               val flareSolverResponse = with(json) {
-                   client.newCall(
-                       POST(
-                           url = flareSolverUrl,
-                           body =
-                           Json.encodeToString(
-                               FlareSolverrInterceptor.CFClearance.FlareSolverRequest(
-                                   "request.get",
-                                   "https://www.google.com/",
-                                   returnOnlyCookies = true,
-                                   maxTimeout = 60000,
-                               ),
-                           ).toRequestBody(jsonMediaType),
-                       ),
-                   ).awaitSuccess().parseAs<FlareSolverrInterceptor.CFClearance.FlareSolverResponse>()
-               }
+                val flareSolverResponse = with(json) {
+                    client.newCall(
+                        POST(
+                            url = flareSolverUrl,
+                            body =
+                            Json.encodeToString(
+                                FlareSolverrInterceptor.CFClearance.FlareSolverRequest(
+                                    "request.get",
+                                    "https://www.google.com/",
+                                    returnOnlyCookies = true,
+                                    maxTimeout = 60000,
+                                ),
+                            ).toRequestBody(jsonMediaType),
+                        ),
+                    ).awaitSuccess().parseAs<FlareSolverrInterceptor.CFClearance.FlareSolverResponse>()
+                }
 
                 if (flareSolverResponse.solution.status in 200..299) {
                     // Set the user agent to the one provided by FlareSolverr
@@ -932,7 +934,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                 }
             }
         } catch (e: Exception) {
-            logcat (LogPriority.ERROR, tag = "FlareSolverr")
+            logcat(LogPriority.ERROR, tag = "FlareSolverr")
             { "Failed to resolve with FlareSolverr: ${e.message}" }
             withContext(Dispatchers.Main) {
                 context.toast(SYMR.strings.flare_solver_error)
