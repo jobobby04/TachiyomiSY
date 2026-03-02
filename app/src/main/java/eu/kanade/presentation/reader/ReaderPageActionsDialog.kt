@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Share
@@ -31,9 +32,9 @@ fun ReaderPageActionsDialog(
     onDismissRequest: () -> Unit,
     // SY -->
     onSetAsCover: (useExtraPage: Boolean) -> Unit,
-    onShare: (useExtraPage: Boolean) -> Unit,
+    onShare: (copy: Boolean, useExtraPage: Boolean) -> Unit,
     onSave: (useExtraPage: Boolean) -> Unit,
-    onShareCombined: () -> Unit,
+    onShareCombined: (copy: Boolean) -> Unit,
     onSaveCombined: () -> Unit,
     hasExtraPage: Boolean,
     // SY <--
@@ -67,6 +68,25 @@ fun ReaderPageActionsDialog(
                     title = stringResource(
                         // SY -->
                         if (hasExtraPage) {
+                            SYMR.strings.action_copy_first_page
+                        } else {
+                            MR.strings.action_copy_to_clipboard
+                        },
+                        // SY <--
+                    ),
+                    icon = Icons.Outlined.ContentCopy,
+                    onClick = {
+                        // SY -->
+                        onShare(true, false)
+                        // SY <--
+                        onDismissRequest()
+                    },
+                )
+                ActionButton(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(
+                        // SY -->
+                        if (hasExtraPage) {
                             SYMR.strings.action_share_first_page
                         } else {
                             MR.strings.action_share
@@ -76,7 +96,7 @@ fun ReaderPageActionsDialog(
                     icon = Icons.Outlined.Share,
                     onClick = {
                         // SY -->
-                        onShare(false)
+                        onShare(false, false)
                         // SY <--
                         onDismissRequest()
                     },
@@ -116,10 +136,19 @@ fun ReaderPageActionsDialog(
                     )
                     ActionButton(
                         modifier = Modifier.weight(1f),
+                        title = stringResource(SYMR.strings.action_copy_second_page),
+                        icon = Icons.Outlined.ContentCopy,
+                        onClick = {
+                            onShare(true, true)
+                            onDismissRequest()
+                        },
+                    )
+                    ActionButton(
+                        modifier = Modifier.weight(1f),
                         title = stringResource(SYMR.strings.action_share_second_page),
                         icon = Icons.Outlined.Share,
                         onClick = {
-                            onShare(true)
+                            onShare(false, true)
                             onDismissRequest()
                         },
                     )
@@ -138,10 +167,19 @@ fun ReaderPageActionsDialog(
                 ) {
                     ActionButton(
                         modifier = Modifier.weight(1f),
+                        title = stringResource(SYMR.strings.action_copy_combined_page),
+                        icon = Icons.Outlined.ContentCopy,
+                        onClick = {
+                            onShareCombined(true)
+                            onDismissRequest()
+                        },
+                    )
+                    ActionButton(
+                        modifier = Modifier.weight(1f),
                         title = stringResource(SYMR.strings.action_share_combined_page),
                         icon = Icons.Outlined.Share,
                         onClick = {
-                            onShareCombined()
+                            onShareCombined(false)
                             onDismissRequest()
                         },
                     )

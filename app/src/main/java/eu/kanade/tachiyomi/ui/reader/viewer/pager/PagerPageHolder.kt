@@ -2,8 +2,10 @@ package eu.kanade.tachiyomi.ui.reader.viewer.pager
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import androidx.core.view.isVisible
+import eu.kanade.presentation.util.formattedMessage
 import eu.kanade.tachiyomi.databinding.ReaderErrorBinding
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.InsertPage
@@ -21,12 +23,14 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.decoder.ImageDecoder
+import tachiyomi.i18n.MR
 import kotlin.math.max
 
 /**
@@ -49,7 +53,7 @@ class PagerPageHolder(
     /**
      * Loading progress bar to indicate the current progress.
      */
-    private val progressIndicator: ReaderProgressIndicator = ReaderProgressIndicator(readerThemedContext)
+    private var progressIndicator: ReaderProgressIndicator? = null // = ReaderProgressIndicator(readerThemedContext)
 
     /**
      * Error layout to show when the image fails to load.
@@ -69,7 +73,6 @@ class PagerPageHolder(
     private var extraLoadJob: Job? = null
 
     init {
-        addView(progressIndicator)
         loadJob = scope.launch { loadPageAndProcessStatus(1) }
         extraLoadJob = scope.launch { loadPageAndProcessStatus(2) }
     }
@@ -84,6 +87,13 @@ class PagerPageHolder(
         loadJob = null
         extraLoadJob?.cancel()
         extraLoadJob = null
+    }
+
+    private fun initProgressIndicator() {
+        if (progressIndicator == null) {
+            progressIndicator = ReaderProgressIndicator(context)
+            addView(progressIndicator)
+        }
     }
 
     /**
@@ -105,16 +115,16 @@ class PagerPageHolder(
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
-                    Page.State.QUEUE -> setQueued()
-                    Page.State.LOAD_PAGE -> setLoading()
-                    Page.State.DOWNLOAD_IMAGE -> {
+                    Page.State.Queue -> setQueued()
+                    Page.State.LoadPage -> setLoading()
+                    Page.State.DownloadImage -> {
                         setDownloading()
                         page.progressFlow.collectLatest { value ->
-                            progressIndicator.setProgress(value)
+                            progressIndicator?.setProgress(value)
                         }
                     }
-                    Page.State.READY -> setImage()
-                    Page.State.ERROR -> setError()
+                    Page.State.Ready -> setImage()
+                    is Page.State.Error -> setError(state.error)
                 }
             }
         }
@@ -124,7 +134,8 @@ class PagerPageHolder(
      * Called when the page is queued.
      */
     private fun setQueued() {
-        progressIndicator.show()
+        initProgressIndicator()
+        progressIndicator?.show()
         removeErrorLayout()
     }
 
@@ -132,7 +143,8 @@ class PagerPageHolder(
      * Called when the page is loading.
      */
     private fun setLoading() {
-        progressIndicator.show()
+        initProgressIndicator()
+        progressIndicator?.show()
         removeErrorLayout()
     }
 
@@ -140,7 +152,8 @@ class PagerPageHolder(
      * Called when the page is downloading.
      */
     private fun setDownloading() {
-        progressIndicator.show()
+        initProgressIndicator()
+        progressIndicator?.show()
         removeErrorLayout()
     }
 
@@ -149,9 +162,9 @@ class PagerPageHolder(
      */
     private suspend fun setImage() {
         if (extraPage == null) {
-            progressIndicator.setProgress(0)
+            progressIndicator?.setProgress(0)
         } else {
-            progressIndicator.setProgress(95)
+            progressIndicator?.setProgress(95)
         }
 
         val streamFn = page.stream ?: return
@@ -203,7 +216,7 @@ class PagerPageHolder(
         } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e)
             withUIContext {
-                setError()
+                setError(e)
             }
         }
     }
@@ -244,16 +257,7 @@ class PagerPageHolder(
     private fun mergePages(imageSource: BufferedSource, imageSource2: BufferedSource?): BufferedSource {
         // Handle adding a center margin to wide images if requested
         if (imageSource2 == null) {
-            return if (
-                !ImageUtil.isAnimatedAndSupported(imageSource) &&
-                ImageUtil.isWideImage(imageSource) &&
-                viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0 &&
-                !viewer.config.imageCropBorders
-            ) {
-                ImageUtil.addHorizontalCenterMargin(imageSource, height, context)
-            } else {
-                imageSource
-            }
+            return handleWideImage(imageSource)
         }
 
         if (page.fullPage) return imageSource
@@ -268,12 +272,7 @@ class PagerPageHolder(
             return imageSource
         }
 
-        val imageBitmap = try {
-            ImageDecoder.newInstance(imageSource.inputStream())?.decode()
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e) { "Cannot combine pages" }
-            null
-        }
+        val imageBitmap = decodeImage(imageSource)
         if (imageBitmap == null) {
             imageSource2.close()
             page.fullPage = true
@@ -281,23 +280,16 @@ class PagerPageHolder(
             logcat(LogPriority.ERROR) { "Cannot combine pages" }
             return imageSource
         }
-        scope.launch { progressIndicator.setProgress(96) }
-        val height = imageBitmap.height
-        val width = imageBitmap.width
 
-        if (height < width) {
+        scope.launch { progressIndicator?.setProgress(96) }
+        if (imageBitmap.height < imageBitmap.width) {
             imageSource2.close()
             page.fullPage = true
             splitDoublePages()
             return imageSource
         }
 
-        val imageBitmap2 = try {
-            ImageDecoder.newInstance(imageSource2.inputStream())?.decode()
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e) { "Cannot combine pages" }
-            null
-        }
+        val imageBitmap2 = decodeImage(imageSource2)
         if (imageBitmap2 == null) {
             imageSource2.close()
             extraPage?.fullPage = true
@@ -306,35 +298,65 @@ class PagerPageHolder(
             logcat(LogPriority.ERROR) { "Cannot combine pages" }
             return imageSource
         }
-        scope.launch { progressIndicator.setProgress(97) }
-        val height2 = imageBitmap2.height
-        val width2 = imageBitmap2.width
 
-        if (height2 < width2) {
+        scope.launch { progressIndicator?.setProgress(97) }
+        if (imageBitmap2.height < imageBitmap2.width) {
             imageSource2.close()
             extraPage?.fullPage = true
             page.isolatedPage = true
             splitDoublePages()
             return imageSource
         }
+
         val isLTR = (viewer !is R2LPagerViewer) xor viewer.config.invertDoublePages
+        val centerMargin = calculateCenterMargin(imageBitmap.height, imageBitmap2.height)
 
         imageSource.close()
         imageSource2.close()
 
-        val centerMargin = if (viewer.config.centerMarginType and PagerConfig.CenterMarginType.DOUBLE_PAGE_CENTER_MARGIN > 0 && !viewer.config.imageCropBorders) {
+        return ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, centerMargin, viewer.config.pageCanvasColor) {
+            updateProgress(it)
+        }
+    }
+
+    private fun handleWideImage(imageSource: BufferedSource): BufferedSource {
+        return if (
+            !ImageUtil.isAnimatedAndSupported(imageSource) &&
+            ImageUtil.isWideImage(imageSource) &&
+            viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0 &&
+            !viewer.config.imageCropBorders
+        ) {
+            ImageUtil.addHorizontalCenterMargin(imageSource, height, context)
+        } else {
+            imageSource
+        }
+    }
+
+    private fun decodeImage(imageSource: BufferedSource): Bitmap? {
+        return try {
+            ImageDecoder.newInstance(imageSource.inputStream())?.decode()
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Cannot decode image" }
+            null
+        }
+    }
+
+    private fun calculateCenterMargin(height: Int, height2: Int): Int {
+        return if (viewer.config.centerMarginType and PagerConfig.CenterMarginType.DOUBLE_PAGE_CENTER_MARGIN > 0 &&
+            !viewer.config.imageCropBorders
+        ) {
             96 / (this.height.coerceAtLeast(1) / max(height, height2).coerceAtLeast(1)).coerceAtLeast(1)
         } else {
             0
         }
+    }
 
-        return ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, centerMargin, viewer.config.pageCanvasColor) {
-            scope.launch {
-                if (it == 100) {
-                    progressIndicator.hide()
-                } else {
-                    progressIndicator.setProgress(it)
-                }
+    private fun updateProgress(progress: Int) {
+        scope.launch {
+            if (progress == 100) {
+                progressIndicator?.hide()
+            } else {
+                progressIndicator?.setProgress(progress)
             }
         }
     }
@@ -365,8 +387,10 @@ class PagerPageHolder(
             }
         }
 
-        val sideMargin = if ((viewer.config.centerMarginType and PagerConfig.CenterMarginType.DOUBLE_PAGE_CENTER_MARGIN) > 0 &&
-            viewer.config.doublePages && !viewer.config.imageCropBorders
+        val sideMargin = if ((viewer.config.centerMarginType and PagerConfig.CenterMarginType.DOUBLE_PAGE_CENTER_MARGIN) >
+            0 &&
+            viewer.config.doublePages &&
+            !viewer.config.imageCropBorders
         ) {
             48
         } else {
@@ -384,22 +408,22 @@ class PagerPageHolder(
     /**
      * Called when the page has an error.
      */
-    private fun setError() {
-        progressIndicator.hide()
-        showErrorLayout()
+    private fun setError(error: Throwable?) {
+        progressIndicator?.hide()
+        showErrorLayout(error)
     }
 
     override fun onImageLoaded() {
         super.onImageLoaded()
-        progressIndicator.hide()
+        progressIndicator?.hide()
     }
 
     /**
      * Called when an image fails to decode.
      */
-    override fun onImageLoadError() {
-        super.onImageLoadError()
-        setError()
+    override fun onImageLoadError(error: Throwable?) {
+        super.onImageLoadError(error)
+        setError(error)
     }
 
     /**
@@ -410,7 +434,7 @@ class PagerPageHolder(
         viewer.activity.hideMenu()
     }
 
-    private fun showErrorLayout(): ReaderErrorBinding {
+    private fun showErrorLayout(error: Throwable?): ReaderErrorBinding {
         if (errorLayout == null) {
             errorLayout = ReaderErrorBinding.inflate(LayoutInflater.from(context), this, true)
             errorLayout?.actionRetry?.viewer = viewer
@@ -425,11 +449,16 @@ class PagerPageHolder(
             if (imageUrl.startsWith("http", true)) {
                 errorLayout?.actionOpenInWebView?.viewer = viewer
                 errorLayout?.actionOpenInWebView?.setOnClickListener {
-                    val intent = WebViewActivity.newIntent(context, imageUrl)
+                    val sourceId = viewer.activity.viewModel.manga?.source
+
+                    val intent = WebViewActivity.newIntent(context, imageUrl, sourceId)
                     context.startActivity(intent)
                 }
             }
         }
+
+        errorLayout?.errorMessage?.text = with(context) { error?.formattedMessage }
+            ?: context.stringResource(MR.strings.decode_image_error)
 
         errorLayout?.root?.isVisible = true
         return errorLayout!!

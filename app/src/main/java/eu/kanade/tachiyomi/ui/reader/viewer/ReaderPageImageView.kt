@@ -19,6 +19,7 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.os.postDelayed
 import androidx.core.view.isVisible
 import coil3.BitmapImage
+import coil3.asDrawable
 import coil3.dispose
 import coil3.imageLoader
 import coil3.request.CachePolicy
@@ -32,13 +33,16 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_IN_OUT
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_OUT_QUAD
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
 import com.github.chrisbanes.photoview.PhotoView
+import eu.kanade.domain.base.BasePreferences
 import eu.kanade.tachiyomi.data.coil.cropBorders
 import eu.kanade.tachiyomi.data.coil.customDecoder
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonSubsamplingImageView
-import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.view.isVisibleOnScreen
 import okio.BufferedSource
+import tachiyomi.core.common.util.system.ImageUtil
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 /**
  * A wrapper view for showing page image.
@@ -56,12 +60,16 @@ open class ReaderPageImageView @JvmOverloads constructor(
     private val isWebtoon: Boolean = false,
 ) : FrameLayout(context, attrs, defStyleAttrs, defStyleRes) {
 
+    private val alwaysDecodeLongStripWithSSIV by lazy {
+        Injekt.get<BasePreferences>().alwaysDecodeLongStripWithSSIV().get()
+    }
+
     private var pageView: View? = null
 
     private var config: Config? = null
 
     var onImageLoaded: (() -> Unit)? = null
-    var onImageLoadError: (() -> Unit)? = null
+    var onImageLoadError: ((Throwable?) -> Unit)? = null
     var onScaleChanged: ((newScale: Float) -> Unit)? = null
     var onViewClicked: (() -> Unit)? = null
 
@@ -77,8 +85,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
     }
 
     @CallSuper
-    open fun onImageLoadError() {
-        onImageLoadError?.invoke()
+    open fun onImageLoadError(error: Throwable?) {
+        onImageLoadError?.invoke(error)
     }
 
     @CallSuper
@@ -106,7 +114,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                         }
 
                         override fun onImageLoadError(e: Exception) {
-                            onImageLoadError()
+                            onImageLoadError(e)
                         }
                     },
                 )
@@ -115,16 +123,22 @@ open class ReaderPageImageView @JvmOverloads constructor(
     }
 
     private fun SubsamplingScaleImageView.landscapeZoom(forward: Boolean) {
-        if (config != null && config!!.landscapeZoom && config!!.minimumScaleType == SCALE_TYPE_CENTER_INSIDE && sWidth > sHeight && scale == minScale) {
+        val config = config
+        if (config != null &&
+            config.landscapeZoom &&
+            config.minimumScaleType == SCALE_TYPE_CENTER_INSIDE &&
+            sWidth > sHeight &&
+            scale == minScale
+        ) {
             handler?.postDelayed(500) {
-                val point = when (config!!.zoomStartPosition) {
+                val point = when (config.zoomStartPosition) {
                     ZoomStartPosition.LEFT -> if (forward) PointF(0F, 0F) else PointF(sWidth.toFloat(), 0F)
                     ZoomStartPosition.RIGHT -> if (forward) PointF(sWidth.toFloat(), 0F) else PointF(0F, 0F)
                     ZoomStartPosition.CENTER -> center
                 }
 
                 val targetScale = height.toFloat() / sHeight.toFloat()
-                animateScaleAndCenter(targetScale, point)!!
+                (animateScaleAndCenter(targetScale, point) ?: return@postDelayed)
                     .withDuration(500)
                     .withEasing(EASE_IN_OUT_QUAD)
                     .withInterruptible(true)
@@ -226,7 +240,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         } else {
             SubsamplingScaleImageView(context)
         }.apply {
-            setMaxTileSize(GLUtil.maxTextureSize)
+            setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
@@ -276,40 +290,51 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 }
 
                 override fun onImageLoadError(e: Exception) {
-                    this@ReaderPageImageView.onImageLoadError()
+                    this@ReaderPageImageView.onImageLoadError(e)
                 }
             },
         )
 
-        if (isWebtoon) {
-            val request = ImageRequest.Builder(context)
-                .data(data)
-                .memoryCachePolicy(CachePolicy.DISABLED)
-                .diskCachePolicy(CachePolicy.DISABLED)
-                .target(
-                    onSuccess = { result ->
-                        val image = result as BitmapImage
-                        setImage(ImageSource.bitmap(image.bitmap))
-                        isVisible = true
-                    },
-                    onError = {
-                        this@ReaderPageImageView.onImageLoadError()
-                    },
-                )
-                .size(ViewSizeResolver(this@ReaderPageImageView))
-                .precision(Precision.INEXACT)
-                .cropBorders(config.cropBorders)
-                .customDecoder(true)
-                .crossfade(false)
-                .build()
-            context.imageLoader.enqueue(request)
-        } else {
-            when (data) {
-                is BitmapDrawable -> setImage(ImageSource.bitmap(data.bitmap))
-                is BufferedSource -> setImage(ImageSource.inputStream(data.inputStream()))
-                else -> throw IllegalArgumentException("Not implemented for class ${data::class.simpleName}")
+        when (data) {
+            is BitmapDrawable -> {
+                setImage(ImageSource.bitmap(data.bitmap))
+                isVisible = true
             }
-            isVisible = true
+            is BufferedSource -> {
+                if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
+                    setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
+                    setImage(ImageSource.inputStream(data.inputStream()))
+                    isVisible = true
+                    return@apply
+                }
+
+                ImageRequest.Builder(context)
+                    .data(data)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .diskCachePolicy(CachePolicy.DISABLED)
+                    .target(
+                        onSuccess = { result ->
+                            val image = result as BitmapImage
+                            setImage(ImageSource.bitmap(image.bitmap))
+                            isVisible = true
+                        },
+                    )
+                    .listener(
+                        onError = { _, result ->
+                            onImageLoadError(result.throwable)
+                        },
+                    )
+                    .size(ViewSizeResolver(this@ReaderPageImageView))
+                    .precision(Precision.INEXACT)
+                    .cropBorders(config.cropBorders)
+                    .customDecoder(true)
+                    .crossfade(false)
+                    .build()
+                    .let(context.imageLoader::enqueue)
+            }
+            else -> {
+                throw IllegalArgumentException("Not implemented for class ${data::class.simpleName}")
+            }
         }
     }
 
@@ -372,8 +397,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     isVisible = true
                     this@ReaderPageImageView.onImageLoaded()
                 },
-                onError = {
-                    this@ReaderPageImageView.onImageLoadError()
+            )
+            .listener(
+                onError = { _, result ->
+                    onImageLoadError(result.throwable)
                 },
             )
             .crossfade(false)
@@ -397,7 +424,9 @@ open class ReaderPageImageView @JvmOverloads constructor(
     )
 
     enum class ZoomStartPosition {
-        LEFT, CENTER, RIGHT
+        LEFT,
+        CENTER,
+        RIGHT,
     }
 }
 

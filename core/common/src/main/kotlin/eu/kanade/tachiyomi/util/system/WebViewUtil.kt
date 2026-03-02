@@ -13,7 +13,8 @@ import tachiyomi.core.common.util.system.logcat
 import kotlin.coroutines.resume
 
 object WebViewUtil {
-    const val SPOOF_PACKAGE_NAME = "org.chromium.chrome"
+    private const val CHROME_PACKAGE = "com.android.chrome"
+    private const val SYSTEM_SETTINGS_PACKAGE = "com.android.settings"
 
     const val MINIMUM_WEBVIEW_VERSION = 118
 
@@ -38,7 +39,7 @@ object WebViewUtil {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val webView = WebView.getCurrentWebViewPackage() ?: return "how did you get here?"
             val pm = context.packageManager
-            val label = webView.applicationInfo.loadLabel(pm)
+            val label = webView.applicationInfo!!.loadLabel(pm)
             val version = webView.versionName
             "$label $version"
         } else {
@@ -58,6 +59,16 @@ object WebViewUtil {
 
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_WEBVIEW)
     }
+
+    fun spoofedPackageName(context: Context): String {
+        return try {
+            context.packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_META_DATA)
+
+            CHROME_PACKAGE
+        } catch (_: PackageManager.NameNotFoundException) {
+            SYSTEM_SETTINGS_PACKAGE
+        }
+    }
 }
 
 fun WebView.isOutdated(): Boolean {
@@ -73,10 +84,12 @@ fun WebView.setDefaultSettings() {
     with(settings) {
         javaScriptEnabled = true
         domStorageEnabled = true
-        databaseEnabled = true
         useWideViewPort = true
         loadWithOverviewMode = true
         cacheMode = WebSettings.LOAD_DEFAULT
+
+        // Handle popups properly
+        setSupportMultipleWindows(true)
 
         // Allow zooming
         setSupportZoom(true)

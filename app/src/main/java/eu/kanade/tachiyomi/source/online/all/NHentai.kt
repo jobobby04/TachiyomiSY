@@ -70,7 +70,9 @@ class NHentai(delegate: HttpSource, val context: Context) :
     }
 
     override suspend fun parseIntoMetadata(metadata: NHentaiSearchMetadata, input: Response) {
-        val json = GALLERY_JSON_REGEX.find(input.body.string())!!.groupValues[1].replace(
+        val body = input.body.string()
+        val server = MEDIA_SERVER_REGEX.find(body)?.groupValues?.get(1)?.toInt() ?: 1
+        val json = GALLERY_JSON_REGEX.find(body)!!.groupValues[1].replace(
             UNICODE_ESCAPE_REGEX,
         ) { it.groupValues[1].toInt(radix = 16).toChar().toString() }
         val jsonResponse = jsonParser.decodeFromString<JsonResponse>(json)
@@ -83,6 +85,8 @@ class NHentai(delegate: HttpSource, val context: Context) :
             favoritesCount = jsonResponse.numFavorites
 
             mediaId = jsonResponse.mediaId
+
+            mediaServer = server
 
             jsonResponse.title?.let { title ->
                 japaneseTitle = title.japanese
@@ -190,17 +194,24 @@ class NHentai(delegate: HttpSource, val context: Context) :
         return PagePreviewPage(
             page,
             metadata.pageImageTypes.mapIndexed { index, s ->
-                PagePreviewInfo(index + 1, imageUrl = thumbnailUrlFromType(metadata.mediaId!!, index + 1, s)!!)
+                PagePreviewInfo(
+                    index + 1,
+                    imageUrl = thumbnailUrlFromType(metadata.mediaId!!, metadata.mediaServer ?: 1, index + 1, s)!!,
+                )
             },
             false,
             1,
         )
     }
 
-    private fun thumbnailUrlFromType(mediaId: String, page: Int, t: String) =
-        NHentaiSearchMetadata.typeToExtension(t)?.let {
-            "https://t3.nhentai.net/galleries/$mediaId/${page}t.$it"
-        }
+    private fun thumbnailUrlFromType(
+        mediaId: String,
+        mediaServer: Int,
+        page: Int,
+        t: String,
+    ) = NHentaiSearchMetadata.typeToExtension(t)?.let {
+        "https://t$mediaServer.nhentai.net/galleries/$mediaId/${page}t.$it"
+    }
 
     override suspend fun fetchPreviewImage(page: PagePreviewInfo, cacheControl: CacheControl?): Response {
         return client.newCachelessCallWithProgress(
@@ -221,6 +232,7 @@ class NHentai(delegate: HttpSource, val context: Context) :
         }
 
         private val GALLERY_JSON_REGEX = Regex(".parse\\(\"(.*)\"\\);")
+        private val MEDIA_SERVER_REGEX = Regex("media_server\\s*:\\s*(\\d+)")
         private val UNICODE_ESCAPE_REGEX = Regex("\\\\u([0-9a-fA-F]{4})")
         private const val TITLE_PREF = "Display manga title as:"
     }

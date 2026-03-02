@@ -6,7 +6,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
@@ -27,7 +26,6 @@ import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.update
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.LazyColumnWithAction
 import tachiyomi.presentation.core.components.SectionCard
@@ -69,7 +67,7 @@ class CreateBackupScreen : Screen() {
             LazyColumnWithAction(
                 contentPadding = contentPadding,
                 actionLabel = stringResource(MR.strings.action_create),
-                actionEnabled = state.options.anyEnabled(),
+                actionEnabled = state.options.canCreate(),
                 onClickAction = {
                     if (!BackupCreateJob.isManualJobRunning(context)) {
                         try {
@@ -104,7 +102,7 @@ class CreateBackupScreen : Screen() {
     }
 
     @Composable
-    private fun ColumnScope.Options(
+    private fun Options(
         options: ImmutableList<BackupOptions.Entry>,
         state: CreateBackupScreenModel.State,
         model: CreateBackupScreenModel,

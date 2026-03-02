@@ -21,6 +21,7 @@ import eu.kanade.core.preference.asState
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.updates.UpdateScreen
 import eu.kanade.presentation.updates.UpdatesDeleteConfirmationDialog
+import eu.kanade.presentation.updates.UpdatesFilterDialog
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
@@ -37,7 +38,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-object UpdatesTab : Tab {
+data object UpdatesTab : Tab {
 
     override val options: TabOptions
         @Composable
@@ -70,6 +71,7 @@ object UpdatesTab : Tab {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel { UpdatesScreenModel() }
+        val settingsScreenModel = rememberScreenModel { UpdatesSettingsScreenModel() }
         val state by screenModel.state.collectAsState()
 
         UpdateScreen(
@@ -93,6 +95,8 @@ object UpdatesTab : Tab {
                 context.startActivity(intent)
             },
             onCalendarClicked = { navigator.push(UpcomingScreen()) },
+            onFilterClicked = screenModel::showFilterDialog,
+            hasActiveFilters = state.hasActiveFilters,
         )
 
         val onDismissDialog = { screenModel.setDialog(null) }
@@ -101,6 +105,12 @@ object UpdatesTab : Tab {
                 UpdatesDeleteConfirmationDialog(
                     onDismissRequest = onDismissDialog,
                     onConfirm = { screenModel.deleteChapters(dialog.toDelete) },
+                )
+            }
+            is UpdatesScreenModel.Dialog.FilterSheet -> {
+                UpdatesFilterDialog(
+                    onDismissRequest = onDismissDialog,
+                    screenModel = settingsScreenModel,
                 )
             }
             null -> {}

@@ -1,5 +1,6 @@
 package tachiyomi.domain.manga.model
 
+import androidx.compose.runtime.Immutable
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
 import tachiyomi.core.common.preference.TriState
@@ -8,6 +9,7 @@ import uy.kohesive.injekt.injectLazy
 import java.io.Serializable
 import java.time.Instant
 
+@Immutable
 data class Manga(
     val id: Long,
     val source: Long,
@@ -34,6 +36,7 @@ data class Manga(
     val lastModifiedAt: Long,
     val favoriteModifiedAt: Long?,
     val version: Long,
+    val notes: String,
 ) : Serializable {
 
     // SY -->
@@ -161,6 +164,7 @@ data class Manga(
             lastModifiedAt = 0L,
             favoriteModifiedAt = null,
             version = 0L,
+            notes = "",
         )
 
         // SY -->

@@ -48,6 +48,7 @@ import eu.kanade.presentation.browse.components.ExtensionIcon
 import eu.kanade.presentation.components.WarningBanner
 import eu.kanade.presentation.manga.components.DotSeparatorNoSpaceText
 import eu.kanade.presentation.more.settings.screen.browse.ExtensionReposScreen
+import eu.kanade.presentation.util.animateItemFastScroll
 import eu.kanade.presentation.util.rememberRequestPackageInstallsPermissionState
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
@@ -91,7 +92,7 @@ fun ExtensionScreen(
     PullRefresh(
         refreshing = state.isRefreshing,
         onRefresh = onRefresh,
-        enabled = { !state.isLoading },
+        enabled = !state.isLoading,
     ) {
         when {
             state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
@@ -188,14 +189,14 @@ private fun ExtensionContent(
                             }
                         ExtensionHeader(
                             textRes = header.textRes,
-                            modifier = Modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItemFastScroll(),
                             action = action,
                         )
                     }
                     is ExtensionUiModel.Header.Text -> {
                         ExtensionHeader(
                             text = header.text,
-                            modifier = Modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItemFastScroll(),
                         )
                     }
                 }
@@ -213,13 +214,15 @@ private fun ExtensionContent(
                 },
             ) { item ->
                 ExtensionItem(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItemFastScroll(),
                     item = item,
                     onClickItem = {
                         when (it) {
                             is Extension.Available -> onInstallExtension(it)
                             is Extension.Installed -> onOpenExtension(it)
-                            is Extension.Untrusted -> { trustState = it }
+                            is Extension.Untrusted -> {
+                                trustState = it
+                            }
                         }
                     },
                     onLongClickItem = onLongClickItem,
@@ -241,7 +244,9 @@ private fun ExtensionContent(
                                     onOpenExtension(it)
                                 }
                             }
-                            is Extension.Untrusted -> { trustState = it }
+                            is Extension.Untrusted -> {
+                                trustState = it
+                            }
                         }
                     },
                 )
@@ -346,13 +351,17 @@ private fun ExtensionItemContent(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
         ) {
             ProvideTextStyle(value = MaterialTheme.typography.bodySmall) {
+                var hasAlreadyShownAnElement by remember { mutableStateOf(false) }
                 if (extension is Extension.Installed && extension.lang.isNotEmpty()) {
+                    hasAlreadyShownAnElement = true
                     Text(
                         text = LocaleHelper.getSourceDisplayName(extension.lang, LocalContext.current),
                     )
                 }
 
                 if (extension.versionName.isNotEmpty()) {
+                    if (hasAlreadyShownAnElement) DotSeparatorNoSpaceText()
+                    hasAlreadyShownAnElement = true
                     Text(
                         text = extension.versionName,
                     )
@@ -368,11 +377,19 @@ private fun ExtensionItemContent(
                     else -> null
                 }
                 if (warning != null) {
+                    if (hasAlreadyShownAnElement) DotSeparatorNoSpaceText()
+                    hasAlreadyShownAnElement = true
                     Text(
                         text = stringResource(warning).uppercase(),
                         color = MaterialTheme.colorScheme.error,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (extension is Extension.Installed && !extension.isShared) {
+                    if (hasAlreadyShownAnElement) DotSeparatorNoSpaceText()
+                    Text(
+                        text = stringResource(MR.strings.ext_installer_private),
                     )
                 }
 

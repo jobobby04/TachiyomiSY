@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -154,7 +155,7 @@ fun AutoCompleteTextField(
                 null
             },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .runOnEnterKeyPressed { submit() },
             singleLine = true,
@@ -189,7 +190,7 @@ fun AutoCompleteTextField(
         if (value.text.length > 2 && filteredValues.isNotEmpty()) {
             ExposedDropdownMenu(
                 modifier = Modifier
-                    .exposedDropdownSize(matchTextFieldWidth = true),
+                    .exposedDropdownSize(matchAnchorWidth = true),
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
             ) {

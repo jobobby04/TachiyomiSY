@@ -1,17 +1,17 @@
 package eu.kanade.tachiyomi.data.track.anilist
 
-import android.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.DeletableTracker
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALOAuth
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
@@ -42,6 +42,8 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
 
     override val supportsReadingDates: Boolean = true
 
+    override val supportsPrivateTracking: Boolean = true
+
     private val scorePreference = trackPreferences.anilistScoreType()
 
     init {
@@ -54,9 +56,7 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
         }
     }
 
-    override fun getLogo() = R.drawable.ic_tracker_anilist
-
-    override fun getLogoColor() = Color.rgb(18, 25, 35)
+    override fun getLogo() = R.drawable.brand_anilist
 
     override fun getStatusList(): List<Long> {
         return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ, REREADING)
@@ -129,13 +129,15 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
                 0.0 -> "0 ★"
                 else -> "${((score + 10) / 20).toInt()} ★"
             }
+
             POINT_3 -> when {
                 score == 0.0 -> "0"
                 score <= 35 -> "😦"
                 score <= 60 -> "😐"
                 else -> "😊"
             }
-            else -> track.toAnilistScore()
+
+            else -> track.toApiScore()
         }
     }
 
@@ -180,7 +182,7 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
     override suspend fun bind(track: Track, hasReadChapters: Boolean): Track {
         val remoteTrack = api.findLibManga(track, getUsername().toInt())
         return if (remoteTrack != null) {
-            track.copyPersonalFrom(remoteTrack)
+            track.copyPersonalFrom(remoteTrack, copyRemotePrivate = false)
             track.library_id = remoteTrack.library_id
 
             if (track.status != COMPLETED) {
@@ -217,7 +219,7 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
             interceptor.setAuth(oauth)
             val (username, scoreType) = api.getCurrentUser()
             scorePreference.set(scoreType)
-            saveCredentials(username.toString(), oauth.access_token)
+            saveCredentials(username.toString(), oauth.accessToken)
         } catch (e: Throwable) {
             logout()
         }
@@ -229,13 +231,23 @@ class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {
         interceptor.setAuth(null)
     }
 
-    fun saveOAuth(oAuth: OAuth?) {
-        trackPreferences.trackToken(this).set(json.encodeToString(oAuth))
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
+        return api.getMangaMetadata(track)
     }
 
-    fun loadOAuth(): OAuth? {
+    // SY -->
+    override suspend fun searchById(id: String): TrackSearch {
+        return api.searchById(id)
+    }
+    // SY <--
+
+    fun saveOAuth(alOAuth: ALOAuth?) {
+        trackPreferences.trackToken(this).set(json.encodeToString(alOAuth))
+    }
+
+    fun loadOAuth(): ALOAuth? {
         return try {
-            json.decodeFromString<OAuth>(trackPreferences.trackToken(this).get())
+            json.decodeFromString<ALOAuth>(trackPreferences.trackToken(this).get())
         } catch (e: Exception) {
             null
         }

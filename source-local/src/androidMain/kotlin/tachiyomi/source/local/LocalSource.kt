@@ -1,32 +1,28 @@
 package tachiyomi.source.local
 
 import android.content.Context
-import android.os.Build
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
+import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
-import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import eu.kanade.tachiyomi.util.storage.EpubFile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import logcat.LogPriority
-import nl.adaptivity.xmlutil.AndroidXmlReader
+import mihon.core.common.archive.ZipWriter
+import mihon.core.common.archive.archiveReader
+import nl.adaptivity.xmlutil.core.AndroidXmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.core.common.storage.UniFileTempFileManager
-import tachiyomi.core.common.storage.addStreamToZip
 import tachiyomi.core.common.storage.extension
-import tachiyomi.core.common.storage.getCoverStreamFromZip
-import tachiyomi.core.common.storage.getZipInputStream
-import tachiyomi.core.common.storage.isEncryptedZip
 import tachiyomi.core.common.storage.nameWithoutExtension
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.ImageUtil
@@ -50,7 +46,6 @@ import uy.kohesive.injekt.injectLazy
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import kotlin.time.Duration.Companion.days
-import com.github.junrar.Archive as JunrarArchive
 import tachiyomi.domain.source.model.Source as DomainSource
 
 actual class LocalSource(
@@ -64,10 +59,12 @@ actual class LocalSource(
 
     private val json: Json by injectLazy()
     private val xml: XML by injectLazy()
-    private val tempFileManager: UniFileTempFileManager by injectLazy()
 
-    private val POPULAR_FILTERS = FilterList(OrderBy.Popular(context))
-    private val LATEST_FILTERS = FilterList(OrderBy.Latest(context))
+    @Suppress("PrivatePropertyName")
+    private val PopularFilters = FilterList(OrderBy.Popular(context))
+
+    @Suppress("PrivatePropertyName")
+    private val LatestFilters = FilterList(OrderBy.Latest(context))
 
     override val name: String = context.stringResource(MR.strings.local_source)
 
@@ -80,12 +77,12 @@ actual class LocalSource(
     override val supportsLatest: Boolean = true
 
     // Browse related
-    override suspend fun getPopularManga(page: Int) = getSearchManga(page, "", POPULAR_FILTERS)
+    override suspend fun getPopularManga(page: Int) = getSearchManga(page, "", PopularFilters)
 
-    override suspend fun getLatestUpdates(page: Int) = getSearchManga(page, "", LATEST_FILTERS)
+    override suspend fun getLatestUpdates(page: Int) = getSearchManga(page, "", LatestFilters)
 
     override suspend fun getSearchManga(page: Int, query: String, filters: FilterList): MangasPage = withIOContext {
-        val lastModifiedLimit = if (filters === LATEST_FILTERS) {
+        val lastModifiedLimit = if (filters === LatestFilters) {
             System.currentTimeMillis() - LATEST_THRESHOLD
         } else {
             0L
@@ -160,13 +157,14 @@ actual class LocalSource(
         val mangaDirFiles = fileSystem.getFilesInMangaDirectory(manga.url)
         val existingFile = mangaDirFiles
             .firstOrNull { it.name == COMIC_INFO_FILE }
-        val comicInfoArchiveFile = mangaDirFiles
-            .firstOrNull { it.name == COMIC_INFO_ARCHIVE }
-        val existingComicInfo = (existingFile?.openInputStream() ?: comicInfoArchiveFile?.getZipInputStream(COMIC_INFO_FILE))?.use {
-            AndroidXmlReader(it, StandardCharsets.UTF_8.name()).use {
-                xml.decodeFromReader<ComicInfo>(it)
+        val comicInfoArchiveFile = mangaDirFiles.firstOrNull { it.name == COMIC_INFO_ARCHIVE }
+        val comicInfoArchiveReader = comicInfoArchiveFile?.archiveReader(context)
+        val existingComicInfo =
+            (existingFile?.openInputStream() ?: comicInfoArchiveReader?.getInputStream(COMIC_INFO_FILE))?.use {
+                AndroidXmlReader(it, StandardCharsets.UTF_8.name()).use { xmlReader ->
+                    xml.decodeFromReader<ComicInfo>(xmlReader)
+                }
             }
-        }
         val newComicInfo = if (existingComicInfo != null) {
             manga.run {
                 existingComicInfo.copy(
@@ -187,7 +185,8 @@ actual class LocalSource(
         fileSystem.getMangaDirectory(manga.url)?.let {
             copyComicInfoFile(
                 xml.encodeToString(ComicInfo.serializer(), newComicInfo).byteInputStream(),
-                it
+                it,
+                comicInfoArchiveReader?.encrypted ?: false,
             )
         }
     }
@@ -201,8 +200,8 @@ actual class LocalSource(
 
         // Augment manga details based on metadata files
         try {
-            val mangaDir by lazy { fileSystem.getMangaDirectory(manga.url) }
-            val mangaDirFiles = fileSystem.getFilesInMangaDirectory(manga.url)
+            val mangaDir = fileSystem.getMangaDirectory(manga.url) ?: error("${manga.url} is not a valid directory")
+            val mangaDirFiles = mangaDir.listFiles().orEmpty()
 
             val comicInfoFile = mangaDirFiles
                 .firstOrNull { it.name == COMIC_INFO_FILE }
@@ -225,7 +224,7 @@ actual class LocalSource(
                 comicInfoArchiveFile != null -> {
                     noXmlFile?.delete()
 
-                    comicInfoArchiveFile.getZipInputStream(COMIC_INFO_FILE)
+                    comicInfoArchiveFile.archiveReader(context).getInputStream(COMIC_INFO_FILE)
                         ?.let { setMangaDetailsFromComicInfoFile(it, manga) }
                 }
 
@@ -245,7 +244,7 @@ actual class LocalSource(
                     // Replace with ComicInfo.xml file
                     val comicInfo = manga.getComicInfo()
                     mangaDir
-                        ?.createFile(COMIC_INFO_FILE)
+                        .createFile(COMIC_INFO_FILE)
                         ?.openOutputStream()
                         ?.use {
                             val comicInfoString = xml.encodeToString(ComicInfo.serializer(), comicInfo)
@@ -256,21 +255,20 @@ actual class LocalSource(
 
                 // Copy ComicInfo.xml from chapter archive to top level if found
                 noXmlFile == null -> {
-                    val chapterArchives = mangaDirFiles
-                        .filter(Archive::isSupported)
-                        .toList()
+                    val chapterArchives = mangaDirFiles.filter(Archive::isSupported)
 
-                    val copiedFile = mangaDir?.let { copyComicInfoFileFromArchive(chapterArchives, it) }
+                    val copiedFile = copyComicInfoFileFromChapters(chapterArchives, mangaDir)
 
                     // SY -->
                     if (copiedFile != null && copiedFile.name != COMIC_INFO_ARCHIVE) {
                         setMangaDetailsFromComicInfoFile(copiedFile.openInputStream(), manga)
                     } else if (copiedFile != null && copiedFile.name == COMIC_INFO_ARCHIVE) {
-                        copiedFile.getZipInputStream(COMIC_INFO_FILE)?.let { setMangaDetailsFromComicInfoFile(it, manga) }
+                        copiedFile.archiveReader(context).getInputStream(COMIC_INFO_FILE)
+                            ?.let { setMangaDetailsFromComicInfoFile(it, manga) }
                     } // SY <--
                     else {
                         // Avoid re-scanning
-                        mangaDir?.createFile(".noxml")
+                        mangaDir.createFile(".noxml")
                     }
                 }
             }
@@ -281,46 +279,48 @@ actual class LocalSource(
         return@withIOContext manga
     }
 
-    private fun copyComicInfoFileFromArchive(chapterArchives: List<UniFile>, folder: UniFile): UniFile? {
-        for (chapter in chapterArchives) {
-            when (Format.valueOf(chapter)) {
-                is Format.Zip -> {
-                    // SY -->
-                    chapter.getZipInputStream(COMIC_INFO_FILE)?.buffered().use { stream ->
-                        return stream?.let { copyComicInfoFile(it, folder) }
-                    }
+    private fun <T> getComicInfoForChapter(chapter: UniFile, block: (InputStream, /* SY --> */ Boolean /* <-- SY */) -> T): T? {
+        if (chapter.isDirectory) {
+            return chapter.findFile(COMIC_INFO_FILE)?.let { file ->
+                file.openInputStream().use {
+                    block(it, /* SY --> */ false /* SY <-- */)
                 }
-                is Format.Rar -> {
-                    val archive = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                        JunrarArchive(tempFileManager.createTempFile(chapter))
-                    } else {
-                        JunrarArchive(chapter.openInputStream())
-                    }
-
-                    archive.use { rar ->
-                        rar.fileHeaders.firstOrNull { it.fileName == COMIC_INFO_FILE }?.let { comicInfoFile ->
-                            rar.getInputStream(comicInfoFile).buffered().use { stream ->
-                                return copyComicInfoFile(stream, folder)
-                            }
-                        }
-                    }
-                }
-                else -> {}
             }
+        } else {
+            return chapter.archiveReader(context).use { reader ->
+                reader.getInputStream(COMIC_INFO_FILE)?.use {
+                    block(it, /* SY --> */ reader.encrypted /* SY <-- */)
+                }
+            }
+        }
+    }
+
+    private fun copyComicInfoFileFromChapters(chapterArchives: List<UniFile>, folder: UniFile): UniFile? {
+        for (chapter in chapterArchives) {
+            val file = getComicInfoForChapter(chapter) f@{ stream, /* SY --> */ encrypted /* SY <-- */ ->
+                return@f copyComicInfoFile(stream, folder, /* SY --> */ encrypted /* SY <-- */)
+            }
+            if (file != null) return file
         }
         return null
     }
 
-    private fun copyComicInfoFile(comicInfoFileStream: InputStream, folder: UniFile): UniFile? {
+    private fun copyComicInfoFile(
+        comicInfoFileStream: InputStream,
+        folder: UniFile,
         // SY -->
-        if (
-            CbzCrypto.getPasswordProtectDlPref() &&
-            CbzCrypto.isPasswordSet()
-        ) {
-            val comicInfoArchive = folder.createFile(COMIC_INFO_ARCHIVE)
-            comicInfoArchive?.addStreamToZip(comicInfoFileStream, COMIC_INFO_FILE, CbzCrypto.getDecryptedPasswordCbz())
-
-            return comicInfoArchive
+        encrypt: Boolean,
+        // SY <--
+    ): UniFile? {
+        // SY -->
+        if (encrypt) {
+            val comicInfoArchiveFile = folder.createFile(COMIC_INFO_ARCHIVE)
+            comicInfoArchiveFile?.let { archive ->
+                ZipWriter(context, archive, encrypt = true).use { writer ->
+                    writer.write(comicInfoFileStream.use { it.readBytes() }, COMIC_INFO_FILE)
+                }
+            }
+            return comicInfoArchiveFile
         } else {
             // SY <--
             return folder.createFile(COMIC_INFO_FILE)?.apply {
@@ -331,19 +331,30 @@ actual class LocalSource(
         }
     }
 
-    private fun setMangaDetailsFromComicInfoFile(stream: InputStream, manga: SManga) {
-        val comicInfo = AndroidXmlReader(stream, StandardCharsets.UTF_8.name()).use {
+    private fun parseComicInfo(stream: InputStream): ComicInfo {
+        return AndroidXmlReader(stream, StandardCharsets.UTF_8.name()).use {
             xml.decodeFromReader<ComicInfo>(it)
         }
+    }
 
-        manga.copyFromComicInfo(comicInfo)
+    private fun setMangaDetailsFromComicInfoFile(stream: InputStream, manga: SManga) {
+        manga.copyFromComicInfo(parseComicInfo(stream))
+    }
+
+    private fun setChapterDetailsFromComicInfoFile(stream: InputStream, chapter: SChapter) {
+        val comicInfo = parseComicInfo(stream)
+
+        comicInfo.title?.let { chapter.name = it.value }
+        comicInfo.number?.value?.toFloatOrNull()?.let { chapter.chapter_number = it }
+        comicInfo.translator?.let { chapter.scanlator = it.value }
     }
 
     // Chapters
     override suspend fun getChapterList(manga: SManga): List<SChapter> = withIOContext {
         val chapters = fileSystem.getFilesInMangaDirectory(manga.url)
             // Only keep supported formats
-            .filter { it.isDirectory || Archive.isSupported(it) }
+            .filterNot { it.name.orEmpty().startsWith('.') }
+            .filter { it.isDirectory || Archive.isSupported(it) || it.extension.equals("epub", true) }
             .map { chapterFile ->
                 SChapter.create().apply {
                     url = "${manga.url}/${chapterFile.name}"
@@ -359,15 +370,18 @@ actual class LocalSource(
 
                     val format = Format.valueOf(chapterFile)
                     if (format is Format.Epub) {
-                        EpubFile(format.file, context).use { epub ->
+                        EpubFile(format.file.archiveReader(context)).use { epub ->
                             epub.fillMetadata(manga, this)
+                        }
+                    } else {
+                        getComicInfoForChapter(chapterFile) { stream, encrypted ->
+                            setChapterDetailsFromComicInfoFile(stream, this)
                         }
                     }
                 }
             }
             .sortedWith { c1, c2 ->
-                val c = c2.chapter_number.compareTo(c1.chapter_number)
-                if (c == 0) c2.name.compareToCaseInsensitiveNaturalOrder(c1.name) else c
+                c2.name.compareToCaseInsensitiveNaturalOrder(c1.name)
             }
 
         // Copy the cover from the first chapter found if not available
@@ -384,7 +398,7 @@ actual class LocalSource(
     override fun getFilterList() = FilterList(OrderBy.Popular(context))
 
     // Unused stuff
-    override suspend fun getPageList(chapter: SChapter) = throw UnsupportedOperationException("Unused")
+    override suspend fun getPageList(chapter: SChapter): List<Page> = throw UnsupportedOperationException("Unused")
 
     fun getFormat(chapter: SChapter): Format {
         try {
@@ -417,43 +431,25 @@ actual class LocalSource(
 
                     entry?.let { coverManager.update(manga, it.openInputStream()) }
                 }
-                is Format.Zip -> {
-                    // SY -->
-                    format.file.getCoverStreamFromZip()?.let { inputStream ->
-                        coverManager.update(
-                            manga,
-                            inputStream,
-                            format.file.isEncryptedZip()
-                        )
-                    }
-                }
-                is Format.Rar -> {
-                    val rarArchive = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                        JunrarArchive(tempFileManager.createTempFile(format.file))
-                    } else {
-                        JunrarArchive(format.file.openInputStream())
-                    }
-                    rarArchive.use { archive ->
-                        // SY <--
-                        val entry = archive.fileHeaders
-                            .sortedWith { f1, f2 -> f1.fileName.compareToCaseInsensitiveNaturalOrder(f2.fileName) }
-                            .find { !it.isDirectory && ImageUtil.isImage(it.fileName) { archive.getInputStream(it) } }
+                is Format.Archive -> {
+                    format.file.archiveReader(context).use { reader ->
+                        val entry = reader.useEntries { entries ->
+                            entries
+                                .sortedWith { f1, f2 -> f1.name.compareToCaseInsensitiveNaturalOrder(f2.name) }
+                                .find { it.isFile && ImageUtil.isImage(it.name) { reader.getInputStream(it.name)!! } }
+                        }
 
-                        entry?.let { coverManager.update(manga, archive.getInputStream(it)) }
+                        entry?.let { coverManager.update(manga, reader.getInputStream(it.name)!!, reader.encrypted) }
                     }
                 }
                 is Format.Epub -> {
-                    // SY -->
-                        EpubFile(format.file, context).use { epub ->
-                            // SY <--
-                            val entry = epub.getImagesFromPages()
-                                .firstOrNull()
-                                ?.let { epub.getEntry(it) }
+                    EpubFile(format.file.archiveReader(context)).use { epub ->
+                        val entry = epub.getImagesFromPages().firstOrNull()
 
-                            entry?.let { coverManager.update(manga, epub.getInputStream(it)) }
-                        }
+                        entry?.let { coverManager.update(manga, epub.getInputStream(it)!!) }
                     }
                 }
+            }
         } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e) { "Error updating cover for ${manga.title}" }
             null

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">ნაპოვნია გაფართოების განახლება</item>
+        <item quantity="other">ნაპოვნია %d გაფართოების განახლება</item>
+    </plurals>
+    <plurals name="notification_chapters_multiple_and_more">
+        <item quantity="one">თავები %1$s და კიდევ 1</item>
+        <item quantity="other">თავები %1$s და კიდევ %2$d</item>
+    </plurals>
+    <plurals name="notification_chapters_generic">
+        <item quantity="one">ნაპოვნია ახალი თავი</item>
+        <item quantity="other">ნაპოვნია %1$d ახალი თავი</item>
+    </plurals>
+    <plurals name="notification_new_chapters_summary">
+        <item quantity="one">%d ჩანაწერისთვის</item>
+        <item quantity="other">%d ჩანაწერისთვის</item>
+    </plurals>
+    <plurals name="manga_num_chapters">
+        <item quantity="one">1 თავი</item>
+        <item quantity="other">%1$s თავი</item>
+    </plurals>
+    <plurals name="download_queue_summary">
+        <item quantity="one">დარჩა 1</item>
+        <item quantity="other">დარჩა %1$s</item>
+    </plurals>
+    <plurals name="restore_completed_message">
+        <item quantity="one">დასრულების დრო %1$s. %2$s შეცდომა</item>
+        <item quantity="other">დასრულების დრო %1$s. %2$s შეცდომა</item>
+    </plurals>
+    <plurals name="num_categories">
+        <item quantity="one">%d კატეგორია</item>
+        <item quantity="other">%d კატეგორიები</item>
+    </plurals>
+    <plurals name="lock_after_mins">
+        <item quantity="one">1 წუთის შემდეგ</item>
+        <item quantity="other">%1$s წუთის შემდეგ</item>
+    </plurals>
+    <plurals name="relative_time">
+        <item quantity="one">გუშინ</item>
+        <item quantity="other">%1$d დღის წინ</item>
+    </plurals>
+    <plurals name="upcoming_relative_time">
+        <item quantity="one">ხვალ</item>
+        <item quantity="other">%1$d დღეში</item>
+    </plurals>
+    <plurals name="next_unread_chapters">
+        <item quantity="one">შემდეგი წაუკითხავი თავი</item>
+        <item quantity="other">შემდეგი %d წაუკითხავი თავი</item>
+    </plurals>
+    <plurals name="day">
+        <item quantity="one">1 დღე</item>
+        <item quantity="other">%d დღე</item>
+    </plurals>
+    <plurals name="pref_pages">
+        <item quantity="one">1 გვერდი</item>
+        <item quantity="other">%1$s გვერდი</item>
+    </plurals>
+    <plurals name="missing_chapters">
+        <item quantity="one">აკლია %1$s თავი</item>
+        <item quantity="other">აკლია %1$s თავი</item>
+    </plurals>
+    <plurals name="download_amount">
+        <item quantity="one">შემდეგი თავი</item>
+        <item quantity="other">შემდეგი %d თავი</item>
+    </plurals>
+    <plurals name="num_trackers">
+        <item quantity="one">%d ტრეკერი</item>
+        <item quantity="other">%d ტრეკერი</item>
+    </plurals>
+    <plurals name="missing_chapters_warning">
+        <item quantity="one">გამოტოვებულია %d ტავი. ან წყარო აღმოჩენილი არაა, ან ფილტრში მოჰყვა</item>
+        <item quantity="other">გამოტოვებულია %d ტავი. ან წყარო აღმოჩენილი არაა, ან ფილტრში მოჰყვა</item>
+    </plurals>
+    <plurals name="num_repos">
+        <item quantity="one">%d რეპო</item>
+        <item quantity="other">%d რეპო</item>
+    </plurals>
+</resources>

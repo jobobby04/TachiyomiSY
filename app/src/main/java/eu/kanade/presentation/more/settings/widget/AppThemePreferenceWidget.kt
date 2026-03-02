@@ -29,32 +29,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.domain.ui.model.AppTheme
 import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.theme.TachiyomiTheme
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.isDynamicColorAvailable
-import tachiyomi.core.common.preference.InMemoryPreferenceStore
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.secondaryItemAlpha
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.fullType
 
 @Composable
 internal fun AppThemePreferenceWidget(
@@ -257,18 +249,18 @@ fun AppThemePreviewItem(
     }
 }
 
-@PreviewLightDark
-@Composable
-private fun AppThemesListPreview() {
-    var appTheme by remember { mutableStateOf(AppTheme.DEFAULT) }
-    Injekt.addSingleton(fullType<UiPreferences>(), UiPreferences(InMemoryPreferenceStore()))
-    TachiyomiTheme(appTheme = appTheme) {
-        Surface {
-            AppThemesList(
-                currentTheme = appTheme,
-                amoled = false,
-                onItemClick = { appTheme = it },
-            )
-        }
-    }
-}
+// @PreviewLightDark
+// @Composable
+// private fun AppThemesListPreview() {
+//    var appTheme by remember { mutableStateOf(AppTheme.DEFAULT) }
+//    Injekt.addSingleton(fullType<UiPreferences>(), UiPreferences(InMemoryPreferenceStore()))
+//    TachiyomiTheme(appTheme = appTheme) {
+//        Surface {
+//            AppThemesList(
+//                currentTheme = appTheme,
+//                amoled = false,
+//                onItemClick = { appTheme = it },
+//            )
+//        }
+//    }
+// }

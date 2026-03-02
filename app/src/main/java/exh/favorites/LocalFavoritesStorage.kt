@@ -1,6 +1,5 @@
 package exh.favorites
 
-import eu.kanade.domain.manga.model.toDomainManga
 import eu.kanade.tachiyomi.source.online.all.EHentai
 import exh.metadata.metadata.EHentaiSearchMetadata
 import exh.source.EXH_SOURCE_ID
@@ -11,6 +10,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
+import mihon.domain.manga.model.toDomainManga
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.manga.interactor.DeleteFavoriteEntries
@@ -88,7 +88,14 @@ class LocalFavoritesStorage(
     private fun FavoriteEntry.urlEquals(other: FavoriteEntry) = (gid == other.gid && token == other.token) ||
         (otherGid != null && otherToken != null && (otherGid == other.gid && otherToken == other.token)) ||
         (other.otherGid != null && other.otherToken != null && (gid == other.otherGid && token == other.otherToken)) ||
-        (otherGid != null && otherToken != null && other.otherGid != null && other.otherToken != null && otherGid == other.otherGid && otherToken == other.otherToken)
+        (
+            otherGid != null &&
+                otherToken != null &&
+                other.otherGid != null &&
+                other.otherToken != null &&
+                otherGid == other.otherGid &&
+                otherToken == other.otherToken
+            )
 
     private fun queryListForEntry(list: List<FavoriteEntry>, entry: FavoriteEntry) =
         list.find { it.urlEquals(entry) && it.category == entry.category }

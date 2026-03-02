@@ -13,13 +13,12 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.MigrateSourceScreen
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.TabContent
-import eu.kanade.tachiyomi.ui.browse.migration.advanced.design.PreMigrationScreen
 import eu.kanade.tachiyomi.ui.browse.migration.manga.MigrateMangaScreen
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.DelicateCoroutinesApi
+import mihon.feature.migration.config.MigrationConfigScreen
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
-import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.manga.interactor.GetFavorites
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -62,10 +61,10 @@ fun Screen.migrateSourceTab(): TabContent {
                         val sourceMangas =
                             manga.asSequence().filter { it.source == source.id }.map { it.id }.toList()
                         withUIContext {
-                            PreMigrationScreen.navigateToMigration(
-                                Injekt.get<UnsortedPreferences>().skipPreMigration().get(),
-                                navigator,
-                                sourceMangas,
+                            navigator.push(
+                                MigrationConfigScreen(
+                                    sourceMangas,
+                                ),
                             )
                         }
                     }

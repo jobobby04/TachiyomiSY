@@ -11,7 +11,7 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
-fun BrowseTabWrapper(tab: TabContent) {
+fun BrowseTabWrapper(tab: TabContent, onBackPressed: (() -> Unit)? = null) {
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = { scrollBehavior ->
@@ -20,6 +20,7 @@ fun BrowseTabWrapper(tab: TabContent) {
                 actions = {
                     AppBarActions(tab.actions)
                 },
+                navigateUp = onBackPressed,
                 scrollBehavior = scrollBehavior,
             )
         },

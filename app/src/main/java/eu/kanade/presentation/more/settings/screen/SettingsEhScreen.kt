@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat.startActivity
 import eu.kanade.presentation.library.components.SyncFavoritesWarningDialog
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
@@ -52,6 +51,7 @@ import exh.eh.EHentaiUpdateWorker
 import exh.eh.EHentaiUpdateWorkerConstants
 import exh.eh.EHentaiUpdaterStats
 import exh.metadata.metadata.EHentaiSearchMetadata
+import exh.source.ExhPreferences
 import exh.ui.login.EhLoginActivity
 import exh.util.nullIfBlank
 import kotlinx.collections.immutable.persistentListOf
@@ -64,7 +64,6 @@ import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
 import tachiyomi.domain.manga.interactor.DeleteFavoriteEntries
@@ -89,22 +88,22 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     override fun getTitleRes() = SYMR.strings.pref_category_eh
 
-    override fun isEnabled(): Boolean = Injekt.get<UnsortedPreferences>().isHentaiEnabled().get()
+    override fun isEnabled(): Boolean = Injekt.get<ExhPreferences>().isHentaiEnabled().get()
 
     @Composable
     fun Reconfigure(
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
         openWarnConfigureDialogController: () -> Unit,
     ) {
         var initialLoadGuard by remember { mutableStateOf(false) }
-        val useHentaiAtHome by unsortedPreferences.useHentaiAtHome().collectAsState()
-        val useJapaneseTitle by unsortedPreferences.useJapaneseTitle().collectAsState()
-        val useOriginalImages by unsortedPreferences.exhUseOriginalImages().collectAsState()
-        val ehTagFilterValue by unsortedPreferences.ehTagFilterValue().collectAsState()
-        val ehTagWatchingValue by unsortedPreferences.ehTagWatchingValue().collectAsState()
-        val settingsLanguages by unsortedPreferences.exhSettingsLanguages().collectAsState()
-        val enabledCategories by unsortedPreferences.exhEnabledCategories().collectAsState()
-        val imageQuality by unsortedPreferences.imageQuality().collectAsState()
+        val useHentaiAtHome by exhPreferences.useHentaiAtHome().collectAsState()
+        val useJapaneseTitle by exhPreferences.useJapaneseTitle().collectAsState()
+        val useOriginalImages by exhPreferences.exhUseOriginalImages().collectAsState()
+        val ehTagFilterValue by exhPreferences.ehTagFilterValue().collectAsState()
+        val ehTagWatchingValue by exhPreferences.ehTagWatchingValue().collectAsState()
+        val settingsLanguages by exhPreferences.exhSettingsLanguages().collectAsState()
+        val enabledCategories by exhPreferences.exhEnabledCategories().collectAsState()
+        val imageQuality by exhPreferences.imageQuality().collectAsState()
         DisposableEffect(
             useHentaiAtHome,
             useJapaneseTitle,
@@ -125,15 +124,15 @@ object SettingsEhScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val unsortedPreferences: UnsortedPreferences = remember { Injekt.get() }
+        val exhPreferences: ExhPreferences = remember { Injekt.get() }
         val getFlatMetadataById: GetFlatMetadataById = remember { Injekt.get() }
         val deleteFavoriteEntries: DeleteFavoriteEntries = remember { Injekt.get() }
         val getExhFavoriteMangaWithMetadata: GetExhFavoriteMangaWithMetadata = remember { Injekt.get() }
-        val exhentaiEnabled by unsortedPreferences.enableExhentai().collectAsState()
+        val exhentaiEnabled by exhPreferences.enableExhentai().collectAsState()
         var runConfigureDialog by remember { mutableStateOf(false) }
         val openWarnConfigureDialogController = { runConfigureDialog = true }
 
-        Reconfigure(unsortedPreferences, openWarnConfigureDialogController)
+        Reconfigure(exhPreferences, openWarnConfigureDialogController)
 
         ConfigureExhDialog(run = runConfigureDialog, onRunning = { runConfigureDialog = false })
 
@@ -141,36 +140,36 @@ object SettingsEhScreen : SearchableSettings {
             Preference.PreferenceGroup(
                 stringResource(SYMR.strings.ehentai_prefs_account_settings),
                 preferenceItems = persistentListOf(
-                    getLoginPreference(unsortedPreferences, openWarnConfigureDialogController),
-                    useHentaiAtHome(exhentaiEnabled, unsortedPreferences),
-                    useJapaneseTitle(exhentaiEnabled, unsortedPreferences),
-                    useOriginalImages(exhentaiEnabled, unsortedPreferences),
+                    getLoginPreference(exhPreferences, openWarnConfigureDialogController),
+                    useHentaiAtHome(exhentaiEnabled, exhPreferences),
+                    useJapaneseTitle(exhentaiEnabled, exhPreferences),
+                    useOriginalImages(exhentaiEnabled, exhPreferences),
                     watchedTags(exhentaiEnabled),
-                    tagFilterThreshold(exhentaiEnabled, unsortedPreferences),
-                    tagWatchingThreshold(exhentaiEnabled, unsortedPreferences),
-                    settingsLanguages(exhentaiEnabled, unsortedPreferences),
-                    enabledCategories(exhentaiEnabled, unsortedPreferences),
-                    watchedListDefaultState(exhentaiEnabled, unsortedPreferences),
-                    imageQuality(exhentaiEnabled, unsortedPreferences),
-                    enhancedEhentaiView(unsortedPreferences),
+                    tagFilterThreshold(exhentaiEnabled, exhPreferences),
+                    tagWatchingThreshold(exhentaiEnabled, exhPreferences),
+                    settingsLanguages(exhentaiEnabled, exhPreferences),
+                    enabledCategories(exhentaiEnabled, exhPreferences),
+                    watchedListDefaultState(exhentaiEnabled, exhPreferences),
+                    imageQuality(exhentaiEnabled, exhPreferences),
+                    enhancedEhentaiView(exhPreferences),
                 ),
             ),
             Preference.PreferenceGroup(
                 stringResource(SYMR.strings.favorites_sync),
                 preferenceItems = persistentListOf(
-                    readOnlySync(unsortedPreferences),
+                    readOnlySync(exhPreferences),
                     syncFavoriteNotes(),
-                    lenientSync(unsortedPreferences),
+                    lenientSync(exhPreferences),
                     forceSyncReset(deleteFavoriteEntries),
                 ),
             ),
             Preference.PreferenceGroup(
                 stringResource(SYMR.strings.gallery_update_checker),
                 preferenceItems = persistentListOf(
-                    updateCheckerFrequency(unsortedPreferences),
-                    autoUpdateRequirements(unsortedPreferences),
+                    updateCheckerFrequency(exhPreferences),
+                    autoUpdateRequirements(exhPreferences),
                     updaterStatistics(
-                        unsortedPreferences,
+                        exhPreferences,
                         getExhFavoriteMangaWithMetadata,
                         getFlatMetadataById,
                     ),
@@ -181,7 +180,7 @@ object SettingsEhScreen : SearchableSettings {
 
     @Composable
     fun getLoginPreference(
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
         openWarnConfigureDialogController: () -> Unit,
     ): Preference.PreferenceItem.SwitchPreference {
         val activityResultContract =
@@ -192,9 +191,9 @@ object SettingsEhScreen : SearchableSettings {
                 }
             }
         val context = LocalContext.current
-        val value by unsortedPreferences.enableExhentai().collectAsState()
+        val value by exhPreferences.enableExhentai().collectAsState()
         return Preference.PreferenceItem.SwitchPreference(
-            pref = unsortedPreferences.enableExhentai(),
+            preference = exhPreferences.enableExhentai(),
             title = stringResource(SYMR.strings.enable_exhentai),
             subtitle = if (!value) {
                 stringResource(SYMR.strings.requires_login)
@@ -203,7 +202,7 @@ object SettingsEhScreen : SearchableSettings {
             },
             onValueChanged = { newVal ->
                 if (!newVal) {
-                    unsortedPreferences.enableExhentai().set(false)
+                    exhPreferences.enableExhentai().set(false)
                     true
                 } else {
                     activityResultContract.launch(EhLoginActivity.newIntent(context))
@@ -216,10 +215,10 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun useHentaiAtHome(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.ListPreference<Int> {
         return Preference.PreferenceItem.ListPreference(
-            pref = unsortedPreferences.useHentaiAtHome(),
+            preference = exhPreferences.useHentaiAtHome(),
             title = stringResource(SYMR.strings.use_hentai_at_home),
             subtitle = stringResource(SYMR.strings.use_hentai_at_home_summary),
             entries = persistentMapOf(
@@ -233,11 +232,11 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun useJapaneseTitle(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.SwitchPreference {
-        val value by unsortedPreferences.useJapaneseTitle().collectAsState()
+        val value by exhPreferences.useJapaneseTitle().collectAsState()
         return Preference.PreferenceItem.SwitchPreference(
-            pref = unsortedPreferences.useJapaneseTitle(),
+            preference = exhPreferences.useJapaneseTitle(),
             title = stringResource(SYMR.strings.show_japanese_titles),
             subtitle = if (value) {
                 stringResource(SYMR.strings.show_japanese_titles_option_1)
@@ -251,11 +250,11 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun useOriginalImages(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.SwitchPreference {
-        val value by unsortedPreferences.exhUseOriginalImages().collectAsState()
+        val value by exhPreferences.exhUseOriginalImages().collectAsState()
         return Preference.PreferenceItem.SwitchPreference(
-            pref = unsortedPreferences.exhUseOriginalImages(),
+            preference = exhPreferences.exhUseOriginalImages(),
             title = stringResource(SYMR.strings.use_original_images),
             subtitle = if (value) {
                 stringResource(SYMR.strings.use_original_images_on)
@@ -273,8 +272,7 @@ object SettingsEhScreen : SearchableSettings {
             title = stringResource(SYMR.strings.watched_tags),
             subtitle = stringResource(SYMR.strings.watched_tags_summary),
             onClick = {
-                startActivity(
-                    context,
+                context.startActivity(
                     WebViewActivity.newIntent(
                         context,
                         url = "https://exhentai.org/mytags",
@@ -353,9 +351,9 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun tagFilterThreshold(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.TextPreference {
-        val value by unsortedPreferences.ehTagFilterValue().collectAsState()
+        val value by exhPreferences.ehTagFilterValue().collectAsState()
         var dialogOpen by remember { mutableStateOf(false) }
         if (dialogOpen) {
             TagThresholdDialog(
@@ -366,7 +364,7 @@ object SettingsEhScreen : SearchableSettings {
                 outsideRangeError = stringResource(SYMR.strings.tag_filtering_threshhold_error),
                 onValueChange = {
                     dialogOpen = false
-                    unsortedPreferences.ehTagFilterValue().set(it)
+                    exhPreferences.ehTagFilterValue().set(it)
                 },
             )
         }
@@ -383,9 +381,9 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun tagWatchingThreshold(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.TextPreference {
-        val value by unsortedPreferences.ehTagWatchingValue().collectAsState()
+        val value by exhPreferences.ehTagWatchingValue().collectAsState()
         var dialogOpen by remember { mutableStateOf(false) }
         if (dialogOpen) {
             TagThresholdDialog(
@@ -396,7 +394,7 @@ object SettingsEhScreen : SearchableSettings {
                 outsideRangeError = stringResource(SYMR.strings.tag_watching_threshhold_error),
                 onValueChange = {
                     dialogOpen = false
-                    unsortedPreferences.ehTagWatchingValue().set(it)
+                    exhPreferences.ehTagWatchingValue().set(it)
                 },
             )
         }
@@ -606,9 +604,9 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun settingsLanguages(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.TextPreference {
-        val value by unsortedPreferences.exhSettingsLanguages().collectAsState()
+        val value by exhPreferences.exhSettingsLanguages().collectAsState()
         var dialogOpen by remember { mutableStateOf(false) }
         if (dialogOpen) {
             LanguagesDialog(
@@ -616,7 +614,7 @@ object SettingsEhScreen : SearchableSettings {
                 initialValue = value,
                 onValueChange = {
                     dialogOpen = false
-                    unsortedPreferences.exhSettingsLanguages().set(it)
+                    exhPreferences.exhSettingsLanguages().set(it)
                 },
             )
         }
@@ -772,9 +770,9 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun enabledCategories(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.TextPreference {
-        val value by unsortedPreferences.exhEnabledCategories().collectAsState()
+        val value by exhPreferences.exhEnabledCategories().collectAsState()
         var dialogOpen by remember { mutableStateOf(false) }
         if (dialogOpen) {
             FrontPageCategoriesDialog(
@@ -782,7 +780,7 @@ object SettingsEhScreen : SearchableSettings {
                 initialValue = value,
                 onValueChange = {
                     dialogOpen = false
-                    unsortedPreferences.exhEnabledCategories().set(it)
+                    exhPreferences.exhEnabledCategories().set(it)
                 },
             )
         }
@@ -799,10 +797,10 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun watchedListDefaultState(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.SwitchPreference {
         return Preference.PreferenceItem.SwitchPreference(
-            pref = unsortedPreferences.exhWatchedListDefaultState(),
+            preference = exhPreferences.exhWatchedListDefaultState(),
             title = stringResource(SYMR.strings.watched_list_default),
             subtitle = stringResource(SYMR.strings.watched_list_state_summary),
             enabled = exhentaiEnabled,
@@ -812,10 +810,10 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun imageQuality(
         exhentaiEnabled: Boolean,
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.ListPreference<String> {
         return Preference.PreferenceItem.ListPreference(
-            pref = unsortedPreferences.imageQuality(),
+            preference = exhPreferences.imageQuality(),
             title = stringResource(SYMR.strings.eh_image_quality_summary),
             subtitle = stringResource(SYMR.strings.eh_image_quality),
             entries = persistentMapOf(
@@ -831,18 +829,18 @@ object SettingsEhScreen : SearchableSettings {
     }
 
     @Composable
-    fun enhancedEhentaiView(unsortedPreferences: UnsortedPreferences): Preference.PreferenceItem.SwitchPreference {
+    fun enhancedEhentaiView(exhPreferences: ExhPreferences): Preference.PreferenceItem.SwitchPreference {
         return Preference.PreferenceItem.SwitchPreference(
-            pref = unsortedPreferences.enhancedEHentaiView(),
+            preference = exhPreferences.enhancedEHentaiView(),
             title = stringResource(SYMR.strings.pref_enhanced_e_hentai_view),
             subtitle = stringResource(SYMR.strings.pref_enhanced_e_hentai_view_summary),
         )
     }
 
     @Composable
-    fun readOnlySync(unsortedPreferences: UnsortedPreferences): Preference.PreferenceItem.SwitchPreference {
+    fun readOnlySync(exhPreferences: ExhPreferences): Preference.PreferenceItem.SwitchPreference {
         return Preference.PreferenceItem.SwitchPreference(
-            pref = unsortedPreferences.exhReadOnlySync(),
+            preference = exhPreferences.exhReadOnlySync(),
             title = stringResource(SYMR.strings.disable_favorites_uploading),
             subtitle = stringResource(SYMR.strings.disable_favorites_uploading_summary),
         )
@@ -865,9 +863,9 @@ object SettingsEhScreen : SearchableSettings {
     }
 
     @Composable
-    fun lenientSync(unsortedPreferences: UnsortedPreferences): Preference.PreferenceItem.SwitchPreference {
+    fun lenientSync(exhPreferences: ExhPreferences): Preference.PreferenceItem.SwitchPreference {
         return Preference.PreferenceItem.SwitchPreference(
-            pref = unsortedPreferences.exhLenientSync(),
+            preference = exhPreferences.exhLenientSync(),
             title = stringResource(SYMR.strings.ignore_sync_errors),
             subtitle = stringResource(SYMR.strings.ignore_sync_errors_summary),
         )
@@ -937,12 +935,12 @@ object SettingsEhScreen : SearchableSettings {
 
     @Composable
     fun updateCheckerFrequency(
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.ListPreference<Int> {
-        val value by unsortedPreferences.exhAutoUpdateFrequency().collectAsState()
+        val value by exhPreferences.exhAutoUpdateFrequency().collectAsState()
         val context = LocalContext.current
         return Preference.PreferenceItem.ListPreference(
-            pref = unsortedPreferences.exhAutoUpdateFrequency(),
+            preference = exhPreferences.exhAutoUpdateFrequency(),
             title = stringResource(SYMR.strings.time_between_batches),
             subtitle = if (value == 0) {
                 stringResource(SYMR.strings.time_between_batches_summary_1, stringResource(MR.strings.app_name))
@@ -973,12 +971,12 @@ object SettingsEhScreen : SearchableSettings {
 
     @Composable
     fun autoUpdateRequirements(
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
     ): Preference.PreferenceItem.MultiSelectListPreference {
-        val value by unsortedPreferences.exhAutoUpdateRequirements().collectAsState()
+        val value by exhPreferences.exhAutoUpdateRequirements().collectAsState()
         val context = LocalContext.current
         return Preference.PreferenceItem.MultiSelectListPreference(
-            pref = unsortedPreferences.exhAutoUpdateRequirements(),
+            preference = exhPreferences.exhAutoUpdateRequirements(),
             title = stringResource(SYMR.strings.auto_update_restrictions),
             subtitle = remember(value) {
                 context.stringResource(
@@ -1141,7 +1139,7 @@ object SettingsEhScreen : SearchableSettings {
 
     @Composable
     fun updaterStatistics(
-        unsortedPreferences: UnsortedPreferences,
+        exhPreferences: ExhPreferences,
         getExhFavoriteMangaWithMetadata: GetExhFavoriteMangaWithMetadata,
         getFlatMetadataById: GetFlatMetadataById,
     ): Preference.PreferenceItem.TextPreference {
@@ -1152,7 +1150,7 @@ object SettingsEhScreen : SearchableSettings {
                 value = withIOContext {
                     try {
                         val stats =
-                            unsortedPreferences.exhAutoUpdateStats().get().nullIfBlank()?.let {
+                            exhPreferences.exhAutoUpdateStats().get().nullIfBlank()?.let {
                                 Json.decodeFromString<EHentaiUpdaterStats>(it)
                             }
 

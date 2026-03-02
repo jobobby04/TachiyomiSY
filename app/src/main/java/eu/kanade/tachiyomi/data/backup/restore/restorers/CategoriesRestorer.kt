@@ -13,7 +13,7 @@ class CategoriesRestorer(
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
 ) {
 
-    suspend fun restoreCategories(backupCategories: List<BackupCategory>) {
+    suspend operator fun invoke(backupCategories: List<BackupCategory>) {
         if (backupCategories.isNotEmpty()) {
             val dbCategories = getCategories.await()
             val dbCategoriesByName = dbCategories.associateBy { it.name }
@@ -21,14 +21,15 @@ class CategoriesRestorer(
 
             val categories = backupCategories
                 .sortedBy { it.order }
-                .distinctBy { it.name }
                 .map {
-                    val newOrder = nextOrder++
-                    dbCategoriesByName[it.name]
-                        ?: handler.awaitOneExecutable {
-                            categoriesQueries.insert(it.name, newOrder, it.flags)
-                            categoriesQueries.selectLastInsertedRowId()
-                        }.let { id -> it.toCategory(id).copy(order = newOrder) }
+                    val dbCategory = dbCategoriesByName[it.name]
+                    if (dbCategory != null) return@map dbCategory
+                    val order = nextOrder++
+                    handler.awaitOneExecutable {
+                        categoriesQueries.insert(it.name, order, it.flags)
+                        categoriesQueries.selectLastInsertedRowId()
+                    }
+                        .let { id -> it.toCategory(id).copy(order = order) }
                 }
 
             libraryPreferences.categorizedDisplaySettings().set(

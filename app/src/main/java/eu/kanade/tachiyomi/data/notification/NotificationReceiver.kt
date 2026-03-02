@@ -265,6 +265,8 @@ class NotificationReceiver : BroadcastReceiver() {
         private const val ACTION_OPEN_CHAPTER = "$ID.$NAME.ACTION_OPEN_CHAPTER"
         private const val ACTION_DOWNLOAD_CHAPTER = "$ID.$NAME.ACTION_DOWNLOAD_CHAPTER"
 
+        private const val ACTION_OPEN_ENTRY = "$ID.$NAME.ACTION_OPEN_ENTRY"
+
         private const val ACTION_RESUME_DOWNLOADS = "$ID.$NAME.ACTION_RESUME_DOWNLOADS"
         private const val ACTION_PAUSE_DOWNLOADS = "$ID.$NAME.ACTION_PAUSE_DOWNLOADS"
         private const val ACTION_CLEAR_DOWNLOADS = "$ID.$NAME.ACTION_CLEAR_DOWNLOADS"
@@ -504,6 +506,26 @@ class NotificationReceiver : BroadcastReceiver() {
         }
 
         /**
+         * Returns [PendingIntent] that opens the manga info controller
+         *
+         * @param context context of application
+         * @param mangaId id of the entry to open
+         */
+        internal fun openEntryPendingActivity(context: Context, mangaId: Long): PendingIntent {
+            val newIntent = Intent(context, MainActivity::class.java).setAction(Constants.SHORTCUT_MANGA)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .putExtra(Constants.MANGA_EXTRA, mangaId)
+                .putExtra("notificationId", mangaId.hashCode())
+
+            return PendingIntent.getActivity(
+                context,
+                mangaId.hashCode(),
+                newIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        }
+
+        /**
          * Returns [PendingIntent] that starts a service which stops the library update
          *
          * @param context context of application
@@ -580,18 +602,17 @@ class NotificationReceiver : BroadcastReceiver() {
         }
 
         /**
-         * Returns [PendingIntent] that starts a share activity for a backup file.
+         * Returns [PendingIntent] that directly launches a share activity for a backup file.
          *
          * @param context context of application
          * @param uri uri of backup file
          * @return [PendingIntent]
          */
-        internal fun shareBackupPendingBroadcast(context: Context, uri: Uri): PendingIntent {
-            val intent = Intent(context, NotificationReceiver::class.java).apply {
-                action = ACTION_SHARE_BACKUP
-                putExtra(EXTRA_URI, uri)
+        internal fun shareBackupPendingActivity(context: Context, uri: Uri): PendingIntent {
+            val intent = uri.toShareIntent(context, "application/x-protobuf+gzip").apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            return PendingIntent.getBroadcast(
+            return PendingIntent.getActivity(
                 context,
                 0,
                 intent,

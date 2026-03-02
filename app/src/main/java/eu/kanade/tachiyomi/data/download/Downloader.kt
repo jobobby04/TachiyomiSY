@@ -44,10 +44,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
+import mihon.core.common.archive.ZipWriter
 import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Response
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.core.common.storage.addFilesToZip
 import tachiyomi.core.common.storage.extension
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNow
@@ -65,12 +65,8 @@ import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.io.BufferedOutputStream
 import java.io.File
 import java.util.Locale
-import java.util.zip.CRC32
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 /**
  * This class is the one in charge of downloading chapters.
@@ -194,7 +190,7 @@ class Downloader(
     fun clearQueue() {
         cancelDownloaderJob()
 
-        _clearQueue()
+        internalClearQueue()
         notifier.dismissProgress()
     }
 
@@ -205,12 +201,17 @@ class Downloader(
         if (isRunning) return
 
         downloaderJob = scope.launch {
-            val activeDownloadsFlow = queueState.transformLatest { queue ->
+            val activeDownloadsFlow = combine(
+                queueState,
+                downloadPreferences.parallelSourceLimit().changes(),
+            ) { a, b -> a to b }.transformLatest { (queue, parallelCount) ->
                 while (true) {
                     val activeDownloads = queue.asSequence()
-                        .filter { it.status.value <= Download.State.DOWNLOADING.value } // Ignore completed downloads, leave them in the queue
+                        // Ignore completed downloads, leave them in the queue
+                        .filter { it.status.value <= Download.State.DOWNLOADING.value }
                         .groupBy { it.source }
-                        .toList().take(5) // Concurrently download from 5 different sources
+                        .toList()
+                        .take(parallelCount)
                         .map { (_, downloads) -> downloads.first() }
                     emit(activeDownloads)
 
@@ -222,7 +223,8 @@ class Downloader(
                         }.filter { it }
                     activeDownloadsErroredFlow.first()
                 }
-            }.distinctUntilChanged()
+            }
+                .distinctUntilChanged()
 
             // Use supervisorScope to cancel child jobs when the downloader job is cancelled
             supervisorScope {
@@ -286,7 +288,13 @@ class Downloader(
         val chaptersToQueue = chapters.asSequence()
             // Filter out those already downloaded.
             .filter {
-                provider.findChapterDir(it.name, it.scanlator, /* SY --> */ manga.ogTitle /* SY <-- */, source) == null
+                provider.findChapterDir(
+                    it.name,
+                    it.scanlator,
+                    it.url,
+                    /* SY --> */ manga.ogTitle, /* SY <-- */
+                    source,
+                ) == null
             }
             // Add chapters to queue from the start.
             .sortedByDescending { it.sourceOrder }
@@ -312,7 +320,10 @@ class Downloader(
                     maxDownloadsFromSource > CHAPTERS_PER_SOURCE_QUEUE_WARNING_THRESHOLD
                 ) {
                     notifier.onWarning(
-                        context.stringResource(MR.strings.download_queue_size_warning),
+                        context.stringResource(
+                            MR.strings.download_queue_size_warning,
+                            context.stringResource(MR.strings.app_name),
+                        ),
                         WARNING_NOTIF_TIMEOUT_MS,
                         NotificationHandler.openUrl(context, LibraryUpdateNotifier.HELP_WARNING_URL),
                     )
@@ -328,7 +339,12 @@ class Downloader(
      * @param download the chapter to be downloaded.
      */
     private suspend fun downloadChapter(download: Download) {
-        val mangaDir = provider.getMangaDir(/* SY --> */ download.manga.ogTitle /* SY <-- */, download.source)
+        val mangaDir =
+            provider.getMangaDir(/* SY --> */ download.manga.ogTitle /* SY <-- */, download.source).getOrElse { e ->
+                download.status = Download.State.ERROR
+                notifier.onError(e.message, download.chapter.name, download.manga.title, download.manga.id)
+                return
+            }
 
         val availSpace = DiskUtil.getAvailableStorageSpace(mangaDir)
         if (availSpace != -1L && availSpace < MIN_DISK_SPACE) {
@@ -337,11 +353,16 @@ class Downloader(
                 context.stringResource(MR.strings.download_insufficient_space),
                 download.chapter.name,
                 download.manga.title,
+                download.manga.id,
             )
             return
         }
 
-        val chapterDirname = provider.getChapterDirName(download.chapter.name, download.chapter.scanlator)
+        val chapterDirname = provider.getChapterDirName(
+            download.chapter.name,
+            download.chapter.scanlator,
+            download.chapter.url,
+        )
         val tmpDir = mangaDir.createDirectory(chapterDirname + TMP_DIR_SUFFIX)!!
 
         try {
@@ -373,24 +394,23 @@ class Downloader(
             download.status = Download.State.DOWNLOADING
 
             // Start downloading images, consider we can have downloaded images already
-            // Concurrently do 2 pages at a time
-            pageList.asFlow()
-                .flatMapMerge(concurrency = 2) { page ->
-                    flow {
-                        // Fetch image URL if necessary
-                        if (page.imageUrl.isNullOrEmpty()) {
-                            page.status = Page.State.LOAD_PAGE
-                            try {
-                                page.imageUrl = download.source.getImageUrl(page)
-                            } catch (e: Throwable) {
-                                page.status = Page.State.ERROR
-                            }
+            pageList.asFlow().flatMapMerge(concurrency = downloadPreferences.parallelPageLimit().get()) { page ->
+                flow {
+                    // Fetch image URL if necessary
+                    if (page.imageUrl.isNullOrEmpty()) {
+                        page.status = Page.State.LoadPage
+                        try {
+                            page.imageUrl = download.source.getImageUrl(page)
+                        } catch (e: Throwable) {
+                            page.status = Page.State.Error(e)
                         }
+                    }
 
-                        withIOContext { getOrDownloadImage(page, download, tmpDir, dataSaver) }
-                        emit(page)
-                    }.flowOn(Dispatchers.IO)
+                    withIOContext { getOrDownloadImage(page, download, tmpDir, dataSaver) }
+                    emit(page)
                 }
+                    .flowOn(Dispatchers.IO)
+            }
                 .collect {
                     // Do when page is downloaded.
                     notifier.onProgressChange(download)
@@ -426,7 +446,7 @@ class Downloader(
             // If the page list threw, it will resume here
             logcat(LogPriority.ERROR, error)
             download.status = Download.State.ERROR
-            notifier.onError(error.message, download.chapter.name, download.manga.title)
+            notifier.onError(error.message, download.chapter.name, download.manga.title, download.manga.id)
         }
     }
 
@@ -461,6 +481,7 @@ class Downloader(
                 imageFile != null -> imageFile
                 chapterCache.isImageInCache(page.imageUrl!!) ->
                     copyImageFromCache(chapterCache.getImageFile(page.imageUrl!!), tmpDir, filename)
+
                 else -> downloadImage(page, download.source, tmpDir, filename, dataSaver)
             }
 
@@ -469,13 +490,13 @@ class Downloader(
 
             page.uri = file.uri
             page.progress = 100
-            page.status = Page.State.READY
+            page.status = Page.State.Ready
         } catch (e: Throwable) {
             if (e is CancellationException) throw e
             // Mark this page as error and allow to download the remaining
             page.progress = 0
-            page.status = Page.State.ERROR
-            notifier.onError(e.message, download.chapter.name, download.manga.title)
+            page.status = Page.State.Error(e)
+            notifier.onError(e.message, download.chapter.name, download.manga.title, download.manga.id)
         }
     }
 
@@ -494,7 +515,7 @@ class Downloader(
         filename: String,
         dataSaver: DataSaver,
     ): UniFile {
-        page.status = Page.State.DOWNLOAD_IMAGE
+        page.status = Page.State.DownloadImage
         page.progress = 0
         return flow {
             val response = source.getImage(page, dataSaver)
@@ -553,14 +574,8 @@ class Downloader(
      * @param file the file where the image is already downloaded.
      */
     private fun getImageExtension(response: Response, file: UniFile): String {
-        // Read content type if available.
         val mime = response.body.contentType()?.run { if (type == "image") "image/$subtype" else null }
-            // Else guess from the uri.
-            ?: context.contentResolver.getType(file.uri)
-            // Else read magic numbers.
-            ?: ImageUtil.findImageType { file.openInputStream() }?.mime
-
-        return ImageUtil.getExtensionFromMimeType(mime)
+        return ImageUtil.getExtensionFromMimeType(mime) { file.openInputStream() }
     }
 
     private fun splitTallImageIfNeeded(page: Page, tmpDir: UniFile) {
@@ -625,69 +640,18 @@ class Downloader(
         tmpDir: UniFile,
     ) {
         // SY -->
-        if (CbzCrypto.getPasswordProtectDlPref() && CbzCrypto.isPasswordSet()) {
-            archiveEncryptedChapter(mangaDir, dirname, tmpDir)
-            return
-        }
+        val encrypt = CbzCrypto.getPasswordProtectDlPref() && CbzCrypto.isPasswordSet()
         // SY <--
 
         val zip = mangaDir.createFile("$dirname.cbz$TMP_DIR_SUFFIX")!!
-        ZipOutputStream(BufferedOutputStream(zip.openOutputStream())).use { zipOut ->
-            zipOut.setMethod(ZipEntry.STORED)
-
-            tmpDir.listFiles()?.forEach { img ->
-                img.openInputStream().use { input ->
-                    val data = input.readBytes()
-                    val size = img.length()
-                    val entry = ZipEntry(img.name).apply {
-                        val crc = CRC32().apply {
-                            update(data)
-                        }
-                        setCrc(crc.value)
-
-                        compressedSize = size
-                        setSize(size)
-                    }
-                    zipOut.putNextEntry(entry)
-                    zipOut.write(data)
-                }
+        ZipWriter(context, zip, /* SY --> */ encrypt /* SY <-- */).use { writer ->
+            tmpDir.listFiles()?.forEach { file ->
+                writer.write(file)
             }
         }
         zip.renameTo("$dirname.cbz")
         tmpDir.delete()
     }
-
-    // SY -->
-
-    private fun archiveEncryptedChapter(
-        mangaDir: UniFile,
-        dirname: String,
-        tmpDir: UniFile,
-    ) {
-        tmpDir.filePath?.let { addPaddingToImage(File(it)) }
-
-        tmpDir.listFiles()?.toList()?.let { files ->
-            mangaDir.createFile("$dirname.cbz$TMP_DIR_SUFFIX")
-                ?.addFilesToZip(files, CbzCrypto.getDecryptedPasswordCbz())
-        }
-
-        mangaDir.findFile("$dirname.cbz$TMP_DIR_SUFFIX")?.renameTo("$dirname.cbz")
-        tmpDir.delete()
-    }
-
-    private fun addPaddingToImage(imageDir: File) {
-        imageDir.listFiles()
-            // using ImageUtils isImage and findImageType functions causes IO errors when deleting files to set Exif Metadata
-            // it should be safe to assume that all files with image extensions are actual images at this point
-            ?.filter {
-                it.extension.equals("jpg", true) ||
-                    it.extension.equals("jpeg", true) ||
-                    it.extension.equals("png", true) ||
-                    it.extension.equals("webp", true)
-            }
-            ?.forEach { ImageUtil.addPaddingToImageExif(it) }
-    }
-    // SY <--
 
     /**
      * Creates a ComicInfo.xml file inside the given directory.
@@ -711,7 +675,7 @@ class Downloader(
             chapter,
             urls,
             categories,
-            source.name
+            source.name,
         )
 
         // Remove the old file
@@ -771,7 +735,7 @@ class Downloader(
         removeFromQueueIf { it.manga.id == manga.id }
     }
 
-    private fun _clearQueue() {
+    private fun internalClearQueue() {
         _queueState.update {
             it.forEach { download ->
                 if (download.status == Download.State.DOWNLOADING || download.status == Download.State.QUEUE) {
@@ -793,7 +757,7 @@ class Downloader(
         }
 
         pause()
-        _clearQueue()
+        internalClearQueue()
         addAllToQueue(downloads)
 
         if (wasRunning) {

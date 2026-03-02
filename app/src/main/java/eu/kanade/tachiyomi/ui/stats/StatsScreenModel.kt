@@ -1,12 +1,10 @@
 package eu.kanade.tachiyomi.ui.stats
 
+import androidx.compose.ui.util.fastDistinctBy
+import androidx.compose.ui.util.fastFilter
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.core.util.fastCountNot
-import eu.kanade.core.util.fastDistinctBy
-import eu.kanade.core.util.fastFilter
-import eu.kanade.core.util.fastFilterNot
-import eu.kanade.core.util.fastMapNotNull
 import eu.kanade.presentation.more.stats.StatsScreenState
 import eu.kanade.presentation.more.stats.data.StatsData
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -24,7 +22,7 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_U
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
 import tachiyomi.domain.manga.interactor.GetLibraryManga
-import tachiyomi.domain.manga.interactor.GetReadMangaNotInLibrary
+import tachiyomi.domain.manga.interactor.GetReadMangaNotInLibraryView
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.model.Track
 import tachiyomi.source.local.isLocal
@@ -39,11 +37,11 @@ class StatsScreenModel(
     private val preferences: LibraryPreferences = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
     // SY -->
-    private val getReadMangaNotInLibrary: GetReadMangaNotInLibrary = Injekt.get(),
+    private val getReadMangaNotInLibraryView: GetReadMangaNotInLibraryView = Injekt.get(),
     // SY <--
 ) : StateScreenModel<StatsScreenState>(StatsScreenState.Loading) {
 
-    private val loggedInTrackers by lazy { trackerManager.trackers.fastFilter { it.isLoggedIn } }
+    private val loggedInTrackers by lazy { trackerManager.loggedInTrackers() }
 
     // SY -->
     private val _allRead = MutableStateFlow(false)
@@ -55,7 +53,7 @@ class StatsScreenModel(
         _allRead.onEach { allRead ->
             mutableState.update { StatsScreenState.Loading }
             val libraryManga = getLibraryManga.await() + if (allRead) {
-                getReadMangaNotInLibrary.await()
+                getReadMangaNotInLibraryView.await()
             } else {
                 emptyList()
             }
@@ -108,26 +106,15 @@ class StatsScreenModel(
     }
 
     private fun getGlobalUpdateItemCount(libraryManga: List<LibraryManga>): Int {
-        val includedCategories = preferences.updateCategories().get().map { it.toLong() }
-        val includedManga = if (includedCategories.isNotEmpty()) {
-            libraryManga.filter { it.category in includedCategories }
-        } else {
-            libraryManga
-        }
-
-        val excludedCategories = preferences.updateCategoriesExclude().get().map { it.toLong() }
-        val excludedMangaIds = if (excludedCategories.isNotEmpty()) {
-            libraryManga.fastMapNotNull { manga ->
-                manga.id.takeIf { manga.category in excludedCategories }
-            }
-        } else {
-            emptyList()
-        }
-
+        val includedCategories = preferences.updateCategories().get().map { it.toLong() }.toSet()
+        val excludedCategories = preferences.updateCategoriesExclude().get().map { it.toLong() }.toSet()
         val updateRestrictions = preferences.autoUpdateMangaRestrictions().get()
-        return includedManga
-            .fastFilterNot { it.manga.id in excludedMangaIds }
-            .fastDistinctBy { it.manga.id }
+
+        return libraryManga.filter {
+            val included = includedCategories.isEmpty() || it.categories.intersect(includedCategories).isNotEmpty()
+            val excluded = it.categories.intersect(excludedCategories).isNotEmpty()
+            included && !excluded
+        }
             .fastCountNot {
                 (MANGA_NON_COMPLETED in updateRestrictions && it.manga.status.toInt() == SManga.COMPLETED) ||
                     (MANGA_HAS_UNREAD in updateRestrictions && it.unreadCount != 0L) ||

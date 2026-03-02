@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
+import mihon.core.common.archive.archiveReader
 import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.injectLazy
 
@@ -26,13 +27,19 @@ internal class DownloadPageLoader(
 
     private val context: Application by injectLazy()
 
-    private var zipPageLoader: ZipPageLoader? = null
+    private var archivePageLoader: ArchivePageLoader? = null
 
     override var isLocal: Boolean = true
 
     override suspend fun getPages(): List<ReaderPage> {
         val dbChapter = chapter.chapter
-        val chapterPath = downloadProvider.findChapterDir(dbChapter.name, dbChapter.scanlator, /* SY --> */ manga.ogTitle /* SY <-- */, source)
+        val chapterPath = downloadProvider.findChapterDir(
+            dbChapter.name,
+            dbChapter.scanlator,
+            dbChapter.url,
+            /* SY --> */ manga.ogTitle, /* <-- SY */
+            source,
+        )
         return if (chapterPath?.isFile == true) {
             getPagesFromArchive(chapterPath)
         } else {
@@ -42,13 +49,11 @@ internal class DownloadPageLoader(
 
     override fun recycle() {
         super.recycle()
-        zipPageLoader?.recycle()
+        archivePageLoader?.recycle()
     }
 
     private suspend fun getPagesFromArchive(file: UniFile): List<ReaderPage> {
-        // SY -->
-        val loader = ZipPageLoader(file, context).also { zipPageLoader = it }
-        // SY <--
+        val loader = ArchivePageLoader(file.archiveReader(context)).also { archivePageLoader = it }
         return loader.getPages()
     }
 
@@ -58,12 +63,12 @@ internal class DownloadPageLoader(
             ReaderPage(page.index, page.url, page.imageUrl) {
                 context.contentResolver.openInputStream(page.uri ?: Uri.EMPTY)!!
             }.apply {
-                status = Page.State.READY
+                status = Page.State.Ready
             }
         }
     }
 
     override suspend fun loadPage(page: ReaderPage) {
-        zipPageLoader?.loadPage(page)
+        archivePageLoader?.loadPage(page)
     }
 }

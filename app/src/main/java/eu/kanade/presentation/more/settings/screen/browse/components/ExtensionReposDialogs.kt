@@ -1,6 +1,7 @@
 package eu.kanade.presentation.more.settings.screen.browse.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -57,10 +58,11 @@ fun ExtensionRepoCreateDialog(
         },
         text = {
             Column {
-                Text(text = stringResource(MR.strings.action_add_repo_message))
+                Text(text = stringResource(MR.strings.action_add_repo_message, stringResource(MR.strings.app_name)))
 
                 OutlinedTextField(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .focusRequester(focusRequester),
                     value = name,
                     onValueChange = { name = it },
@@ -149,6 +151,38 @@ fun ExtensionRepoConflictDialog(
         },
         text = {
             Text(text = stringResource(MR.strings.action_replace_repo_message, newRepo.name, oldRepo.name))
+        },
+    )
+}
+
+@Composable
+fun ExtensionRepoConfirmDialog(
+    onDismissRequest: () -> Unit,
+    onCreate: () -> Unit,
+    repo: String,
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(text = stringResource(MR.strings.action_add_repo))
+        },
+        text = {
+            Text(text = stringResource(MR.strings.add_repo_confirmation, repo))
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onCreate()
+                    onDismissRequest()
+                },
+            ) {
+                Text(text = stringResource(MR.strings.action_add))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(text = stringResource(MR.strings.action_cancel))
+            }
         },
     )
 }

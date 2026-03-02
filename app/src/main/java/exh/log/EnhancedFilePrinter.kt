@@ -5,7 +5,6 @@ import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.BackupStrategy
 import com.elvishew.xlog.printer.file.naming.FileNameGenerator
 import com.hippo.unifile.UniFile
-import exh.log.EnhancedFilePrinter.Builder
 import java.io.BufferedWriter
 import java.io.IOException
 import java.util.concurrent.BlockingQueue
@@ -60,7 +59,14 @@ class EnhancedFilePrinter internal constructor(
         val lastFileName = writer.lastFileName
         if (fileNameGenerator.isFileNameChangeable) {
             val newFileName = fileNameGenerator.generateFileName(logLevel, System.currentTimeMillis())
-            require(!(newFileName == null || newFileName.trim { it <= ' ' }.isEmpty())) { "File name should not be empty." }
+            require(
+                !(
+                    newFileName == null ||
+                        newFileName.trim {
+                            it <= ' '
+                        }.isEmpty()
+                    ),
+            ) { "File name should not be empty." }
             if (newFileName != lastFileName) {
                 if (writer.isOpened) {
                     writer.close()

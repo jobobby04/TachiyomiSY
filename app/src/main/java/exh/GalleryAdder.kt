@@ -46,11 +46,13 @@ class GalleryAdder(
         return sourceManager.getVisibleCatalogueSources()
             .mapNotNull { it.getMainSource<UrlImportableSource>() }
             .filter {
-                it.lang in filters.enabledLangs && it.id !in filters.disabledSources && try {
-                    it.matchesUri(uri)
-                } catch (e: Exception) {
-                    false
-                }
+                it.lang in filters.enabledLangs &&
+                    it.id !in filters.disabledSources &&
+                    try {
+                        it.matchesUri(uri)
+                    } catch (e: Exception) {
+                        false
+                    }
             }
     }
 
@@ -82,11 +84,13 @@ class GalleryAdder(
                 sourceManager.getVisibleCatalogueSources()
                     .mapNotNull { it.getMainSource<UrlImportableSource>() }
                     .find {
-                        it.lang in filters.enabledLangs && it.id !in filters.disabledSources && try {
-                            it.matchesUri(uri)
-                        } catch (e: Exception) {
-                            false
-                        }
+                        it.lang in filters.enabledLangs &&
+                            it.id !in filters.disabledSources &&
+                            try {
+                                it.matchesUri(uri)
+                            } catch (e: Exception) {
+                                false
+                            }
                     } ?: return GalleryAddEvent.Fail.UnknownSource(url, context)
             }
 
@@ -132,7 +136,7 @@ class GalleryAdder(
 
             // Use manga in DB if possible, otherwise, make a new manga
             var manga = getManga.await(cleanedMangaUrl, source.id)
-                ?: networkToLocalManga.await(
+                ?: networkToLocalManga(
                     Manga.create().copy(
                         source = source.id,
                         url = cleanedMangaUrl,

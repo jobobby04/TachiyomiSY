@@ -1,5 +1,5 @@
 
-import eu.kanade.tachiyomi.data.backup.models.BackupSerializer
+import eu.kanade.tachiyomi.data.backup.models.Backup
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.all.EHentai
 import exh.favorites.LocalFavoritesStorage
@@ -17,6 +17,8 @@ import okio.source
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
@@ -26,8 +28,6 @@ import tachiyomi.domain.manga.model.CustomMangaInfo
 import tachiyomi.domain.manga.model.FavoriteEntry
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.repository.CustomMangaRepository
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.addSingletonFactory
 import java.io.File
 
 class Tester {
@@ -39,9 +39,9 @@ class Tester {
             .inputStream().source().buffer()
             .gzip().buffer()
             .readByteArray()
-        val backup = ProtoBuf.decodeFromByteArray(BackupSerializer, bytes)
+        val backup = ProtoBuf.decodeFromByteArray(Backup.serializer(), bytes)
         val newBytes = ProtoBuf.encodeToByteArray(
-            BackupSerializer,
+            Backup.serializer(),
             backup.copy(
                 backupManga = backup.backupManga.filter { it.favorite },
             ),
@@ -165,11 +165,17 @@ class Tester {
         @JvmStatic
         @BeforeAll
         fun before() {
-            Injekt.addSingletonFactory {
-                GetCustomMangaInfo(
-                    object : CustomMangaRepository {
-                        override fun get(mangaId: Long) = null
-                        override fun set(mangaInfo: CustomMangaInfo) = Unit
+            startKoin {
+                modules(
+                    module {
+                        single {
+                            GetCustomMangaInfo(
+                                object : CustomMangaRepository {
+                                    override fun get(mangaId: Long) = null
+                                    override fun set(mangaInfo: CustomMangaInfo) = Unit
+                                },
+                            )
+                        }
                     },
                 )
             }

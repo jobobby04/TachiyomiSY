@@ -1,15 +1,21 @@
 package eu.kanade.presentation.reader.settings
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsScreenModel
+import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.SettingsChipRow
+import tachiyomi.presentation.core.components.SliderItem
+import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 
@@ -20,9 +26,27 @@ private val themes = listOf(
     MR.strings.automatic_background to 3,
 )
 
+private val flashColors = listOf(
+    MR.strings.pref_flash_style_black to ReaderPreferences.FlashColor.BLACK,
+    MR.strings.pref_flash_style_white to ReaderPreferences.FlashColor.WHITE,
+    MR.strings.pref_flash_style_white_black to ReaderPreferences.FlashColor.WHITE_BLACK,
+)
+
 @Composable
 internal fun ColumnScope.GeneralPage(screenModel: ReaderSettingsScreenModel) {
     val readerTheme by screenModel.preferences.readerTheme().collectAsState()
+
+    val flashPageState by screenModel.preferences.flashOnPageChange().collectAsState()
+
+    val flashMillisPref = screenModel.preferences.flashDurationMillis()
+    val flashMillis by flashMillisPref.collectAsState()
+
+    val flashIntervalPref = screenModel.preferences.flashPageInterval()
+    val flashInterval by flashIntervalPref.collectAsState()
+
+    val flashColorPref = screenModel.preferences.flashColor()
+    val flashColor by flashColorPref.collectAsState()
+
     SettingsChipRow(MR.strings.pref_reader_theme) {
         themes.map { (labelRes, value) ->
             FilterChip(
@@ -63,10 +87,11 @@ internal fun ColumnScope.GeneralPage(screenModel: ReaderSettingsScreenModel) {
         pref = screenModel.preferences.fullscreen(),
     )
 
-    if (screenModel.hasDisplayCutout && screenModel.preferences.fullscreen().get()) {
+    val isFullscreen by screenModel.preferences.fullscreen().collectAsState()
+    if (LocalActivity.current?.hasDisplayCutout() == true && isFullscreen) {
         CheckboxItem(
             label = stringResource(MR.strings.pref_cutout_short),
-            pref = screenModel.preferences.cutoutShort(),
+            pref = screenModel.preferences.drawUnderCutout(),
         )
     }
 
@@ -95,6 +120,35 @@ internal fun ColumnScope.GeneralPage(screenModel: ReaderSettingsScreenModel) {
         label = stringResource(MR.strings.pref_flash_page),
         pref = screenModel.preferences.flashOnPageChange(),
     )
+    if (flashPageState) {
+        SliderItem(
+            value = flashMillis / ReaderPreferences.MILLI_CONVERSION,
+            valueRange = 1..15,
+            label = stringResource(MR.strings.pref_flash_duration),
+            valueString = stringResource(MR.strings.pref_flash_duration_summary, flashMillis),
+            onChange = { flashMillisPref.set(it * ReaderPreferences.MILLI_CONVERSION) },
+            pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        )
+        SliderItem(
+            value = flashInterval,
+            valueRange = 1..10,
+            label = stringResource(MR.strings.pref_flash_page_interval),
+            valueString = pluralStringResource(MR.plurals.pref_pages, flashInterval, flashInterval),
+            onChange = {
+                flashIntervalPref.set(it)
+            },
+            pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        )
+        SettingsChipRow(MR.strings.pref_flash_with) {
+            flashColors.map { (labelRes, value) ->
+                FilterChip(
+                    selected = flashColor == value,
+                    onClick = { flashColorPref.set(value) },
+                    label = { Text(stringResource(labelRes)) },
+                )
+            }
+        }
+    }
 
     // SY -->
     CheckboxItem(

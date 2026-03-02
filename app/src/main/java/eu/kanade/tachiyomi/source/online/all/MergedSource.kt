@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.copy
 import eu.kanade.tachiyomi.source.online.HttpSource
-import eu.kanade.tachiyomi.util.shouldDownloadNewChapters
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -19,6 +18,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import mihon.domain.chapter.interactor.FilterChaptersForDownload
 import okhttp3.Response
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.category.interactor.GetCategories
@@ -42,6 +42,7 @@ class MergedSource : HttpSource() {
     private val sourceManager: SourceManager by injectLazy()
     private val downloadManager: DownloadManager by injectLazy()
     private val downloadPreferences: DownloadPreferences by injectLazy()
+    private val filterChaptersForDownload: FilterChaptersForDownload by injectLazy()
 
     override val id: Long = MERGED_SOURCE_ID
 
@@ -119,12 +120,6 @@ class MergedSource : HttpSource() {
             "Manga references are empty, chapters unavailable, merge is likely corrupted"
         }
 
-        val ifDownloadNewChapters = downloadChapters && manga.shouldDownloadNewChapters(
-            getCategories.await(manga.id).map {
-                it.id
-            },
-            downloadPreferences,
-        )
         val semaphore = Semaphore(5)
         var exception: Exception? = null
         return supervisorScope {
@@ -141,11 +136,15 @@ class MergedSource : HttpSource() {
                                         val chapterList = source.getChapterList(loadedManga.toSManga())
                                         val results =
                                             syncChaptersWithSource.await(chapterList, loadedManga, source)
-                                        if (ifDownloadNewChapters && reference.downloadChapters) {
-                                            downloadManager.downloadChapters(
-                                                loadedManga,
-                                                results,
-                                            )
+
+                                        if (downloadChapters && reference.downloadChapters) {
+                                            val chaptersToDownload = filterChaptersForDownload.await(manga, results)
+                                            if (chaptersToDownload.isNotEmpty()) {
+                                                downloadManager.downloadChapters(
+                                                    loadedManga,
+                                                    chaptersToDownload,
+                                                )
+                                            }
                                         }
                                         results
                                     } else {
@@ -171,7 +170,7 @@ class MergedSource : HttpSource() {
         var manga = getManga.await(mangaUrl, mangaSourceId)
         val source = sourceManager.getOrStub(manga?.source ?: mangaSourceId)
         if (manga == null) {
-            val newManga = networkToLocalManga.await(
+            val newManga = networkToLocalManga(
                 Manga.create().copy(
                     source = mangaSourceId,
                     url = mangaUrl,

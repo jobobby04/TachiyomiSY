@@ -1,6 +1,5 @@
 package mihon.domain.extensionrepo.service
 
-import androidx.core.net.toUri
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.awaitSuccess
@@ -17,16 +16,13 @@ class ExtensionRepoService(
 ) {
     val client = networkHelper.client
 
-    @Suppress("TooGenericExceptionCaught")
     suspend fun fetchRepoDetails(
         repo: String,
     ): ExtensionRepo? {
         return withIOContext {
-            val url = "$repo/repo.json".toUri()
-
             try {
                 with(json) {
-                    client.newCall(GET(url.toString()))
+                    client.newCall(GET("$repo/repo.json"))
                         .awaitSuccess()
                         .parseAs<ExtensionRepoMetaDto>()
                         .toExtensionRepo(baseUrl = repo)

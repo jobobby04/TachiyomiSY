@@ -7,10 +7,11 @@ plugins {
 
 android {
     namespace = "eu.kanade.tachiyomi.core.common"
+}
 
-    kotlinOptions {
-        freeCompilerArgs += listOf(
-            "-Xcontext-receivers",
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
         )
@@ -36,7 +37,7 @@ dependencies {
     implementation(libs.image.decoder)
 
     implementation(libs.unifile)
-    implementation(libs.bundles.archive)
+    implementation(libs.libarchive)
 
     api(kotlinx.coroutines.core)
     api(kotlinx.serialization.json)
@@ -53,11 +54,11 @@ dependencies {
     implementation(libs.bundles.js.engine)
 
     testImplementation(libs.bundles.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 
     // SY -->
     implementation(sylibs.xlog)
-    implementation(libs.zip4j)
-    implementation(libs.injekt.core)
-    implementation(libs.exifinterface)
+    implementation(libs.injekt)
+    implementation(sylibs.exifinterface)
     // SY <--
 }

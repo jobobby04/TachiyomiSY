@@ -32,12 +32,13 @@ fun PururinDescription(state: State.Success, openMetadataViewer: () -> Unit) {
             if (meta == null || meta !is PururinSearchMetadata) return@AndroidView
             val binding = DescriptionAdapterPuBinding.bind(it)
 
-            binding.genre.text = meta.tags.find { it.namespace == PururinSearchMetadata.TAG_NAMESPACE_CATEGORY }.let { genre ->
-                genre?.let { MetadataUIUtil.getGenreAndColour(context, it.name) }?.let {
-                    binding.genre.setBackgroundColor(it.first)
-                    it.second
-                } ?: genre?.name ?: context.stringResource(MR.strings.unknown)
-            }
+            binding.genre.text =
+                meta.tags.find { it.namespace == PururinSearchMetadata.TAG_NAMESPACE_CATEGORY }.let { genre ->
+                    genre?.let { MetadataUIUtil.getGenreAndColour(context, it.name) }?.let {
+                        binding.genre.setBackgroundColor(it.first)
+                        it.second
+                    } ?: genre?.name ?: context.stringResource(MR.strings.unknown)
+                }
 
             binding.uploader.text = meta.uploaderDisp ?: meta.uploader.orEmpty()
 
@@ -50,7 +51,9 @@ fun PururinDescription(state: State.Success, openMetadataViewer: () -> Unit) {
             val ratingFloat = meta.averageRating?.toFloat()
             binding.ratingBar.rating = ratingFloat ?: 0F
             @SuppressLint("SetTextI18n")
-            binding.rating.text = (round((ratingFloat ?: 0F) * 100.0) / 100.0).toString() + " - " + MetadataUIUtil.getRatingString(context, ratingFloat?.times(2))
+            binding.rating.text =
+                (round((ratingFloat ?: 0F) * 100.0) / 100.0).toString() + " - " +
+                MetadataUIUtil.getRatingString(context, ratingFloat?.times(2))
 
             binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
 

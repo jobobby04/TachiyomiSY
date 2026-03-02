@@ -3,10 +3,10 @@ package tachiyomi.data.manga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.manga.model.MangaWithChapterCount
 import tachiyomi.view.LibraryView
 
 object MangaMapper {
-    @Suppress("LongParameterList")
     fun mapManga(
         id: Long,
         source: Long,
@@ -37,6 +37,7 @@ object MangaMapper {
         version: Long,
         @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
+        notes: String,
     ): Manga = Manga(
         id = id,
         source = source,
@@ -63,9 +64,9 @@ object MangaMapper {
         lastModifiedAt = lastModifiedAt,
         favoriteModifiedAt = favoriteModifiedAt,
         version = version,
+        notes = notes,
     )
 
-    @Suppress("LongParameterList")
     fun mapLibraryManga(
         id: Long,
         source: Long,
@@ -95,13 +96,14 @@ object MangaMapper {
         favoriteModifiedAt: Long?,
         version: Long,
         isSyncing: Long,
+        notes: String,
         totalCount: Long,
         readCount: Double,
         latestUpload: Long,
         chapterFetchedAt: Long,
         lastRead: Long,
         bookmarkCount: Double,
-        category: Long,
+        categories: String,
     ): LibraryManga = LibraryManga(
         manga = mapManga(
             id,
@@ -131,14 +133,80 @@ object MangaMapper {
             favoriteModifiedAt,
             version,
             isSyncing,
+            notes,
         ),
-        category = category,
+        categories = categories.split(",").map { it.toLong() },
         totalChapters = totalCount,
         readCount = readCount.toLong(),
         bookmarkCount = bookmarkCount.toLong(),
         latestUpload = latestUpload,
         chapterFetchedAt = chapterFetchedAt,
         lastRead = lastRead,
+    )
+
+    fun mapMangaWithChapterCount(
+        id: Long,
+        source: Long,
+        url: String,
+        artist: String?,
+        author: String?,
+        description: String?,
+        genre: List<String>?,
+        title: String,
+        status: Long,
+        thumbnailUrl: String?,
+        favorite: Boolean,
+        lastUpdate: Long?,
+        nextUpdate: Long?,
+        initialized: Boolean,
+        viewerFlags: Long,
+        chapterFlags: Long,
+        coverLastModified: Long,
+        dateAdded: Long,
+        // SY -->
+        @Suppress("UNUSED_PARAMETER")
+        filteredScanlators: String?,
+        // SY <--
+        updateStrategy: UpdateStrategy,
+        calculateInterval: Long,
+        lastModifiedAt: Long,
+        favoriteModifiedAt: Long?,
+        version: Long,
+        isSyncing: Long,
+        notes: String,
+        totalCount: Long,
+    ): MangaWithChapterCount = MangaWithChapterCount(
+        manga = mapManga(
+            id,
+            source,
+            url,
+            artist,
+            author,
+            description,
+            genre,
+            title,
+            status,
+            thumbnailUrl,
+            favorite,
+            lastUpdate,
+            nextUpdate,
+            initialized,
+            viewerFlags,
+            chapterFlags,
+            coverLastModified,
+            dateAdded,
+            // SY -->
+            null,
+            // SY <--
+            updateStrategy,
+            calculateInterval,
+            lastModifiedAt,
+            favoriteModifiedAt,
+            version,
+            isSyncing,
+            notes,
+        ),
+        chapterCount = totalCount,
     )
 
     fun mapLibraryView(libraryView: LibraryView): LibraryManga {
@@ -167,8 +235,9 @@ object MangaMapper {
                 lastModifiedAt = libraryView.last_modified_at,
                 favoriteModifiedAt = libraryView.favorite_modified_at,
                 version = libraryView.version,
+                notes = libraryView.notes,
             ),
-            category = libraryView.category,
+            categories = libraryView.categories.split(",").map { it.toLong() },
             totalChapters = libraryView.totalCount,
             readCount = libraryView.readCount.toLong(),
             bookmarkCount = libraryView.bookmarkCount.toLong(),

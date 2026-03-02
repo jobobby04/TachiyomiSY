@@ -1,5 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
+    <changelogversion versionName="1.12.0" changeDate="May 11,2025">
+        <changelogtext>[b]Based on Mihon stable 0.18.0(from 0.17.0)[/b]</changelogtext>
+        <changelogtext>Use Complete Category for sync completion(Thanks @lord-ne)</changelogtext>
+        <changelogtext>Maintain sort order when receiving chapters from sync (Thanks @Lolle2000la)</changelogtext>
+        <changelogtext>Don't sync when not connected to a network (Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Add QR code scan button for sync API key (Thanks @65-7a)</changelogtext>
+        <changelogtext>Update NHentai Subdomain for cdn (Thanks @BrutuZ)</changelogtext>
+        <changelogtext>Use the NHentai t1 cdn subdomain (Thanks @cfouche3005)</changelogtext>
+        <changelogtext>Fix crash with migration list screen going into the background</changelogtext>
+        <changelogtext>Improve recommendation screens for multi-recommendations (Thanks @timschneeb)</changelogtext>
+        <changelogtext>Add global search shortcut to SmartSearch for merge (Thanks @timschneeb)</changelogtext>
+        <changelogtext>Add notifications to the gallery updater</changelogtext>
+        <changelogtext>Fix the gallery updater never updating in the background</changelogtext>
+        <changelogtext>Update E-Hentai tags list</changelogtext>
+        <changelogtext>Populate Author field and clear Description on a couple sources (Thanks @BrutuZ)</changelogtext>
+        <changelogtext>Use Mangadex tracker links to associate mangas automatically with trackers (Thanks @timschneeb)</changelogtext>
+        <changelogtext>Fix Mangadex alt title being removed by cleanDescription (Thanks @spicemace)</changelogtext>
+    </changelogversion>
+    <changelogversion versionName="1.11.0" changeDate="Oct 27,2024">
+        <changelogtext>[b]Based on Mihon stable 0.17.0(from 0.16.4)[/b]</changelogtext>
+        <changelogtext>[b]Add Cross-Device Sync (Thanks @kaiserbh)[/b]</changelogtext>
+        <changelogtext>Add mature to the lewd tag filter(Thanks @gelionexists)</changelogtext>
+        <changelogtext>Add reset custom manga info (Thanks @LetrixZ)</changelogtext>
+        <changelogtext>Add multiple tags at once in edit manga info(Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Fix sources loading too late for some screens</changelogtext>
+        <changelogtext>Show Downloaded stage in reader chapter list(Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Fix Anilist</changelogtext>
+        <changelogtext>Fix MAL</changelogtext>
+        <changelogtext>Add an option to only show entries with new chapters(Thanks @timschneeb)</changelogtext>
+        <changelogtext>Fix Merged Source chapters not showing source name</changelogtext>
+        <changelogtext>Use DownloadChapters merged manga setting(Thanks @cuong-tran)</changelogtext>
+        <changelogtext>Show local chapters as downloaded in Merged Manga(Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Fix ExHentai Page List errors</changelogtext>
+        <changelogtext>Improve E-H/Exh chapter downloading</changelogtext>
+        <changelogtext>Make manga page preview rows configurable(Thanks @LetrixZ)</changelogtext>
+        <changelogtext>Use more of Mangadex Extension settings(Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Improve Encrypted Downloads(Thanks @Shamicen)</changelogtext>
+        <changelogtext>Delete duplicate chapters when they are marked as read(Thanks @NGB-Was-Taken)</changelogtext>
+    </changelogversion>
     <changelogversion versionName="1.10.5" changeDate="Mar 2,2024">
         <changelogtext>[b]Based on Mihon stable 0.16.4(from 0.16.3)[/b]</changelogtext>
         <changelogtext>Minor fix for mark duplicate chapters as read</changelogtext>

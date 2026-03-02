@@ -2,6 +2,7 @@ package eu.kanade.presentation.manga.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.CallMerge
@@ -32,7 +34,6 @@ import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.CallMerge
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.DoneAll
@@ -51,6 +52,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -66,44 +68,54 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.mikepenz.markdown.model.markdownAnnotator
+import com.mikepenz.markdown.model.markdownAnnotatorConfig
+import com.mikepenz.markdown.utils.getUnescapedTextInNode
+import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.system.copyToClipboard
+import org.intellij.markdown.MarkdownElementTypes
+import org.intellij.markdown.MarkdownTokenTypes
+import org.intellij.markdown.ast.findChildOfType
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
+import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clickableNoIndication
 import tachiyomi.presentation.core.util.secondaryItemAlpha
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
-
-private val whitespaceLineRegex = Regex("[\\r\\n]{2,}", setOf(RegexOption.MULTILINE))
 
 @Composable
 fun MangaInfoBox(
     isTabletUi: Boolean,
     appBarPadding: Dp,
-    title: String,
-    author: String?,
-    artist: String?,
+    manga: Manga,
     sourceName: String,
     isStubSource: Boolean,
-    coverDataProvider: () -> Manga,
-    status: Long,
     onCoverClick: () -> Unit,
     doSearch: (query: String, global: Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -115,7 +127,10 @@ fun MangaInfoBox(
             MaterialTheme.colorScheme.background,
         )
         AsyncImage(
-            model = coverDataProvider(),
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(manga)
+                .crossfade(true)
+                .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -135,28 +150,20 @@ fun MangaInfoBox(
             if (!isTabletUi) {
                 MangaAndSourceTitlesSmall(
                     appBarPadding = appBarPadding,
-                    coverDataProvider = coverDataProvider,
-                    onCoverClick = onCoverClick,
-                    title = title,
-                    doSearch = doSearch,
-                    author = author,
-                    artist = artist,
-                    status = status,
+                    manga = manga,
                     sourceName = sourceName,
                     isStubSource = isStubSource,
+                    onCoverClick = onCoverClick,
+                    doSearch = doSearch,
                 )
             } else {
                 MangaAndSourceTitlesLarge(
                     appBarPadding = appBarPadding,
-                    coverDataProvider = coverDataProvider,
-                    onCoverClick = onCoverClick,
-                    title = title,
-                    doSearch = doSearch,
-                    author = author,
-                    artist = artist,
-                    status = status,
+                    manga = manga,
                     sourceName = sourceName,
                     isStubSource = isStubSource,
+                    onCoverClick = onCoverClick,
+                    doSearch = doSearch,
                 )
             }
         }
@@ -180,7 +187,7 @@ fun MangaActionRow(
     // SY <--
     modifier: Modifier = Modifier,
 ) {
-    val defaultActionButtonColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .38f)
+    val defaultActionButtonColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA)
 
     // TODO: show something better when using custom interval
     val nextUpdateDays = remember(nextUpdate) {
@@ -255,8 +262,10 @@ fun ExpandableMangaDescription(
     defaultExpandState: Boolean,
     description: String?,
     tagsProvider: () -> List<String>?,
+    notes: String,
     onTagSearch: (String) -> Unit,
     onCopyTagToClipboard: (tag: String) -> Unit,
+    onEditNotes: () -> Unit,
     // SY -->
     searchMetadataChips: SearchMetadataChips?,
     doSearch: (query: String, global: Boolean) -> Unit,
@@ -269,15 +278,12 @@ fun ExpandableMangaDescription(
         }
         val desc =
             description.takeIf { !it.isNullOrBlank() } ?: stringResource(MR.strings.description_placeholder)
-        val trimmedDescription = remember(desc) {
-            desc
-                .replace(whitespaceLineRegex, "\n")
-                .trimEnd()
-        }
+
         MangaSummary(
-            expandedDescription = desc,
-            shrunkDescription = trimmedDescription,
+            description = desc,
             expanded = expanded,
+            notes = notes,
+            onEditNotesClicked = onEditNotes,
             modifier = Modifier
                 .padding(top = 8.dp)
                 .padding(horizontal = 16.dp)
@@ -289,7 +295,8 @@ fun ExpandableMangaDescription(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .padding(vertical = 12.dp)
-                    .animateContentSize(),
+                    .animateContentSize(animationSpec = spring())
+                    .fillMaxWidth(),
             ) {
                 var showMenu by remember { mutableStateOf(false) }
                 var tagSelected by remember { mutableStateOf("") }
@@ -374,15 +381,11 @@ fun ExpandableMangaDescription(
 @Composable
 private fun MangaAndSourceTitlesLarge(
     appBarPadding: Dp,
-    coverDataProvider: () -> Manga,
-    onCoverClick: () -> Unit,
-    title: String,
-    doSearch: (query: String, global: Boolean) -> Unit,
-    author: String?,
-    artist: String?,
-    status: Long,
+    manga: Manga,
     sourceName: String,
     isStubSource: Boolean,
+    onCoverClick: () -> Unit,
+    doSearch: (query: String, global: Boolean) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -392,19 +395,22 @@ private fun MangaAndSourceTitlesLarge(
     ) {
         MangaCover.Book(
             modifier = Modifier.fillMaxWidth(0.65f),
-            data = coverDataProvider(),
+            data = ImageRequest.Builder(LocalContext.current)
+                .data(manga)
+                .crossfade(true)
+                .build(),
             contentDescription = stringResource(MR.strings.manga_cover),
             onClick = onCoverClick,
         )
         Spacer(modifier = Modifier.height(16.dp))
         MangaContentInfo(
-            title = title,
-            doSearch = doSearch,
-            author = author,
-            artist = artist,
-            status = status,
+            title = manga.title,
+            author = manga.author,
+            artist = manga.artist,
+            status = manga.status,
             sourceName = sourceName,
             isStubSource = isStubSource,
+            doSearch = doSearch,
             textAlign = TextAlign.Center,
         )
     }
@@ -413,15 +419,11 @@ private fun MangaAndSourceTitlesLarge(
 @Composable
 private fun MangaAndSourceTitlesSmall(
     appBarPadding: Dp,
-    coverDataProvider: () -> Manga,
-    onCoverClick: () -> Unit,
-    title: String,
-    doSearch: (query: String, global: Boolean) -> Unit,
-    author: String?,
-    artist: String?,
-    status: Long,
+    manga: Manga,
     sourceName: String,
     isStubSource: Boolean,
+    onCoverClick: () -> Unit,
+    doSearch: (query: String, global: Boolean) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -434,7 +436,10 @@ private fun MangaAndSourceTitlesSmall(
             modifier = Modifier
                 .sizeIn(maxWidth = 100.dp)
                 .align(Alignment.Top),
-            data = coverDataProvider(),
+            data = ImageRequest.Builder(LocalContext.current)
+                .data(manga)
+                .crossfade(true)
+                .build(),
             contentDescription = stringResource(MR.strings.manga_cover),
             onClick = onCoverClick,
         )
@@ -442,13 +447,13 @@ private fun MangaAndSourceTitlesSmall(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             MangaContentInfo(
-                title = title,
-                doSearch = doSearch,
-                author = author,
-                artist = artist,
-                status = status,
+                title = manga.title,
+                author = manga.author,
+                artist = manga.artist,
+                status = manga.status,
                 sourceName = sourceName,
                 isStubSource = isStubSource,
+                doSearch = doSearch,
             )
         }
     }
@@ -457,12 +462,12 @@ private fun MangaAndSourceTitlesSmall(
 @Composable
 private fun ColumnScope.MangaContentInfo(
     title: String,
-    doSearch: (query: String, global: Boolean) -> Unit,
     author: String?,
     artist: String?,
     status: Long,
     sourceName: String,
     isStubSource: Boolean,
+    doSearch: (query: String, global: Boolean) -> Unit,
     textAlign: TextAlign? = LocalTextStyle.current.textAlign,
 ) {
     val context = LocalContext.current
@@ -601,40 +606,95 @@ private fun ColumnScope.MangaContentInfo(
 }
 
 @Composable
+private fun descriptionAnnotator(loadImages: Boolean, linkStyle: SpanStyle) = remember(loadImages, linkStyle) {
+    markdownAnnotator(
+        annotate = { content, child ->
+            if (!loadImages && child.type == MarkdownElementTypes.IMAGE) {
+                val inlineLink = child.findChildOfType(MarkdownElementTypes.INLINE_LINK)
+
+                val url = inlineLink?.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)
+                    ?.getUnescapedTextInNode(content)
+                    ?: inlineLink?.findChildOfType(MarkdownElementTypes.AUTOLINK)
+                        ?.findChildOfType(MarkdownTokenTypes.AUTOLINK)
+                        ?.getUnescapedTextInNode(content)
+                    ?: return@markdownAnnotator false
+
+                val textNode = inlineLink?.findChildOfType(MarkdownElementTypes.LINK_TITLE)
+                    ?: inlineLink?.findChildOfType(MarkdownElementTypes.LINK_TEXT)
+                val altText = textNode?.findChildOfType(MarkdownTokenTypes.TEXT)
+                    ?.getUnescapedTextInNode(content).orEmpty()
+
+                withLink(LinkAnnotation.Url(url = url)) {
+                    pushStyle(linkStyle)
+                    appendInlineContent(MARKDOWN_INLINE_IMAGE_TAG)
+                    append(altText)
+                    pop()
+                }
+
+                return@markdownAnnotator true
+            }
+
+            if (child.type in DISALLOWED_MARKDOWN_TYPES) {
+                append(content.substring(child.startOffset, child.endOffset))
+                return@markdownAnnotator true
+            }
+
+            false
+        },
+        config = markdownAnnotatorConfig(
+            eolAsNewLine = true,
+        ),
+    )
+}
+
+@Composable
 private fun MangaSummary(
-    expandedDescription: String,
-    shrunkDescription: String,
+    description: String,
+    notes: String,
     expanded: Boolean,
+    onEditNotesClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val preferences = remember { Injekt.get<UiPreferences>() }
+    val loadImages = remember { preferences.imagesInDescription().get() }
     val animProgress by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f,
         label = "summary",
     )
+    var infoHeight by remember { mutableIntStateOf(0) }
     Layout(
         modifier = modifier.clipToBounds(),
         contents = listOf(
             {
                 Text(
-                    text = "\n\n", // Shows at least 3 lines
+                    // Shows at least 3 lines if no notes
+                    // when there are notes show 6
+                    text = if (notes.isBlank()) "\n\n" else "\n\n\n\n\n",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
             {
-                Text(
-                    text = expandedDescription,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            },
-            {
-                SelectionContainer {
-                    Text(
-                        text = if (expanded) expandedDescription else shrunkDescription,
-                        maxLines = Int.MAX_VALUE,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.secondaryItemAlpha(),
+                Column(
+                    modifier = Modifier.onSizeChanged { size ->
+                        infoHeight = size.height
+                    },
+                ) {
+                    MangaNotesSection(
+                        content = notes,
+                        expanded = expanded,
+                        onEditNotes = onEditNotesClicked,
                     )
+                    SelectionContainer {
+                        MarkdownRender(
+                            content = description,
+                            modifier = Modifier.secondaryItemAlpha(),
+                            annotator = descriptionAnnotator(
+                                loadImages = loadImages,
+                                linkStyle = getMarkdownLinkStyle().toSpanStyle(),
+                            ),
+                            loadImages = loadImages,
+                        )
+                    }
                 }
             },
             {
@@ -655,14 +715,11 @@ private fun MangaSummary(
                 }
             },
         ),
-    ) { (shrunk, expanded, actual, scrim), constraints ->
+    ) { (shrunk, actual, scrim), constraints ->
         val shrunkHeight = shrunk.single()
             .measure(constraints)
             .height
-        val expandedHeight = expanded.single()
-            .measure(constraints)
-            .height
-        val heightDelta = expandedHeight - shrunkHeight
+        val heightDelta = infoHeight - shrunkHeight
         val scrimHeight = 24.dp.roundToPx()
 
         val actualPlaceable = actual.single()

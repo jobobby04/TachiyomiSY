@@ -1,11 +1,12 @@
 package exh.util
 
-import android.graphics.Color
+import androidx.core.graphics.toColorInt
 import exh.metadata.metadata.base.RaisedTag
 import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
 import exh.source.PURURIN_SOURCE_ID
 import exh.source.TSUMINO_SOURCE_ID
+import exh.source.lanraragiSourceIds
 import exh.source.mangaDexSourceIds
 import exh.source.nHentaiSourceIds
 import java.util.Locale
@@ -23,7 +24,8 @@ object SourceTagsUtil {
             sourceId in nHentaiSourceIds ||
             sourceId in mangaDexSourceIds ||
             sourceId == PURURIN_SOURCE_ID ||
-            sourceId == TSUMINO_SOURCE_ID
+            sourceId == TSUMINO_SOURCE_ID ||
+            sourceId in lanraragiSourceIds
         ) {
             val parsed = when {
                 fullTag != null -> parseTag(fullTag)
@@ -101,24 +103,24 @@ object SourceTagsUtil {
         MISC_COLOR("#f06292"),
         ;
 
-        constructor(color: String) : this(Color.parseColor(color))
+        constructor(color: String) : this(color.toColorInt())
     }
 
     fun getLocaleSourceUtil(language: String?) = when (language) {
-        "english", "eng" -> Locale("en")
-        "chinese" -> Locale("zh")
-        "spanish" -> Locale("es")
-        "korean" -> Locale("ko")
-        "russian" -> Locale("ru")
-        "french" -> Locale("fr")
-        "portuguese" -> Locale("pt")
-        "thai" -> Locale("th")
-        "german" -> Locale("de")
-        "italian" -> Locale("it")
-        "vietnamese" -> Locale("vi")
-        "polish" -> Locale("pl")
-        "hungarian" -> Locale("hu")
-        "dutch" -> Locale("nl")
+        "english", "eng" -> Locale.forLanguageTag("en")
+        "chinese" -> Locale.forLanguageTag("zh")
+        "spanish" -> Locale.forLanguageTag("es")
+        "korean" -> Locale.forLanguageTag("ko")
+        "russian" -> Locale.forLanguageTag("ru")
+        "french" -> Locale.forLanguageTag("fr")
+        "portuguese" -> Locale.forLanguageTag("pt")
+        "thai" -> Locale.forLanguageTag("th")
+        "german" -> Locale.forLanguageTag("de")
+        "italian" -> Locale.forLanguageTag("it")
+        "vietnamese" -> Locale.forLanguageTag("vi")
+        "polish" -> Locale.forLanguageTag("pl")
+        "hungarian" -> Locale.forLanguageTag("hu")
+        "dutch" -> Locale.forLanguageTag("nl")
         else -> null
     }
 

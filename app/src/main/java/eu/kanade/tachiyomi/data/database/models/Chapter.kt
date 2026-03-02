@@ -1,3 +1,5 @@
+@file:Suppress("PropertyName")
+
 package eu.kanade.tachiyomi.data.database.models
 
 import eu.kanade.tachiyomi.source.model.SChapter
@@ -24,6 +26,9 @@ interface Chapter : SChapter, Serializable {
 
     var version: Long
 }
+
+val Chapter.isRecognizedNumber: Boolean
+    get() = chapter_number >= 0f
 
 fun Chapter.toDomainChapter(): DomainChapter? {
     if (id == null || manga_id == null) return null

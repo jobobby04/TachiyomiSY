@@ -2,8 +2,6 @@ package eu.kanade.tachiyomi.crash
 
 import android.content.Context
 import android.content.Intent
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -13,7 +11,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
-import kotlin.system.exitProcess
 
 class GlobalExceptionHandler private constructor(
     private val applicationContext: Context,
@@ -33,14 +30,9 @@ class GlobalExceptionHandler private constructor(
     }
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
-        try {
-            logcat(priority = LogPriority.ERROR, throwable = exception)
-            Firebase.crashlytics.recordException(exception)
-            launchActivity(applicationContext, activityToBeLaunched, exception)
-            exitProcess(0)
-        } catch (_: Exception) {
-            defaultHandler.uncaughtException(thread, exception)
-        }
+        logcat(priority = LogPriority.ERROR, throwable = exception)
+        launchActivity(applicationContext, activityToBeLaunched, exception)
+        defaultHandler.uncaughtException(thread, exception)
     }
 
     private fun launchActivity(

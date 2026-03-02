@@ -92,7 +92,7 @@ fun FeedScreen(
                     refreshing = true
                     onRefresh()
                 },
-                enabled = { !state.isLoadingItems },
+                enabled = !state.isLoadingItems,
             ) {
                 ScrollbarLazyColumn(
                     contentPadding = contentPadding + topSmallPaddingValues,
@@ -103,7 +103,6 @@ fun FeedScreen(
                         key = { it.feed.id },
                     ) { item ->
                         GlobalSearchResultItem(
-                            modifier = Modifier.animateItemPlacement(),
                             title = item.title,
                             subtitle = item.subtitle,
                             onLongClick = {
@@ -116,6 +115,7 @@ fun FeedScreen(
                                     onClickSource(item.source)
                                 }
                             },
+                            modifier = Modifier.animateItem(),
                         ) {
                             FeedItem(
                                 item = item,

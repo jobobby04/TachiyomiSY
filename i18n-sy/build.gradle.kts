@@ -1,7 +1,7 @@
 plugins {
     id("mihon.library")
-    id("dev.icerock.mobile.multiplatform-resources")
     kotlin("multiplatform")
+    alias(libs.plugins.moko)
     id("com.github.ben-manes.versions")
 }
 
@@ -11,13 +11,10 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(libs.moko.core)
             }
-        }
-        androidMain {
-            dependsOn(commonMain) // https://github.com/icerockdev/moko-resources/issues/562
         }
     }
 }
@@ -37,12 +34,12 @@ android {
 }
 
 multiplatformResources {
-    multiplatformResourcesClassName = "SYMR"
-    multiplatformResourcesPackage = "tachiyomi.i18n.sy"
+    resourcesClassName.set("SYMR")
+    resourcesPackage.set("tachiyomi.i18n.sy")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.freeCompilerArgs += listOf(
+    compilerOptions.freeCompilerArgs.addAll(
         "-Xexpect-actual-classes",
     )
 }

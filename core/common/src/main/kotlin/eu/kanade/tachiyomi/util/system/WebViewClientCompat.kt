@@ -1,12 +1,12 @@
 package eu.kanade.tachiyomi.util.system
 
-import android.annotation.TargetApi
 import android.os.Build
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
 
 @Suppress("OverridingDeprecatedMember")
 abstract class WebViewClientCompat : WebViewClient() {
@@ -28,7 +28,7 @@ abstract class WebViewClientCompat : WebViewClient() {
     ) {
     }
 
-    @TargetApi(Build.VERSION_CODES.N)
+    @RequiresApi(Build.VERSION_CODES.N)
     final override fun shouldOverrideUrlLoading(
         view: WebView,
         request: WebResourceRequest,
@@ -36,6 +36,7 @@ abstract class WebViewClientCompat : WebViewClient() {
         return shouldOverrideUrlCompat(view, request.url.toString())
     }
 
+    @Deprecated("shouldOverrideUrlLoading(WebView, WebResourceRequest)")
     final override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
         return shouldOverrideUrlCompat(view, url)
     }
@@ -47,6 +48,7 @@ abstract class WebViewClientCompat : WebViewClient() {
         return shouldInterceptRequestCompat(view, request.url.toString())
     }
 
+    @Deprecated("shouldInterceptRequest(WebView, WebResourceRequest)")
     final override fun shouldInterceptRequest(view: WebView, url: String): WebResourceResponse? {
         return shouldInterceptRequestCompat(view, url)
     }
@@ -65,6 +67,7 @@ abstract class WebViewClientCompat : WebViewClient() {
         )
     }
 
+    @Deprecated("onReceivedError(WebView, WebResourceRequest, WebResourceError)")
     final override fun onReceivedError(
         view: WebView,
         errorCode: Int,

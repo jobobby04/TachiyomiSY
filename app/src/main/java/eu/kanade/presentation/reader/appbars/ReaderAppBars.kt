@@ -2,10 +2,13 @@ package eu.kanade.presentation.reader.appbars
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -13,10 +16,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -27,7 +33,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.reader.components.ChapterNavigator
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
@@ -36,7 +41,8 @@ import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
 import kotlinx.collections.immutable.ImmutableSet
 import tachiyomi.presentation.core.components.material.padding
 
-private val animationSpec = tween<IntOffset>(200)
+private val readerBarsSlideAnimationSpec = tween<IntOffset>(200)
+private val readerBarsFadeAnimationSpec = tween<Float>(150)
 
 // SY -->
 enum class NavBarType {
@@ -65,7 +71,6 @@ fun BoxIgnoreLayoutDirection(modifier: Modifier, content: @Composable BoxScope.(
 @Composable
 fun ReaderAppBars(
     visible: Boolean,
-    fullscreen: Boolean,
 
     mangaTitle: String?,
     chapterTitle: String?,
@@ -74,6 +79,7 @@ fun ReaderAppBars(
     // bookmarked: Boolean,
     // onToggleBookmarked: () -> Unit,
     onOpenInWebView: (() -> Unit)?,
+    onOpenInBrowser: (() -> Unit)?,
     onShare: (() -> Unit)?,
 
     viewer: Viewer?,
@@ -83,7 +89,7 @@ fun ReaderAppBars(
     enabledPrevious: Boolean,
     currentPage: Int,
     totalPages: Int,
-    onSliderValueChange: (Int) -> Unit,
+    onPageIndexChange: (Int) -> Unit,
 
     readingMode: ReadingMode,
     onClickReadingMode: () -> Unit,
@@ -121,11 +127,7 @@ fun ReaderAppBars(
         .surfaceColorAtElevation(3.dp)
         .copy(alpha = if (isSystemInDarkTheme()) 0.9f else 0.95f)
 
-    val modifierWithInsetsPadding = if (fullscreen) {
-        Modifier.systemBarsPadding()
-    } else {
-        Modifier
-    }
+    val modifierWithInsetsPadding = Modifier.systemBarsPadding()
 
     // SY -->
     BoxIgnoreLayoutDirection(
@@ -135,11 +137,11 @@ fun ReaderAppBars(
             visible = visible && navBarType == NavBarType.VerticalLeft,
             enter = slideInHorizontally(
                 initialOffsetX = { -it },
-                animationSpec = animationSpec,
+                animationSpec = readerBarsSlideAnimationSpec,
             ),
             exit = slideOutHorizontally(
                 targetOffsetX = { -it },
-                animationSpec = animationSpec,
+                animationSpec = readerBarsSlideAnimationSpec,
             ),
             modifier = modifierWithInsetsPadding
                 .padding(bottom = 48.dp, top = 120.dp)
@@ -153,7 +155,7 @@ fun ReaderAppBars(
                 enabledPrevious = enabledPrevious,
                 currentPage = currentPage,
                 totalPages = totalPages,
-                onSliderValueChange = onSliderValueChange,
+                onPageIndexChange = onPageIndexChange,
                 isVerticalSlider = true,
                 currentPageText = currentPageText,
             )
@@ -163,11 +165,11 @@ fun ReaderAppBars(
             visible = visible && navBarType == NavBarType.VerticalRight,
             enter = slideInHorizontally(
                 initialOffsetX = { it },
-                animationSpec = animationSpec,
+                animationSpec = readerBarsSlideAnimationSpec,
             ),
             exit = slideOutHorizontally(
                 targetOffsetX = { it },
-                animationSpec = animationSpec,
+                animationSpec = readerBarsSlideAnimationSpec,
             ),
             modifier = modifierWithInsetsPadding
                 .padding(bottom = 48.dp, top = 120.dp)
@@ -181,7 +183,7 @@ fun ReaderAppBars(
                 enabledPrevious = enabledPrevious,
                 currentPage = currentPage,
                 totalPages = totalPages,
-                onSliderValueChange = onSliderValueChange,
+                onPageIndexChange = onPageIndexChange,
                 isVerticalSlider = true,
                 currentPageText = currentPageText,
             )
@@ -195,48 +197,23 @@ fun ReaderAppBars(
                 visible = visible,
                 enter = slideInVertically(
                     initialOffsetY = { -it },
-                    animationSpec = animationSpec,
-                ),
+                    animationSpec = readerBarsSlideAnimationSpec,
+                ) + fadeIn(animationSpec = readerBarsFadeAnimationSpec),
                 exit = slideOutVertically(
                     targetOffsetY = { -it },
-                    animationSpec = animationSpec,
-                ),
+                    animationSpec = readerBarsSlideAnimationSpec,
+                ) + fadeOut(animationSpec = readerBarsFadeAnimationSpec),
             ) {
                 // SY -->
-                Column(modifierWithInsetsPadding) {
+                Column {
                     // SY <--
-                    AppBar(
-                        modifier = /*SY --> */ Modifier /*SY <-- */
+                    ReaderTopBar(
+                        modifier = Modifier
+                            .background(backgroundColor)
                             .clickable(onClick = onClickTopAppBar),
-                        backgroundColor = backgroundColor,
-                        title = mangaTitle,
-                        subtitle = chapterTitle,
+                        mangaTitle = mangaTitle,
+                        chapterTitle = chapterTitle,
                         navigateUp = navigateUp,
-                        /* SY --> actions = {
-                            AppBarActions(
-                                listOfNotNull(
-                                    AppBar.Action(
-                                        title = stringResource(
-                                            if (bookmarked) MR.strings.action_remove_bookmark else MR.strings.action_bookmark
-                                        ),
-                                        icon = if (bookmarked) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
-                                        onClick = onToggleBookmarked,
-                                    ),
-                                    onOpenInWebView?.let {
-                                        AppBar.OverflowAction(
-                                            title = stringResource(MR.strings.action_open_in_web_view),
-                                            onClick = it,
-                                        )
-                                    },
-                                    onShare?.let {
-                                        AppBar.OverflowAction(
-                                            title = stringResource(MR.strings.action_share),
-                                            onClick = it,
-                                        )
-                                    },
-                                ),
-                            )
-                        }, SY <-- */
                     )
                     // SY -->
                     ExhUtils(
@@ -254,8 +231,8 @@ fun ReaderAppBars(
                         onClickBoostPage = onClickBoostPage,
                         onClickBoostPageHelp = onClickBoostPageHelp,
                     )
-                    // SY <--
                 }
+                // SY <--
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -264,18 +241,18 @@ fun ReaderAppBars(
                 visible = visible,
                 enter = slideInVertically(
                     initialOffsetY = { it },
-                    animationSpec = animationSpec,
-                ),
+                    animationSpec = readerBarsSlideAnimationSpec,
+                ) + fadeIn(animationSpec = readerBarsFadeAnimationSpec),
                 exit = slideOutVertically(
                     targetOffsetY = { it },
-                    animationSpec = animationSpec,
-                ),
+                    animationSpec = readerBarsSlideAnimationSpec,
+                ) + fadeOut(animationSpec = readerBarsFadeAnimationSpec),
             ) {
                 Column(
-                    modifier = modifierWithInsetsPadding,
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
                 ) {
-                    if (navBarType == NavBarType.Bottom) {
+                    // SY -->
+                    if (navBarType == NavBarType.Bottom) { // <-- SY
                         ChapterNavigator(
                             isRtl = isRtl,
                             onNextChapter = onNextChapter,
@@ -284,17 +261,16 @@ fun ReaderAppBars(
                             enabledPrevious = enabledPrevious,
                             currentPage = currentPage,
                             totalPages = totalPages,
-                            onSliderValueChange = onSliderValueChange,
+                            onPageIndexChange = onPageIndexChange,
                             isVerticalSlider = false,
                             currentPageText = currentPageText,
                         )
                     }
 
-                    BottomReaderBar(
+                    ReaderBottomBar(
                         // SY -->
                         enabledButtons = enabledButtons,
                         // SY <--
-                        backgroundColor = backgroundColor,
                         readingMode = readingMode,
                         onClickReadingMode = onClickReadingMode,
                         orientation = orientation,
@@ -308,9 +284,16 @@ fun ReaderAppBars(
                         doublePages = doublePages,
                         onClickChapterList = onClickChapterList,
                         onClickWebView = onOpenInWebView,
+                        onClickBrowser = onOpenInBrowser,
                         onClickShare = onShare,
                         onClickPageLayout = onClickPageLayout,
                         onClickShiftPage = onClickShiftPage,
+                        // SY <--
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(backgroundColor)
+                            .padding(horizontal = MaterialTheme.padding.small)
+                            .windowInsetsPadding(WindowInsets.navigationBars),
                     )
                 }
             }

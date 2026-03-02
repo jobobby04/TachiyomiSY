@@ -5,11 +5,13 @@ import android.net.Uri
 import eu.kanade.tachiyomi.data.backup.BackupDecoder
 import eu.kanade.tachiyomi.data.backup.BackupNotifier
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
+import eu.kanade.tachiyomi.data.backup.models.BackupExtensionRepos
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.models.BackupPreference
 import eu.kanade.tachiyomi.data.backup.models.BackupSavedSearch
 import eu.kanade.tachiyomi.data.backup.models.BackupSourcePreferences
 import eu.kanade.tachiyomi.data.backup.restore.restorers.CategoriesRestorer
+import eu.kanade.tachiyomi.data.backup.restore.restorers.ExtensionRepoRestorer
 import eu.kanade.tachiyomi.data.backup.restore.restorers.MangaRestorer
 import eu.kanade.tachiyomi.data.backup.restore.restorers.PreferenceRestorer
 import eu.kanade.tachiyomi.data.backup.restore.restorers.SavedSearchRestorer
@@ -34,6 +36,7 @@ class BackupRestorer(
 
     private val categoriesRestorer: CategoriesRestorer = CategoriesRestorer(),
     private val preferenceRestorer: PreferenceRestorer = PreferenceRestorer(context),
+    private val extensionRepoRestorer: ExtensionRepoRestorer = ExtensionRepoRestorer(),
     private val mangaRestorer: MangaRestorer = MangaRestorer(isSync),
     // SY -->
     private val savedSearchRestorer: SavedSearchRestorer = SavedSearchRestorer(),
@@ -71,11 +74,14 @@ class BackupRestorer(
         val backup = BackupDecoder(context).decode(uri)
 
         // Store source mapping for error messages
-        val backupMaps = backup.backupSources + backup.backupBrokenSources.map { it.toBackupSource() }
+        val backupMaps = backup.backupSources
         sourceMapping = backupMaps.associate { it.sourceId to it.name }
 
-        if (options.library) {
-            restoreAmount += backup.backupManga.size + 1 // +1 for categories
+        if (options.libraryEntries) {
+            restoreAmount += backup.backupManga.size
+        }
+        if (options.categories) {
+            restoreAmount += 1
         }
         // SY -->
         if (options.savedSearches) {
@@ -85,12 +91,15 @@ class BackupRestorer(
         if (options.appSettings) {
             restoreAmount += 1
         }
+        if (options.extensionRepoSettings) {
+            restoreAmount += backup.backupExtensionRepo.size
+        }
         if (options.sourceSettings) {
             restoreAmount += 1
         }
 
         coroutineScope {
-            if (options.library) {
+            if (options.categories) {
                 restoreCategories(backup.backupCategories)
             }
             // SY -->
@@ -99,13 +108,16 @@ class BackupRestorer(
             }
             // SY <--
             if (options.appSettings) {
-                restoreAppPreferences(backup.backupPreferences)
+                restoreAppPreferences(backup.backupPreferences, backup.backupCategories.takeIf { options.categories })
             }
             if (options.sourceSettings) {
                 restoreSourcePreferences(backup.backupSourcePreferences)
             }
-            if (options.library) {
-                restoreManga(backup.backupManga, backup.backupCategories)
+            if (options.libraryEntries) {
+                restoreManga(backup.backupManga, if (options.categories) backup.backupCategories else emptyList())
+            }
+            if (options.extensionRepoSettings) {
+                restoreExtensionRepos(backup.backupExtensionRepo)
             }
 
             // TODO: optionally trigger online library + tracker update
@@ -114,7 +126,7 @@ class BackupRestorer(
 
     private fun CoroutineScope.restoreCategories(backupCategories: List<BackupCategory>) = launch {
         ensureActive()
-        categoriesRestorer.restoreCategories(backupCategories)
+        categoriesRestorer(backupCategories)
 
         restoreProgress += 1
         notifier.showRestoreProgress(
@@ -150,7 +162,7 @@ class BackupRestorer(
                 ensureActive()
 
                 try {
-                    mangaRestorer.restoreManga(it, backupCategories)
+                    mangaRestorer.restore(it, backupCategories)
                 } catch (e: Exception) {
                     val sourceName = sourceMapping[it.source] ?: it.source.toString()
                     errors.add(Date() to "${it.title} [$sourceName]: ${e.message}")
@@ -161,9 +173,15 @@ class BackupRestorer(
             }
     }
 
-    private fun CoroutineScope.restoreAppPreferences(preferences: List<BackupPreference>) = launch {
+    private fun CoroutineScope.restoreAppPreferences(
+        preferences: List<BackupPreference>,
+        categories: List<BackupCategory>?,
+    ) = launch {
         ensureActive()
-        preferenceRestorer.restoreAppPreferences(preferences)
+        preferenceRestorer.restoreApp(
+            preferences,
+            categories,
+        )
 
         restoreProgress += 1
         notifier.showRestoreProgress(
@@ -176,7 +194,7 @@ class BackupRestorer(
 
     private fun CoroutineScope.restoreSourcePreferences(preferences: List<BackupSourcePreferences>) = launch {
         ensureActive()
-        preferenceRestorer.restoreSourcePreferences(preferences)
+        preferenceRestorer.restoreSource(preferences)
 
         restoreProgress += 1
         notifier.showRestoreProgress(
@@ -187,10 +205,33 @@ class BackupRestorer(
         )
     }
 
+    private fun CoroutineScope.restoreExtensionRepos(
+        backupExtensionRepo: List<BackupExtensionRepos>,
+    ) = launch {
+        backupExtensionRepo
+            .forEach {
+                ensureActive()
+
+                try {
+                    extensionRepoRestorer(it)
+                } catch (e: Exception) {
+                    errors.add(Date() to "Error Adding Repo: ${it.name} : ${e.message}")
+                }
+
+                restoreProgress += 1
+                notifier.showRestoreProgress(
+                    context.stringResource(MR.strings.extensionRepo_settings),
+                    restoreProgress,
+                    restoreAmount,
+                    isSync,
+                )
+            }
+    }
+
     private fun writeErrorLog(): File {
         try {
             if (errors.isNotEmpty()) {
-                val file = context.createFileInCacheDir("tachiyomi_restore.txt")
+                val file = context.createFileInCacheDir("mihon_restore_error.txt")
                 val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
                 file.bufferedWriter().use { out ->

@@ -1,12 +1,13 @@
 package eu.kanade.tachiyomi.data.track
 
 import androidx.annotation.CallSuper
-import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.Flow
 import okhttp3.OkHttpClient
 import tachiyomi.domain.track.model.Track as DomainTrack
 
@@ -21,8 +22,7 @@ interface Tracker {
     // Application and remote support for reading dates
     val supportsReadingDates: Boolean
 
-    @ColorInt
-    fun getLogoColor(): Int
+    val supportsPrivateTracking: Boolean
 
     @DrawableRes
     fun getLogo(): Int
@@ -61,6 +61,8 @@ interface Tracker {
 
     val isLoggedIn: Boolean
 
+    val isLoggedInFlow: Flow<Boolean>
+
     fun getUsername(): String
 
     fun getPassword(): String
@@ -79,4 +81,12 @@ interface Tracker {
     suspend fun setRemoteStartDate(track: Track, epochMillis: Long)
 
     suspend fun setRemoteFinishDate(track: Track, epochMillis: Long)
+
+    suspend fun setRemotePrivate(track: Track, private: Boolean)
+
+    // SY -->
+    suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata?
+
+    suspend fun searchById(id: String): TrackSearch?
+    // SY <--
 }

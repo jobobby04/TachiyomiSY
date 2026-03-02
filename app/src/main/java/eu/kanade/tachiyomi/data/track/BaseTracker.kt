@@ -6,8 +6,12 @@ import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.model.toDomainTrack
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
+import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.util.system.toast
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import logcat.LogPriority
 import okhttp3.OkHttpClient
 import tachiyomi.core.common.util.lang.withIOContext
@@ -35,6 +39,8 @@ abstract class BaseTracker(
     // Application and remote support for reading dates
     override val supportsReadingDates: Boolean = false
 
+    override val supportsPrivateTracking: Boolean = false
+
     // TODO: Store all scores as 10 point in the future maybe?
     override fun get10PointScore(track: DomainTrack): Double {
         return track.score
@@ -52,6 +58,15 @@ abstract class BaseTracker(
     override val isLoggedIn: Boolean
         get() = getUsername().isNotEmpty() &&
             getPassword().isNotEmpty()
+
+    override val isLoggedInFlow: Flow<Boolean> by lazy {
+        combine(
+            trackPreferences.trackUsername(this).changes(),
+            trackPreferences.trackPassword(this).changes(),
+        ) { username, password ->
+            username.isNotEmpty() && password.isNotEmpty()
+        }
+    }
 
     override fun getUsername() = trackPreferences.trackUsername(this).get()
 
@@ -108,6 +123,21 @@ abstract class BaseTracker(
         track.finished_reading_date = epochMillis
         updateRemote(track)
     }
+
+    override suspend fun setRemotePrivate(track: Track, private: Boolean) {
+        track.private = private
+        updateRemote(track)
+    }
+
+    // SY -->
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
+        throw NotImplementedError("Not implemented.")
+    }
+
+    override suspend fun searchById(id: String): TrackSearch? {
+        throw NotImplementedError("Not implemented.")
+    }
+    // SY <--
 
     private suspend fun updateRemote(track: Track): Unit = withIOContext {
         try {

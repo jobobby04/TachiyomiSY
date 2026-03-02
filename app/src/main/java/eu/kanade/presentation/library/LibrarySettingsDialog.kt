@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,6 +38,7 @@ import tachiyomi.domain.library.model.sort
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
+import tachiyomi.presentation.core.components.BaseSortItem
 import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.HeadingItem
 import tachiyomi.presentation.core.components.IconItem
@@ -155,7 +159,7 @@ private fun ColumnScope.FilterPage(
     )
     // SY <--
 
-    val trackers = remember { screenModel.trackers }
+    val trackers by screenModel.trackersFlow.collectAsState()
     when (trackers.size) {
         0 -> {
             // No trackers
@@ -188,6 +192,7 @@ private fun ColumnScope.SortPage(
     category: Category?,
     screenModel: LibrarySettingsScreenModel,
 ) {
+    val trackers by screenModel.trackersFlow.collectAsState()
     // SY -->
     val globalSortMode by screenModel.libraryPreferences.sortingMode().collectAsState()
     val sortingMode = if (screenModel.grouping == LibraryGroup.BY_DEFAULT) {
@@ -196,40 +201,58 @@ private fun ColumnScope.SortPage(
         globalSortMode.type
     }
     val sortDescending = if (screenModel.grouping == LibraryGroup.BY_DEFAULT) {
-        category.sort.isAscending
+        !category.sort.isAscending
     } else {
-        globalSortMode.isAscending
-    }.not()
+        !globalSortMode.isAscending
+    }
     val hasSortTags by remember {
         screenModel.libraryPreferences.sortTagsForLibrary().changes()
             .map { it.isNotEmpty() }
     }.collectAsState(initial = screenModel.libraryPreferences.sortTagsForLibrary().get().isNotEmpty())
     // SY <--
 
-    val trackerSortOption =
-        if (screenModel.trackers.isEmpty()) {
-            emptyList()
+    val options = remember(trackers.isEmpty()/* SY --> */, hasSortTags/* SY <-- */) {
+        val trackerMeanPair = if (trackers.isNotEmpty()) {
+            MR.strings.action_sort_tracker_score to LibrarySort.Type.TrackerMean
         } else {
-            listOf(MR.strings.action_sort_tracker_score to LibrarySort.Type.TrackerMean)
+            null
         }
-
-    listOfNotNull(
-        MR.strings.action_sort_alpha to LibrarySort.Type.Alphabetical,
-        MR.strings.action_sort_total to LibrarySort.Type.TotalChapters,
-        MR.strings.action_sort_last_read to LibrarySort.Type.LastRead,
-        MR.strings.action_sort_last_manga_update to LibrarySort.Type.LastUpdate,
-        MR.strings.action_sort_unread_count to LibrarySort.Type.UnreadCount,
-        MR.strings.action_sort_latest_chapter to LibrarySort.Type.LatestChapter,
-        MR.strings.action_sort_chapter_fetch_date to LibrarySort.Type.ChapterFetchDate,
-        MR.strings.action_sort_date_added to LibrarySort.Type.DateAdded,
         // SY -->
-        if (hasSortTags) {
+        val tagSortPair = if (hasSortTags) {
             SYMR.strings.tag_sorting to LibrarySort.Type.TagList
         } else {
             null
-        },
+        }
         // SY <--
-    ).plus(trackerSortOption).map { (titleRes, mode) ->
+        listOfNotNull(
+            MR.strings.action_sort_alpha to LibrarySort.Type.Alphabetical,
+            MR.strings.action_sort_total to LibrarySort.Type.TotalChapters,
+            MR.strings.action_sort_last_read to LibrarySort.Type.LastRead,
+            MR.strings.action_sort_last_manga_update to LibrarySort.Type.LastUpdate,
+            MR.strings.action_sort_unread_count to LibrarySort.Type.UnreadCount,
+            MR.strings.action_sort_latest_chapter to LibrarySort.Type.LatestChapter,
+            MR.strings.action_sort_chapter_fetch_date to LibrarySort.Type.ChapterFetchDate,
+            MR.strings.action_sort_date_added to LibrarySort.Type.DateAdded,
+            trackerMeanPair,
+            // SY -->
+            tagSortPair,
+            // SY <--
+            MR.strings.action_sort_random to LibrarySort.Type.Random,
+        )
+    }
+
+    options.map { (titleRes, mode) ->
+        if (mode == LibrarySort.Type.Random) {
+            BaseSortItem(
+                label = stringResource(titleRes),
+                icon = Icons.Default.Refresh
+                    .takeIf { sortingMode == LibrarySort.Type.Random },
+                onClick = {
+                    screenModel.setSort(category, mode, LibrarySort.Direction.Ascending)
+                },
+            )
+            return@map
+        }
         SortItem(
             label = stringResource(titleRes),
             sortDescending = sortDescending.takeIf { sortingMode == mode },
@@ -241,7 +264,11 @@ private fun ColumnScope.SortPage(
                     } else {
                         LibrarySort.Direction.Descending
                     }
-                    else -> if (sortDescending) LibrarySort.Direction.Descending else LibrarySort.Direction.Ascending
+                    else -> if (sortDescending) {
+                        LibrarySort.Direction.Descending
+                    } else {
+                        LibrarySort.Direction.Ascending
+                    }
                 }
                 screenModel.setSort(category, mode, direction)
             },
@@ -283,15 +310,16 @@ private fun ColumnScope.DisplayPage(
 
         val columns by columnPreference.collectAsState()
         SliderItem(
-            label = stringResource(MR.strings.pref_library_columns),
-            max = 10,
             value = columns,
-            valueText = if (columns > 0) {
-                stringResource(MR.strings.pref_library_columns_per_row, columns)
+            valueRange = 0..10,
+            label = stringResource(MR.strings.pref_library_columns),
+            valueString = if (columns > 0) {
+                columns.toString()
             } else {
-                stringResource(MR.strings.label_default)
+                stringResource(MR.strings.label_auto)
             },
             onChange = columnPreference::set,
+            pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         )
     }
 
@@ -299,6 +327,10 @@ private fun ColumnScope.DisplayPage(
     CheckboxItem(
         label = stringResource(MR.strings.action_display_download_badge),
         pref = screenModel.libraryPreferences.downloadBadge(),
+    )
+    CheckboxItem(
+        label = stringResource(MR.strings.action_display_unread_badge),
+        pref = screenModel.libraryPreferences.unreadBadge(),
     )
     CheckboxItem(
         label = stringResource(MR.strings.action_display_local_badge),
@@ -346,12 +378,13 @@ private fun ColumnScope.GroupPage(
     screenModel: LibrarySettingsScreenModel,
     hasCategories: Boolean,
 ) {
-    val groups = remember(hasCategories, screenModel.trackers) {
+    val trackers by screenModel.trackersFlow.collectAsState()
+    val groups = remember(hasCategories, trackers) {
         buildList {
             add(LibraryGroup.BY_DEFAULT)
             add(LibraryGroup.BY_SOURCE)
             add(LibraryGroup.BY_STATUS)
-            if (screenModel.trackers.isNotEmpty()) {
+            if (trackers.isNotEmpty()) {
                 add(LibraryGroup.BY_TRACK_STATUS)
             }
             if (hasCategories) {

@@ -54,29 +54,31 @@ fun CalenderHeader(
         }
         Row {
             IconButton(onClick = onPreviousClick) {
+                @Suppress("DEPRECATION")
                 Icon(Icons.Default.KeyboardArrowLeft, stringResource(MR.strings.upcoming_calendar_prev))
             }
             IconButton(onClick = onNextClick) {
+                @Suppress("DEPRECATION")
                 Icon(Icons.Default.KeyboardArrowRight, stringResource(MR.strings.upcoming_calendar_next))
             }
         }
     }
 }
 
-private const val MonthYearChangeAnimationDuration = 200
+private const val MONTH_YEAR_CHANGE_ANIMATION_DURATION = 200
 
 private fun AnimatedContentTransitionScope<YearMonth>.getAnimation(): ContentTransform {
     val movingForward = targetState > initialState
 
     val enterTransition = slideInVertically(
-        animationSpec = tween(durationMillis = MonthYearChangeAnimationDuration),
+        animationSpec = tween(durationMillis = MONTH_YEAR_CHANGE_ANIMATION_DURATION),
     ) { height -> if (movingForward) height else -height } + fadeIn(
-        animationSpec = tween(durationMillis = MonthYearChangeAnimationDuration),
+        animationSpec = tween(durationMillis = MONTH_YEAR_CHANGE_ANIMATION_DURATION),
     )
     val exitTransition = slideOutVertically(
-        animationSpec = tween(durationMillis = MonthYearChangeAnimationDuration),
+        animationSpec = tween(durationMillis = MONTH_YEAR_CHANGE_ANIMATION_DURATION),
     ) { height -> if (movingForward) -height else height } + fadeOut(
-        animationSpec = tween(durationMillis = MonthYearChangeAnimationDuration),
+        animationSpec = tween(durationMillis = MONTH_YEAR_CHANGE_ANIMATION_DURATION),
     )
     return (enterTransition togetherWith exitTransition)
         .using(SizeTransform(clip = false))

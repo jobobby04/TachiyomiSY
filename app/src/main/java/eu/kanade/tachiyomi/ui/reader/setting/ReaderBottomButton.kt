@@ -7,6 +7,7 @@ import tachiyomi.i18n.sy.SYMR
 enum class ReaderBottomButton(val value: String, val stringRes: StringResource) {
     ViewChapters("vc", MR.strings.action_view_chapters),
     WebView("wb", MR.strings.action_open_in_web_view),
+    Browser("br", MR.strings.action_open_in_browser),
     Share("sh", MR.strings.action_share),
     ReadingMode("rm", MR.strings.viewer),
     Rotation("rot", MR.strings.rotation_type),

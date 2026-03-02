@@ -25,6 +25,7 @@ class ExtensionInstallActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        @Suppress("DEPRECATION")
         val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE)
             .setDataAndType(intent.data, intent.type)
             .putExtra(Intent.EXTRA_RETURN_RESULT, true)
@@ -61,6 +62,11 @@ class ExtensionInstallActivity : Activity() {
             checkInstallationResult(RESULT_CANCELED)
             finish()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        intent.data?.let { contentResolver.delete(it, null, null) }
     }
 
     private fun checkInstallationResult(resultCode: Int) {

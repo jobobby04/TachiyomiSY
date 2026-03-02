@@ -3,24 +3,25 @@ package eu.kanade.tachiyomi.data.track.anilist
 import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALAddMangaResult
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALCurrentUserResult
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALIdSearchResult
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALMangaMetadata
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALOAuth
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALSearchResult
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALUserListMangaQueryResult
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.interceptor.rateLimit
 import eu.kanade.tachiyomi.network.jsonMime
 import eu.kanade.tachiyomi.network.parseAs
+import eu.kanade.tachiyomi.util.lang.htmlDecode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.long
-import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import okhttp3.OkHttpClient
@@ -28,7 +29,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
 import uy.kohesive.injekt.injectLazy
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.time.Duration.Companion.minutes
@@ -45,12 +45,12 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
 
     suspend fun addLibManga(track: Track): Track {
         return withIOContext {
-            val query = """
-            |mutation AddManga(${'$'}mangaId: Int, ${'$'}progress: Int, ${'$'}status: MediaListStatus) {
-                |SaveMediaListEntry (mediaId: ${'$'}mangaId, progress: ${'$'}progress, status: ${'$'}status) { 
-                |   id 
-                |   status 
-                |} 
+            val query = $$"""
+            |mutation AddManga($mangaId: Int, $progress: Int, $status: MediaListStatus, $private: Boolean) {
+                |SaveMediaListEntry (mediaId: $mangaId, progress: $progress, status: $status, private: $private) {
+                |   id
+                |   status
+                |}
             |}
             |
             """.trimMargin()
@@ -59,21 +59,21 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
                 putJsonObject("variables") {
                     put("mangaId", track.remote_id)
                     put("progress", track.last_chapter_read.toInt())
-                    put("status", track.toAnilistStatus())
+                    put("status", track.toApiStatus())
+                    put("private", track.private)
                 }
             }
             with(json) {
                 authClient.newCall(
                     POST(
-                        apiUrl,
+                        API_URL,
                         body = payload.toString().toRequestBody(jsonMime),
                     ),
                 )
                     .awaitSuccess()
-                    .parseAs<JsonObject>()
+                    .parseAs<ALAddMangaResult>()
                     .let {
-                        track.library_id =
-                            it["data"]!!.jsonObject["SaveMediaListEntry"]!!.jsonObject["id"]!!.jsonPrimitive.long
+                        track.library_id = it.data.entry.id
                         track
                     }
             }
@@ -82,14 +82,14 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
 
     suspend fun updateLibManga(track: Track): Track {
         return withIOContext {
-            val query = """
+            val query = $$"""
             |mutation UpdateManga(
-                |${'$'}listId: Int, ${'$'}progress: Int, ${'$'}status: MediaListStatus,
-                |${'$'}score: Int, ${'$'}startedAt: FuzzyDateInput, ${'$'}completedAt: FuzzyDateInput
+                |$listId: Int, $progress: Int, $status: MediaListStatus, $private: Boolean,
+                |$score: Int, $startedAt: FuzzyDateInput, $completedAt: FuzzyDateInput
             |) {
                 |SaveMediaListEntry(
-                    |id: ${'$'}listId, progress: ${'$'}progress, status: ${'$'}status,
-                    |scoreRaw: ${'$'}score, startedAt: ${'$'}startedAt, completedAt: ${'$'}completedAt
+                    |id: $listId, progress: $progress, status: $status, private: $private,
+                    |scoreRaw: $score, startedAt: $startedAt, completedAt: $completedAt
                 |) {
                     |id
                     |status
@@ -103,13 +103,14 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
                 putJsonObject("variables") {
                     put("listId", track.library_id)
                     put("progress", track.last_chapter_read.toInt())
-                    put("status", track.toAnilistStatus())
+                    put("status", track.toApiStatus())
                     put("score", track.score.toInt())
                     put("startedAt", createDate(track.started_reading_date))
                     put("completedAt", createDate(track.finished_reading_date))
+                    put("private", track.private)
                 }
             }
-            authClient.newCall(POST(apiUrl, body = payload.toString().toRequestBody(jsonMime)))
+            authClient.newCall(POST(API_URL, body = payload.toString().toRequestBody(jsonMime)))
                 .awaitSuccess()
             track
         }
@@ -117,11 +118,11 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
 
     suspend fun deleteLibManga(track: DomainTrack) {
         withIOContext {
-            val query = """
-            |mutation DeleteManga(${'$'}listId: Int) {
-                |DeleteMediaListEntry(id: ${'$'}listId) { 
+            val query = $$"""
+            |mutation DeleteManga($listId: Int) {
+                |DeleteMediaListEntry(id: $listId) {
                     |deleted
-                |} 
+                |}
             |}
             |
             """.trimMargin()
@@ -131,17 +132,31 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
                     put("listId", track.libraryId)
                 }
             }
-            authClient.newCall(POST(apiUrl, body = payload.toString().toRequestBody(jsonMime)))
+            authClient.newCall(POST(API_URL, body = payload.toString().toRequestBody(jsonMime)))
                 .awaitSuccess()
         }
     }
+
     suspend fun search(search: String): List<TrackSearch> {
         return withIOContext {
-            val query = """
-            |query Search(${'$'}query: String) {
+            val query = $$"""
+            |query Search($query: String) {
                 |Page (perPage: 50) {
-                    |media(search: ${'$'}query, type: MANGA, format_not_in: [NOVEL]) {
+                    |media(search: $query, type: MANGA, format_not_in: [NOVEL]) {
                         |id
+                        |staff {
+                            |edges {
+                                |role
+                                |id
+                                |node {
+                                    |name {
+                                        |full
+                                        |userPreferred
+                                        |native
+                                    |}
+                                |}
+                            |}
+                        |}
                         |title {
                             |userPreferred
                         |}
@@ -172,33 +187,29 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
             with(json) {
                 authClient.newCall(
                     POST(
-                        apiUrl,
+                        API_URL,
                         body = payload.toString().toRequestBody(jsonMime),
                     ),
                 )
                     .awaitSuccess()
-                    .parseAs<JsonObject>()
-                    .let { response ->
-                        val data = response["data"]!!.jsonObject
-                        val page = data["Page"]!!.jsonObject
-                        val media = page["media"]!!.jsonArray
-                        val entries = media.map { jsonToALManga(it.jsonObject) }
-                        entries.map { it.toTrack() }
-                    }
+                    .parseAs<ALSearchResult>()
+                    .data.page.media
+                    .map { it.toALManga().toTrack() }
             }
         }
     }
 
     suspend fun findLibManga(track: Track, userid: Int): Track? {
         return withIOContext {
-            val query = """
-            |query (${'$'}id: Int!, ${'$'}manga_id: Int!) {
+            val query = $$"""
+            |query ($id: Int!, $manga_id: Int!) {
                 |Page {
-                    |mediaList(userId: ${'$'}id, type: MANGA, mediaId: ${'$'}manga_id) {
+                    |mediaList(userId: $id, type: MANGA, mediaId: $manga_id) {
                         |id
                         |status
                         |scoreRaw: score(format: POINT_100)
                         |progress
+                        |private
                         |startedAt {
                             |year
                             |month
@@ -226,6 +237,19 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
                                 |month
                                 |day
                             |}
+                            |staff {
+                                |edges {
+                                    |role
+                                    |id
+                                    |node {
+                                        |name {
+                                            |full
+                                            |userPreferred
+                                            |native
+                                        |}
+                                    |}
+                                |}
+                            |}
                         |}
                     |}
                 |}
@@ -242,19 +266,16 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
             with(json) {
                 authClient.newCall(
                     POST(
-                        apiUrl,
+                        API_URL,
                         body = payload.toString().toRequestBody(jsonMime),
                     ),
                 )
                     .awaitSuccess()
-                    .parseAs<JsonObject>()
-                    .let { response ->
-                        val data = response["data"]!!.jsonObject
-                        val page = data["Page"]!!.jsonObject
-                        val media = page["mediaList"]!!.jsonArray
-                        val entries = media.map { jsonToALUserManga(it.jsonObject) }
-                        entries.firstOrNull()?.toTrack()
-                    }
+                    .parseAs<ALUserListMangaQueryResult>()
+                    .data.page.mediaList
+                    .map { it.toALUserManga() }
+                    .firstOrNull()
+                    ?.toTrack()
             }
         }
     }
@@ -263,8 +284,8 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
         return findLibManga(track, userId) ?: throw Exception("Could not find manga")
     }
 
-    fun createOAuth(token: String): OAuth {
-        return OAuth(token, "Bearer", System.currentTimeMillis() + 31536000000, 31536000000)
+    fun createOAuth(token: String): ALOAuth {
+        return ALOAuth(token, "Bearer", System.currentTimeMillis() + 31536000000, 31536000000)
     }
 
     suspend fun getCurrentUser(): Pair<Int, String> {
@@ -286,65 +307,135 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
             with(json) {
                 authClient.newCall(
                     POST(
-                        apiUrl,
+                        API_URL,
                         body = payload.toString().toRequestBody(jsonMime),
                     ),
                 )
                     .awaitSuccess()
-                    .parseAs<JsonObject>()
+                    .parseAs<ALCurrentUserResult>()
                     .let {
-                        val data = it["data"]!!.jsonObject
-                        val viewer = data["Viewer"]!!.jsonObject
-                        Pair(
-                            viewer["id"]!!.jsonPrimitive.int,
-                            viewer["mediaListOptions"]!!.jsonObject["scoreFormat"]!!.jsonPrimitive.content,
+                        val viewer = it.data.viewer
+                        Pair(viewer.id, viewer.mediaListOptions.scoreFormat)
+                    }
+            }
+        }
+    }
+
+    suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
+        return withIOContext {
+            val query = """
+            |query (${'$'}mangaId: Int!) {
+                |Media (id: ${'$'}mangaId) {
+                    |id
+                    |title {
+                        |userPreferred
+                    |}
+                    |coverImage {
+                        |large
+                    |}
+                    |description
+                    |staff {
+                        |edges {
+                            |role
+                            |id
+                            |node {
+                                |name {
+                                    |userPreferred
+                                |}
+                            |}
+                        |}
+                    |}
+                |}
+            |}
+            |
+            """.trimMargin()
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("mangaId", track.remoteId)
+                }
+            }
+            with(json) {
+                authClient.newCall(
+                    POST(
+                        API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
+                    .awaitSuccess()
+                    .parseAs<ALMangaMetadata>()
+                    .let {
+                        val media = it.data.media
+                        TrackMangaMetadata(
+                            remoteId = media.id,
+                            title = media.title.userPreferred,
+                            thumbnailUrl = media.coverImage.large,
+                            description = media.description?.htmlDecode()?.ifEmpty { null },
+                            authors = media.staff.edges
+                                .filter { it.role == "Story" || it.role == "Story & Art" }
+                                .map { it.node.name.userPreferred }
+                                .joinToString(", ")
+                                .ifEmpty { null },
+                            artists = media.staff.edges
+                                .filter { it.role == "Art" || it.role == "Story & Art" }
+                                .map { it.node.name.userPreferred }
+                                .joinToString(", ")
+                                .ifEmpty { null },
                         )
                     }
             }
         }
     }
 
-    private fun jsonToALManga(struct: JsonObject): ALManga {
-        return ALManga(
-            struct["id"]!!.jsonPrimitive.long,
-            struct["title"]!!.jsonObject["userPreferred"]!!.jsonPrimitive.content,
-            struct["coverImage"]!!.jsonObject["large"]!!.jsonPrimitive.content,
-            struct["description"]!!.jsonPrimitive.contentOrNull,
-            struct["format"]!!.jsonPrimitive.content.replace("_", "-"),
-            struct["status"]!!.jsonPrimitive.contentOrNull ?: "",
-            parseDate(struct, "startDate"),
-            struct["chapters"]!!.jsonPrimitive.longOrNull ?: 0,
-            struct["averageScore"]?.jsonPrimitive?.intOrNull ?: -1,
-        )
-    }
-
-    private fun jsonToALUserManga(struct: JsonObject): ALUserManga {
-        return ALUserManga(
-            struct["id"]!!.jsonPrimitive.long,
-            struct["status"]!!.jsonPrimitive.content,
-            struct["scoreRaw"]!!.jsonPrimitive.int,
-            struct["progress"]!!.jsonPrimitive.int,
-            parseDate(struct, "startedAt"),
-            parseDate(struct, "completedAt"),
-            jsonToALManga(struct["media"]!!.jsonObject),
-        )
-    }
-
-    private fun parseDate(struct: JsonObject, dateKey: String): Long {
-        return try {
-            return LocalDate
-                .of(
-                    struct[dateKey]!!.jsonObject["year"]!!.jsonPrimitive.int,
-                    struct[dateKey]!!.jsonObject["month"]!!.jsonPrimitive.int,
-                    struct[dateKey]!!.jsonObject["day"]!!.jsonPrimitive.int,
+    // SY -->
+    suspend fun searchById(id: String): TrackSearch {
+        return withIOContext {
+            val query = """
+            |query (${'$'}mangaId: Int!) {
+                |Media (id: ${'$'}mangaId) {
+                    |id
+                    |title {
+                        |userPreferred
+                    |}
+                    |coverImage {
+                        |large
+                    |}
+                    |format
+                    |status
+                    |chapters
+                    |description
+                    |startDate {
+                        |year
+                        |month
+                        |day
+                    |}
+                    |averageScore
+                |}
+            |}
+            |
+            """.trimMargin()
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("mangaId", id)
+                }
+            }
+            with(json) {
+                authClient.newCall(
+                    POST(
+                        API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
                 )
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant()
-                .toEpochMilli()
-        } catch (_: Exception) {
-            0L
+                    .awaitSuccess()
+                    .parseAs<ALIdSearchResult>()
+                    .data.media
+                    .toALManga()
+                    .toTrack()
+            }
         }
     }
+    // SY <--
 
     private fun createDate(dateValue: Long): JsonObject {
         if (dateValue == 0L) {
@@ -364,17 +455,17 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
     }
 
     companion object {
-        private const val clientId = "16329"
-        private const val apiUrl = "https://graphql.anilist.co/"
-        private const val baseUrl = "https://anilist.co/api/v2/"
-        private const val baseMangaUrl = "https://anilist.co/manga/"
+        private const val CLIENT_ID = "16329"
+        private const val API_URL = "https://graphql.anilist.co/"
+        private const val BASE_URL = "https://anilist.co/api/v2/"
+        private const val BASE_MANGA_URL = "https://anilist.co/manga/"
 
         fun mangaUrl(mediaId: Long): String {
-            return baseMangaUrl + mediaId
+            return BASE_MANGA_URL + mediaId
         }
 
-        fun authUrl(): Uri = "${baseUrl}oauth/authorize".toUri().buildUpon()
-            .appendQueryParameter("client_id", clientId)
+        fun authUrl(): Uri = "${BASE_URL}oauth/authorize".toUri().buildUpon()
+            .appendQueryParameter("client_id", CLIENT_ID)
             .appendQueryParameter("response_type", "token")
             .build()
     }

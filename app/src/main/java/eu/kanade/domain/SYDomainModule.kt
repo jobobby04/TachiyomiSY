@@ -14,6 +14,9 @@ import eu.kanade.domain.source.interactor.GetSourceCategories
 import eu.kanade.domain.source.interactor.RenameSourceCategory
 import eu.kanade.domain.source.interactor.SetSourceCategories
 import eu.kanade.domain.source.interactor.ToggleExcludeFromDataSaver
+import eu.kanade.tachiyomi.di.InjektModule
+import eu.kanade.tachiyomi.di.addFactory
+import eu.kanade.tachiyomi.di.addSingletonFactory
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import exh.search.SearchEngine
 import tachiyomi.data.manga.CustomMangaRepositoryImpl
@@ -25,7 +28,6 @@ import tachiyomi.data.source.SavedSearchRepositoryImpl
 import tachiyomi.domain.chapter.interactor.DeleteChapters
 import tachiyomi.domain.chapter.interactor.GetChapterByUrl
 import tachiyomi.domain.chapter.interactor.GetMergedChaptersByMangaId
-import tachiyomi.domain.history.interactor.GetHistoryByMangaId
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
 import tachiyomi.domain.manga.interactor.DeleteFavoriteEntries
 import tachiyomi.domain.manga.interactor.DeleteMangaById
@@ -42,7 +44,7 @@ import tachiyomi.domain.manga.interactor.GetMergedManga
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedMangaForDownloading
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
-import tachiyomi.domain.manga.interactor.GetReadMangaNotInLibrary
+import tachiyomi.domain.manga.interactor.GetReadMangaNotInLibraryView
 import tachiyomi.domain.manga.interactor.GetSearchMetadata
 import tachiyomi.domain.manga.interactor.GetSearchTags
 import tachiyomi.domain.manga.interactor.GetSearchTitles
@@ -71,11 +73,7 @@ import tachiyomi.domain.source.interactor.InsertSavedSearch
 import tachiyomi.domain.source.repository.FeedSavedSearchRepository
 import tachiyomi.domain.source.repository.SavedSearchRepository
 import tachiyomi.domain.track.interactor.IsTrackUnfollowed
-import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
-import uy.kohesive.injekt.api.addFactory
-import uy.kohesive.injekt.api.addSingletonFactory
-import uy.kohesive.injekt.api.get
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 
 class SYDomainModule : InjektModule {
@@ -89,7 +87,6 @@ class SYDomainModule : InjektModule {
         addFactory { DeleteChapters(get()) }
         addFactory { DeleteMangaById(get()) }
         addFactory { FilterSerializer() }
-        addFactory { GetHistoryByMangaId(get()) }
         addFactory { GetChapterByUrl(get()) }
         addFactory { GetSourceCategories(get()) }
         addFactory { CreateSourceCategory(get()) }
@@ -102,7 +99,7 @@ class SYDomainModule : InjektModule {
         addFactory { GetPagePreviews(get(), get()) }
         addFactory { SearchEngine() }
         addFactory { IsTrackUnfollowed() }
-        addFactory { GetReadMangaNotInLibrary(get()) }
+        addFactory { GetReadMangaNotInLibraryView(get()) }
 
         // Required for [MetadataSource]
         addFactory<MetadataSource.GetMangaId> { GetManga(get()) }

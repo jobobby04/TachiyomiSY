@@ -13,12 +13,12 @@ import eu.kanade.tachiyomi.data.cache.PagePreviewCache
 import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.source.PagePreviewSource
 import eu.kanade.tachiyomi.source.online.HttpSource
+import exh.source.getMainSource
 import logcat.LogPriority
 import okhttp3.CacheControl
 import okhttp3.Call
 import okhttp3.Request
 import okhttp3.Response
-import okhttp3.internal.http.HTTP_NOT_MODIFIED
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import okio.Source
@@ -59,7 +59,7 @@ class PagePreviewFetcher(
             source = ImageSource(
                 file = file.toOkioPath(),
                 fileSystem = FileSystem.SYSTEM,
-                diskCacheKey = diskCacheKey
+                diskCacheKey = diskCacheKey,
             ),
             mimeType = "image/*",
             dataSource = DataSource.DISK,
@@ -231,7 +231,7 @@ class PagePreviewFetcher(
             file = data,
             fileSystem = FileSystem.SYSTEM,
             diskCacheKey = diskCacheKey,
-            closeable = this
+            closeable = this,
         )
     }
 
@@ -250,7 +250,7 @@ class PagePreviewFetcher(
                 isInCache = { pagePreviewCache.isImageInCache(data.imageUrl) },
                 writeToCache = { pagePreviewCache.putImageToCache(data.imageUrl, it) },
                 diskCacheKeyLazy = lazy { imageLoader.components.key(data, options)!! },
-                sourceLazy = lazy { sourceManager.get(data.source) as? PagePreviewSource },
+                sourceLazy = lazy { sourceManager.get(data.source)?.getMainSource<PagePreviewSource>() },
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
             )
@@ -260,5 +260,7 @@ class PagePreviewFetcher(
     companion object {
         private val CACHE_CONTROL_NO_STORE = CacheControl.Builder().noStore().build()
         private val CACHE_CONTROL_NO_NETWORK_NO_CACHE = CacheControl.Builder().noCache().onlyIfCached().build()
+
+        private const val HTTP_NOT_MODIFIED = 304
     }
 }

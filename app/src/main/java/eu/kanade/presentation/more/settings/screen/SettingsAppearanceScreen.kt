@@ -88,7 +88,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                     }
                 },
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = amoledPref,
+                    preference = amoledPref,
                     title = stringResource(MR.strings.pref_dark_theme_pure_black),
                     enabled = themeMode != ThemeMode.LIGHT,
                     onValueChanged = {
@@ -122,34 +122,38 @@ object SettingsAppearanceScreen : SearchableSettings {
                     onClick = { navigator.push(AppLanguageScreen()) },
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    pref = uiPreferences.tabletUiMode(),
-                    title = stringResource(MR.strings.pref_tablet_ui_mode),
+                    preference = uiPreferences.tabletUiMode(),
                     entries = TabletUiMode.entries
                         .associateWith { stringResource(it.titleRes) }
                         .toImmutableMap(),
+                    title = stringResource(MR.strings.pref_tablet_ui_mode),
                     onValueChanged = {
                         context.toast(MR.strings.requires_app_restart)
                         true
                     },
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    pref = uiPreferences.dateFormat(),
-                    title = stringResource(MR.strings.pref_date_format),
+                    preference = uiPreferences.dateFormat(),
                     entries = DateFormats
                         .associateWith {
                             val formattedDate = UiPreferences.dateFormat(it).format(now)
                             "${it.ifEmpty { stringResource(MR.strings.label_default) }} ($formattedDate)"
                         }
                         .toImmutableMap(),
+                    title = stringResource(MR.strings.pref_date_format),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = uiPreferences.relativeTime(),
+                    preference = uiPreferences.relativeTime(),
                     title = stringResource(MR.strings.pref_relative_format),
                     subtitle = stringResource(
                         MR.strings.pref_relative_format_summary,
                         stringResource(MR.strings.relative_time_today),
                         formattedNow,
                     ),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = uiPreferences.imagesInDescription(),
+                    title = stringResource(MR.strings.pref_display_images_description),
                 ),
             ),
         )
@@ -164,29 +168,32 @@ object SettingsAppearanceScreen : SearchableSettings {
             stringResource(SYMR.strings.pref_category_fork),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = uiPreferences.expandFilters(),
+                    preference = uiPreferences.expandFilters(),
                     title = stringResource(SYMR.strings.toggle_expand_search_filters),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = uiPreferences.recommendsInOverflow(),
+                    preference = uiPreferences.recommendsInOverflow(),
                     title = stringResource(SYMR.strings.put_recommends_in_overflow),
                     subtitle = stringResource(SYMR.strings.put_recommends_in_overflow_summary),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = uiPreferences.mergeInOverflow(),
+                    preference = uiPreferences.mergeInOverflow(),
                     title = stringResource(SYMR.strings.put_merge_in_overflow),
                     subtitle = stringResource(SYMR.strings.put_merge_in_overflow_summary),
                 ),
                 Preference.PreferenceItem.SliderPreference(
                     value = previewsRowCount,
                     title = stringResource(SYMR.strings.pref_previews_row_count),
-                    subtitle = if (previewsRowCount > 0) pluralStringResource(
-                        SYMR.plurals.row_count,
-                        previewsRowCount,
-                        previewsRowCount,
-                    ) else stringResource(MR.strings.disabled),
-                    min = 0,
-                    max = 10,
+                    subtitle = if (previewsRowCount > 0) {
+                        pluralStringResource(
+                            SYMR.plurals.row_count,
+                            previewsRowCount,
+                            previewsRowCount,
+                        )
+                    } else {
+                        stringResource(MR.strings.disabled)
+                    },
+                    valueRange = 0..10,
                     onValueChanged = {
                         uiPreferences.previewsRowCount().set(it)
                         true
@@ -202,15 +209,15 @@ object SettingsAppearanceScreen : SearchableSettings {
             stringResource(SYMR.strings.pref_category_navbar),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = uiPreferences.showNavUpdates(),
+                    preference = uiPreferences.showNavUpdates(),
                     title = stringResource(SYMR.strings.pref_hide_updates_button),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = uiPreferences.showNavHistory(),
+                    preference = uiPreferences.showNavHistory(),
                     title = stringResource(SYMR.strings.pref_hide_history_button),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    pref = uiPreferences.bottomBarLabels(),
+                    preference = uiPreferences.bottomBarLabels(),
                     title = stringResource(SYMR.strings.pref_show_bottom_bar_labels),
                 ),
             ),

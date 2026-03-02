@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -16,7 +15,6 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.data.sync.SyncDataJob
-import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.update
 import tachiyomi.i18n.MR
@@ -32,7 +30,6 @@ import uy.kohesive.injekt.api.get
 class SyncSettingsSelector : Screen() {
     @Composable
     override fun Content() {
-        val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
         val model = rememberScreenModel { SyncSettingsSelectorModel() }
         val state by model.state.collectAsState()
@@ -48,15 +45,10 @@ class SyncSettingsSelector : Screen() {
         ) { contentPadding ->
             LazyColumnWithAction(
                 contentPadding = contentPadding,
-                actionLabel = stringResource(SYMR.strings.label_sync),
-                actionEnabled = state.options.anyEnabled(),
+                actionLabel = stringResource(MR.strings.action_save),
+                actionEnabled = true,
                 onClickAction = {
-                    if (!SyncDataJob.isRunning(context)) {
-                        model.syncNow(context)
-                        navigator.pop()
-                    } else {
-                        context.toast(SYMR.strings.sync_in_progress)
-                    }
+                    navigator.pop()
                 },
             ) {
                 item {
@@ -122,12 +114,14 @@ private class SyncSettingsSelectorModel(
                 tracking = syncSettings.tracking,
                 history = syncSettings.history,
                 appSettings = syncSettings.appSettings,
+                extensionRepoSettings = syncSettings.extensionRepoSettings,
                 sourceSettings = syncSettings.sourceSettings,
                 privateSettings = syncSettings.privateSettings,
 
                 // SY -->
                 customInfo = syncSettings.customInfo,
                 readEntries = syncSettings.readEntries,
+                savedSearches = syncSettings.savedSearches,
                 // SY <--
             )
         }
@@ -140,12 +134,14 @@ private class SyncSettingsSelectorModel(
                 tracking = backupOptions.tracking,
                 history = backupOptions.history,
                 appSettings = backupOptions.appSettings,
+                extensionRepoSettings = backupOptions.extensionRepoSettings,
                 sourceSettings = backupOptions.sourceSettings,
                 privateSettings = backupOptions.privateSettings,
 
                 // SY -->
                 customInfo = backupOptions.customInfo,
                 readEntries = backupOptions.readEntries,
+                savedSearches = backupOptions.savedSearches,
                 // SY <--
             )
         }

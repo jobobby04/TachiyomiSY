@@ -37,13 +37,14 @@ import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.manga.components.ChapterDownloadIndicator
 import eu.kanade.presentation.manga.components.DotSeparatorText
 import eu.kanade.presentation.manga.components.MangaCover
+import eu.kanade.presentation.util.animateItemFastScroll
 import eu.kanade.presentation.util.relativeTimeSpanString
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.ListGroupHeader
-import tachiyomi.presentation.core.components.material.ReadItemAlpha
+import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.selectedBackground
@@ -54,7 +55,7 @@ internal fun LazyListScope.updatesLastUpdatedItem(
     item(key = "updates-lastUpdated") {
         Box(
             modifier = Modifier
-                .animateItemPlacement()
+                .animateItem(fadeInSpec = null, fadeOutSpec = null)
                 .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.small),
         ) {
             Text(
@@ -71,7 +72,7 @@ internal fun LazyListScope.updatesUiItems(
     // SY -->
     preserveReadingPosition: Boolean,
     // SY <--
-    onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
+    onUpdateSelected: (UpdatesItem, Boolean, Boolean) -> Unit,
     onClickCover: (UpdatesItem) -> Unit,
     onClickUpdate: (UpdatesItem) -> Unit,
     onDownloadChapter: (List<UpdatesItem>, ChapterDownloadAction) -> Unit,
@@ -94,21 +95,23 @@ internal fun LazyListScope.updatesUiItems(
         when (item) {
             is UpdatesUiModel.Header -> {
                 ListGroupHeader(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItemFastScroll(),
                     text = relativeDateText(item.date),
                 )
             }
             is UpdatesUiModel.Item -> {
                 val updatesItem = item.item
                 UpdatesUiItem(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItemFastScroll(),
                     update = updatesItem.update,
                     selected = updatesItem.selected,
                     readProgress = updatesItem.update.lastPageRead
                         .takeIf {
                             /* SY --> */(
-                                !updatesItem.update.read || (preserveReadingPosition && updatesItem.isEhBasedUpdate())
-                                )/* SY <-- */ && it > 0L
+                                !updatesItem.update.read ||
+                                    (preserveReadingPosition && updatesItem.isEhBasedUpdate())
+                                )/* SY <-- */ &&
+                                it > 0L
                         }
                         ?.let {
                             stringResource(
@@ -117,11 +120,11 @@ internal fun LazyListScope.updatesUiItems(
                             )
                         },
                     onLongClick = {
-                        onUpdateSelected(updatesItem, !updatesItem.selected, true, true)
+                        onUpdateSelected(updatesItem, !updatesItem.selected, true)
                     },
                     onClick = {
                         when {
-                            selectionMode -> onUpdateSelected(updatesItem, !updatesItem.selected, true, false)
+                            selectionMode -> onUpdateSelected(updatesItem, !updatesItem.selected, false)
                             else -> onClickUpdate(updatesItem)
                         }
                     },
@@ -152,7 +155,7 @@ private fun UpdatesUiItem(
     modifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
-    val textAlpha = if (update.read) ReadItemAlpha else 1f
+    val textAlpha = if (update.read) DISABLED_ALPHA else 1f
 
     Row(
         modifier = modifier
@@ -226,7 +229,7 @@ private fun UpdatesUiItem(
                     Text(
                         text = readProgress,
                         maxLines = 1,
-                        color = LocalContentColor.current.copy(alpha = ReadItemAlpha),
+                        color = LocalContentColor.current.copy(alpha = DISABLED_ALPHA),
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

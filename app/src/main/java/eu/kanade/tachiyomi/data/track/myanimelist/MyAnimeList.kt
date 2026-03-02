@@ -1,15 +1,15 @@
 package eu.kanade.tachiyomi.data.track.myanimelist
 
-import android.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.DeletableTracker
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALOAuth
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
@@ -40,9 +40,7 @@ class MyAnimeList(id: Long) : BaseTracker(id, "MyAnimeList"), DeletableTracker {
 
     override val supportsReadingDates: Boolean = true
 
-    override fun getLogo() = R.drawable.ic_tracker_mal
-
-    override fun getLogoColor() = Color.rgb(46, 81, 162)
+    override fun getLogo() = R.drawable.brand_myanimelist
 
     override fun getStatusList(): List<Long> {
         return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ, REREADING)
@@ -143,7 +141,7 @@ class MyAnimeList(id: Long) : BaseTracker(id, "MyAnimeList"), DeletableTracker {
             val oauth = api.getAccessToken(authCode)
             interceptor.setAuth(oauth)
             val username = api.getCurrentUser()
-            saveCredentials(username, oauth.access_token)
+            saveCredentials(username, oauth.accessToken)
         } catch (e: Throwable) {
             logout()
         }
@@ -155,6 +153,16 @@ class MyAnimeList(id: Long) : BaseTracker(id, "MyAnimeList"), DeletableTracker {
         interceptor.setAuth(null)
     }
 
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
+        return api.getMangaMetadata(track)
+    }
+
+    // SY -->
+    override suspend fun searchById(id: String): TrackSearch {
+        return api.getMangaDetails(id.toInt())
+    }
+    // SY <--
+
     fun getIfAuthExpired(): Boolean {
         return trackPreferences.trackAuthExpired(this).get()
     }
@@ -163,13 +171,13 @@ class MyAnimeList(id: Long) : BaseTracker(id, "MyAnimeList"), DeletableTracker {
         trackPreferences.trackAuthExpired(this).set(true)
     }
 
-    fun saveOAuth(oAuth: OAuth?) {
+    fun saveOAuth(oAuth: MALOAuth?) {
         trackPreferences.trackToken(this).set(json.encodeToString(oAuth))
     }
 
-    fun loadOAuth(): OAuth? {
+    fun loadOAuth(): MALOAuth? {
         return try {
-            json.decodeFromString<OAuth>(trackPreferences.trackToken(this).get())
+            json.decodeFromString<MALOAuth>(trackPreferences.trackToken(this).get())
         } catch (e: Exception) {
             null
         }
