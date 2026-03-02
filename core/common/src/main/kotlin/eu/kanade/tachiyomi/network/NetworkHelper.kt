@@ -41,7 +41,6 @@ open /* SY <-- */ class NetworkHelper(
             .addInterceptor(UserAgentInterceptor(::defaultUserAgentProvider))
             .addNetworkInterceptor(IgnoreGzipInterceptor())
             .addNetworkInterceptor(BrotliInterceptor)
-            .addNetworkInterceptor(FlareSolverrInterceptor(preferences))
 
         if (isDebugBuild) {
             val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
@@ -71,6 +70,7 @@ open /* SY <-- */ class NetworkHelper(
 
     /* SY --> */
     open /* SY <-- */ val client = clientBuilder
+        .addInterceptor(FlareSolverrInterceptor(preferences))
         .addInterceptor(
             CloudflareInterceptor(context, cookieJar, preferences, ::defaultUserAgentProvider),
         )
