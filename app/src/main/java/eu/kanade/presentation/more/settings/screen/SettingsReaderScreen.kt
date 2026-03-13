@@ -102,6 +102,7 @@ object SettingsReaderScreen : SearchableSettings {
             // SY -->
             getPageDownloadingGroup(readerPreferences = readerPref),
             getForkSettingsGroup(readerPreferences = readerPref),
+            getPagedMarginsGroup(readerPreferences = readerPref),
             // SY <--
         )
     }
@@ -612,6 +613,56 @@ object SettingsReaderScreen : SearchableSettings {
                         .mapIndexed { index, it -> index to stringResource(it) }
                         .toMap()
                         .toImmutableMap(),
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getPagedMarginsGroup(readerPreferences: ReaderPreferences): Preference.PreferenceGroup {
+        val pagerMarginTop by readerPreferences.pagerMarginTop().collectAsState()
+        val pagerMarginBottom by readerPreferences.pagerMarginBottom().collectAsState()
+        val pagerMarginLeft by readerPreferences.pagerMarginLeft().collectAsState()
+        val pagerMarginRight by readerPreferences.pagerMarginRight().collectAsState()
+
+        return Preference.PreferenceGroup(
+            title = stringResource(SYMR.strings.pager_margins),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.SliderPreference(
+                    value = pagerMarginTop,
+                    valueRange = ReaderPreferences.PAGER_MARGIN_MIN..ReaderPreferences.PAGER_MARGIN_MAX,
+                    title = stringResource(SYMR.strings.top_margin),
+                    valueString = "${pagerMarginTop}${stringResource(SYMR.strings.pixels)}",
+                    onValueChanged = { readerPreferences.pagerMarginTop().set(it) },
+                ),
+                Preference.PreferenceItem.SliderPreference(
+                    value = pagerMarginBottom,
+                    valueRange = ReaderPreferences.PAGER_MARGIN_MIN..ReaderPreferences.PAGER_MARGIN_MAX,
+                    title = stringResource(SYMR.strings.bottom_margin),
+                    valueString = "${pagerMarginBottom}${stringResource(SYMR.strings.pixels)}",
+                    onValueChanged = { readerPreferences.pagerMarginBottom().set(it) },
+                ),
+                Preference.PreferenceItem.SliderPreference(
+                    value = pagerMarginLeft,
+                    valueRange = ReaderPreferences.PAGER_MARGIN_MIN..ReaderPreferences.PAGER_MARGIN_MAX,
+                    title = stringResource(SYMR.strings.left_margin),
+                    valueString = "${pagerMarginLeft}${stringResource(SYMR.strings.pixels)}",
+                    onValueChanged = { readerPreferences.pagerMarginLeft().set(it) },
+                ),
+                Preference.PreferenceItem.SliderPreference(
+                    value = pagerMarginRight,
+                    valueRange = ReaderPreferences.PAGER_MARGIN_MIN..ReaderPreferences.PAGER_MARGIN_MAX,
+                    title = stringResource(SYMR.strings.right_margin),
+                    valueString = "${pagerMarginRight}${stringResource(SYMR.strings.pixels)}",
+                    onValueChanged = { readerPreferences.pagerMarginRight().set(it) },
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = readerPreferences.pagerMarginColor(),
+                    entries = ReaderPreferences.MarginColors
+                        .mapIndexed { index, it -> index to stringResource(it) }
+                        .toMap()
+                        .toImmutableMap(),
+                    title = stringResource(SYMR.strings.margin_color),
                 ),
             ),
         )

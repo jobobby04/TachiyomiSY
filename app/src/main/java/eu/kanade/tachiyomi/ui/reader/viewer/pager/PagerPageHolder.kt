@@ -123,6 +123,7 @@ class PagerPageHolder(
                             progressIndicator?.setProgress(value)
                         }
                     }
+
                     Page.State.Ready -> setImage()
                     is Page.State.Error -> setError(state.error)
                 }
@@ -187,12 +188,13 @@ class PagerPageHolder(
                         }
                         // SY <--
                         val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
+                        val itemSourceMargins = if (!isAnimated) applyMargins(itemSource) else itemSource
                         val background = if (!isAnimated && viewer.config.automaticBackground) {
-                            ImageUtil.chooseBackground(context, itemSource.peek())
+                            ImageUtil.chooseBackground(context, itemSourceMargins.peek())
                         } else {
                             null
                         }
-                        Triple(itemSource, isAnimated, background)
+                        Triple(itemSourceMargins, isAnimated, background)
                     }
                 }
             }
@@ -242,6 +244,24 @@ class PagerPageHolder(
         onPageSplit(page)
 
         return splitInHalf(imageSource)
+    }
+
+    private fun applyMargins(imageSource: BufferedSource): BufferedSource {
+        val config = viewer.config
+        if (config.pagerMarginTop == 0 && config.pagerMarginBottom == 0 &&
+            config.pagerMarginLeft == 0 && config.pagerMarginRight == 0
+        ) {
+            return imageSource
+        }
+
+        return ImageUtil.addImageMargins(
+            imageSource = imageSource,
+            marginTop = config.pagerMarginTop,
+            marginBottom = config.pagerMarginBottom,
+            marginLeft = config.pagerMarginLeft,
+            marginRight = config.pagerMarginRight,
+            marginColor = config.pagerMarginColor(config.pagerMarginColorIndex),
+        )
     }
 
     private fun rotateDualPage(imageSource: BufferedSource): BufferedSource {

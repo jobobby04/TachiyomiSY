@@ -75,6 +75,18 @@ class PagerConfig(
 
     var centerMarginType = CenterMarginType.NONE
 
+    // Image margins
+    var pagerMarginTop = 0
+        private set
+    var pagerMarginBottom = 0
+        private set
+    var pagerMarginLeft = 0
+        private set
+    var pagerMarginRight = 0
+        private set
+    var pagerMarginColorIndex = 0
+        private set
+
     // SY <--
 
     init {
@@ -171,6 +183,18 @@ class PagerConfig(
 
         readerPreferences.invertDoublePages()
             .register({ invertDoublePages = it && dualPageSplit == false }, { imagePropertyChangedListener?.invoke() })
+
+        // Image margin preferences
+        readerPreferences.pagerMarginTop()
+            .register({ pagerMarginTop = it }, { imagePropertyChangedListener?.invoke() })
+        readerPreferences.pagerMarginBottom()
+            .register({ pagerMarginBottom = it }, { imagePropertyChangedListener?.invoke() })
+        readerPreferences.pagerMarginLeft()
+            .register({ pagerMarginLeft = it }, { imagePropertyChangedListener?.invoke() })
+        readerPreferences.pagerMarginRight()
+            .register({ pagerMarginRight = it }, { imagePropertyChangedListener?.invoke() })
+        readerPreferences.pagerMarginColor()
+            .register({ pagerMarginColorIndex = it }, { imagePropertyChangedListener?.invoke() })
         // SY <--
     }
 
@@ -234,6 +258,16 @@ class PagerConfig(
             1 -> Color.BLACK
             2 -> 0x202125
             else -> Color.WHITE
+        }
+    }
+
+    fun pagerMarginColor(marginColorIndex: Int): Int {
+        return when (marginColorIndex) {
+            0 -> viewer.config.pageCanvasColor // Background color
+            1 -> Color.WHITE // White
+            2 -> Color.BLACK // Black
+            3 -> Color.TRANSPARENT         // Transparent
+            else -> viewer.config.pageCanvasColor // Default to background color
         }
     }
 }
