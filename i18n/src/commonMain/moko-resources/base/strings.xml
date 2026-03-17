@@ -38,6 +38,35 @@
     <string name="label_help">Help</string>
     <string name="label_default">Default</string>
     <string name="label_warning">Warning</string>
+    <string name="pref_category_translations">Translations</string>
+    <string name="pref_translation_summary">MIT server, queue behavior, and wake settings</string>
+    <string name="pref_translate_after_downloading">Auto translate after download</string>
+    <string name="pref_translation_server_group">Translation server</string>
+    <string name="pref_translation_server_url">Server base URL</string>
+    <string name="pref_translation_endpoint_path">Endpoint path</string>
+    <string name="pref_translation_timeout_seconds">Request timeout (seconds)</string>
+    <string name="pref_translation_use_stream_endpoint">Use stream endpoint</string>
+    <string name="pref_translation_defaults_group">Default MIT config</string>
+    <string name="pref_translation_target_language">Target language</string>
+    <string name="pref_translation_engine">Translator</string>
+    <string name="pref_translation_detector">Detector</string>
+    <string name="pref_translation_ocr">OCR</string>
+    <string name="pref_translation_inpainter">Inpainter</string>
+    <string name="pref_translation_renderer">Renderer</string>
+    <string name="pref_translation_raw_json">Raw config JSON</string>
+    <string name="pref_translation_wake_group">Wake server before queue</string>
+    <string name="pref_translation_wake_before_start">Wake server before translation</string>
+    <string name="pref_translation_wake_mode">Wake mode</string>
+    <string name="pref_translation_wake_webhook_url">Webhook URL</string>
+    <string name="pref_translation_wake_webhook_method">Webhook method</string>
+    <string name="pref_translation_wake_webhook_headers">Webhook headers JSON</string>
+    <string name="pref_translation_wake_webhook_body">Webhook body</string>
+    <string name="pref_translation_wake_mac_address">WOL MAC address</string>
+    <string name="pref_translation_wake_broadcast_address">WOL broadcast address</string>
+    <string name="pref_translation_wake_port">WOL port</string>
+    <string name="pref_translation_server_check_url">Readiness check URL</string>
+    <string name="pref_translation_server_retry_interval">Retry interval (seconds)</string>
+    <string name="pref_translation_server_max_wait">Max wait time (seconds)</string>
     <string name="label_auto">Auto</string>
 
     <!-- Shared labels -->
