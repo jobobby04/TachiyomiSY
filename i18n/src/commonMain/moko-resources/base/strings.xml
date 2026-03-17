@@ -57,7 +57,7 @@
     <string name="pref_translation_detector_group">Detector</string>
     <string name="pref_translation_upscale_mode">Upscale image before translation</string>
     <string name="pref_translation_upscale_mode_disabled">Disabled (default)</string>
-    <string name="pref_translation_upscale_mode_auto">Auto (height below 1000)</string>
+    <string name="pref_translation_upscale_mode_auto">Auto upscale small images (height below 1000)</string>
     <string name="pref_translation_upscale_mode_always">Always use waifu2x 2x</string>
     <string name="pref_translation_detector">Detector</string>
     <string name="pref_translation_detection_size">Detection size</string>
