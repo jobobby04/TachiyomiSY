@@ -15,6 +15,7 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsScreenModel
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewer
+import tachiyomi.domain.translation.TranslationPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.CheckboxItem
@@ -23,12 +24,16 @@ import tachiyomi.presentation.core.components.SettingsChipRow
 import tachiyomi.presentation.core.components.SliderItem
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.text.NumberFormat
 
 @Composable
 internal fun ColumnScope.ReadingModePage(screenModel: ReaderSettingsScreenModel) {
     HeadingItem(MR.strings.pref_category_for_this_series)
     val manga by screenModel.mangaFlow.collectAsState()
+    val translationPreferences = remember { Injekt.get<TranslationPreferences>() }
+    val translationEnabled by translationPreferences.translationEnabled().collectAsState()
 
     val readingMode = remember(manga) { ReadingMode.fromPreference(manga?.readingMode?.toInt()) }
     SettingsChipRow(MR.strings.pref_category_reading_mode) {
@@ -49,6 +54,19 @@ internal fun ColumnScope.ReadingModePage(screenModel: ReaderSettingsScreenModel)
                 onClick = { screenModel.onChangeOrientation(it) },
                 label = { Text(stringResource(it.stringRes)) },
             )
+        }
+    }
+
+    if (translationEnabled) {
+        val translationPageMode by screenModel.preferences.translationPageMode().collectAsState()
+        SettingsChipRow(MR.strings.reader_translation_page_mode) {
+            ReaderPreferences.TranslationPageMode.entries.map {
+                FilterChip(
+                    selected = translationPageMode == it.value,
+                    onClick = { screenModel.preferences.translationPageMode().set(it.value) },
+                    label = { Text(stringResource(it.titleRes)) },
+                )
+            }
         }
     }
 

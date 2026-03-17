@@ -501,6 +501,33 @@ class ReaderViewModel @JvmOverloads constructor(
         }
     }
 
+    fun reloadCurrentChapterPages(pageIndex: Int? = null) {
+        val loader = loader ?: return
+        val currentChapterId = state.value.viewerChapters?.currChapter?.chapter?.id ?: return
+        val currentPageIndex = pageIndex ?: state.value.currentChapter?.requestedPage
+
+        viewModelScope.launchIO {
+            val chapter = chapterList.firstOrNull { it.chapter.id == currentChapterId } ?: return@launchIO
+            val oldViewerChapters = state.value.viewerChapters
+
+            withUIContext {
+                mutableState.update { it.copy(viewerChapters = null) }
+                oldViewerChapters?.unref()
+            }
+
+            try {
+                loadChapter(
+                    loader = loader,
+                    chapter = chapter,
+                    page = currentPageIndex?.takeIf { it >= 0 } ?: chapter.requestedPage,
+                )
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                logcat(LogPriority.ERROR, e)
+            }
+        }
+    }
+
     fun loadNewChapterFromDialog(chapter: Chapter) {
         viewModelScope.launchIO {
             val newChapter = chapterList.firstOrNull { it.chapter.id == chapter.id } ?: return@launchIO

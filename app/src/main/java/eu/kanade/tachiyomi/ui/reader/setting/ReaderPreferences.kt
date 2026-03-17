@@ -15,6 +15,8 @@ class ReaderPreferences(
 
     // region General
 
+    fun translationPageMode() = preferenceStore.getInt("reader_translation_page_mode", TranslationPageMode.TRANSLATED.value)
+
     // SY -->
     fun pageTransitionsPager() = preferenceStore.getBoolean("pref_enable_transitions_pager_key", true)
 
@@ -214,6 +216,18 @@ class ReaderPreferences(
         const val LOAD_FROM_FILE = 0
         const val LOAD_INTO_MEMORY = 1
         const val CACHE_TO_DISK = 2
+    }
+
+    enum class TranslationPageMode(val value: Int, val titleRes: StringResource) {
+        ORIGINAL(0, MR.strings.reader_translation_page_mode_original),
+        TRANSLATED(1, MR.strings.reader_translation_page_mode_translated),
+    ;
+
+        companion object {
+            fun fromPreference(value: Int): TranslationPageMode {
+                return entries.firstOrNull { it.value == value } ?: TRANSLATED
+            }
+        }
     }
 
     companion object {

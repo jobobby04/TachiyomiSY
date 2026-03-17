@@ -182,6 +182,7 @@ class ReaderActivity : BaseActivity() {
     private val windowInsetsController by lazy { WindowInsetsControllerCompat(window, window.decorView) }
 
     private var loadingIndicator: ReaderProgressIndicator? = null
+    private var pendingTranslationReloadPageIndex: Int? = null
 
     var isScrollingThroughPages = false
         private set
@@ -795,6 +796,11 @@ class ReaderActivity : BaseActivity() {
         return currentPage?.let { viewModel.state.value.viewerChapters?.currChapter?.pages?.getOrNull(it) }
     }
 
+    private fun currentReaderPageIndex(): Int? {
+        return (((viewModel.state.value.viewer as? PagerViewer)?.currentPage
+            ?: (viewModel.state.value.viewer as? WebtoonViewer)?.currentPage) as? ReaderPage)?.index
+    }
+
     fun reloadChapters(doublePages: Boolean, force: Boolean = false) {
         val viewer = viewModel.state.value.viewer as? PagerViewer ?: return
         viewer.updateShifting()
@@ -978,6 +984,10 @@ class ReaderActivity : BaseActivity() {
         // SY <--
 
         viewModel.state.value.viewer?.setChapters(viewerChapters)
+        pendingTranslationReloadPageIndex
+            ?.takeIf { viewerChapters.currChapter.pages?.indices?.contains(it) == true }
+            ?.let(::moveToPageIndex)
+        pendingTranslationReloadPageIndex = null
 
         lifecycleScope.launchIO {
             viewModel.getChapterUrl()?.let { url ->
@@ -1296,6 +1306,15 @@ class ReaderActivity : BaseActivity() {
                 .launchIn(lifecycleScope)
 
             // SY -->
+            readerPreferences.translationPageMode().changes()
+                .drop(1)
+                .onEach {
+                    pendingTranslationReloadPageIndex = currentReaderPageIndex()
+                        ?: viewModel.state.value.currentChapter?.requestedPage
+                    viewModel.reloadCurrentChapterPages(pendingTranslationReloadPageIndex)
+                }
+                .launchIn(lifecycleScope)
+
             readerPreferences.pageLayout().changes()
                 .drop(1)
                 .onEach {

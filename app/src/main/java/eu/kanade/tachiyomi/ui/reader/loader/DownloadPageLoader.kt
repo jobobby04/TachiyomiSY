@@ -10,8 +10,11 @@ import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
+import eu.kanade.translation.data.TranslationProvider
 import mihon.core.common.archive.archiveReader
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.translation.TranslationPreferences
 import uy.kohesive.injekt.injectLazy
 
 /**
@@ -26,6 +29,9 @@ internal class DownloadPageLoader(
 ) : PageLoader() {
 
     private val context: Application by injectLazy()
+    private val readerPreferences: ReaderPreferences by injectLazy()
+    private val translationPreferences: TranslationPreferences by injectLazy()
+    private val translationProvider: TranslationProvider by injectLazy()
 
     private var archivePageLoader: ArchivePageLoader? = null
 
@@ -40,11 +46,12 @@ internal class DownloadPageLoader(
             /* SY --> */ manga.ogTitle, /* <-- SY */
             source,
         )
-        return if (chapterPath?.isFile == true) {
+        val pages = if (chapterPath?.isFile == true) {
             getPagesFromArchive(chapterPath)
         } else {
             getPagesFromDirectory()
         }
+        return applyTranslatedPagesIfEnabled(pages)
     }
 
     override fun recycle() {
@@ -70,5 +77,30 @@ internal class DownloadPageLoader(
 
     override suspend fun loadPage(page: ReaderPage) {
         archivePageLoader?.loadPage(page)
+    }
+
+    private fun applyTranslatedPagesIfEnabled(pages: List<ReaderPage>): List<ReaderPage> {
+        if (!translationPreferences.translationEnabled().get()) return pages
+        val mode = ReaderPreferences.TranslationPageMode.fromPreference(
+            readerPreferences.translationPageMode().get(),
+        )
+        if (mode == ReaderPreferences.TranslationPageMode.ORIGINAL) return pages
+
+        val domainChapter = chapter.chapter.toDomainChapter() ?: return pages
+        val translatedFiles = translationProvider.findTranslatedPageFiles(domainChapter, manga, source)
+        if (translatedFiles.isEmpty()) return pages
+
+        translatedFiles.forEachIndexed { index, file ->
+            val page = pages.getOrNull(index) ?: return@forEachIndexed
+            page.url = file.uri.toString()
+            page.imageUrl = file.uri.toString()
+            page.stream = {
+                file.openInputStream()
+            }
+            page.apply {
+                status = Page.State.Ready
+            }
+        }
+        return pages
     }
 }
