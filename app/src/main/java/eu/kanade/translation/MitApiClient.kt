@@ -10,6 +10,7 @@ import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.translation.TranslationPreferences
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
 class MitApiClient(
@@ -52,7 +53,12 @@ class MitApiClient(
                 throw IllegalStateException("MIT request failed with HTTP ${response.code}$suffix")
             }
 
-            response.body.bytes()
+            val responseBytes = response.body.bytes()
+            if (translationPreferences.translationUseStreamEndpoint().get()) {
+                decodeStreamImage(responseBytes)
+            } else {
+                responseBytes
+            }
         }
     }
 
@@ -80,5 +86,41 @@ class MitApiClient(
         const val DEFAULT_ENDPOINT_PATH = "/translate/with-form/image"
         const val DEFAULT_FILE_NAME = "page.png"
         const val MAX_ERROR_BODY_LENGTH = 512
+        const val STREAM_STATUS_RESULT: Int = 0
+        const val STREAM_STATUS_ERROR: Int = 2
+        const val STREAM_HEADER_SIZE = 5
+    }
+
+    private fun decodeStreamImage(responseBytes: ByteArray): ByteArray {
+        var offset = 0
+
+        while (offset + STREAM_HEADER_SIZE <= responseBytes.size) {
+            val status = responseBytes[offset].toInt() and 0xFF
+            val payloadSize = (
+                ((responseBytes[offset + 1].toInt() and 0xFF) shl 24) or
+                    ((responseBytes[offset + 2].toInt() and 0xFF) shl 16) or
+                    ((responseBytes[offset + 3].toInt() and 0xFF) shl 8) or
+                    (responseBytes[offset + 4].toInt() and 0xFF)
+                )
+            offset += STREAM_HEADER_SIZE
+
+            require(payloadSize >= 0) { "MIT stream returned a negative payload size" }
+            require(offset + payloadSize <= responseBytes.size) { "MIT stream response was truncated" }
+
+            val payload = responseBytes.copyOfRange(offset, offset + payloadSize)
+            offset += payloadSize
+
+            when (status) {
+                STREAM_STATUS_RESULT -> return payload
+                STREAM_STATUS_ERROR -> {
+                    val message = payload.toString(StandardCharsets.UTF_8).ifBlank {
+                        "MIT stream request failed"
+                    }
+                    throw IllegalStateException(message)
+                }
+            }
+        }
+
+        throw IllegalStateException("MIT stream response did not contain a result frame")
     }
 }

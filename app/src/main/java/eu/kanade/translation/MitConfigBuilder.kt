@@ -10,6 +10,7 @@ import tachiyomi.domain.translation.TranslationPreferences
 internal fun buildMitConfigJson(
     preferences: TranslationPreferences,
     json: Json,
+    shouldUpscale: Boolean = false,
 ): String {
     val baseConfig = buildJsonObject {
         putNestedStrings(
@@ -35,6 +36,15 @@ internal fun buildMitConfigJson(
             "render",
             mapOf("renderer" to preferences.translationRenderer().get()),
         )
+        if (shouldUpscale) {
+            put(
+                "upscale",
+                buildJsonObject {
+                    put("upscaler", JsonPrimitive("waifu2x"))
+                    put("upscale_ratio", JsonPrimitive(2))
+                },
+            )
+        }
     }
 
     val rawConfig = preferences.translationRawConfigJson().get().ifBlank { "{}" }

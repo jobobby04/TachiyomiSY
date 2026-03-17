@@ -1,6 +1,7 @@
 package eu.kanade.translation
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.Source
@@ -207,18 +208,26 @@ class TranslationManager(
     }
 
     private suspend fun translateQueuedChapter(translation: ChapterTranslation) {
-        val configJson = runCatching { buildMitConfigJson(translationPreferences, json) }.getOrDefault("{}")
+        var configJson = "{}"
         try {
             translation.status = ChapterTranslation.State.TRANSLATING
             translation.errorMessage = null
 
             val pageInputs = loadDownloadedPages(translation)
             require(pageInputs.isNotEmpty()) { "No downloaded pages found for translation" }
+            val pageConfigJsons = pageInputs.map { pageInput ->
+                buildMitConfigJson(
+                    preferences = translationPreferences,
+                    json = json,
+                    shouldUpscale = shouldUpscaleImage(pageInput.bytes),
+                )
+            }
+            configJson = pageConfigJsons.firstOrNull() ?: "{}"
 
             translationProvider.clearChapterPages(translation.chapter, translation.manga, translation.source)
 
             val savedFiles = pageInputs.mapIndexed { index, pageInput ->
-                val translatedBytes = mitApiClient.translatePage(pageInput.bytes, pageInput.name, configJson)
+                val translatedBytes = mitApiClient.translatePage(pageInput.bytes, pageInput.name, pageConfigJsons[index])
                 val extension = ImageUtil.findImageType { translatedBytes.inputStream() }?.extension ?: DEFAULT_EXTENSION
                 val fileName = String.format(Locale.ENGLISH, "%03d.%s", index + 1, extension)
                 translationProvider.writeTranslatedPage(
@@ -287,6 +296,18 @@ class TranslationManager(
         }
     }
 
+    private fun shouldUpscaleImage(imageBytes: ByteArray): Boolean {
+        return when (translationPreferences.translationUpscaleMode().get()) {
+            "always" -> true
+            "auto" -> {
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size, options)
+                options.outHeight in 1..<AUTO_UPSCALE_MAX_HEIGHT
+            }
+            else -> false
+        }
+    }
+
     private fun loadDownloadedPages(translation: ChapterTranslation): List<PageInput> {
         val chapterPath = downloadProvider.findChapterDir(
             translation.chapter.name,
@@ -344,5 +365,6 @@ class TranslationManager(
 
     private companion object {
         const val DEFAULT_EXTENSION = "png"
+        const val AUTO_UPSCALE_MAX_HEIGHT = 1000
     }
 }

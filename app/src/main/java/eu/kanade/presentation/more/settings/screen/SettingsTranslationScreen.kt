@@ -58,15 +58,59 @@ object SettingsTranslationScreen : SearchableSettings {
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.pref_translation_defaults_group),
                 preferenceItems = persistentListOf(
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.translationTargetLanguage(),
-                        title = stringResource(MR.strings.pref_translation_target_language),
-                    ),
                     Preference.PreferenceItem.ListPreference(
                         preference = prefs.translationTranslator(),
                         title = stringResource(MR.strings.pref_translation_engine),
-                        entries = listOf("offline", "google", "openai", "none")
-                            .associateWith { it }
+                        entries = linkedMapOf(
+                            "deepseek" to "DeepSeek",
+                            "openai" to "OpenAI",
+                            "offline" to "Offline",
+                            "google" to "Google",
+                            "none" to "None",
+                        )
+                            .toImmutableMap(),
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationTargetLanguage(),
+                        title = stringResource(MR.strings.pref_translation_target_language),
+                        entries = linkedMapOf(
+                            "CHS" to "Chinese (Simplified)",
+                            "CHT" to "Chinese (Traditional)",
+                            "CSY" to "Czech",
+                            "NLD" to "Dutch",
+                            "ENG" to "English",
+                            "FRA" to "French",
+                            "DEU" to "German",
+                            "HUN" to "Hungarian",
+                            "ITA" to "Italian",
+                            "JPN" to "Japanese",
+                            "KOR" to "Korean",
+                            "POL" to "Polish",
+                            "PTB" to "Portuguese (Brazil)",
+                            "ROM" to "Romanian",
+                            "RUS" to "Russian",
+                            "ESP" to "Spanish",
+                            "TRK" to "Turkish",
+                            "UKR" to "Ukrainian",
+                            "VIN" to "Vietnamese",
+                            "ARA" to "Arabic",
+                            "CNR" to "Montenegrin",
+                            "SRP" to "Serbian",
+                            "HRV" to "Croatian",
+                            "THA" to "Thai",
+                            "IND" to "Indonesian",
+                            "FIL" to "Filipino (Tagalog)",
+                        )
+                            .toImmutableMap(),
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationUpscaleMode(),
+                        title = stringResource(MR.strings.pref_translation_upscale_mode),
+                        entries = linkedMapOf(
+                            "disabled" to stringResource(MR.strings.pref_translation_upscale_mode_disabled),
+                            "auto" to stringResource(MR.strings.pref_translation_upscale_mode_auto),
+                            "always" to stringResource(MR.strings.pref_translation_upscale_mode_always),
+                        )
                             .toImmutableMap(),
                     ),
                     Preference.PreferenceItem.EditTextPreference(

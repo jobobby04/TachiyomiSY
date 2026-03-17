@@ -14,11 +14,12 @@ class TranslationPreferences(
     fun translationRequestTimeoutSeconds() = preferenceStore.getInt("translation_request_timeout_seconds", 180)
 
     fun translationTargetLanguage() = preferenceStore.getString("translation_target_language", "ENG")
-    fun translationTranslator() = preferenceStore.getString("translation_translator", "offline")
+    fun translationTranslator() = preferenceStore.getString("translation_translator", "deepseek")
     fun translationDetector() = preferenceStore.getString("translation_detector", "default")
     fun translationOcr() = preferenceStore.getString("translation_ocr", "48px")
     fun translationInpainter() = preferenceStore.getString("translation_inpainter", "lama_large")
     fun translationRenderer() = preferenceStore.getString("translation_renderer", "default")
+    fun translationUpscaleMode() = preferenceStore.getString("translation_upscale_mode", "disabled")
 
     fun translationRawConfigJson() = preferenceStore.getString("translation_raw_config_json", "{}")
 

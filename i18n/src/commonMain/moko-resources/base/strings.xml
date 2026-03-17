@@ -49,6 +49,10 @@
     <string name="pref_translation_defaults_group">Default MIT config</string>
     <string name="pref_translation_target_language">Target language</string>
     <string name="pref_translation_engine">Translator</string>
+    <string name="pref_translation_upscale_mode">Upscale image before translation</string>
+    <string name="pref_translation_upscale_mode_disabled">Disabled (default)</string>
+    <string name="pref_translation_upscale_mode_auto">Auto (height below 1000)</string>
+    <string name="pref_translation_upscale_mode_always">Always use waifu2x 2x</string>
     <string name="pref_translation_detector">Detector</string>
     <string name="pref_translation_ocr">OCR</string>
     <string name="pref_translation_inpainter">Inpainter</string>
