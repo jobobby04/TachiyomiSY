@@ -1,5 +1,5 @@
 [versions]
-koin = "4.1.1"
+koin = "4.2.0"
 
 [libraries]
 xlog = "com.elvishew:xlog:1.11.1"
