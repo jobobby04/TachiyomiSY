@@ -24,6 +24,12 @@ data class ChapterTranslation(
         }
 
     @Transient
+    var translatedPages: Int = 0
+
+    @Transient
+    var totalPages: Int = 0
+
+    @Transient
     var errorMessage: String? = null
 
     enum class State {

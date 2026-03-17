@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.reader.chapter.ReaderChapterItem
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsScreenModel
 import eu.kanade.tachiyomi.util.lang.toRelativeString
+import eu.kanade.translation.model.ChapterTranslation
 import exh.metadata.MetadataUtil
 import exh.source.isEhBasedManga
 import kotlinx.collections.immutable.ImmutableList
@@ -108,13 +109,18 @@ fun ChapterListDialog(
                     bookmark = chapterItem.chapter.bookmark,
                     selected = false,
                     downloadIndicatorEnabled = false,
+                    translationIndicatorEnabled = false,
                     downloadStateProvider = { downloadState },
+                    translationStateProvider = { ChapterTranslation.State.NOT_TRANSLATED },
+                    translatedPagesProvider = { 0 },
+                    totalTranslationPagesProvider = { 0 },
                     downloadProgressProvider = { progress },
                     chapterSwipeStartAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     chapterSwipeEndAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     onLongClick = { /*TODO*/ },
                     onClick = { onClickChapter(chapterItem.chapter) },
                     onDownloadClick = null,
+                    onTranslationClick = null,
                     onChapterSwipe = {
                         onBookmark(chapterItem.chapter)
                     },

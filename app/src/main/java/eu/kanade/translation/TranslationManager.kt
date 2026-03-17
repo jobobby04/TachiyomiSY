@@ -3,6 +3,8 @@ package eu.kanade.translation
 import android.content.Context
 import android.graphics.BitmapFactory
 import com.hippo.unifile.UniFile
+import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.translation.data.TranslationProvider
@@ -15,14 +17,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import logcat.LogPriority
@@ -42,6 +40,7 @@ import kotlinx.serialization.json.Json
 class TranslationManager(
     private val context: Context,
     private val translationProvider: TranslationProvider = Injekt.get(),
+    private val downloadManager: DownloadManager = Injekt.get(),
     private val downloadProvider: DownloadProvider = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
     private val translationPreferences: TranslationPreferences = Injekt.get(),
@@ -52,6 +51,7 @@ class TranslationManager(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _queueState = MutableStateFlow<List<ChapterTranslation>>(emptyList())
+    private val statusEvents = MutableSharedFlow<ChapterTranslation>(extraBufferCapacity = 64)
     val queueState = _queueState.asStateFlow()
 
     private var translationJob: Job? = null
@@ -59,12 +59,18 @@ class TranslationManager(
     val isRunning: Boolean
         get() = translationJob?.isActive == true
 
+    init {
+        observeTranslationEnabled()
+        observeCompletedDownloads()
+    }
+
     fun startTranslation() {
+        if (!translationPreferences.translationEnabled().get()) return
         if (isRunning || queueState.value.isEmpty()) return
 
         queueState.value
             .filter { it.status != ChapterTranslation.State.ERROR }
-            .forEach { it.status = ChapterTranslation.State.QUEUE }
+            .forEach { updateStatus(it, ChapterTranslation.State.QUEUE) }
 
         translationJob = scope.launch {
             try {
@@ -89,7 +95,7 @@ class TranslationManager(
                     it.status == ChapterTranslation.State.WAKING_SERVER ||
                     it.status == ChapterTranslation.State.WAITING_SERVER
             }
-            .forEach { it.status = ChapterTranslation.State.QUEUE }
+            .forEach { updateStatus(it, ChapterTranslation.State.QUEUE) }
     }
 
     fun clearQueue() {
@@ -102,13 +108,17 @@ class TranslationManager(
     }
 
     fun translateChapter(manga: Manga, chapter: Chapter) {
+        if (!translationPreferences.translationEnabled().get()) return
         val source = sourceManager.getOrStub(manga.source)
         if (queueState.value.any { it.chapter.id == chapter.id }) return
 
         val translation = ChapterTranslation(source, manga, chapter).apply {
             status = ChapterTranslation.State.QUEUE
+            translatedPages = 0
+            totalPages = 0
         }
         _queueState.value += translation
+        statusEvents.tryEmit(translation)
         startTranslation()
     }
 
@@ -120,19 +130,15 @@ class TranslationManager(
     }
 
     fun deleteTranslation(chapter: Chapter, manga: Manga, source: Source) {
-        scope.launch {
-            queueState.value.find { it.chapter.id == chapter.id }?.let { cancelQueuedTranslation(it) }
-            translationProvider.deleteTranslation(chapter, manga, source)
-        }
+        queueState.value.find { it.chapter.id == chapter.id }?.let { cancelQueuedTranslation(it) }
+        translationProvider.deleteTranslation(chapter, manga, source)
     }
 
     fun deleteManga(manga: Manga, source: Source, removeQueued: Boolean = true) {
-        scope.launch {
-            if (removeQueued) {
-                _queueState.value = queueState.value.filterNot { it.manga.id == manga.id }
-            }
-            translationProvider.deleteManga(manga, source)
+        if (removeQueued) {
+            removeQueuedTranslations { it.manga.id == manga.id }
         }
+        translationProvider.deleteManga(manga, source)
     }
 
     fun getChapterTranslationStatus(
@@ -143,6 +149,7 @@ class TranslationManager(
         title: String,
         sourceId: Long,
     ): ChapterTranslation.State {
+        if (!translationPreferences.translationEnabled().get()) return ChapterTranslation.State.NOT_TRANSLATED
         val queued = getQueuedTranslationOrNull(chapterId)
         if (queued != null) return queued.status
 
@@ -165,37 +172,77 @@ class TranslationManager(
         }
     }
 
-    fun statusFlow(): Flow<ChapterTranslation> = queueState
-        .flatMapLatest { translations ->
-            translations
-                .map { translation ->
-                    translation.statusFlow.drop(1).map { translation }
+    fun statusFlow(): Flow<ChapterTranslation> = statusEvents.onStart {
+        queueState.value.forEach { emit(it) }
+    }
+
+    private fun observeCompletedDownloads() {
+        scope.launch {
+            downloadManager.statusFlow()
+                .filter { it.status == Download.State.DOWNLOADED }
+                .collect { download ->
+                    enqueueAutoTranslation(download)
                 }
-                .merge()
         }
-        .onStart {
-            emitAll(
-                queueState.value
-                    .filter { it.status == ChapterTranslation.State.TRANSLATING }
-                    .asFlow(),
-            )
+    }
+
+    private fun observeTranslationEnabled() {
+        scope.launch {
+            translationPreferences.translationEnabled().changes().collect { enabled ->
+                if (!enabled) {
+                    clearQueue()
+                }
+            }
         }
+    }
+
+    private fun enqueueAutoTranslation(download: Download) {
+        if (!translationPreferences.translationEnabled().get()) return
+        if (!translationPreferences.autoTranslateAfterDownload().get()) return
+        if (!isAutoTranslateSourceEnabled(download.source)) return
+        if (queueState.value.any { it.chapter.id == download.chapter.id }) return
+        if (translationProvider.isChapterTranslated(download.chapter, download.manga, download.source)) return
+
+        val translation = ChapterTranslation(download.source, download.manga, download.chapter).apply {
+            status = ChapterTranslation.State.QUEUE
+            translatedPages = 0
+            totalPages = 0
+        }
+        _queueState.value += translation
+        statusEvents.tryEmit(translation)
+        startTranslation()
+    }
+
+    private fun removeQueuedTranslations(predicate: (ChapterTranslation) -> Boolean) {
+        val removedTranslations = queueState.value.filter(predicate)
+        if (removedTranslations.isEmpty()) return
+
+        val wasRunning = isRunning
+        if (wasRunning) {
+            pauseTranslation()
+        }
+
+        _queueState.value = queueState.value - removedTranslations.toSet()
+
+        if (wasRunning && queueState.value.isNotEmpty()) {
+            startTranslation()
+        }
+    }
 
     private suspend fun prepareServerIfNeeded() {
         if (!translationPreferences.wakeServerBeforeTranslation().get()) return
         val pending = queueState.value.filter { it.status == ChapterTranslation.State.QUEUE }
         if (pending.isEmpty()) return
 
-        pending.forEach { it.status = ChapterTranslation.State.WAKING_SERVER }
+        pending.forEach { updateStatus(it, ChapterTranslation.State.WAKING_SERVER) }
         try {
-            pending.forEach { it.status = ChapterTranslation.State.WAITING_SERVER }
+            pending.forEach { updateStatus(it, ChapterTranslation.State.WAITING_SERVER) }
             serverWakeService.prepareServerForQueue()
             pending.filter { it.status == ChapterTranslation.State.WAITING_SERVER }
-                .forEach { it.status = ChapterTranslation.State.QUEUE }
+                .forEach { updateStatus(it, ChapterTranslation.State.QUEUE) }
         } catch (e: Throwable) {
             pending.forEach {
-                it.errorMessage = e.message
-                it.status = ChapterTranslation.State.ERROR
+                updateStatus(it, ChapterTranslation.State.ERROR, e.message)
             }
         }
     }
@@ -210,11 +257,15 @@ class TranslationManager(
     private suspend fun translateQueuedChapter(translation: ChapterTranslation) {
         var configJson = "{}"
         try {
-            translation.status = ChapterTranslation.State.TRANSLATING
-            translation.errorMessage = null
+            updateStatus(translation, ChapterTranslation.State.TRANSLATING)
 
             val pageInputs = loadDownloadedPages(translation)
             require(pageInputs.isNotEmpty()) { "No downloaded pages found for translation" }
+            updateProgress(
+                translation = translation,
+                translatedPages = 0,
+                totalPages = pageInputs.size,
+            )
             val pageConfigJsons = pageInputs.map { pageInput ->
                 buildMitConfigJson(
                     preferences = translationPreferences,
@@ -236,6 +287,11 @@ class TranslationManager(
                     source = translation.source,
                     fileName = fileName,
                     bytes = translatedBytes,
+                )
+                updateProgress(
+                    translation = translation,
+                    translatedPages = index + 1,
+                    totalPages = pageInputs.size,
                 )
                 fileName
             }
@@ -262,7 +318,7 @@ class TranslationManager(
                 ),
             )
 
-            translation.status = ChapterTranslation.State.TRANSLATED
+            updateStatus(translation, ChapterTranslation.State.TRANSLATED)
             _queueState.value = queueState.value - translation
         } catch (e: CancellationException) {
             throw e
@@ -291,20 +347,50 @@ class TranslationManager(
                     errorMessage = e.message,
                 ),
             )
-            translation.errorMessage = e.message
-            translation.status = ChapterTranslation.State.ERROR
+            updateStatus(translation, ChapterTranslation.State.ERROR, e.message)
         }
+    }
+
+    private fun updateStatus(
+        translation: ChapterTranslation,
+        status: ChapterTranslation.State,
+        errorMessage: String? = null,
+    ) {
+        translation.errorMessage = errorMessage
+        translation.status = status
+        statusEvents.tryEmit(translation)
+    }
+
+    private fun updateProgress(
+        translation: ChapterTranslation,
+        translatedPages: Int,
+        totalPages: Int,
+    ) {
+        translation.translatedPages = translatedPages
+        translation.totalPages = totalPages
+        statusEvents.tryEmit(translation)
     }
 
     private fun shouldUpscaleImage(imageBytes: ByteArray): Boolean {
         return when (translationPreferences.translationUpscaleMode().get()) {
-            "always" -> true
             "auto" -> {
                 val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size, options)
                 options.outHeight in 1..<AUTO_UPSCALE_MAX_HEIGHT
             }
             else -> false
+        }
+    }
+
+    private fun isAutoTranslateSourceEnabled(source: Source): Boolean {
+        if (!translationPreferences.autoTranslateOnlySelectedSources().get()) {
+            return true
+        }
+
+        return if (translationPreferences.autoTranslateSourceSelectionCustomized().get()) {
+            source.id.toString() in translationPreferences.autoTranslateSelectedSourceIds().get()
+        } else {
+            source.lang == DEFAULT_AUTO_TRANSLATE_LANGUAGE
         }
     }
 
@@ -366,5 +452,6 @@ class TranslationManager(
     private companion object {
         const val DEFAULT_EXTENSION = "png"
         const val AUTO_UPSCALE_MAX_HEIGHT = 1000
+        const val DEFAULT_AUTO_TRANSLATE_LANGUAGE = "ja"
     }
 }

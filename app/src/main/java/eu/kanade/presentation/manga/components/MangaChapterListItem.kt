@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.data.download.model.Download
+import eu.kanade.translation.model.ChapterTranslation
 import me.saket.swipe.SwipeableActionsBox
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
@@ -58,13 +59,18 @@ fun MangaChapterListItem(
     bookmark: Boolean,
     selected: Boolean,
     downloadIndicatorEnabled: Boolean,
+    translationIndicatorEnabled: Boolean,
     downloadStateProvider: () -> Download.State,
+    translationStateProvider: () -> ChapterTranslation.State,
+    translatedPagesProvider: () -> Int,
+    totalTranslationPagesProvider: () -> Int,
     downloadProgressProvider: () -> Int,
     chapterSwipeStartAction: LibraryPreferences.ChapterSwipeAction,
     chapterSwipeEndAction: LibraryPreferences.ChapterSwipeAction,
     onLongClick: () -> Unit,
     onClick: () -> Unit,
     onDownloadClick: ((ChapterDownloadAction) -> Unit)?,
+    onTranslationClick: ((ChapterTranslationAction) -> Unit)?,
     onChapterSwipe: (LibraryPreferences.ChapterSwipeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -189,6 +195,16 @@ fun MangaChapterListItem(
                 }
             }
 
+            if (translationIndicatorEnabled && downloadStateProvider() == Download.State.DOWNLOADED) {
+                ChapterTranslationIndicator(
+                    enabled = true,
+                    modifier = Modifier.padding(start = 4.dp),
+                    translationStateProvider = translationStateProvider,
+                    translatedPagesProvider = translatedPagesProvider,
+                    totalTranslationPagesProvider = totalTranslationPagesProvider,
+                    onClick = { onTranslationClick?.invoke(it) },
+                )
+            }
             ChapterDownloadIndicator(
                 enabled = downloadIndicatorEnabled,
                 modifier = Modifier.padding(start = 4.dp),

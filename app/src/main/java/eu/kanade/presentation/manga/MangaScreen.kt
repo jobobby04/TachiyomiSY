@@ -51,6 +51,7 @@ import androidx.compose.ui.util.fastMap
 import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.manga.components.ChapterHeader
+import eu.kanade.presentation.manga.components.ChapterTranslationAction
 import eu.kanade.presentation.manga.components.ExpandableMangaDescription
 import eu.kanade.presentation.manga.components.MangaActionRow
 import eu.kanade.presentation.manga.components.MangaBottomActionMenu
@@ -80,6 +81,7 @@ import eu.kanade.tachiyomi.ui.manga.MangaScreenModel
 import eu.kanade.tachiyomi.ui.manga.MergedMangaData
 import eu.kanade.tachiyomi.ui.manga.PagePreviewState
 import eu.kanade.tachiyomi.util.system.copyToClipboard
+import tachiyomi.domain.translation.TranslationPreferences
 import exh.metadata.MetadataUtil
 import exh.source.MERGED_SOURCE_ID
 import exh.source.getMainSource
@@ -103,8 +105,11 @@ import tachiyomi.presentation.core.components.VerticalFastScroller
 import tachiyomi.presentation.core.components.material.PullRefresh
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.presentation.core.util.shouldExpandFAB
 import tachiyomi.source.local.isLocal
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -120,6 +125,7 @@ fun MangaScreen(
     navigateUp: () -> Unit,
     onChapterClicked: (Chapter) -> Unit,
     onDownloadChapter: ((List<ChapterList.Item>, ChapterDownloadAction) -> Unit)?,
+    onTranslateChapter: ((ChapterList.Item, ChapterTranslationAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
     onWebViewLongClicked: (() -> Unit)?,
@@ -169,6 +175,8 @@ fun MangaScreen(
     onAllChapterSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
 ) {
+    val translationPreferences = remember { Injekt.get<TranslationPreferences>() }
+    val translationEnabled by translationPreferences.translationEnabled().collectAsState()
     val context = LocalContext.current
     val onCopyTagToClipboard: (tag: String) -> Unit = {
         if (it.isNotEmpty()) {
@@ -186,6 +194,7 @@ fun MangaScreen(
             navigateUp = navigateUp,
             onChapterClicked = onChapterClicked,
             onDownloadChapter = onDownloadChapter,
+            onTranslateChapter = onTranslateChapter,
             onAddToLibraryClicked = onAddToLibraryClicked,
             onWebViewClicked = onWebViewClicked,
             onWebViewLongClicked = onWebViewLongClicked,
@@ -222,6 +231,7 @@ fun MangaScreen(
             onChapterSelected = onChapterSelected,
             onAllChapterSelected = onAllChapterSelected,
             onInvertSelection = onInvertSelection,
+            translationEnabled = translationEnabled,
         )
     } else {
         MangaScreenLargeImpl(
@@ -233,6 +243,7 @@ fun MangaScreen(
             navigateUp = navigateUp,
             onChapterClicked = onChapterClicked,
             onDownloadChapter = onDownloadChapter,
+            onTranslateChapter = onTranslateChapter,
             onAddToLibraryClicked = onAddToLibraryClicked,
             onWebViewClicked = onWebViewClicked,
             onWebViewLongClicked = onWebViewLongClicked,
@@ -269,6 +280,7 @@ fun MangaScreen(
             onChapterSelected = onChapterSelected,
             onAllChapterSelected = onAllChapterSelected,
             onInvertSelection = onInvertSelection,
+            translationEnabled = translationEnabled,
         )
     }
 }
@@ -283,6 +295,7 @@ private fun MangaScreenSmallImpl(
     navigateUp: () -> Unit,
     onChapterClicked: (Chapter) -> Unit,
     onDownloadChapter: ((List<ChapterList.Item>, ChapterDownloadAction) -> Unit)?,
+    onTranslateChapter: ((ChapterList.Item, ChapterTranslationAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
     onWebViewLongClicked: (() -> Unit)?,
@@ -332,6 +345,7 @@ private fun MangaScreenSmallImpl(
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
     onAllChapterSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
+    translationEnabled: Boolean,
 ) {
     val chapterListState = rememberLazyListState()
 
@@ -585,11 +599,13 @@ private fun MangaScreenSmallImpl(
                         // SY <--
                         onChapterClicked = onChapterClicked,
                         onDownloadChapter = onDownloadChapter,
+                        onTranslateChapter = onTranslateChapter,
                         onChapterSelected = onChapterSelected,
-                        onChapterSwipe = onChapterSwipe,
-                    )
-                }
-            }
+            onChapterSwipe = onChapterSwipe,
+            translationEnabled = translationEnabled,
+        )
+    }
+}
         }
     }
 }
@@ -604,6 +620,7 @@ fun MangaScreenLargeImpl(
     navigateUp: () -> Unit,
     onChapterClicked: (Chapter) -> Unit,
     onDownloadChapter: ((List<ChapterList.Item>, ChapterDownloadAction) -> Unit)?,
+    onTranslateChapter: ((ChapterList.Item, ChapterTranslationAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
     onWebViewLongClicked: (() -> Unit)?,
@@ -653,6 +670,7 @@ fun MangaScreenLargeImpl(
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
     onAllChapterSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
+    translationEnabled: Boolean,
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val density = LocalDensity.current
@@ -882,8 +900,10 @@ fun MangaScreenLargeImpl(
                                 // SY <--
                                 onChapterClicked = onChapterClicked,
                                 onDownloadChapter = onDownloadChapter,
+                                onTranslateChapter = onTranslateChapter,
                                 onChapterSelected = onChapterSelected,
                                 onChapterSwipe = onChapterSwipe,
+                                translationEnabled = translationEnabled,
                             )
                         }
                     }
@@ -947,8 +967,10 @@ private fun LazyListScope.sharedChapterItems(
     // SY <--
     onChapterClicked: (Chapter) -> Unit,
     onDownloadChapter: ((List<ChapterList.Item>, ChapterDownloadAction) -> Unit)?,
+    onTranslateChapter: ((ChapterList.Item, ChapterTranslationAction) -> Unit)?,
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
     onChapterSwipe: (ChapterList.Item, LibraryPreferences.ChapterSwipeAction) -> Unit,
+    translationEnabled: Boolean,
 ) {
     items(
         items = chapters,
@@ -1009,7 +1031,11 @@ private fun LazyListScope.sharedChapterItems(
                     selected = item.selected,
                     downloadIndicatorEnabled =
                     !isAnyChapterSelected && !(mergedData?.manga?.get(item.chapter.mangaId) ?: manga).isLocal(),
+                    translationIndicatorEnabled = translationEnabled,
                     downloadStateProvider = { item.downloadState },
+                    translationStateProvider = { item.translationState },
+                    translatedPagesProvider = { item.translatedPages },
+                    totalTranslationPagesProvider = { item.totalTranslationPages },
                     downloadProgressProvider = { item.downloadProgress },
                     chapterSwipeStartAction = chapterSwipeStartAction,
                     chapterSwipeEndAction = chapterSwipeEndAction,
@@ -1027,6 +1053,11 @@ private fun LazyListScope.sharedChapterItems(
                     },
                     onDownloadClick = if (onDownloadChapter != null) {
                         { onDownloadChapter(listOf(item), it) }
+                    } else {
+                        null
+                    },
+                    onTranslationClick = if (onTranslateChapter != null) {
+                        { onTranslateChapter(item, it) }
                     } else {
                         null
                     },
