@@ -31,6 +31,7 @@ fun EditTextPreferenceWidget(
     subtitle: String?,
     icon: ImageVector?,
     value: String,
+    allowBlank: Boolean = false,
     widget: @Composable (() -> Unit)? = null,
     onConfirm: suspend (String) -> Boolean,
 ) {
@@ -59,14 +60,16 @@ fun EditTextPreferenceWidget(
                     onValueChange = { textFieldValue = it },
                     trailingIcon = {
                         if (textFieldValue.text.isBlank()) {
-                            Icon(imageVector = Icons.Filled.Error, contentDescription = null)
+                            if (!allowBlank) {
+                                Icon(imageVector = Icons.Filled.Error, contentDescription = null)
+                            }
                         } else {
                             IconButton(onClick = { textFieldValue = TextFieldValue("") }) {
                                 Icon(imageVector = Icons.Filled.Cancel, contentDescription = null)
                             }
                         }
                     },
-                    isError = textFieldValue.text.isBlank(),
+                    isError = textFieldValue.text.isBlank() && !allowBlank,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -76,7 +79,7 @@ fun EditTextPreferenceWidget(
             ),
             confirmButton = {
                 TextButton(
-                    enabled = textFieldValue.text != value && textFieldValue.text.isNotBlank(),
+                    enabled = textFieldValue.text != value && (allowBlank || textFieldValue.text.isNotBlank()),
                     onClick = {
                         scope.launch {
                             if (onConfirm(textFieldValue.text)) {
