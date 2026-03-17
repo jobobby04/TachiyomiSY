@@ -8,11 +8,11 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import tachiyomi.core.common.preference.Preference as PreferenceData
-import kotlinx.coroutines.flow.SharingStarted
 import tachiyomi.domain.translation.TranslationPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -61,48 +61,201 @@ object SettingsTranslationScreen : SearchableSettings {
                     Preference.PreferenceItem.ListPreference(
                         preference = prefs.translationTranslator(),
                         title = stringResource(MR.strings.pref_translation_engine),
-                        entries = linkedMapOf(
-                            "deepseek" to "DeepSeek",
-                            "openai" to "OpenAI",
-                            "offline" to "Offline",
-                            "google" to "Google",
-                            "none" to "None",
-                        )
-                            .toImmutableMap(),
+                        entries = translatorEntries,
                     ),
                     Preference.PreferenceItem.ListPreference(
                         preference = prefs.translationTargetLanguage(),
                         title = stringResource(MR.strings.pref_translation_target_language),
-                        entries = linkedMapOf(
-                            "CHS" to "Chinese (Simplified)",
-                            "CHT" to "Chinese (Traditional)",
-                            "CSY" to "Czech",
-                            "NLD" to "Dutch",
-                            "ENG" to "English",
-                            "FRA" to "French",
-                            "DEU" to "German",
-                            "HUN" to "Hungarian",
-                            "ITA" to "Italian",
-                            "JPN" to "Japanese",
-                            "KOR" to "Korean",
-                            "POL" to "Polish",
-                            "PTB" to "Portuguese (Brazil)",
-                            "ROM" to "Romanian",
-                            "RUS" to "Russian",
-                            "ESP" to "Spanish",
-                            "TRK" to "Turkish",
-                            "UKR" to "Ukrainian",
-                            "VIN" to "Vietnamese",
-                            "ARA" to "Arabic",
-                            "CNR" to "Montenegrin",
-                            "SRP" to "Serbian",
-                            "HRV" to "Croatian",
-                            "THA" to "Thai",
-                            "IND" to "Indonesian",
-                            "FIL" to "Filipino (Tagalog)",
-                        )
-                            .toImmutableMap(),
+                        entries = languageEntries,
                     ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationNoTextLangSkip(),
+                        title = stringResource(MR.strings.pref_translation_no_text_lang_skip),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationSkipLang(),
+                        title = stringResource(MR.strings.pref_translation_skip_lang),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationGptConfig(),
+                        title = stringResource(MR.strings.pref_translation_gpt_config),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationTranslatorChain(),
+                        title = stringResource(MR.strings.pref_translation_translator_chain),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationSelectiveTranslation(),
+                        title = stringResource(MR.strings.pref_translation_selective_translation),
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_detector_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationDetector(),
+                        title = stringResource(MR.strings.pref_translation_detector),
+                        entries = detectorEntries,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationDetectionSize(),
+                        title = stringResource(MR.strings.pref_translation_detection_size),
+                        validator = ::isPositiveInt,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationTextThreshold(),
+                        title = stringResource(MR.strings.pref_translation_text_threshold),
+                        validator = ::isFloat,
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetRotate(),
+                        title = stringResource(MR.strings.pref_translation_det_rotate),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetAutoRotate(),
+                        title = stringResource(MR.strings.pref_translation_det_auto_rotate),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetInvert(),
+                        title = stringResource(MR.strings.pref_translation_det_invert),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetGammaCorrect(),
+                        title = stringResource(MR.strings.pref_translation_det_gamma_correct),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationBoxThreshold(),
+                        title = stringResource(MR.strings.pref_translation_box_threshold),
+                        validator = ::isFloat,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationUnclipRatio(),
+                        title = stringResource(MR.strings.pref_translation_unclip_ratio),
+                        validator = ::isFloat,
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_ocr_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationUseMocrMerge(),
+                        title = stringResource(MR.strings.pref_translation_use_mocr_merge),
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationOcr(),
+                        title = stringResource(MR.strings.pref_translation_ocr),
+                        entries = ocrEntries,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationMinTextLength(),
+                        title = stringResource(MR.strings.pref_translation_min_text_length),
+                        validator = ::isInt,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationIgnoreBubble(),
+                        title = stringResource(MR.strings.pref_translation_ignore_bubble),
+                        validator = ::isInt,
+                    ),
+                    validatedOptionalStringPreference(
+                        preference = prefs.translationOcrProb(),
+                        title = stringResource(MR.strings.pref_translation_ocr_prob),
+                        validator = ::isFloat,
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_inpainter_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationInpainter(),
+                        title = stringResource(MR.strings.pref_translation_inpainter),
+                        entries = inpainterEntries,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationInpaintingSize(),
+                        title = stringResource(MR.strings.pref_translation_inpainting_size),
+                        validator = ::isPositiveInt,
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationInpaintingPrecision(),
+                        title = stringResource(MR.strings.pref_translation_inpainting_precision),
+                        entries = inpaintingPrecisionEntries,
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_render_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationRenderer(),
+                        title = stringResource(MR.strings.pref_translation_renderer),
+                        entries = rendererEntries,
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationAlignment(),
+                        title = stringResource(MR.strings.pref_translation_alignment),
+                        entries = alignmentEntries,
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationRenderDirection(),
+                        title = stringResource(MR.strings.pref_translation_render_direction),
+                        entries = directionEntries,
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDisableFontBorder(),
+                        title = stringResource(MR.strings.pref_translation_disable_font_border),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationFontSizeOffset(),
+                        title = stringResource(MR.strings.pref_translation_font_size_offset),
+                        validator = ::isInt,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationFontSizeMinimum(),
+                        title = stringResource(MR.strings.pref_translation_font_size_minimum),
+                        validator = ::isInt,
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationUppercase(),
+                        title = stringResource(MR.strings.pref_translation_uppercase),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationLowercase(),
+                        title = stringResource(MR.strings.pref_translation_lowercase),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationGimpFont(),
+                        title = stringResource(MR.strings.pref_translation_gimp_font),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationNoHyphenation(),
+                        title = stringResource(MR.strings.pref_translation_no_hyphenation),
+                    ),
+                    validatedOptionalStringPreference(
+                        preference = prefs.translationFontColor(),
+                        title = stringResource(MR.strings.pref_translation_font_color),
+                    ),
+                    validatedOptionalStringPreference(
+                        preference = prefs.translationLineSpacing(),
+                        title = stringResource(MR.strings.pref_translation_line_spacing),
+                        validator = ::isFloat,
+                    ),
+                    validatedOptionalStringPreference(
+                        preference = prefs.translationFontSize(),
+                        title = stringResource(MR.strings.pref_translation_font_size),
+                        validator = ::isInt,
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationRtl(),
+                        title = stringResource(MR.strings.pref_translation_rtl),
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_upscale_group),
+                preferenceItems = persistentListOf(
                     Preference.PreferenceItem.ListPreference(
                         preference = prefs.translationUpscaleMode(),
                         title = stringResource(MR.strings.pref_translation_upscale_mode),
@@ -110,24 +263,64 @@ object SettingsTranslationScreen : SearchableSettings {
                             "disabled" to stringResource(MR.strings.pref_translation_upscale_mode_disabled),
                             "auto" to stringResource(MR.strings.pref_translation_upscale_mode_auto),
                             "always" to stringResource(MR.strings.pref_translation_upscale_mode_always),
-                        )
-                            .toImmutableMap(),
+                        ).toImmutableMap(),
                     ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.translationDetector(),
-                        title = stringResource(MR.strings.pref_translation_detector),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationMitUpscaler(),
+                        title = stringResource(MR.strings.pref_translation_mit_upscaler),
+                        entries = upscaleEntries,
                     ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.translationOcr(),
-                        title = stringResource(MR.strings.pref_translation_ocr),
+                    validatedOptionalStringPreference(
+                        preference = prefs.translationMitUpscaleRatio(),
+                        title = stringResource(MR.strings.pref_translation_mit_upscale_ratio),
+                        validator = ::isPositiveInt,
                     ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.translationInpainter(),
-                        title = stringResource(MR.strings.pref_translation_inpainter),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationMitRevertUpscaling(),
+                        title = stringResource(MR.strings.pref_translation_mit_revert_upscaling),
                     ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.translationRenderer(),
-                        title = stringResource(MR.strings.pref_translation_renderer),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_colorizer_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationColorizer(),
+                        title = stringResource(MR.strings.pref_translation_colorizer),
+                        entries = colorizerEntries,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationColorizationSize(),
+                        title = stringResource(MR.strings.pref_translation_colorization_size),
+                        validator = ::isInt,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationDenoiseSigma(),
+                        title = stringResource(MR.strings.pref_translation_denoise_sigma),
+                        validator = ::isInt,
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_advanced_group),
+                preferenceItems = persistentListOf(
+                    validatedOptionalStringPreference(
+                        preference = prefs.translationFilterText(),
+                        title = stringResource(MR.strings.pref_translation_filter_text),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationForceSimpleSort(),
+                        title = stringResource(MR.strings.pref_translation_force_simple_sort),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationKernelSize(),
+                        title = stringResource(MR.strings.pref_translation_kernel_size),
+                        validator = ::isInt,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationMaskDilationOffset(),
+                        title = stringResource(MR.strings.pref_translation_mask_dilation_offset),
+                        validator = ::isInt,
                     ),
                     Preference.PreferenceItem.EditTextPreference(
                         preference = prefs.translationRawConfigJson(),
@@ -210,6 +403,33 @@ object SettingsTranslationScreen : SearchableSettings {
             },
         )
     }
+
+    private fun validatedStringPreference(
+        preference: PreferenceData<String>,
+        title: String,
+        validator: (String) -> Boolean = { true },
+    ): Preference.PreferenceItem.EditTextPreference {
+        return Preference.PreferenceItem.EditTextPreference(
+            preference = preference,
+            title = title,
+            onValueChanged = { candidate -> validator(candidate.trim()) },
+        )
+    }
+
+    private fun validatedOptionalStringPreference(
+        preference: PreferenceData<String>,
+        title: String,
+        validator: (String) -> Boolean = { true },
+    ): Preference.PreferenceItem.EditTextPreference {
+        return Preference.PreferenceItem.EditTextPreference(
+            preference = preference,
+            title = title,
+            onValueChanged = { candidate ->
+                val normalized = candidate.trim()
+                normalized.isBlank() || validator(normalized)
+            },
+        )
+    }
 }
 
 private fun PreferenceData<Int>.asValidatedStringPreference(): PreferenceData<String> {
@@ -239,3 +459,130 @@ private fun PreferenceData<Int>.asValidatedStringPreference(): PreferenceData<St
         }
     }
 }
+
+private fun isInt(value: String): Boolean = value.toIntOrNull() != null
+
+private fun isPositiveInt(value: String): Boolean = value.toIntOrNull()?.let { it > 0 } == true
+
+private fun isFloat(value: String): Boolean = value.toDoubleOrNull() != null
+
+private val translatorEntries = linkedMapOf(
+    "youdao" to "Youdao",
+    "baidu" to "Baidu",
+    "deepl" to "DeepL",
+    "papago" to "Papago",
+    "caiyun" to "Caiyun",
+    "chatgpt" to "ChatGPT",
+    "chatgpt_2stage" to "ChatGPT 2-Stage",
+    "none" to "None",
+    "original" to "Original",
+    "sakura" to "Sakura",
+    "deepseek" to "DeepSeek",
+    "groq" to "Groq",
+    "gemini" to "Gemini",
+    "gemini_2stage" to "Gemini 2-Stage",
+    "custom_openai" to "Custom OpenAI",
+    "offline" to "Offline",
+    "nllb" to "NLLB",
+    "nllb_big" to "NLLB Big",
+    "sugoi" to "Sugoi",
+    "jparacrawl" to "JParaCrawl",
+    "jparacrawl_big" to "JParaCrawl Big",
+    "m2m100" to "M2M100",
+    "m2m100_big" to "M2M100 Big",
+    "mbart50" to "mBART50",
+    "qwen2" to "Qwen2",
+    "qwen2_big" to "Qwen2 Big",
+).toImmutableMap()
+
+private val languageEntries = linkedMapOf(
+    "CHS" to "Chinese (Simplified)",
+    "CHT" to "Chinese (Traditional)",
+    "CSY" to "Czech",
+    "NLD" to "Dutch",
+    "ENG" to "English",
+    "FRA" to "French",
+    "DEU" to "German",
+    "HUN" to "Hungarian",
+    "ITA" to "Italian",
+    "JPN" to "Japanese",
+    "KOR" to "Korean",
+    "POL" to "Polish",
+    "PTB" to "Portuguese (Brazil)",
+    "ROM" to "Romanian",
+    "RUS" to "Russian",
+    "ESP" to "Spanish",
+    "TRK" to "Turkish",
+    "UKR" to "Ukrainian",
+    "VIN" to "Vietnamese",
+    "ARA" to "Arabic",
+    "CNR" to "Montenegrin",
+    "SRP" to "Serbian",
+    "HRV" to "Croatian",
+    "THA" to "Thai",
+    "IND" to "Indonesian",
+    "FIL" to "Filipino (Tagalog)",
+).toImmutableMap()
+
+private val detectorEntries = linkedMapOf(
+    "default" to "Default",
+    "dbconvnext" to "DBConvNext",
+    "ctd" to "CTD",
+    "craft" to "Craft",
+    "paddle" to "Paddle",
+    "none" to "None",
+).toImmutableMap()
+
+private val ocrEntries = linkedMapOf(
+    "32px" to "32px",
+    "48px" to "48px",
+    "48px_ctc" to "48px CTC",
+    "mocr" to "MOCR",
+).toImmutableMap()
+
+private val inpainterEntries = linkedMapOf(
+    "default" to "Default",
+    "lama_large" to "LaMa Large",
+    "lama_mpe" to "LaMa MPE",
+    "sd" to "Stable Diffusion",
+    "none" to "None",
+    "original" to "Original",
+).toImmutableMap()
+
+private val rendererEntries = linkedMapOf(
+    "default" to "Default",
+    "manga2eng" to "Manga2Eng",
+    "manga2eng_pillow" to "Manga2Eng Pillow",
+    "none" to "None",
+).toImmutableMap()
+
+private val alignmentEntries = linkedMapOf(
+    "auto" to "Auto",
+    "left" to "Left",
+    "center" to "Center",
+    "right" to "Right",
+).toImmutableMap()
+
+private val directionEntries = linkedMapOf(
+    "auto" to "Auto",
+    "horizontal" to "Horizontal",
+    "vertical" to "Vertical",
+).toImmutableMap()
+
+private val inpaintingPrecisionEntries = linkedMapOf(
+    "fp32" to "FP32",
+    "fp16" to "FP16",
+    "bf16" to "BF16",
+).toImmutableMap()
+
+private val upscaleEntries = linkedMapOf(
+    "" to "Use auto mode / none",
+    "waifu2x" to "waifu2x",
+    "esrgan" to "ESRGAN",
+    "4xultrasharp" to "4xUltraSharp",
+).toImmutableMap()
+
+private val colorizerEntries = linkedMapOf(
+    "none" to "None",
+    "mc2" to "MC2",
+).toImmutableMap()
