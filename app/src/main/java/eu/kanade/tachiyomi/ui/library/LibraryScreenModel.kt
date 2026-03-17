@@ -31,6 +31,7 @@ import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.MergedSource
+import eu.kanade.translation.TranslationManager
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.removeCovers
 import exh.favorites.FavoritesSyncHelper
@@ -133,6 +134,7 @@ class LibraryScreenModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val downloadManager: DownloadManager = Injekt.get(),
     private val downloadCache: DownloadCache = Injekt.get(),
+    private val translationManager: TranslationManager = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
     // SY -->
     private val exhPreferences: ExhPreferences = Injekt.get(),
@@ -945,6 +947,27 @@ class LibraryScreenModel(
                 updateManga.awaitAll(toDelete)
             }
 
+            if (deleteFromLibrary) {
+                mangas.forEach { manga ->
+                    val source = sourceManager.get(manga.source) as? HttpSource
+                    if (source != null) {
+                        if (source is MergedSource) {
+                            val mergedMangas = getMergedMangaById.await(manga.id)
+                            val sources = mergedMangas.distinctBy {
+                                it.source
+                            }.map { sourceManager.getOrStub(it.source) }
+                            mergedMangas.forEach merge@{ mergedManga ->
+                                val mergedSource =
+                                    sources.firstOrNull { mergedManga.source == it.id } as? HttpSource ?: return@merge
+                                translationManager.deleteManga(mergedManga, mergedSource)
+                            }
+                        } else {
+                            translationManager.deleteManga(manga, source)
+                        }
+                    }
+                }
+            }
+
             if (deleteChapters) {
                 mangas.forEach { manga ->
                     val source = sourceManager.get(manga.source) as? HttpSource
@@ -957,9 +980,11 @@ class LibraryScreenModel(
                             mergedMangas.forEach merge@{ mergedManga ->
                                 val mergedSource =
                                     sources.firstOrNull { mergedManga.source == it.id } as? HttpSource ?: return@merge
+                                translationManager.deleteManga(mergedManga, mergedSource)
                                 downloadManager.deleteManga(mergedManga, mergedSource)
                             }
                         } else {
+                            translationManager.deleteManga(manga, source)
                             downloadManager.deleteManga(manga, source)
                         }
                     }

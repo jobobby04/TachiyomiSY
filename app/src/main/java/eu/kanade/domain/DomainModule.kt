@@ -137,7 +137,7 @@ class DomainModule : InjektModule {
         addFactory { SetExcludedScanlators(get()) }
         addFactory {
             MigrateMangaUseCase(
-                get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
+                get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
             )
         }
 
@@ -172,7 +172,7 @@ class DomainModule : InjektModule {
         addFactory { RemoveHistory(get()) }
         addFactory { GetTotalReadDuration(get()) }
 
-        addFactory { DeleteDownload(get(), get()) }
+        addFactory { DeleteDownload(get(), get(), get()) }
 
         addFactory { GetExtensionsByType(get(), get()) }
         addFactory { GetExtensionSources(get()) }

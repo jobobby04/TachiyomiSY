@@ -1,6 +1,7 @@
 package eu.kanade.domain.download.interactor
 
 import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.translation.TranslationManager
 import tachiyomi.core.common.util.lang.withNonCancellableContext
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
@@ -9,10 +10,14 @@ import tachiyomi.domain.source.service.SourceManager
 class DeleteDownload(
     private val sourceManager: SourceManager,
     private val downloadManager: DownloadManager,
+    private val translationManager: TranslationManager,
 ) {
 
     suspend fun awaitAll(manga: Manga, vararg chapters: Chapter) = withNonCancellableContext {
         sourceManager.get(manga.source)?.let { source ->
+            chapters.forEach { chapter ->
+                translationManager.deleteTranslation(chapter, manga, source)
+            }
             downloadManager.deleteChapters(chapters.toList(), manga, source)
         }
     }

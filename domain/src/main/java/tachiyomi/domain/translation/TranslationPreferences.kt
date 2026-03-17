@@ -5,18 +5,23 @@ import tachiyomi.core.common.preference.PreferenceStore
 class TranslationPreferences(
     private val preferenceStore: PreferenceStore,
 ) {
+    fun translationEnabled() = preferenceStore.getBoolean("translation_enabled", false)
 
     fun autoTranslateAfterDownload() = preferenceStore.getBoolean("auto_translate_after_download", false)
+    fun autoTranslateOnlySelectedSources() = preferenceStore.getBoolean("auto_translate_only_selected_sources", true)
+    fun autoTranslateSelectedSourceIds() = preferenceStore.getStringSet("auto_translate_selected_source_ids", emptySet())
+    fun autoTranslateSourceSelectionCustomized() = preferenceStore.getBoolean("auto_translate_source_selection_customized", false)
+    fun showAdvancedTranslationSettings() = preferenceStore.getBoolean("show_advanced_translation_settings", false)
 
     fun translationServerBaseUrl() = preferenceStore.getString("translation_server_base_url", "")
     fun translationEndpointPath() = preferenceStore.getString("translation_endpoint_path", "/translate/with-form/image")
-    fun translationUseStreamEndpoint() = preferenceStore.getBoolean("translation_use_stream_endpoint", false)
+    fun translationUseStreamEndpoint() = preferenceStore.getBoolean("translation_use_stream_endpoint", true)
     fun translationRequestTimeoutSeconds() = preferenceStore.getInt("translation_request_timeout_seconds", 180)
 
     fun translationTargetLanguage() = preferenceStore.getString("translation_target_language", "CHS")
     fun translationTranslator() = preferenceStore.getString("translation_translator", "deepseek")
     fun translationNoTextLangSkip() = preferenceStore.getBoolean("translation_no_text_lang_skip", false)
-    fun translationSkipLang() = preferenceStore.getString("translation_skip_lang", "")
+    fun translationSkipLang() = preferenceStore.getString("translation_skip_lang", "CHS,ENG")
     fun translationGptConfig() = preferenceStore.getString("translation_gpt_config", "")
     fun translationTranslatorChain() = preferenceStore.getString("translation_translator_chain", "")
     fun translationSelectiveTranslation() = preferenceStore.getString("translation_selective_translation", "")
@@ -44,8 +49,8 @@ class TranslationPreferences(
     fun translationRenderer() = preferenceStore.getString("translation_renderer", "default")
     fun translationAlignment() = preferenceStore.getString("translation_alignment", "auto")
     fun translationDisableFontBorder() = preferenceStore.getBoolean("translation_disable_font_border", false)
-    fun translationFontSizeOffset() = preferenceStore.getString("translation_font_size_offset", "0")
-    fun translationFontSizeMinimum() = preferenceStore.getString("translation_font_size_minimum", "-1")
+    fun translationFontSizeOffset() = preferenceStore.getString("translation_font_size_offset", "2")
+    fun translationFontSizeMinimum() = preferenceStore.getString("translation_font_size_minimum", "0")
     fun translationRenderDirection() = preferenceStore.getString("translation_render_direction", "auto")
     fun translationUppercase() = preferenceStore.getBoolean("translation_uppercase", false)
     fun translationLowercase() = preferenceStore.getBoolean("translation_lowercase", false)

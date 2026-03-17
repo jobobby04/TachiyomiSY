@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
+import eu.kanade.translation.TranslationManager
 import kotlinx.coroutines.CancellationException
 import mihon.domain.migration.models.MigrationFlag
 import tachiyomi.domain.category.interactor.GetCategories
@@ -28,6 +29,7 @@ class MigrateMangaUseCase(
     private val trackerManager: TrackerManager,
     private val sourceManager: SourceManager,
     private val downloadManager: DownloadManager,
+    private val translationManager: TranslationManager,
     private val updateManga: UpdateManga,
     private val getChaptersByMangaId: GetChaptersByMangaId,
     private val syncChaptersWithSource: SyncChaptersWithSource,
@@ -113,6 +115,7 @@ class MigrateMangaUseCase(
 
             // Delete downloaded
             if (MigrationFlag.REMOVE_DOWNLOAD in flags && currentSource != null) {
+                translationManager.deleteManga(current, currentSource)
                 downloadManager.deleteManga(current, currentSource)
             }
 

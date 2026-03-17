@@ -2,9 +2,16 @@ package eu.kanade.presentation.more.settings.screen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.collectAsState as collectAsStateFlow
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.domain.source.interactor.GetLanguagesWithSources
 import eu.kanade.presentation.more.settings.Preference
+import eu.kanade.tachiyomi.ui.translation.settings.AutoTranslateSourceSelectionScreen
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -12,10 +19,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import tachiyomi.domain.source.model.Source
 import tachiyomi.core.common.preference.Preference as PreferenceData
 import tachiyomi.domain.translation.TranslationPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -27,13 +36,62 @@ object SettingsTranslationScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
+        val navigator = LocalNavigator.currentOrThrow
         val prefs = remember { Injekt.get<TranslationPreferences>() }
+        val getLanguagesWithSources = remember { Injekt.get<GetLanguagesWithSources>() }
+        val translationEnabled by prefs.translationEnabled().collectAsState()
+        val showAdvanced by prefs.showAdvancedTranslationSettings().collectAsState()
+        val autoTranslateAfterDownload by prefs.autoTranslateAfterDownload().collectAsState()
+        val autoTranslateOnlySelectedSources by prefs.autoTranslateOnlySelectedSources().collectAsState()
+        val autoTranslateSelectedSourceIds by prefs.autoTranslateSelectedSourceIds().collectAsState()
+        val autoTranslateSourceSelectionCustomized by prefs.autoTranslateSourceSelectionCustomized().collectAsState()
+        val languagesWithSources by getLanguagesWithSources.subscribe()
+            .collectAsStateFlow(initial = sortedMapOf<String, List<Source>>())
+        val wakeMode by prefs.wakeMode().collectAsState()
+        val wakeEnabled by prefs.wakeServerBeforeTranslation().collectAsState()
+        val autoTranslateSourcesSummary = rememberAutoTranslateSourcesSummary(
+            autoTranslateAfterDownload,
+            autoTranslateOnlySelectedSources,
+            autoTranslateSelectedSourceIds,
+            autoTranslateSourceSelectionCustomized,
+            languagesWithSources,
+        )
+        val translationEnabledPreference = Preference.PreferenceItem.SwitchPreference(
+            preference = prefs.translationEnabled(),
+            title = stringResource(MR.strings.pref_translation_enabled),
+        )
 
-        return listOf(
+        if (!translationEnabled) {
+            return listOf(translationEnabledPreference)
+        }
+
+        return listOfNotNull(
+            translationEnabledPreference,
+            Preference.PreferenceItem.SwitchPreference(
+                preference = prefs.showAdvancedTranslationSettings(),
+                title = stringResource(MR.strings.pref_translation_show_advanced_settings),
+            ),
             Preference.PreferenceItem.SwitchPreference(
                 preference = prefs.autoTranslateAfterDownload(),
                 title = stringResource(MR.strings.pref_translate_after_downloading),
             ),
+            if (autoTranslateAfterDownload) {
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = prefs.autoTranslateOnlySelectedSources(),
+                    title = stringResource(MR.strings.pref_translation_auto_translate_only_selected_sources),
+                )
+            } else {
+                null
+            },
+            if (autoTranslateAfterDownload && autoTranslateOnlySelectedSources) {
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(MR.strings.pref_translation_auto_translate_sources),
+                    subtitle = autoTranslateSourcesSummary,
+                    onClick = { navigator.push(AutoTranslateSourceSelectionScreen()) },
+                )
+            } else {
+                null
+            },
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.pref_translation_server_group),
                 preferenceItems = persistentListOf(
@@ -68,26 +126,6 @@ object SettingsTranslationScreen : SearchableSettings {
                         title = stringResource(MR.strings.pref_translation_target_language),
                         entries = languageEntries,
                     ),
-                    Preference.PreferenceItem.SwitchPreference(
-                        preference = prefs.translationNoTextLangSkip(),
-                        title = stringResource(MR.strings.pref_translation_no_text_lang_skip),
-                    ),
-                    validatedStringPreference(
-                        preference = prefs.translationSkipLang(),
-                        title = stringResource(MR.strings.pref_translation_skip_lang),
-                    ),
-                    validatedStringPreference(
-                        preference = prefs.translationGptConfig(),
-                        title = stringResource(MR.strings.pref_translation_gpt_config),
-                    ),
-                    validatedStringPreference(
-                        preference = prefs.translationTranslatorChain(),
-                        title = stringResource(MR.strings.pref_translation_translator_chain),
-                    ),
-                    validatedStringPreference(
-                        preference = prefs.translationSelectiveTranslation(),
-                        title = stringResource(MR.strings.pref_translation_selective_translation),
-                    ),
                 ),
             ),
             Preference.PreferenceGroup(
@@ -104,27 +142,6 @@ object SettingsTranslationScreen : SearchableSettings {
                         validator = ::isPositiveInt,
                     ),
                     validatedStringPreference(
-                        preference = prefs.translationTextThreshold(),
-                        title = stringResource(MR.strings.pref_translation_text_threshold),
-                        validator = ::isFloat,
-                    ),
-                    Preference.PreferenceItem.SwitchPreference(
-                        preference = prefs.translationDetRotate(),
-                        title = stringResource(MR.strings.pref_translation_det_rotate),
-                    ),
-                    Preference.PreferenceItem.SwitchPreference(
-                        preference = prefs.translationDetAutoRotate(),
-                        title = stringResource(MR.strings.pref_translation_det_auto_rotate),
-                    ),
-                    Preference.PreferenceItem.SwitchPreference(
-                        preference = prefs.translationDetInvert(),
-                        title = stringResource(MR.strings.pref_translation_det_invert),
-                    ),
-                    Preference.PreferenceItem.SwitchPreference(
-                        preference = prefs.translationDetGammaCorrect(),
-                        title = stringResource(MR.strings.pref_translation_det_gamma_correct),
-                    ),
-                    validatedStringPreference(
                         preference = prefs.translationBoxThreshold(),
                         title = stringResource(MR.strings.pref_translation_box_threshold),
                         validator = ::isFloat,
@@ -134,9 +151,14 @@ object SettingsTranslationScreen : SearchableSettings {
                         title = stringResource(MR.strings.pref_translation_unclip_ratio),
                         validator = ::isFloat,
                     ),
+                    validatedStringPreference(
+                        preference = prefs.translationMaskDilationOffset(),
+                        title = stringResource(MR.strings.pref_translation_mask_dilation_offset),
+                        validator = ::isInt,
+                    ),
                 ),
             ),
-            Preference.PreferenceGroup(
+            if (showAdvanced) Preference.PreferenceGroup(
                 title = stringResource(MR.strings.pref_translation_ocr_group),
                 preferenceItems = persistentListOf(
                     Preference.PreferenceItem.SwitchPreference(
@@ -164,7 +186,7 @@ object SettingsTranslationScreen : SearchableSettings {
                         validator = ::isFloat,
                     ),
                 ),
-            ),
+            ) else null,
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.pref_translation_inpainter_group),
                 preferenceItems = persistentListOf(
@@ -178,16 +200,114 @@ object SettingsTranslationScreen : SearchableSettings {
                         title = stringResource(MR.strings.pref_translation_inpainting_size),
                         validator = ::isPositiveInt,
                     ),
-                    Preference.PreferenceItem.ListPreference(
-                        preference = prefs.translationInpaintingPrecision(),
-                        title = stringResource(MR.strings.pref_translation_inpainting_precision),
-                        entries = inpaintingPrecisionEntries,
-                    ),
                 ),
             ),
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.pref_translation_render_group),
                 preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationRenderDirection(),
+                        title = stringResource(MR.strings.pref_translation_render_direction),
+                        entries = directionEntries,
+                    ),
+                ),
+            ),
+            if (showAdvanced) Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_upscale_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationUpscaleMode(),
+                        title = stringResource(MR.strings.pref_translation_upscale_mode),
+                        entries = linkedMapOf(
+                            "disabled" to stringResource(MR.strings.pref_translation_upscale_mode_disabled),
+                            "auto" to stringResource(MR.strings.pref_translation_upscale_mode_auto),
+                        ).toImmutableMap(),
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationMitUpscaler(),
+                        title = stringResource(MR.strings.pref_translation_mit_upscaler),
+                        entries = upscaleEntries,
+                    ),
+                    validatedOptionalStringPreference(
+                        preference = prefs.translationMitUpscaleRatio(),
+                        title = stringResource(MR.strings.pref_translation_mit_upscale_ratio),
+                        validator = ::isPositiveInt,
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationMitRevertUpscaling(),
+                        title = stringResource(MR.strings.pref_translation_mit_revert_upscaling),
+                    ),
+                ),
+            ) else null,
+            if (showAdvanced) Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_colorizer_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationColorizer(),
+                        title = stringResource(MR.strings.pref_translation_colorizer),
+                        entries = colorizerEntries,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationColorizationSize(),
+                        title = stringResource(MR.strings.pref_translation_colorization_size),
+                        validator = ::isInt,
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationDenoiseSigma(),
+                        title = stringResource(MR.strings.pref_translation_denoise_sigma),
+                        validator = ::isInt,
+                    ),
+                ),
+            ) else null,
+            if (showAdvanced) Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_translation_advanced_group),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationNoTextLangSkip(),
+                        title = stringResource(MR.strings.pref_translation_no_text_lang_skip),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationSkipLang(),
+                        title = stringResource(MR.strings.pref_translation_skip_lang),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationGptConfig(),
+                        title = stringResource(MR.strings.pref_translation_gpt_config),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationTranslatorChain(),
+                        title = stringResource(MR.strings.pref_translation_translator_chain),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationSelectiveTranslation(),
+                        title = stringResource(MR.strings.pref_translation_selective_translation),
+                    ),
+                    validatedStringPreference(
+                        preference = prefs.translationTextThreshold(),
+                        title = stringResource(MR.strings.pref_translation_text_threshold),
+                        validator = ::isFloat,
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetRotate(),
+                        title = stringResource(MR.strings.pref_translation_det_rotate),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetAutoRotate(),
+                        title = stringResource(MR.strings.pref_translation_det_auto_rotate),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetInvert(),
+                        title = stringResource(MR.strings.pref_translation_det_invert),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = prefs.translationDetGammaCorrect(),
+                        title = stringResource(MR.strings.pref_translation_det_gamma_correct),
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = prefs.translationInpaintingPrecision(),
+                        title = stringResource(MR.strings.pref_translation_inpainting_precision),
+                        entries = inpaintingPrecisionEntries,
+                    ),
                     Preference.PreferenceItem.ListPreference(
                         preference = prefs.translationRenderer(),
                         title = stringResource(MR.strings.pref_translation_renderer),
@@ -197,11 +317,6 @@ object SettingsTranslationScreen : SearchableSettings {
                         preference = prefs.translationAlignment(),
                         title = stringResource(MR.strings.pref_translation_alignment),
                         entries = alignmentEntries,
-                    ),
-                    Preference.PreferenceItem.ListPreference(
-                        preference = prefs.translationRenderDirection(),
-                        title = stringResource(MR.strings.pref_translation_render_direction),
-                        entries = directionEntries,
                     ),
                     Preference.PreferenceItem.SwitchPreference(
                         preference = prefs.translationDisableFontBorder(),
@@ -251,59 +366,6 @@ object SettingsTranslationScreen : SearchableSettings {
                         preference = prefs.translationRtl(),
                         title = stringResource(MR.strings.pref_translation_rtl),
                     ),
-                ),
-            ),
-            Preference.PreferenceGroup(
-                title = stringResource(MR.strings.pref_translation_upscale_group),
-                preferenceItems = persistentListOf(
-                    Preference.PreferenceItem.ListPreference(
-                        preference = prefs.translationUpscaleMode(),
-                        title = stringResource(MR.strings.pref_translation_upscale_mode),
-                        entries = linkedMapOf(
-                            "disabled" to stringResource(MR.strings.pref_translation_upscale_mode_disabled),
-                            "auto" to stringResource(MR.strings.pref_translation_upscale_mode_auto),
-                            "always" to stringResource(MR.strings.pref_translation_upscale_mode_always),
-                        ).toImmutableMap(),
-                    ),
-                    Preference.PreferenceItem.ListPreference(
-                        preference = prefs.translationMitUpscaler(),
-                        title = stringResource(MR.strings.pref_translation_mit_upscaler),
-                        entries = upscaleEntries,
-                    ),
-                    validatedOptionalStringPreference(
-                        preference = prefs.translationMitUpscaleRatio(),
-                        title = stringResource(MR.strings.pref_translation_mit_upscale_ratio),
-                        validator = ::isPositiveInt,
-                    ),
-                    Preference.PreferenceItem.SwitchPreference(
-                        preference = prefs.translationMitRevertUpscaling(),
-                        title = stringResource(MR.strings.pref_translation_mit_revert_upscaling),
-                    ),
-                ),
-            ),
-            Preference.PreferenceGroup(
-                title = stringResource(MR.strings.pref_translation_colorizer_group),
-                preferenceItems = persistentListOf(
-                    Preference.PreferenceItem.ListPreference(
-                        preference = prefs.translationColorizer(),
-                        title = stringResource(MR.strings.pref_translation_colorizer),
-                        entries = colorizerEntries,
-                    ),
-                    validatedStringPreference(
-                        preference = prefs.translationColorizationSize(),
-                        title = stringResource(MR.strings.pref_translation_colorization_size),
-                        validator = ::isInt,
-                    ),
-                    validatedStringPreference(
-                        preference = prefs.translationDenoiseSigma(),
-                        title = stringResource(MR.strings.pref_translation_denoise_sigma),
-                        validator = ::isInt,
-                    ),
-                ),
-            ),
-            Preference.PreferenceGroup(
-                title = stringResource(MR.strings.pref_translation_advanced_group),
-                preferenceItems = persistentListOf(
                     validatedOptionalStringPreference(
                         preference = prefs.translationFilterText(),
                         title = stringResource(MR.strings.pref_translation_filter_text),
@@ -317,71 +379,110 @@ object SettingsTranslationScreen : SearchableSettings {
                         title = stringResource(MR.strings.pref_translation_kernel_size),
                         validator = ::isInt,
                     ),
-                    validatedStringPreference(
-                        preference = prefs.translationMaskDilationOffset(),
-                        title = stringResource(MR.strings.pref_translation_mask_dilation_offset),
-                        validator = ::isInt,
-                    ),
                     Preference.PreferenceItem.EditTextPreference(
                         preference = prefs.translationRawConfigJson(),
                         title = stringResource(MR.strings.pref_translation_raw_json),
                     ),
                 ),
-            ),
+            ) else null,
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.pref_translation_wake_group),
-                preferenceItems = persistentListOf(
+                preferenceItems = listOfNotNull(
                     Preference.PreferenceItem.SwitchPreference(
                         preference = prefs.wakeServerBeforeTranslation(),
                         title = stringResource(MR.strings.pref_translation_wake_before_start),
                     ),
-                    Preference.PreferenceItem.ListPreference(
-                        preference = prefs.wakeMode(),
-                        title = stringResource(MR.strings.pref_translation_wake_mode),
-                        entries = listOf("webhook", "wol").associateWith { it.uppercase() }.toImmutableMap(),
-                    ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.wakeWebhookUrl(),
-                        title = stringResource(MR.strings.pref_translation_wake_webhook_url),
-                    ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.wakeWebhookMethod(),
-                        title = stringResource(MR.strings.pref_translation_wake_webhook_method),
-                    ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.wakeWebhookHeadersJson(),
-                        title = stringResource(MR.strings.pref_translation_wake_webhook_headers),
-                    ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.wakeWebhookBody(),
-                        title = stringResource(MR.strings.pref_translation_wake_webhook_body),
-                    ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.wakeMacAddress(),
-                        title = stringResource(MR.strings.pref_translation_wake_mac_address),
-                    ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.wakeBroadcastAddress(),
-                        title = stringResource(MR.strings.pref_translation_wake_broadcast_address),
-                    ),
-                    rememberPositiveIntPreference(
-                        preference = prefs.wakePort(),
-                        title = stringResource(MR.strings.pref_translation_wake_port),
-                        maxValue = 65535,
-                    ),
-                    Preference.PreferenceItem.EditTextPreference(
-                        preference = prefs.translationServerCheckUrl(),
-                        title = stringResource(MR.strings.pref_translation_server_check_url),
-                    ),
-                    rememberPositiveIntPreference(
-                        preference = prefs.translationServerRetryIntervalSeconds(),
-                        title = stringResource(MR.strings.pref_translation_server_retry_interval),
-                    ),
-                    rememberPositiveIntPreference(
-                        preference = prefs.translationServerMaxWaitSeconds(),
-                        title = stringResource(MR.strings.pref_translation_server_max_wait),
-                    ),
-                ),
+                    if (wakeEnabled) {
+                        Preference.PreferenceItem.ListPreference(
+                            preference = prefs.wakeMode(),
+                            title = stringResource(MR.strings.pref_translation_wake_mode),
+                            entries = listOf("webhook", "wol").associateWith { it.uppercase() }.toImmutableMap(),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled && wakeMode == "webhook") {
+                        Preference.PreferenceItem.EditTextPreference(
+                            preference = prefs.wakeWebhookUrl(),
+                            title = stringResource(MR.strings.pref_translation_wake_webhook_url),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled && wakeMode == "webhook") {
+                        Preference.PreferenceItem.EditTextPreference(
+                            preference = prefs.wakeWebhookMethod(),
+                            title = stringResource(MR.strings.pref_translation_wake_webhook_method),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled && wakeMode == "webhook") {
+                        Preference.PreferenceItem.EditTextPreference(
+                            preference = prefs.wakeWebhookHeadersJson(),
+                            title = stringResource(MR.strings.pref_translation_wake_webhook_headers),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled && wakeMode == "webhook") {
+                        Preference.PreferenceItem.EditTextPreference(
+                            preference = prefs.wakeWebhookBody(),
+                            title = stringResource(MR.strings.pref_translation_wake_webhook_body),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled && wakeMode == "wol") {
+                        Preference.PreferenceItem.EditTextPreference(
+                            preference = prefs.wakeMacAddress(),
+                            title = stringResource(MR.strings.pref_translation_wake_mac_address),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled && wakeMode == "wol") {
+                        Preference.PreferenceItem.EditTextPreference(
+                            preference = prefs.wakeBroadcastAddress(),
+                            title = stringResource(MR.strings.pref_translation_wake_broadcast_address),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled && wakeMode == "wol") {
+                        rememberPositiveIntPreference(
+                            preference = prefs.wakePort(),
+                            title = stringResource(MR.strings.pref_translation_wake_port),
+                            maxValue = 65535,
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled) {
+                        Preference.PreferenceItem.EditTextPreference(
+                            preference = prefs.translationServerCheckUrl(),
+                            title = stringResource(MR.strings.pref_translation_server_check_url),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled) {
+                        rememberPositiveIntPreference(
+                            preference = prefs.translationServerRetryIntervalSeconds(),
+                            title = stringResource(MR.strings.pref_translation_server_retry_interval),
+                        )
+                    } else {
+                        null
+                    },
+                    if (wakeEnabled) {
+                        rememberPositiveIntPreference(
+                            preference = prefs.translationServerMaxWaitSeconds(),
+                            title = stringResource(MR.strings.pref_translation_server_max_wait),
+                        )
+                    } else {
+                        null
+                    },
+                ).toImmutableList(),
             ),
         )
     }
@@ -424,6 +525,7 @@ object SettingsTranslationScreen : SearchableSettings {
         return Preference.PreferenceItem.EditTextPreference(
             preference = preference,
             title = title,
+            allowBlank = true,
             onValueChanged = { candidate ->
                 val normalized = candidate.trim()
                 normalized.isBlank() || validator(normalized)
@@ -465,6 +567,38 @@ private fun isInt(value: String): Boolean = value.toIntOrNull() != null
 private fun isPositiveInt(value: String): Boolean = value.toIntOrNull()?.let { it > 0 } == true
 
 private fun isFloat(value: String): Boolean = value.toDoubleOrNull() != null
+
+@Composable
+private fun rememberAutoTranslateSourcesSummary(
+    autoTranslateEnabled: Boolean,
+    onlySelectedSources: Boolean,
+    selectedSourceIds: Set<String>,
+    customized: Boolean,
+    languagesWithSources: Map<String, List<Source>>,
+): String? {
+    if (!autoTranslateEnabled) return null
+    if (!onlySelectedSources) return stringResource(MR.strings.pref_translation_auto_translate_sources_all)
+
+    val allSources = languagesWithSources.values.flatten()
+    val enabledCount = if (customized) {
+        allSources.count { it.id.toString() in selectedSourceIds }
+    } else {
+        allSources.count { it.lang == DEFAULT_AUTO_TRANSLATE_SOURCE_LANGUAGE }
+    }
+
+    return when {
+        !customized -> stringResource(MR.strings.pref_translation_auto_translate_sources_default_summary)
+        enabledCount == 0 -> stringResource(MR.strings.pref_translation_auto_translate_sources_none)
+        enabledCount == allSources.size && allSources.isNotEmpty() ->
+            stringResource(MR.strings.pref_translation_auto_translate_sources_all)
+        else -> stringResource(
+            MR.strings.pref_translation_auto_translate_sources_selected_count,
+            enabledCount,
+        )
+    }
+}
+
+private const val DEFAULT_AUTO_TRANSLATE_SOURCE_LANGUAGE = "ja"
 
 private val translatorEntries = linkedMapOf(
     "youdao" to "Youdao",
