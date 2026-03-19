@@ -1,10 +1,12 @@
 package exh.ui.smartsearch
 
+import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.update
 import mihon.feature.migration.list.search.SmartSourceSearchEngine
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
@@ -18,15 +20,26 @@ class SmartSearchScreenModel(
     private val config: SourcesScreen.SmartSearchConfig,
     private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
     sourceManager: SourceManager = Injekt.get(),
-) : StateScreenModel<SmartSearchScreenModel.SearchResults?>(null) {
+) : StateScreenModel<SmartSearchScreenModel.State>(State(searchQuery = config.origTitle)) {
+
+    @Immutable
+    data class State(
+        val searchQuery: String = "",
+        val searchResults: SearchResults? = null
+    )
+
     private val smartSearchEngine = SmartSourceSearchEngine(null)
 
     val source = sourceManager.get(sourceId) as CatalogueSource
 
-    init {
+    fun updateSearchQuery(query: String) {
+        mutableState.update { it.copy(searchQuery = query) }
+    }
+
+    fun performSearch() {
         screenModelScope.launchIO {
             val result = try {
-                val resultManga = smartSearchEngine.deepSearch(source, config.origTitle)
+                val resultManga = smartSearchEngine.deepSearch(source, mutableState.value.searchQuery)
                 if (resultManga != null) {
                     val localManga = networkToLocalManga(resultManga)
                     SearchResults.Found(localManga)
@@ -41,7 +54,7 @@ class SmartSearchScreenModel(
                 }
             }
 
-            mutableState.value = result
+            mutableState.update { it.copy(searchResults = result) }
         }
     }
 
