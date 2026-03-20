@@ -120,7 +120,7 @@ class SyncManager(
         )
 
         // Handle sync based on the selected service
-        val syncService = when (val syncService = SyncService.fromInt(syncPreferences.syncService().get())) {
+        val syncService = when (val syncService = SyncService.fromInt(syncPreferences.syncService.get())) {
             SyncService.SYNCYOMI -> {
                 SyncYomiSyncService(
                     context,
@@ -151,7 +151,7 @@ class SyncManager(
         if (remoteBackup === syncData.backup) {
             // nothing changed
             logcat(LogPriority.DEBUG) { "Skip restore due to remote was overwrite from local" }
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Sync completed successfully")
             return
         }
@@ -163,9 +163,9 @@ class SyncManager(
         }
 
         // Check if it's first sync based on lastSyncTimestamp
-        if (syncPreferences.lastSyncTimestamp().get() == 0L && databaseManga.isNotEmpty()) {
+        if (syncPreferences.lastSyncTimestamp.get() == 0L && databaseManga.isNotEmpty()) {
             // It's first sync no need to restore data. (just update remote data)
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Updated remote data successfully")
             return
         }
@@ -199,7 +199,7 @@ class SyncManager(
             !hasExtensionRepoChanges && !hasSavedSearchChanges
         ) {
             // update the sync timestamp
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Sync completed successfully")
             return
         }
@@ -240,7 +240,7 @@ class SyncManager(
             )
 
             // update the sync timestamp
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
         } else {
             logcat(LogPriority.ERROR) { "Failed to write sync data to file" }
         }

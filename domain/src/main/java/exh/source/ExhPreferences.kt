@@ -8,52 +8,52 @@ class ExhPreferences(
 ) {
 
     // SY -->
-    fun isHentaiEnabled() = preferenceStore.getBoolean("eh_is_hentai_enabled", true)
+    val isHentaiEnabled: Preference<Boolean> = preferenceStore.getBoolean("eh_is_hentai_enabled", true)
 
-    fun enableExhentai() = preferenceStore.getBoolean(Preference.Companion.privateKey("enable_exhentai"), false)
+    val enableExhentai: Preference<Boolean> = preferenceStore.getBoolean(Preference.Companion.privateKey("enable_exhentai"), false)
 
-    fun imageQuality() = preferenceStore.getString("ehentai_quality", "auto")
+    val imageQuality: Preference<String> = preferenceStore.getString("ehentai_quality", "auto")
 
-    fun useHentaiAtHome() = preferenceStore.getInt("eh_enable_hah", 0)
+    val useHentaiAtHome: Preference<Int> = preferenceStore.getInt("eh_enable_hah", 0)
 
-    fun useJapaneseTitle() = preferenceStore.getBoolean("use_jp_title", false)
+    val useJapaneseTitle: Preference<Boolean> = preferenceStore.getBoolean("use_jp_title", false)
 
-    fun exhUseOriginalImages() = preferenceStore.getBoolean("eh_useOrigImages", false)
+    val exhUseOriginalImages: Preference<Boolean> = preferenceStore.getBoolean("eh_useOrigImages", false)
 
-    fun ehTagFilterValue() = preferenceStore.getInt("eh_tag_filtering_value", 0)
+    val ehTagFilterValue: Preference<Int> = preferenceStore.getInt("eh_tag_filtering_value", 0)
 
-    fun ehTagWatchingValue() = preferenceStore.getInt("eh_tag_watching_value", 0)
+    val ehTagWatchingValue: Preference<Int> = preferenceStore.getInt("eh_tag_watching_value", 0)
 
     // EH Cookies
-    fun memberIdVal() = preferenceStore.getString(Preference.Companion.privateKey("eh_ipb_member_id"), "")
+    val memberIdVal: Preference<String> = preferenceStore.getString(Preference.Companion.privateKey("eh_ipb_member_id"), "")
 
-    fun passHashVal() = preferenceStore.getString(Preference.Companion.privateKey("eh_ipb_pass_hash"), "")
-    fun igneousVal() = preferenceStore.getString(Preference.Companion.privateKey("eh_igneous"), "")
-    fun ehSettingsProfile() = preferenceStore.getInt(Preference.Companion.privateKey("eh_ehSettingsProfile"), -1)
-    fun exhSettingsProfile() = preferenceStore.getInt(Preference.Companion.privateKey("eh_exhSettingsProfile"), -1)
-    fun exhSettingsKey() = preferenceStore.getString(Preference.Companion.privateKey("eh_settingsKey"), "")
-    fun exhSessionCookie() = preferenceStore.getString(Preference.Companion.privateKey("eh_sessionCookie"), "")
-    fun exhHathPerksCookies() = preferenceStore.getString(Preference.Companion.privateKey("eh_hathPerksCookie"), "")
+    val passHashVal: Preference<String> = preferenceStore.getString(Preference.Companion.privateKey("eh_ipb_pass_hash"), "")
+    val igneousVal: Preference<String> = preferenceStore.getString(Preference.Companion.privateKey("eh_igneous"), "")
+    val ehSettingsProfile: Preference<Int> = preferenceStore.getInt(Preference.Companion.privateKey("eh_ehSettingsProfile"), -1)
+    val exhSettingsProfile: Preference<Int> = preferenceStore.getInt(Preference.Companion.privateKey("eh_exhSettingsProfile"), -1)
+    val exhSettingsKey: Preference<String> = preferenceStore.getString(Preference.Companion.privateKey("eh_settingsKey"), "")
+    val exhSessionCookie: Preference<String> = preferenceStore.getString(Preference.Companion.privateKey("eh_sessionCookie"), "")
+    val exhHathPerksCookies: Preference<String> = preferenceStore.getString(Preference.Companion.privateKey("eh_hathPerksCookie"), "")
 
-    fun exhShowSyncIntro() = preferenceStore.getBoolean("eh_show_sync_intro", true)
+    val exhShowSyncIntro: Preference<Boolean> = preferenceStore.getBoolean("eh_show_sync_intro", true)
 
-    fun exhReadOnlySync() = preferenceStore.getBoolean("eh_sync_read_only", false)
+    val exhReadOnlySync: Preference<Boolean> = preferenceStore.getBoolean("eh_sync_read_only", false)
 
-    fun exhLenientSync() = preferenceStore.getBoolean("eh_lenient_sync", false)
+    val exhLenientSync: Preference<Boolean> = preferenceStore.getBoolean("eh_lenient_sync", false)
 
-    fun exhShowSettingsUploadWarning() = preferenceStore.getBoolean("eh_showSettingsUploadWarning2", true)
+    val exhShowSettingsUploadWarning: Preference<Boolean> = preferenceStore.getBoolean("eh_showSettingsUploadWarning2", true)
 
-    fun logLevel() = preferenceStore.getInt("eh_log_level", 0)
+    val logLevel: Preference<Int> = preferenceStore.getInt("eh_log_level", 0)
 
-    fun exhAutoUpdateFrequency() = preferenceStore.getInt("eh_auto_update_frequency", 1)
+    val exhAutoUpdateFrequency: Preference<Int> = preferenceStore.getInt("eh_auto_update_frequency", 1)
 
-    fun exhAutoUpdateRequirements() = preferenceStore.getStringSet("eh_auto_update_restrictions", emptySet())
+    val exhAutoUpdateRequirements: Preference<Set<String>> = preferenceStore.getStringSet("eh_auto_update_restrictions", emptySet())
 
-    fun exhAutoUpdateStats() = preferenceStore.getString(Preference.Companion.appStateKey("eh_auto_update_stats"), "")
+    val exhAutoUpdateStats: Preference<String> = preferenceStore.getString(Preference.Companion.appStateKey("eh_auto_update_stats"), "")
 
-    fun exhWatchedListDefaultState() = preferenceStore.getBoolean("eh_watched_list_default_state", false)
+    val exhWatchedListDefaultState: Preference<Boolean> = preferenceStore.getBoolean("eh_watched_list_default_state", false)
 
-    fun exhSettingsLanguages() = preferenceStore.getString(
+    val exhSettingsLanguages: Preference<String> = preferenceStore.getString(
         "eh_settings_languages",
         "false*false*false\nfalse*false*false\nfalse*false*false\nfalse*false*false\nfalse*false*false\n" +
             "false*false*false\nfalse*false*false\nfalse*false*false\nfalse*false*false\nfalse*false*false\n" +
@@ -61,10 +61,10 @@ class ExhPreferences(
             "false*false*false\nfalse*false*false",
     )
 
-    fun exhEnabledCategories() = preferenceStore.getString(
+    val exhEnabledCategories: Preference<String> = preferenceStore.getString(
         "eh_enabled_categories",
         "false,false,false,false,false,false,false,false,false,false",
     )
 
-    fun enhancedEHentaiView() = preferenceStore.getBoolean("enhanced_e_hentai_view", true)
+    val enhancedEHentaiView: Preference<Boolean> = preferenceStore.getBoolean("enhanced_e_hentai_view", true)
 }

@@ -122,7 +122,7 @@ class EhLoginActivity : BaseActivity() {
         } else if (parsedUrl.host.equals("exhentai.org", ignoreCase = true)) {
             // At ExHentai, check that everything worked out...
             if (applyExHentaiCookies(url, customIgneous)) {
-                exhPreferences.enableExhentai().set(true)
+                exhPreferences.enableExhentai.set(true)
                 setResult(RESULT_OK)
                 finish()
             }
@@ -171,9 +171,9 @@ class EhLoginActivity : BaseActivity() {
             if (memberId == null || passHash == null || igneous == null) return false
 
             // Update prefs
-            exhPreferences.memberIdVal().set(memberId)
-            exhPreferences.passHashVal().set(passHash)
-            exhPreferences.igneousVal().set(igneous)
+            exhPreferences.memberIdVal.set(memberId)
+            exhPreferences.passHashVal.set(passHash)
+            exhPreferences.igneousVal.set(igneous)
 
             return true
         }

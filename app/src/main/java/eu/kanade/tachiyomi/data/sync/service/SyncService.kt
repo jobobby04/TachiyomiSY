@@ -136,7 +136,7 @@ abstract class SyncService(
             "Starting merge. Local list size: ${localMangaListSafe.size}, Remote list size: ${remoteMangaListSafe.size}"
         }
 
-        val lastSyncTime = syncPreferences.lastSyncTimestamp().get().milliseconds.inWholeSeconds
+        val lastSyncTime = syncPreferences.lastSyncTimestamp.get().milliseconds.inWholeSeconds
         val syncOptions = syncPreferences.getSyncSettings()
 
         val mergedList = (localMangaMap.keys + remoteMangaMap.keys).distinct().mapNotNull { compositeKey ->
@@ -319,7 +319,7 @@ abstract class SyncService(
         val localMapByUid = localCategoriesList.filter { it.uid != 0L }.associateBy { it.uid }
         val localMapByName = localCategoriesList.associateBy { it.name }
 
-        val lastSyncTime = syncPreferences.lastSyncTimestamp().get()
+        val lastSyncTime = syncPreferences.lastSyncTimestamp.get()
 
         remoteCategoriesList.forEach { remote ->
             var localMatch: BackupCategory? = null

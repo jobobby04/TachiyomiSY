@@ -79,23 +79,25 @@ class AndroidSourceManager(
         scope.launch {
             extensionManager.installedExtensionsFlow
                 // SY -->
-                .combine(exhPreferences.enableExhentai().changes()) { extensions, enableExhentai ->
+                .combine(exhPreferences.enableExhentai.changes()) { extensions, enableExhentai ->
                     extensions to enableExhentai
                 }
                 // SY <--
                 .collectLatest { (extensions, enableExhentai) ->
-                    val mutableMap = ConcurrentHashMap<Long, Source>(
+                    val mutableMap: ConcurrentHashMap<Long, Source> = ConcurrentHashMap<Long, Source>(
                         mapOf(
                             LocalSource.ID to LocalSource(
                                 context,
                                 Injekt.get(),
                                 Injekt.get(),
                                 // SY -->
-                                sourcePreferences.allowLocalSourceHiddenFolders()::get,
+                                sourcePreferences.allowLocalSourceHiddenFolders::get,
                                 // SY <--
                             ),
                         ),
-                    ).apply {
+                    )
+
+                    mutableMap.apply {
                         // SY -->
                         put(EH_SOURCE_ID, EHentai(EH_SOURCE_ID, false, context))
                         if (enableExhentai) {
@@ -104,6 +106,7 @@ class AndroidSourceManager(
                         put(MERGED_SOURCE_ID, MergedSource())
                         // SY <--
                     }
+
                     extensions.forEach { extension ->
                         extension.sources.mapNotNull { it.toInternalSource() }.forEach {
                             mutableMap[it.id] = it

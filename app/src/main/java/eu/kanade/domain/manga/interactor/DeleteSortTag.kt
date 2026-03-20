@@ -8,7 +8,7 @@ class DeleteSortTag(
 ) {
 
     fun await(tag: String) {
-        preferences.sortTagsForLibrary().set(
+        preferences.sortTagsForLibrary.set(
             (getSortTag.await() - tag).mapIndexed { index, s ->
                 CreateSortTag.encodeTag(index, s)
             }.toSet(),

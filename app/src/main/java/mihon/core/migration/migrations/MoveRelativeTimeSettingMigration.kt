@@ -14,7 +14,7 @@ class MoveRelativeTimeSettingMigration : Migration {
         val uiPreferences = migrationContext.get<UiPreferences>() ?: return@withIOContext false
         val pref = preferenceStore.getInt("relative_time", 7)
         if (pref.get() == 0) {
-            uiPreferences.relativeTime().set(false)
+            uiPreferences.relativeTime.set(false)
         }
 
         return@withIOContext true

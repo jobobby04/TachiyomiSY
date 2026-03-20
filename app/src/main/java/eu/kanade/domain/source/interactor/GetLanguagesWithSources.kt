@@ -16,8 +16,8 @@ class GetLanguagesWithSources(
 
     fun subscribe(): Flow<SortedMap<String, List<Source>>> {
         return combine(
-            preferences.enabledLanguages().changes(),
-            preferences.disabledSources().changes(),
+            preferences.enabledLanguages.changes(),
+            preferences.disabledSources.changes(),
             repository.getOnlineSources(),
         ) { enabledLanguage, disabledSource, onlineSources ->
             val sortedSources = onlineSources.filterNot { it.id in BlacklistedSources.HIDDEN_SOURCES }.sortedWith(

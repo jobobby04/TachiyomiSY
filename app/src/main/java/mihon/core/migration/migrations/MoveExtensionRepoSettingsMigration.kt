@@ -20,7 +20,7 @@ class MoveExtensionRepoSettingsMigration : Migration {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val preferenceStore = migrationContext.get<PreferenceStore>() ?: return@withIOContext false
         val sourcePreferences = migrationContext.get<SourcePreferences>() ?: return@withIOContext false
-        sourcePreferences.extensionRepos().getAndSet {
+        sourcePreferences.extensionRepos.getAndSet {
             it.map { "https://raw.githubusercontent.com/$it/repo" }.toSet()
         }
         MigrateUtils.replacePreferences(

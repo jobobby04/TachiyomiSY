@@ -14,7 +14,7 @@ class RenameSourceCategory(
             CreateSourceCategory.Result.Success -> {}
         }
 
-        preferences.sourcesTabSourcesInCategories().getAndSet { sourcesInCategories ->
+        preferences.sourcesTabSourcesInCategories.getAndSet { sourcesInCategories ->
             sourcesInCategories.map {
                 val index = it.indexOf('|')
                 if (index != -1 && it.substring(index + 1) == categoryOld) {
@@ -24,7 +24,7 @@ class RenameSourceCategory(
                 }
             }.toSet()
         }
-        preferences.sourcesTabCategories().getAndSet {
+        preferences.sourcesTabCategories.getAndSet {
             it.minus(categoryOld).plus(categoryNew)
         }
 

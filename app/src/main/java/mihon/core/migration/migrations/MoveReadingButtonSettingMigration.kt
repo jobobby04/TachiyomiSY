@@ -15,7 +15,7 @@ class MoveReadingButtonSettingMigration : Migration {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
         if (prefs.getBoolean("start_reading_button", false)) {
-            libraryPreferences.showContinueReadingButton().set(true)
+            libraryPreferences.showContinueReadingButton.set(true)
         }
 
         return@withIOContext true

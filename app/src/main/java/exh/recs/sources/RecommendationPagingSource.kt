@@ -53,7 +53,7 @@ abstract class RecommendationPagingSource(
                 add(MyAnimeListPagingSource(manga))
 
                 // Only include MangaDex if the delegate sources are enabled and the source is MD-based
-                if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources().get()) {
+                if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources.get()) {
                     add(MangaDexSimilarPagingSource(manga, source.getMainSource() as MangaDex))
                 }
 

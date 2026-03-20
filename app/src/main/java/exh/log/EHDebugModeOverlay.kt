@@ -87,7 +87,7 @@ private fun FpsDebugModeOverlay() {
 private fun EHDebugModeOverlay() {
     val scope = rememberCoroutineScope()
     val enableSourceBlacklist by remember {
-        Injekt.get<SourcePreferences>().enableSourceBlacklist().asState(scope)
+        Injekt.get<SourcePreferences>().enableSourceBlacklist.asState(scope)
     }
     val context = LocalContext.current
     Text(

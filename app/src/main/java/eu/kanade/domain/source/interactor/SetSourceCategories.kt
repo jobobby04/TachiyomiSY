@@ -10,7 +10,7 @@ class SetSourceCategories(
 
     fun await(source: Source, sourceCategories: List<String>) {
         val sourceIdString = source.id.toString()
-        preferences.sourcesTabSourcesInCategories().getAndSet { sourcesInCategories ->
+        preferences.sourcesTabSourcesInCategories.getAndSet { sourcesInCategories ->
             val currentSourceCategories = sourcesInCategories.filterNot {
                 it.substringBefore('|') == sourceIdString
             }

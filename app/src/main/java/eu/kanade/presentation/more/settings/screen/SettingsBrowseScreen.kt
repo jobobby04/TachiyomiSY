@@ -46,7 +46,7 @@ object SettingsBrowseScreen : SearchableSettings {
 
         // SY -->
         val scope = rememberCoroutineScope()
-        val hideFeedTab by remember { Injekt.get<UiPreferences>().hideFeedTab().asState(scope) }
+        val hideFeedTab by remember { Injekt.get<UiPreferences>().hideFeedTab.asState(scope) }
         val uiPreferences = remember { Injekt.get<UiPreferences>() }
         // SY <--
         return listOf(
@@ -55,7 +55,7 @@ object SettingsBrowseScreen : SearchableSettings {
                 title = stringResource(MR.strings.label_sources),
                 preferenceItems = persistentListOf(
                     kotlin.run {
-                        val count by sourcePreferences.sourcesTabCategories().collectAsState()
+                        val count by sourcePreferences.sourcesTabCategories.collectAsState()
                         Preference.PreferenceItem.TextPreference(
                             title = stringResource(MR.strings.action_edit_categories),
                             subtitle = pluralStringResource(MR.plurals.num_categories, count.size, count.size),
@@ -65,17 +65,17 @@ object SettingsBrowseScreen : SearchableSettings {
                         )
                     },
                     Preference.PreferenceItem.SwitchPreference(
-                        preference = sourcePreferences.sourcesTabCategoriesFilter(),
+                        preference = sourcePreferences.sourcesTabCategoriesFilter,
                         title = stringResource(SYMR.strings.pref_source_source_filtering),
                         subtitle = stringResource(SYMR.strings.pref_source_source_filtering_summery),
                     ),
                     Preference.PreferenceItem.SwitchPreference(
-                        preference = uiPreferences.useNewSourceNavigation(),
+                        preference = uiPreferences.useNewSourceNavigation,
                         title = stringResource(SYMR.strings.pref_source_navigation),
                         subtitle = stringResource(SYMR.strings.pref_source_navigation_summery),
                     ),
                     Preference.PreferenceItem.SwitchPreference(
-                        preference = sourcePreferences.allowLocalSourceHiddenFolders(),
+                        preference = sourcePreferences.allowLocalSourceHiddenFolders,
                         title = stringResource(SYMR.strings.pref_local_source_hidden_folders),
                         subtitle = stringResource(SYMR.strings.pref_local_source_hidden_folders_summery),
                     ),
@@ -85,11 +85,11 @@ object SettingsBrowseScreen : SearchableSettings {
                 title = stringResource(SYMR.strings.feed),
                 preferenceItems = persistentListOf(
                     Preference.PreferenceItem.SwitchPreference(
-                        preference = uiPreferences.hideFeedTab(),
+                        preference = uiPreferences.hideFeedTab,
                         title = stringResource(SYMR.strings.pref_hide_feed),
                     ),
                     Preference.PreferenceItem.SwitchPreference(
-                        preference = uiPreferences.feedTabInFront(),
+                        preference = uiPreferences.feedTabInFront,
                         title = stringResource(SYMR.strings.pref_feed_position),
                         subtitle = stringResource(SYMR.strings.pref_feed_position_summery),
                         enabled = hideFeedTab.not(),
@@ -101,7 +101,7 @@ object SettingsBrowseScreen : SearchableSettings {
                 title = stringResource(MR.strings.label_sources),
                 preferenceItems = persistentListOf(
                     Preference.PreferenceItem.SwitchPreference(
-                        preference = sourcePreferences.hideInLibraryItems(),
+                        preference = sourcePreferences.hideInLibraryItems,
                         title = stringResource(MR.strings.pref_hide_in_library_items),
                     ),
                     Preference.PreferenceItem.TextPreference(
@@ -117,7 +117,7 @@ object SettingsBrowseScreen : SearchableSettings {
                 title = stringResource(MR.strings.pref_category_nsfw_content),
                 preferenceItems = persistentListOf(
                     Preference.PreferenceItem.SwitchPreference(
-                        preference = sourcePreferences.showNsfwSource(),
+                        preference = sourcePreferences.showNsfwSource,
                         title = stringResource(MR.strings.pref_show_nsfw_source),
                         subtitle = stringResource(MR.strings.requires_app_restart),
                         onValueChanged = {

@@ -129,7 +129,7 @@ object CbzCrypto {
     }
 
     fun getDecryptedPasswordCbz(): ByteArray {
-        val encryptedPassword = securityPreferences.cbzPassword().get()
+        val encryptedPassword = securityPreferences.cbzPassword.get()
         if (encryptedPassword.isBlank()) error("This archive is encrypted please set a password")
 
         return decrypt(encryptedPassword, AliasCbz)
@@ -144,7 +144,7 @@ object CbzCrypto {
         val passwordBuffer = Charsets.UTF_8.encode(CharBuffer.wrap(passwordArray))
         val passwordBytes = ByteArray(passwordBuffer.limit())
         passwordBuffer.get(passwordBytes)
-        securityPreferences.sqlPassword().set(encrypt(passwordBytes, encryptionCipherSql))
+        securityPreferences.sqlPassword.set(encrypt(passwordBytes, encryptionCipherSql))
             .also {
                 passwordArray.fill('#')
                 passwordBuffer.array().fill('#'.code.toByte())
@@ -153,22 +153,22 @@ object CbzCrypto {
     }
 
     fun getDecryptedPasswordSql(): ByteArray {
-        if (securityPreferences.sqlPassword().get().isBlank()) generateAndEncryptSqlPw()
-        return decrypt(securityPreferences.sqlPassword().get(), AliasSql)
+        if (securityPreferences.sqlPassword.get().isBlank()) generateAndEncryptSqlPw()
+        return decrypt(securityPreferences.sqlPassword.get(), AliasSql)
     }
 
     fun isPasswordSet(): Boolean {
-        return securityPreferences.cbzPassword().get().isNotEmpty()
+        return securityPreferences.cbzPassword.get().isNotEmpty()
     }
 
     fun isPasswordSetState(scope: CoroutineScope): StateFlow<Boolean> {
-        return securityPreferences.cbzPassword().changes()
+        return securityPreferences.cbzPassword.changes()
             .map { it.isNotEmpty() }
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
 
     fun getPasswordProtectDlPref(): Boolean {
-        return securityPreferences.passwordProtectDownloads().get()
+        return securityPreferences.passwordProtectDownloads.get()
     }
 
     fun createComicInfoPadding(): String? {
@@ -181,7 +181,7 @@ object CbzCrypto {
     }
 
     fun getPreferredEncryptionAlgo(): ByteArray =
-        when (securityPreferences.encryptionType().get()) {
+        when (securityPreferences.encryptionType.get()) {
             SecurityPreferences.EncryptionType.AES_256 -> "zip:encryption=aes256".toByteArray()
             SecurityPreferences.EncryptionType.AES_128 -> "zip:encryption=aes128".toByteArray()
             SecurityPreferences.EncryptionType.ZIP_STANDARD -> "zip:encryption=zipcrypt".toByteArray()

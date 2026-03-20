@@ -34,8 +34,8 @@ interface DataSaver {
 }
 
 fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
-    val dataSaver = preferences.dataSaver().get()
-    if (dataSaver != NONE && source.id.toString() in preferences.dataSaverExcludedSources().get()) {
+    val dataSaver = preferences.dataSaver.get()
+    if (dataSaver != NONE && source.id.toString() in preferences.dataSaverExcludedSources.get()) {
         return DataSaver.NoOp
     }
     return when (dataSaver) {
@@ -46,14 +46,14 @@ fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
 }
 
 private class BandwidthHeroDataSaver(preferences: SourcePreferences) : DataSaver {
-    private val dataSavedServer = preferences.dataSaverServer().get().trimEnd('/')
+    private val dataSavedServer = preferences.dataSaverServer.get().trimEnd('/')
 
-    private val ignoreJpg = preferences.dataSaverIgnoreJpeg().get()
-    private val ignoreGif = preferences.dataSaverIgnoreGif().get()
+    private val ignoreJpg = preferences.dataSaverIgnoreJpeg.get()
+    private val ignoreGif = preferences.dataSaverIgnoreGif.get()
 
-    private val format = preferences.dataSaverImageFormatJpeg().toIntRepresentation()
-    private val quality = preferences.dataSaverImageQuality().get()
-    private val colorBW = preferences.dataSaverColorBW().toIntRepresentation()
+    private val format = preferences.dataSaverImageFormatJpeg.toIntRepresentation()
+    private val quality = preferences.dataSaverImageQuality.get()
+    private val colorBW = preferences.dataSaverColorBW.toIntRepresentation()
 
     override fun compress(imageUrl: String): String {
         return if (dataSavedServer.isNotBlank() && !imageUrl.contains(dataSavedServer)) {
@@ -76,11 +76,11 @@ private class BandwidthHeroDataSaver(preferences: SourcePreferences) : DataSaver
 }
 
 private class WsrvNlDataSaver(preferences: SourcePreferences) : DataSaver {
-    private val ignoreJpg = preferences.dataSaverIgnoreJpeg().get()
-    private val ignoreGif = preferences.dataSaverIgnoreGif().get()
+    private val ignoreJpg = preferences.dataSaverIgnoreJpeg.get()
+    private val ignoreGif = preferences.dataSaverIgnoreGif.get()
 
-    private val format = preferences.dataSaverImageFormatJpeg().get()
-    private val quality = preferences.dataSaverImageQuality().get()
+    private val format = preferences.dataSaverImageFormatJpeg.get()
+    private val quality = preferences.dataSaverImageQuality.get()
 
     override fun compress(imageUrl: String): String {
         return when {

@@ -11,7 +11,7 @@ class CreateSourceCategory(private val preferences: SourcePreferences) {
         }
 
         // Create category.
-        preferences.sourcesTabCategories() += category
+        preferences.sourcesTabCategories += category
 
         return Result.Success
     }

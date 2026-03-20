@@ -44,10 +44,10 @@ class ChapterCache(
     private val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     /** Cache class used for cache management.  */
-    private var diskCache = setupDiskCache(readerPreferences.cacheSize().get().toLong())
+    private var diskCache = setupDiskCache(readerPreferences.cacheSize.get().toLong())
 
     init {
-        readerPreferences.cacheSize().changes()
+        readerPreferences.cacheSize.changes()
             .drop(1)
             .onEach {
                 // Save old cache for destruction later

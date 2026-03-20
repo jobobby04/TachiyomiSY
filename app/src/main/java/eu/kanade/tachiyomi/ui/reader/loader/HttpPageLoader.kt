@@ -52,7 +52,7 @@ internal class HttpPageLoader(
      */
     private val queue = PriorityBlockingQueue<PriorityPage>()
 
-    private val preloadSize = /* SY --> */ readerPreferences.preloadSize().get() // SY <--
+    private val preloadSize = /* SY --> */ readerPreferences.preloadSize.get() // SY <--
 
     // SY -->
     private val dataSaver = DataSaver(source, sourcePreferences)
@@ -60,7 +60,7 @@ internal class HttpPageLoader(
 
     init {
         // EXH -->
-        repeat(readerPreferences.readerThreads().get()) {
+        repeat(readerPreferences.readerThreads.get()) {
             // EXH <--
             scope.launchIO {
                 flow {
@@ -101,7 +101,7 @@ internal class HttpPageLoader(
             // Don't trust sources and use our own indexing
             ReaderPage(index, page.url, page.imageUrl)
         }
-        if (readerPreferences.aggressivePageLoading().get()) {
+        if (readerPreferences.aggressivePageLoading.get()) {
             rp.forEach {
                 if (it.status == Page.State.Queue) {
                     queue.offer(PriorityPage(it, 0))
@@ -158,7 +158,7 @@ internal class HttpPageLoader(
             page.imageUrl = null
         }
 
-        if (readerPreferences.readerInstantRetry().get()) {
+        if (readerPreferences.readerInstantRetry.get()) {
             boostPage(page)
         } else {
             // EXH <--

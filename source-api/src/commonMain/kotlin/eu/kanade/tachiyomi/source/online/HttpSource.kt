@@ -494,7 +494,7 @@ abstract class HttpSource : CatalogueSource {
 
     // EXH -->
     private var delegate: DelegatedHttpSource? = null
-        get() = if (Injekt.get<DelegateSourcePreferences>().delegateSources().get()) {
+        get() = if (Injekt.get<DelegateSourcePreferences>().delegateSources.get()) {
             field
         } else {
             null

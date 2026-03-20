@@ -55,7 +55,7 @@ class SourcesScreenModel(
     private val _events = Channel<Event>(Int.MAX_VALUE)
     val events = _events.receiveAsFlow()
 
-    val useNewSourceNavigation by uiPreferences.useNewSourceNavigation().asState(screenModelScope)
+    val useNewSourceNavigation by uiPreferences.useNewSourceNavigation.asState(screenModelScope)
 
     init {
         // SY -->
@@ -73,11 +73,11 @@ class SourcesScreenModel(
             .flowOn(Dispatchers.IO)
             .launchIn(screenModelScope)
 
-        sourcePreferences.dataSaver().changes()
+        sourcePreferences.dataSaver.changes()
             .onEach {
                 mutableState.update {
                     it.copy(
-                        dataSaverEnabled = sourcePreferences.dataSaver().get() != DataSaver.NONE,
+                        dataSaverEnabled = sourcePreferences.dataSaver.get() != DataSaver.NONE,
                     )
                 }
             }
