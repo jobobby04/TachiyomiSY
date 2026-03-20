@@ -1,7 +1,7 @@
 plugins {
     id("mihon.library")
     kotlin("multiplatform")
-    alias(libs.plugins.moko)
+    alias(libs.plugins.moko.resources)
     id("com.github.ben-manes.versions")
 }
 
@@ -13,7 +13,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(libs.moko.core)
+                api(libs.moko.resources)
             }
         }
     }

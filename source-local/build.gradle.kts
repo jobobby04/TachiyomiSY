@@ -27,7 +27,7 @@ kotlin {
                 // Move ChapterRecognition to separate module?
                 implementation(projects.domain)
 
-                implementation(kotlinx.bundles.serialization)
+                implementation(libs.bundles.serialization)
             }
         }
     }
