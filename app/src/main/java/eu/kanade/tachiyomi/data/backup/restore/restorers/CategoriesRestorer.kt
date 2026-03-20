@@ -17,12 +17,15 @@ class CategoriesRestorer(
         if (backupCategories.isNotEmpty()) {
             val dbCategories = getCategories.await()
             val dbCategoriesByName = dbCategories.associateBy { it.name }
+            // SY -->
             val dbCategoriesByUid = dbCategories.associateBy { it.uid } // Map by UID
+            // SY <--
 
             var nextOrder = dbCategories.maxOfOrNull { it.order }?.plus(1) ?: 0
 
             val categories = backupCategories
                 .sortedBy { it.order }
+                // SY -->
                 .map { backupCategory ->
                     var dbCategory = if (backupCategory.uid != 0L) {
                         dbCategoriesByUid[backupCategory.uid]
@@ -64,10 +67,13 @@ class CategoriesRestorer(
                     }
                         .let { id -> backupCategory.toCategory(id).copy(order = order) }
                 }
+                // SY <--
 
+            // SY -->
             handler.await {
                 categoriesQueries.resetIsSyncing()
             }
+            // SY <--
 
             libraryPreferences.categorizedDisplaySettings().set(
                 (dbCategories + categories)
