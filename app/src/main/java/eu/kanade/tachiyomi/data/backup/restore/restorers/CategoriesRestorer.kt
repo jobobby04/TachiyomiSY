@@ -44,7 +44,7 @@ class CategoriesRestorer(
                                 order = backupCategory.order,
                                 flags = backupCategory.flags,
                                 version = backupCategory.version,
-                                uid = backupCategory.uid,
+                                uid = if (backupCategory.uid != 0L) backupCategory.uid else dbCategory.uid,
                                 last_modified_at = backupCategory.lastModifiedAt,
                                 isSyncing = 1,
                                 categoryId = dbCategory.id,
@@ -67,7 +67,7 @@ class CategoriesRestorer(
                     }
                         .let { id -> backupCategory.toCategory(id).copy(order = order) }
                 }
-                // SY <--
+            // SY <--
 
             // SY -->
             handler.await {
