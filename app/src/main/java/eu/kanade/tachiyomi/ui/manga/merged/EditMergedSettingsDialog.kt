@@ -68,7 +68,7 @@ class EditMergedSettingsState(
         binding.recycler.adapter = ConcatAdapter(mergedMangaHeaderAdapter, mergedMangaAdapter)
         binding.recycler.layoutManager = LinearLayoutManager(context)
 
-        mergedMangaAdapter?.isHandleDragEnabled = isPriorityOrder
+        mergedMangaAdapter?.isHandleDragEnabled = false
 
         mergedMangaAdapter?.updateDataSet(
             mergedMangas.map {
@@ -77,15 +77,25 @@ class EditMergedSettingsState(
         )
     }
 
-    override fun onItemReleased(position: Int) {
-        val mergedMangaAdapter = mergedMangaAdapter ?: return
+    private fun updateChapterPriorities(items: List<EditMergedMangaItem>) {
         mergedMangas = mergedMangas.map { (manga, reference) ->
             manga to reference.copy(
-                chapterPriority = mergedMangaAdapter.currentItems.indexOfFirst {
+                chapterPriority = items.indexOfFirst {
                     reference.id == it.mergedMangaReference.id
                 },
             )
         }
+    }
+
+    private fun moveItem(from: Int, to: Int) {
+        val mergedMangaAdapter = mergedMangaAdapter ?: return
+        if (from !in mergedMangaAdapter.currentItems.indices || to !in mergedMangaAdapter.currentItems.indices) return
+
+        val reorderedItems = mergedMangaAdapter.currentItems.toMutableList().apply {
+            add(to, removeAt(from))
+        }
+        mergedMangaAdapter.updateDataSet(reorderedItems)
+        updateChapterPriorities(reorderedItems)
     }
 
     override fun onDeleteClick(position: Int) {
@@ -101,6 +111,14 @@ class EditMergedSettingsState(
             }
             .setNegativeButton(MR.strings.action_cancel.getString(context), null)
             .show()
+    }
+
+    override fun onMoveUpClick(position: Int) {
+        moveItem(position, position - 1)
+    }
+
+    override fun onMoveDownClick(position: Int) {
+        moveItem(position, position + 1)
     }
 
     override fun onToggleChapterUpdatesClicked(position: Int) {
@@ -164,6 +182,7 @@ class EditMergedSettingsState(
     }
 
     fun onPositiveButtonClick() {
+        updateChapterPriorities(mergedMangaAdapter?.currentItems.orEmpty())
         onPositiveClick(listOfNotNull(mergeReference) + mergedMangas.map { it.second })
         onDismissRequest()
     }

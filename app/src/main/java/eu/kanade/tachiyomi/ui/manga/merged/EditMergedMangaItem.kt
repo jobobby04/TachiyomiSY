@@ -17,7 +17,7 @@ class EditMergedMangaItem(val mergedManga: Manga?, val mergedMangaReference: Mer
     }
 
     override fun isDraggable(): Boolean {
-        return true
+        return false
     }
 
     lateinit var binding: EditMergedSettingsItemBinding

@@ -25,7 +25,8 @@ class SmartSearchScreenModel(
     @Immutable
     data class State(
         val searchQuery: String = "",
-        val searchResults: SearchResults? = null
+        val searchResults: SearchResults? = null,
+        val isSearching: Boolean = false,
     )
 
     private val smartSearchEngine = SmartSourceSearchEngine(null)
@@ -37,14 +38,18 @@ class SmartSearchScreenModel(
     }
 
     fun performSearch() {
+        mutableState.update { it.copy(isSearching = true, searchResults = null) }
         screenModelScope.launchIO {
             val result = try {
-                val resultManga = smartSearchEngine.deepSearch(source, mutableState.value.searchQuery)
-                if (resultManga != null) {
-                    val localManga = networkToLocalManga(resultManga)
-                    SearchResults.Found(localManga)
-                } else {
+                val resultMangas = smartSearchEngine.regularSearchResults(source, mutableState.value.searchQuery)
+                if (resultMangas.isEmpty()) {
                     SearchResults.NotFound
+                } else {
+                    SearchResults.Results(
+                        resultMangas
+                            .map { networkToLocalManga(it) }
+                            .distinctBy(Manga::id),
+                    )
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) {
@@ -54,12 +59,13 @@ class SmartSearchScreenModel(
                 }
             }
 
-            mutableState.update { it.copy(searchResults = result) }
+            mutableState.update { it.copy(searchResults = result, isSearching = false) }
         }
     }
 
     sealed class SearchResults {
         data class Found(val manga: Manga) : SearchResults()
+        data class Results(val mangas: List<Manga>) : SearchResults()
         data object NotFound : SearchResults()
         data object Error : SearchResults()
     }

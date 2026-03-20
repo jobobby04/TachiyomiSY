@@ -18,18 +18,19 @@ class EditMergedMangaAdapter(listener: EditMergedSettingsState, var isPriorityOr
     val editMergedMangaItemListener: EditMergedMangaItemListener = listener
 
     interface EditMergedMangaItemListener {
-        fun onItemReleased(position: Int)
         fun onDeleteClick(position: Int)
         fun onToggleChapterUpdatesClicked(position: Int)
         fun onToggleChapterDownloadsClicked(position: Int)
+        fun onMoveUpClick(position: Int)
+        fun onMoveDownClick(position: Int)
     }
 
     override fun onSetPrioritySort(isPriorityOrder: Boolean) {
-        isHandleDragEnabled = isPriorityOrder
+        isHandleDragEnabled = false
         this.isPriorityOrder = isPriorityOrder
         allBoundViewHolders.onEach { editMergedMangaHolder ->
             if (editMergedMangaHolder is EditMergedMangaHolder) {
-                editMergedMangaHolder.setHandelAlpha(isPriorityOrder)
+                editMergedMangaHolder.updateMoveButtons()
             }
         }
     }

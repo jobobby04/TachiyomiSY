@@ -105,6 +105,7 @@ import tachiyomi.domain.chapter.interactor.UpdateChapter
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.model.ChapterUpdate
 import tachiyomi.domain.chapter.model.NoChaptersException
+import tachiyomi.domain.chapter.service.ChapterRecognition
 import tachiyomi.domain.chapter.service.calculateChapterGap
 import tachiyomi.domain.chapter.service.getChapterSort
 import tachiyomi.domain.library.service.LibraryPreferences
@@ -1016,15 +1017,32 @@ class MangaScreenModel(
             // SY -->
             @Suppress("NAME_SHADOWING")
             val manga = mergedData?.manga?.get(chapter.mangaId) ?: manga
+            val mergedReference = mergedData?.references?.firstOrNull { it.mangaId == chapter.mangaId }
             val source = mergedData?.sources?.find { manga.source == it.id }?.takeIf { mergedData.sources.size > 2 }
+            val mergedPriority = mergedReference?.chapterPriority?.takeIf { it >= 0 }
+            val fallbackChapterNumber = if (mergedData != null && !chapter.isRecognizedNumber && mergedPriority != null) {
+                ChapterRecognition.parseChapterNumber("", manga.title, null)
+                    .takeIf { it >= 0 }
+                    ?: (mergedPriority + 1).toDouble()
+            } else {
+                null
+            }
+            val chapterForDisplay = if (mergedPriority != null || fallbackChapterNumber != null) {
+                chapter.copy(
+                    chapterNumber = fallbackChapterNumber ?: chapter.chapterNumber,
+                    sourceOrder = ((mergedPriority ?: Int.MAX_VALUE).toLong() * 1_000_000L) + chapter.sourceOrder,
+                )
+            } else {
+                chapter
+            }
             // SY <--
             val downloaded = if (manga.isLocal()) {
                 true
             } else {
                 downloadManager.isChapterDownloaded(
-                    chapter.name,
-                    chapter.scanlator,
-                    chapter.url,
+                    chapterForDisplay.name,
+                    chapterForDisplay.scanlator,
+                    chapterForDisplay.url,
                     /* SY --> */ manga.ogTitle, /* <-- SY */
                     manga.source,
                 )
@@ -1036,10 +1054,10 @@ class MangaScreenModel(
             }
 
             ChapterList.Item(
-                chapter = chapter,
+                chapter = chapterForDisplay,
                 downloadState = downloadState,
                 downloadProgress = activeDownload?.progress ?: 0,
-                selected = chapter.id in selectedChapterIds,
+                selected = chapterForDisplay.id in selectedChapterIds,
                 // SY -->
                 sourceName = source?.getNameForMangaInfo(enabledLanguages = enabledLanguages),
                 showScanlator = !isExhManga,

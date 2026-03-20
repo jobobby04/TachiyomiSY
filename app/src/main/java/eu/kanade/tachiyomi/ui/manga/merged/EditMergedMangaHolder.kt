@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.manga.merged
 
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import coil3.load
 import coil3.request.transformations
 import coil3.transform.RoundedCornersTransformation
@@ -20,7 +21,6 @@ class EditMergedMangaHolder(view: View, val adapter: EditMergedMangaAdapter) : F
     var binding = EditMergedSettingsItemBinding.bind(view)
 
     init {
-        setDragHandleView(binding.reorder)
         binding.remove.setOnClickListener {
             adapter.editMergedMangaItemListener.onDeleteClick(bindingAdapterPosition)
         }
@@ -30,12 +30,12 @@ class EditMergedMangaHolder(view: View, val adapter: EditMergedMangaAdapter) : F
         binding.download.setOnClickListener {
             adapter.editMergedMangaItemListener.onToggleChapterDownloadsClicked(bindingAdapterPosition)
         }
-        setHandelAlpha(adapter.isPriorityOrder)
-    }
-
-    override fun onItemReleased(position: Int) {
-        super.onItemReleased(position)
-        adapter.editMergedMangaItemListener.onItemReleased(position)
+        binding.moveUp.setOnClickListener {
+            adapter.editMergedMangaItemListener.onMoveUpClick(bindingAdapterPosition)
+        }
+        binding.moveDown.setOnClickListener {
+            adapter.editMergedMangaItemListener.onMoveDownClick(bindingAdapterPosition)
+        }
     }
 
     fun bind(item: EditMergedMangaItem) {
@@ -50,13 +50,16 @@ class EditMergedMangaHolder(view: View, val adapter: EditMergedMangaAdapter) : F
         binding.subtitle.text = item.mergedManga?.title
         updateDownloadChaptersIcon(item.mergedMangaReference.downloadChapters)
         updateChapterUpdatesIcon(item.mergedMangaReference.getChapterUpdates)
+        updateMoveButtons()
     }
 
-    fun setHandelAlpha(isPriorityOrder: Boolean) {
-        binding.reorder.alpha = when (isPriorityOrder) {
-            true -> 1F
-            false -> 0.5F
-        }
+    fun updateMoveButtons() {
+        val position = bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION } ?: return
+        val lastIndex = adapter.currentItems.lastIndex
+        binding.moveUp.isEnabled = position > 0
+        binding.moveDown.isEnabled = position < lastIndex
+        binding.moveUp.alpha = if (binding.moveUp.isEnabled) 1F else 0.5F
+        binding.moveDown.alpha = if (binding.moveDown.isEnabled) 1F else 0.5F
     }
 
     fun updateDownloadChaptersIcon(setTint: Boolean) {

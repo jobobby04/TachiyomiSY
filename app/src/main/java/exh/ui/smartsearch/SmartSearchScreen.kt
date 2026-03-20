@@ -1,5 +1,7 @@
 package exh.ui.smartsearch
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -15,6 +19,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -31,6 +36,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
+import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
@@ -58,21 +64,31 @@ class SmartSearchScreen(
         LaunchedEffect(state.searchResults) {
             val results = state.searchResults
             if (results != null) {
-                if (results is SmartSearchScreenModel.SearchResults.Found) {
-                    navigator.replace(MangaScreen(results.manga.id, true, smartSearchConfig))
-                } else {
-                    if (results is SmartSearchScreenModel.SearchResults.NotFound) {
-                        context.toast(SYMR.strings.could_not_find_entry)
-                    } else {
-                        context.toast(SYMR.strings.automatic_search_error)
+                when (results) {
+                    is SmartSearchScreenModel.SearchResults.Found -> {
+                        navigator.replace(MangaScreen(results.manga.id, true, smartSearchConfig))
                     }
-                    navigator.replace(
-                        BrowseSourceScreen(
-                            sourceId = screenModel.source.id,
-                            listingQuery = state.searchQuery,
-                            smartSearchConfig = smartSearchConfig,
-                        ),
-                    )
+                    SmartSearchScreenModel.SearchResults.NotFound -> {
+                        context.toast(SYMR.strings.could_not_find_entry)
+                        navigator.replace(
+                            BrowseSourceScreen(
+                                sourceId = screenModel.source.id,
+                                listingQuery = state.searchQuery,
+                                smartSearchConfig = smartSearchConfig,
+                            ),
+                        )
+                    }
+                    SmartSearchScreenModel.SearchResults.Error -> {
+                        context.toast(SYMR.strings.automatic_search_error)
+                        navigator.replace(
+                            BrowseSourceScreen(
+                                sourceId = screenModel.source.id,
+                                listingQuery = state.searchQuery,
+                                smartSearchConfig = smartSearchConfig,
+                            ),
+                        )
+                    }
+                    is SmartSearchScreenModel.SearchResults.Results -> Unit
                 }
             }
         }
@@ -122,18 +138,61 @@ class SmartSearchScreen(
                     },
                 )
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                ) {
-                    Text(
-                        text = stringResource(SYMR.strings.searching_source),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    CircularProgressIndicator(modifier = Modifier.size(56.dp))
+                when {
+                    state.isSearching -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                        ) {
+                            Text(
+                                text = stringResource(SYMR.strings.searching_source),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            CircularProgressIndicator(modifier = Modifier.size(56.dp))
+                        }
+                    }
+                    state.searchResults is SmartSearchScreenModel.SearchResults.Results -> {
+                        val results = (state.searchResults as SmartSearchScreenModel.SearchResults.Results).mangas
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                        ) {
+                            items(results, key = { it.id }) { manga ->
+                                ListItem(
+                                    modifier = Modifier.clickable {
+                                        navigator.replace(MangaScreen(manga.id, true, smartSearchConfig))
+                                    },
+                                    headlineContent = {
+                                        Text(text = manga.title)
+                                    },
+                                    leadingContent = {
+                                        MangaCover.Book(
+                                            data = manga.thumbnailUrl,
+                                            modifier = Modifier.size(width = 48.dp, height = 72.dp),
+                                            contentDescription = manga.title,
+                                        )
+                                    },
+                                )
+                            }
+                        }
+                    }
+                    else -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = stringResource(SYMR.strings.searching_source),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                        }
+                    }
                 }
             }
         }

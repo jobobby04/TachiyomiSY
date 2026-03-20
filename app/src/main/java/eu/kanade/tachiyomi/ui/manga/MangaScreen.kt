@@ -218,7 +218,7 @@ class MangaScreen(
                 openRecommends(navigator, screenModel.source?.getMainSource(), successState.manga)
             },
             onMergedSettingsClicked = screenModel::showEditMergedSettingsDialog,
-            onMergeClicked = { openSmartSearch(navigator, successState.manga) },
+            onMergeClicked = { openSmartSearch(context, navigator, successState.manga) },
             onMergeWithAnotherClicked = {
                 mergeWithAnother(navigator, context, successState.manga, screenModel::smartSearchMerge)
             },
@@ -507,10 +507,23 @@ class MangaScreen(
     // SY <--
 
     // EXH -->
-    private fun openSmartSearch(navigator: Navigator, manga: Manga) {
+    private fun openSmartSearch(context: Context, navigator: Navigator, manga: Manga) {
         val smartSearchConfig = SourcesScreen.SmartSearchConfig(manga.title, manga.id)
-
-        navigator.push(SourcesScreen(smartSearchConfig))
+        MaterialAlertDialogBuilder(context)
+            .setTitle(SYMR.strings.merge_with_another_source.getString(context))
+            .setItems(
+                arrayOf(
+                    "Search in specific source",
+                    "Global search",
+                ),
+            ) { _, which ->
+                when (which) {
+                    0 -> navigator.push(SourcesScreen(smartSearchConfig))
+                    1 -> navigator.push(GlobalSearchScreen(manga.title))
+                }
+            }
+            .setNegativeButton(MR.strings.action_cancel.getString(context), null)
+            .show()
     }
 
     @OptIn(DelicateCoroutinesApi::class)

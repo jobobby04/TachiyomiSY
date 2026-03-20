@@ -15,6 +15,11 @@ class SmartSourceSearchEngine(extraSearchParams: String?) : BaseSmartSearchEngin
         }
     }
 
+    suspend fun regularSearchResults(source: CatalogueSource, title: String): List<Manga> {
+        return regularSearchResults(makeSearchAction(source), title)
+            .map { it.entry.toDomainManga(source.id) }
+    }
+
     suspend fun deepSearch(source: CatalogueSource, title: String): Manga? {
         return deepSearch(makeSearchAction(source), title).let {
             it?.toDomainManga(source.id)

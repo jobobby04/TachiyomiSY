@@ -967,8 +967,13 @@ private fun LazyListScope.sharedChapterItems(
                 MissingChapterCountListItem(count = item.count)
             }
             is ChapterList.Item -> {
+                val shouldShowChapterNumber = manga.displayMode == Manga.CHAPTER_DISPLAY_NUMBER || (
+                    mergedData != null &&
+                        item.chapter.isRecognizedNumber &&
+                        item.chapter.name.none(Char::isDigit)
+                )
                 MangaChapterListItem(
-                    title = if (manga.displayMode == Manga.CHAPTER_DISPLAY_NUMBER) {
+                    title = if (shouldShowChapterNumber) {
                         stringResource(
                             MR.strings.display_mode_chapter,
                             formatChapterNumber(item.chapter.chapterNumber),
