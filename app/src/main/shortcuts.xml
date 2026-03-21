@@ -8,8 +8,8 @@
         android:shortcutShortLabel="@string/label_library">
         <intent
             android:action="eu.kanade.tachiyomi.SHOW_LIBRARY"
-            android:targetPackage="eu.kanade.tachiyomi.sy"
-            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity" />
+            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
+            android:targetPackage="${applicationId}" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -20,8 +20,8 @@
         android:shortcutShortLabel="@string/label_recent_updates">
         <intent
             android:action="eu.kanade.tachiyomi.SHOW_RECENTLY_UPDATED"
-            android:targetPackage="eu.kanade.tachiyomi.sy"
-            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity" />
+            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
+            android:targetPackage="${applicationId}" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -32,8 +32,8 @@
         android:shortcutShortLabel="@string/label_recent_manga">
         <intent
             android:action="eu.kanade.tachiyomi.SHOW_RECENTLY_READ"
-            android:targetPackage="eu.kanade.tachiyomi.sy"
-            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity" />
+            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
+            android:targetPackage="${applicationId}" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -44,7 +44,7 @@
         android:shortcutShortLabel="@string/browse">
         <intent
             android:action="eu.kanade.tachiyomi.SHOW_CATALOGUES"
-            android:targetPackage="eu.kanade.tachiyomi.sy"
-            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity" />
+            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
+            android:targetPackage="${applicationId}" />
     </shortcut>
 </shortcuts>
