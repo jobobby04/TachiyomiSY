@@ -284,6 +284,8 @@ abstract class SyncService(
         val localMapByUid = localCategoriesList.filter { it.uid != 0L }.associateBy { it.uid }
         val localMapByName = localCategoriesList.associateBy { it.name }
 
+        val lastSyncTime = syncPreferences.lastSyncTimestamp().get()
+
         remoteCategoriesList.forEach { remote ->
             var localMatch: BackupCategory? = null
 
@@ -312,16 +314,26 @@ abstract class SyncService(
                     result.add(remote)
                 }
             } else {
-                logcat(LogPriority.DEBUG, logTag) { "Adding new remote category: ${remote.name} (UID: ${remote.uid})" }
-                result.add(remote)
+                val remoteModifiedTimeMillis = remote.lastModifiedAt * 1000
+                if (lastSyncTime == 0L || remoteModifiedTimeMillis > lastSyncTime) {
+                    logcat(LogPriority.DEBUG, logTag) { "Adding new remote category: ${remote.name} (UID: ${remote.uid})" }
+                    result.add(remote)
+                } else {
+                    logcat(LogPriority.DEBUG, logTag) { "Dropping deleted remote category: ${remote.name} (UID: ${remote.uid})" }
+                }
             }
         }
 
         // Add remaining Local Categories
         localCategoriesList.forEach { local ->
             if (local !in processedLocals) {
-                logcat(LogPriority.DEBUG, logTag) { "Keeping local only category: ${local.name} (UID: ${local.uid})" }
-                result.add(local)
+                val localModifiedTimeMillis = local.lastModifiedAt * 1000
+                if (lastSyncTime == 0L || localModifiedTimeMillis > lastSyncTime) {
+                    logcat(LogPriority.DEBUG, logTag) { "Keeping local only category: ${local.name} (UID: ${local.uid})" }
+                    result.add(local)
+                } else {
+                    logcat(LogPriority.DEBUG, logTag) { "Dropping local category deleted on remote: ${local.name} (UID: ${local.uid})" }
+                }
             }
         }
 

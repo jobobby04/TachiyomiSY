@@ -204,6 +204,22 @@ class SyncManager(
             return
         }
 
+        if (syncOptions.categories) {
+            val mergedUids = newSyncData.backupCategories.map { it.uid }.toSet()
+            val mergedNames = newSyncData.backupCategories.map { it.name }.toSet()
+            val localCategories = getCategories.await().filterNot { it.id == 0L } // Exclude system category
+            val categoriesToDelete = localCategories.filter {
+                it.uid !in mergedUids && it.name !in mergedNames
+            }
+            if (categoriesToDelete.isNotEmpty()) {
+                handler.await(inTransaction = true) {
+                    categoriesToDelete.forEach {
+                        categoriesQueries.delete(it.id)
+                    }
+                }
+            }
+        }
+
         val backupUri = writeSyncDataToCache(context, newSyncData)
         logcat(LogPriority.DEBUG) { "Got Backup Uri: $backupUri" }
         if (backupUri != null) {
@@ -212,10 +228,14 @@ class SyncManager(
                 backupUri,
                 sync = true,
                 options = RestoreOptions(
-                    appSettings = true,
-                    sourceSettings = true,
-                    libraryEntries = true,
-                    extensionRepoSettings = true,
+                    appSettings = syncOptions.appSettings,
+                    sourceSettings = syncOptions.sourceSettings,
+                    libraryEntries = syncOptions.libraryEntries,
+                    categories = syncOptions.categories,
+                    extensionRepoSettings = syncOptions.extensionRepoSettings,
+                    // SY -->
+                    savedSearches = syncOptions.savedSearches,
+                    // SY <--
                 ),
             )
 
