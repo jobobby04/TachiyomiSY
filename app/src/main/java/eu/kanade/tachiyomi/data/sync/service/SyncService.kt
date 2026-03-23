@@ -279,25 +279,26 @@ abstract class SyncService(
         if (remoteCategoriesList == null) return localCategoriesList
 
         val result = mutableListOf<BackupCategory>()
-        val processedLocals = mutableSetOf<Long>() // UIDs
+        val processedLocals = mutableSetOf<BackupCategory>()
 
-        val localMap = localCategoriesList.associateBy { it.uid }
+        val localMapByUid = localCategoriesList.filter { it.uid != 0L }.associateBy { it.uid }
+        val localMapByName = localCategoriesList.associateBy { it.name }
 
         remoteCategoriesList.forEach { remote ->
             var localMatch: BackupCategory? = null
 
-            // Try match by UID
+            // 1. Try match by UID
             if (remote.uid != 0L) {
-                localMatch = localMap[remote.uid]
+                localMatch = localMapByUid[remote.uid]
             }
 
-            // Fallback: Try match by Name for legacy remote categories (UID == 0)
-            if (localMatch == null && remote.uid == 0L) {
-                localMatch = localCategoriesList.find { it.name == remote.name }
+            // 2. Try match by Name (fallback)
+            if (localMatch == null) {
+                localMatch = localMapByName[remote.name]
             }
 
             if (localMatch != null) {
-                processedLocals.add(localMatch.uid)
+                processedLocals.add(localMatch)
                 // Conflict resolution
                 if (localMatch.version >= remote.version) {
                     logcat(LogPriority.DEBUG, logTag) { "Keeping local category: ${localMatch.name} (UID: ${localMatch.uid})" }
@@ -318,10 +319,7 @@ abstract class SyncService(
 
         // Add remaining Local Categories
         localCategoriesList.forEach { local ->
-            // If local.uid is 0 (shouldn't happen with migration) and we matched it by name?
-            // processedLocals stores UIDs. If local.uid is 0, we might have issues if multiple have 0.
-            // But assume unique IDs.
-            if (local.uid !in processedLocals) {
+            if (local !in processedLocals) {
                 logcat(LogPriority.DEBUG, logTag) { "Keeping local only category: ${local.name} (UID: ${local.uid})" }
                 result.add(local)
             }
@@ -364,8 +362,8 @@ abstract class SyncService(
                     remoteSource
                 }
                 else -> {
-                    logcat(LogPriority.DEBUG, logTag) { "Remote and local is not empty: $sourceId. Skipping." }
-                    null
+                    logcat(LogPriority.DEBUG, logTag) { "Remote and local have the same source ID: $sourceId. Keeping local." }
+                    localSource
                 }
             }
         }
@@ -410,8 +408,8 @@ abstract class SyncService(
                     remotePreference
                 }
                 else -> {
-                    logcat(LogPriority.DEBUG, logTag) { "Both remote and local have keys. Skipping: $key" }
-                    null
+                    logcat(LogPriority.DEBUG, logTag) { "Both remote and local have the same preference key: $key. Keeping local." }
+                    localPreference
                 }
             }
         }
@@ -530,10 +528,8 @@ abstract class SyncService(
                 }
 
                 else -> {
-                    logcat(LogPriority.DEBUG, logTag) {
-                        "No saved search found for composite key: $compositeKey. Skipping."
-                    }
-                    null
+                    logcat(LogPriority.DEBUG, logTag) { "Both remote and local have the same saved search key: $compositeKey. Keeping local." }
+                    localSearch
                 }
             }
         }

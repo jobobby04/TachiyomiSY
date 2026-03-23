@@ -157,7 +157,7 @@ class SyncManager(
         }
 
         // Stop the sync early if the remote backup is null or empty
-        if (remoteBackup.backupManga.size == 0) {
+        if (remoteBackup.backupManga.isEmpty() && remoteBackup.backupCategories.isEmpty() && remoteBackup.backupSources.isEmpty()) {
             notifier.showSyncError("No data found on remote server.")
             return
         }
@@ -186,8 +186,18 @@ class SyncManager(
             // SY <--
         )
 
-        // It's local sync no need to restore data. (just update remote data)
-        if (filteredFavorites.isEmpty()) {
+        val hasMangaChanges = filteredFavorites.isNotEmpty()
+        val hasCategoryChanges = remoteBackup.backupCategories != backup.backupCategories
+        val hasSourceChanges = remoteBackup.backupSources != backup.backupSources
+        val hasPreferenceChanges = remoteBackup.backupPreferences != backup.backupPreferences
+        val hasSourcePreferenceChanges = remoteBackup.backupSourcePreferences != backup.backupSourcePreferences
+        val hasExtensionRepoChanges = remoteBackup.backupExtensionRepo != backup.backupExtensionRepo
+        val hasSavedSearchChanges = remoteBackup.backupSavedSearches != backup.backupSavedSearches
+
+        if (!hasMangaChanges && !hasCategoryChanges && !hasSourceChanges &&
+            !hasPreferenceChanges && !hasSourcePreferenceChanges &&
+            !hasExtensionRepoChanges && !hasSavedSearchChanges
+        ) {
             // update the sync timestamp
             syncPreferences.lastSyncTimestamp().set(Date().time)
             notifier.showSyncSuccess("Sync completed successfully")
