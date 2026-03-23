@@ -13,9 +13,9 @@ data class BackupCategory(
     @ProtoNumber(100) var flags: Long = 0,
     // SY specific values
     /*@ProtoNumber(600) var mangaOrder: List<Long> = emptyList(),*/
-    @ProtoNumber(600) var version: Long = 0,
-    @ProtoNumber(601) var uid: Long = 0,
-    @ProtoNumber(602) var lastModifiedAt: Long = 0,
+    @ProtoNumber(601) var version: Long = 0,
+    @ProtoNumber(602) var uid: Long = 0,
+    @ProtoNumber(603) var lastModifiedAt: Long = 0,
 ) {
     fun toCategory(id: Long) = Category(
         id = id,
