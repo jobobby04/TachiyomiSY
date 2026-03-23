@@ -204,7 +204,6 @@ dependencies {
     implementation(sylibs.sqlcipher)
     // SY <--
 
-
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.collections.immutable)
 
