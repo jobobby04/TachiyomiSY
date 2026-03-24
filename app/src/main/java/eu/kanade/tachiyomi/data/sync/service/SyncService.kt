@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import logcat.logcat
+import kotlin.time.Duration.Companion.milliseconds
 
 @Serializable
 data class SyncData(
@@ -134,7 +135,7 @@ abstract class SyncService(
             "Starting merge. Local list size: ${localMangaListSafe.size}, Remote list size: ${remoteMangaListSafe.size}"
         }
 
-        val lastSyncTime = syncPreferences.lastSyncTimestamp().get()
+        val lastSyncTime = syncPreferences.lastSyncTimestamp().get().milliseconds.inWholeSeconds
         val syncOptions = syncPreferences.getSyncSettings()
 
         val mergedList = (localMangaMap.keys + remoteMangaMap.keys).distinct().mapNotNull { compositeKey ->
@@ -144,8 +145,7 @@ abstract class SyncService(
             // New version comparison logic
             when {
                 local != null && remote == null -> {
-                    val localModifiedTimeMillis = local.lastModifiedAt * 1000
-                    if (lastSyncTime == 0L || localModifiedTimeMillis > lastSyncTime) {
+                    if (lastSyncTime == 0L || local.lastModifiedAt > lastSyncTime) {
                         updateCategories(local, localCategoriesMapByOrder)
                     } else {
                         logcat(LogPriority.DEBUG, logTag) { "Dropping local manga deleted on remote: ${local.title}." }
@@ -153,8 +153,7 @@ abstract class SyncService(
                     }
                 }
                 local == null && remote != null -> {
-                    val remoteModifiedTimeMillis = remote.lastModifiedAt * 1000
-                    if (lastSyncTime == 0L || remoteModifiedTimeMillis > lastSyncTime) {
+                    if (lastSyncTime == 0L || remote.lastModifiedAt > lastSyncTime) {
                         updateCategories(remote, remoteCategoriesMapByOrder)
                     } else {
                         logcat(LogPriority.DEBUG, logTag) { "Dropping deleted remote manga: ${remote.title}." }
@@ -248,8 +247,7 @@ abstract class SyncService(
 
             when {
                 localChapter != null && remoteChapter == null -> {
-                    val localModifiedTimeMillis = localChapter.lastModifiedAt * 1000
-                    if (lastSyncTime == 0L || localModifiedTimeMillis > lastSyncTime) {
+                    if (lastSyncTime == 0L || localChapter.lastModifiedAt > lastSyncTime) {
                         logcat(LogPriority.DEBUG, logTag) { "Keeping local chapter: ${localChapter.name}." }
                         localChapter
                     } else {
@@ -258,8 +256,7 @@ abstract class SyncService(
                     }
                 }
                 localChapter == null && remoteChapter != null -> {
-                    val remoteModifiedTimeMillis = remoteChapter.lastModifiedAt * 1000
-                    if (lastSyncTime == 0L || remoteModifiedTimeMillis > lastSyncTime) {
+                    if (lastSyncTime == 0L || remoteChapter.lastModifiedAt > lastSyncTime) {
                         logcat(LogPriority.DEBUG, logTag) { "Taking remote chapter: ${remoteChapter.name}." }
                         remoteChapter
                     } else {
