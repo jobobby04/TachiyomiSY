@@ -15,24 +15,22 @@ import okhttp3.Response
 import rx.Observable
 import rx.Producer
 import rx.Subscription
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.io.IOException
-import kotlin.concurrent.atomics.AtomicBoolean
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resumeWithException
 
 val jsonMime = "application/json; charset=utf-8".toMediaType()
 
-@OptIn(ExperimentalAtomicApi::class)
 fun Call.asObservable(): Observable<Response> {
     return Observable.unsafeCreate { subscriber ->
-        // Since Call is a one-shot type, clone it for each new subscriber.
         val call = clone()
 
-        // Wrap the call in a helper which handles both unsubscription and backpressure.
         val requestArbiter = object : Producer, Subscription {
             val boolean = AtomicBoolean(false)
             override fun request(n: Long) {
-                if (n == 0L || !boolean.compareAndSet(expectedValue = false, newValue = true)) return
+                if (n == 0L || !boolean.compareAndSet(false, true)) return
 
                 try {
                     val response = call.execute()
@@ -70,25 +68,22 @@ fun Call.asObservableSuccess(): Observable<Response> {
     }
 }
 
-// Based on https://github.com/gildor/kotlin-coroutines-okhttp
 @OptIn(ExperimentalCoroutinesApi::class)
 private suspend fun Call.await(callStack: Array<StackTraceElement>): Response {
     return suspendCancellableCoroutine { continuation ->
-        val callback =
-            object : Callback {
-                override fun onResponse(call: Call, response: Response) {
-                    continuation.resume(response) {
-                        response.body.close()
-                    }
-                }
-
-                override fun onFailure(call: Call, e: IOException) {
-                    // Don't bother with resuming the continuation if it is already cancelled.
-                    if (continuation.isCancelled) return
-                    val exception = IOException(e.message, e).apply { stackTrace = callStack }
-                    continuation.resumeWithException(exception)
+        val callback = object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                continuation.resume(response) {
+                    response.body.close()
                 }
             }
+
+            override fun onFailure(call: Call, e: IOException) {
+                if (continuation.isCancelled) return
+                val exception = IOException(e.message, e).apply { stackTrace = callStack }
+                continuation.resumeWithException(exception)
+            }
+        }
 
         enqueue(callback)
 
@@ -107,9 +102,6 @@ suspend fun Call.await(): Response {
     return await(callStack)
 }
 
-/**
- * @since extensions-lib 1.5
- */
 suspend fun Call.awaitSuccess(): Response {
     val callStack = Exception().stackTrace.run { copyOfRange(1, size) }
     val response = await(callStack)
@@ -134,26 +126,29 @@ fun OkHttpClient.newCachelessCallWithProgress(request: Request, listener: Progre
     return progressClient.newCall(request)
 }
 
-context(_: Json)
-inline fun <reified T> Response.parseAs(): T {
-    return decodeFromJsonResponse(serializer(), this)
+// Suporta response.parseAs<T>(json)
+inline fun <reified T> Response.parseAs(json: Json): T {
+    return json.decodeFromJsonResponse(serializer<T>(), this)
 }
 
-context(json: Json)
-fun <T> decodeFromJsonResponse(
+// Suporta with(json) { response.parseAs<T>() }
+inline fun <reified T> Json.parseAs(response: Response): T {
+    return this.decodeFromJsonResponse(serializer<T>(), response)
+}
+
+// Suporta response.parseAs<T>() usando Injekt global
+@JvmName("parseAsInjekt")
+inline fun <reified T> Response.parseAs(): T {
+    return Injekt.get<Json>().parseAs<T>(this)
+}
+
+fun <T> Json.decodeFromJsonResponse(
     deserializer: DeserializationStrategy<T>,
     response: Response,
 ): T {
     return response.body.source().use {
-        json.decodeFromBufferedSource(deserializer, it)
+        decodeFromBufferedSource(deserializer, it)
     }
 }
 
-/**
- * Exception that handles HTTP codes considered not successful by OkHttp.
- * Use it to have a standardized error message in the app across the extensions.
- *
- * @since extensions-lib 1.5
- * @param code [Int] the HTTP status code
- */
 class HttpException(val code: Int) : IllegalStateException("HTTP error $code")

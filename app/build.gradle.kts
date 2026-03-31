@@ -118,6 +118,7 @@ android {
                 "META-INF/README.md",
                 "META-INF/NOTICE",
                 "META-INF/*.version",
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF", // fix DuplicateRelativeFile error
             ),
         )
     }

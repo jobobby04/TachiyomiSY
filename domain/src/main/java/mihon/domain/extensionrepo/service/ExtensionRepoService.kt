@@ -24,7 +24,7 @@ class ExtensionRepoService(
                 with(json) {
                     client.newCall(GET("$repo/repo.json"))
                         .awaitSuccess()
-                        .parseAs<ExtensionRepoMetaDto>()
+                        .parseAs<ExtensionRepoMetaDto>(json)
                         .toExtensionRepo(baseUrl = repo)
                 }
             } catch (e: Exception) {

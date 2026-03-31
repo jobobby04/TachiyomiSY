@@ -14,6 +14,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.collectLatest
@@ -23,6 +24,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mihon.domain.manga.model.toDomainManga
+import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
@@ -37,18 +39,24 @@ open class RecommendsScreenModel(
     private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
 ) : StateScreenModel<RecommendsScreenModel.State>(State()) {
 
-    private val coroutineDispatcher = Dispatchers.IO.limitedParallelism(5)
+    private val getLibraryManga: GetLibraryManga = Injekt.get()
+    private val coroutineDispatcher = Dispatchers.IO.limitedParallelism(10)
+
+    // DEPOIS
+    private val sourceOrder = listOf("AniList", "MyAnimeList", "MangaUpdates", "Kitsu", "Shikimori", "Bangumi")
 
     private val sortComparator = { map: Map<RecommendationPagingSource, RecommendationItemResult> ->
         compareBy<RecommendationPagingSource>(
             { (map[it] as? RecommendationItemResult.Success)?.isEmpty ?: true },
+            { sourceOrder.indexOf(it.name).let { i -> if (i == -1) Int.MAX_VALUE else i } },
             { it.name },
             { it.category.resourceId },
         )
     }
 
+
     init {
-        ioCoroutineScope.launch {
+        ioCoroutineScope.launch(SupervisorJob()) {
             val recommendationSources = when (args) {
                 is RecommendsScreen.Args.SingleSourceManga -> {
                     val manga = getManga.await(args.mangaId)!!
@@ -64,18 +72,19 @@ open class RecommendsScreenModel(
                 }
             }
 
-            updateItems(
-                recommendationSources
-                    .associateWith { RecommendationItemResult.Loading }
-                    .toPersistentMap(),
-            )
+            val initialItems = recommendationSources
+                .associateWith { RecommendationItemResult.Loading as RecommendationItemResult }
+                .let { it.toSortedMap(sortComparator(it)).toPersistentMap() }
+
+            mutableState.update { it.copy(items = initialItems) }
+
+            // FILTRO DE ELITE: Pegamos títulos da biblioteca limpando TUDO (espaços, pontos, símbolos)
+            val libraryTitles = getLibraryManga.await().map {
+                it.manga.ogTitle.lowercase().replace("[^a-z0-9]".toRegex(), "")
+            }.toSet()
 
             recommendationSources.map { recSource ->
                 async {
-                    if (state.value.items[recSource] !is RecommendationItemResult.Loading) {
-                        return@async
-                    }
-
                     try {
                         val page = withContext(coroutineDispatcher) {
                             recSource.requestNextPage(1)
@@ -84,12 +93,14 @@ open class RecommendsScreenModel(
                         val titles = page.mangas.map {
                             val recSourceId = recSource.associatedSourceId
                             if (recSourceId != null) {
-                                // If the recommendation is associated with a source, resolve it
                                 networkToLocalManga(it.toDomainManga(recSourceId))
                             } else {
-                                // Otherwise, skip this step. The user will be prompted to choose a source via SmartSearch
                                 it.toDomainManga(-1)
                             }
+                        }.filterNot { manga ->
+                            // FILTRO: Remove se já for favorito OU se o título limpo bater com a biblioteca
+                            val cleanTitle = manga.ogTitle.lowercase().replace("[^a-z0-9]".toRegex(), "")
+                            manga.favorite || libraryTitles.contains(cleanTitle)
                         }
 
                         if (isActive) {
@@ -116,22 +127,13 @@ open class RecommendsScreenModel(
         }
     }
 
-    private fun updateItems(items: PersistentMap<RecommendationPagingSource, RecommendationItemResult>) {
-        mutableState.update {
-            it.copy(
-                items = items
-                    .toSortedMap(sortComparator(items))
-                    .toPersistentMap(),
-            )
-        }
-    }
-
     private fun updateItem(source: RecommendationPagingSource, result: RecommendationItemResult) {
-        synchronized(state.value.items) {
-            val newItems = state.value.items.mutate {
+        mutableState.update { currentState ->
+            val newItems = currentState.items.mutate {
                 it[source] = result
             }
-            updateItems(newItems)
+            val sortedItems = newItems.toSortedMap(sortComparator(newItems)).toPersistentMap()
+            currentState.copy(items = sortedItems)
         }
     }
 
@@ -142,7 +144,7 @@ open class RecommendsScreenModel(
     ) {
         val progress: Int = items.count { it.value !is RecommendationItemResult.Loading }
         val total: Int = items.size
-        val filteredItems = items.filter { (_, result) -> result.isVisible(false) }
+        val filteredItems = items.filter { (source, result) -> result.isVisible(false) }
             .toImmutableMap()
     }
 }

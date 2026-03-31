@@ -744,4 +744,6 @@
 
     <!-- Humanize time -->
     <string name="humanize_fallback">moments ago</string>
+
+    <string name="label_para_voce">For You</string>
 </resources>

@@ -31,7 +31,6 @@ dependencies {
 
     api(libs.sqldelight.android.paging)
 
-    compileOnly(compose.runtime.annotation)
 
     // SY -->
     implementation(libs.injekt)
