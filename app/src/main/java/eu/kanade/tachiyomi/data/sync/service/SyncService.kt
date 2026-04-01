@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import logcat.logcat
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 data class SyncData(
@@ -314,7 +315,7 @@ abstract class SyncService(
                     result.add(remote)
                 }
             } else {
-                val remoteModifiedTimeMillis = remote.lastModifiedAt * 1000
+                val remoteModifiedTimeMillis = remote.lastModifiedAt.seconds.inWholeMilliseconds
                 if (lastSyncTime == 0L || remoteModifiedTimeMillis > lastSyncTime) {
                     logcat(LogPriority.DEBUG, logTag) { "Adding new remote category: ${remote.name} (UID: ${remote.uid})" }
                     result.add(remote)
@@ -327,7 +328,7 @@ abstract class SyncService(
         // Add remaining Local Categories
         localCategoriesList.forEach { local ->
             if (local !in processedLocals) {
-                val localModifiedTimeMillis = local.lastModifiedAt * 1000
+                val localModifiedTimeMillis = local.lastModifiedAt.seconds.inWholeMilliseconds
                 if (lastSyncTime == 0L || localModifiedTimeMillis > lastSyncTime) {
                     logcat(LogPriority.DEBUG, logTag) { "Keeping local only category: ${local.name} (UID: ${local.uid})" }
                     result.add(local)
