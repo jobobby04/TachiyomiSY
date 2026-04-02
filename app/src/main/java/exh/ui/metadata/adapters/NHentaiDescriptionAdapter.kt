@@ -43,7 +43,7 @@ fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
                 categoriesString?.let { MetadataUIUtil.getGenreAndColour(context, it) }?.let {
                     binding.genre.setBackgroundColor(it.first)
                     it.second
-                    } ?: categoriesString ?: context.stringResource(MR.strings.unknown)
+                } ?: categoriesString ?: context.stringResource(MR.strings.unknown)
             }
 
             meta.favoritesCount?.let {
