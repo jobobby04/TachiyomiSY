@@ -93,12 +93,10 @@ class NHentai(delegate: HttpSource, val context: Context) :
 
             jsonResponse.cover?.path?.let {
                 coverImageUrl = "$thumbServer/$it"
-                coverImageType = it.parseType()
             }
 
             jsonResponse.thumbnail?.path?.let {
                 thumbnailImageUrl = "$thumbServer/$it"
-                thumbnailImageType = it.parseType()
             }
 
             pageImagePreviewUrls = jsonResponse.pages.mapNotNull { it.thumbnail }
@@ -121,8 +119,6 @@ class NHentai(delegate: HttpSource, val context: Context) :
             }
         }
     }
-
-    private fun String.parseType(): String = this.substringAfterLast('.').first().toString()
 
     @Serializable
     data class JsonConfig(
