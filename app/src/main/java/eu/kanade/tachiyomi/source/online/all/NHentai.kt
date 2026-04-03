@@ -91,13 +91,9 @@ class NHentai(delegate: HttpSource, val context: Context) :
 
             preferredTitle = this@NHentai.preferredTitle
 
-            jsonResponse.cover?.path?.let {
-                coverImageUrl = "$thumbServer/$it"
-            }
-
-            jsonResponse.thumbnail?.path?.let {
-                thumbnailImageUrl = "$thumbServer/$it"
-            }
+            coverImageUrl =
+                jsonResponse.cover?.path?.let { "$thumbServer/$it" }
+                    ?: jsonResponse.thumbnail?.path?.let { "$thumbServer/$it" }
 
             pageImagePreviewUrls = jsonResponse.pages.mapNotNull { it.thumbnail }
 
