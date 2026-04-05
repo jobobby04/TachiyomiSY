@@ -14,8 +14,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import logcat.logcat
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 data class SyncData(
