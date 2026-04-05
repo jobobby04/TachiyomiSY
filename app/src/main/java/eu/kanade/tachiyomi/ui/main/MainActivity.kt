@@ -163,13 +163,6 @@ class MainActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val didMigration = if (isLaunch) {
-            addAnalytics()
-            Migrator.awaitAndRelease()
-        } else {
-            false
-        }
-
         // Do not let the launcher create a new activity http://stackoverflow.com/questions/16283079
         if (!isTaskRoot) {
             finish()
@@ -182,6 +175,12 @@ class MainActivity : BaseActivity() {
         // SY <--
 
         setComposeContent {
+            var didMigration by remember { mutableStateOf<Boolean?>(null) }
+            LaunchedEffect(Unit) {
+                addAnalytics()
+                didMigration = Migrator.awaitAndRelease()
+            }
+
             val context = LocalContext.current
 
             var incognito by remember { mutableStateOf(getIncognitoState.await(null)) }
@@ -309,7 +308,7 @@ class MainActivity : BaseActivity() {
             }
             // SY <--
 
-            var showChangelog by remember { mutableStateOf(didMigration && !BuildConfig.DEBUG) }
+            var showChangelog by remember { mutableStateOf(didMigration == true && !BuildConfig.DEBUG) }
             if (showChangelog) {
                 // SY -->
                 WhatsNewDialog(onDismissRequest = { showChangelog = false })
