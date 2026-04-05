@@ -23,17 +23,21 @@ import java.util.concurrent.CountDownLatch
 class CloudflareInterceptor(
     private val context: Context,
     private val cookieManager: AndroidCookieJar,
+    // SY -->
     private val preferences: NetworkPreferences,
+    // SY <--
     defaultUserAgentProvider: () -> String,
 ) : WebViewInterceptor(context, defaultUserAgentProvider) {
 
     private val executor = ContextCompat.getMainExecutor(context)
 
     override fun shouldIntercept(response: Response): Boolean {
+        // SY -->
         // Check if FlareSolverr is enabled if it's enabled we don't need to bypass Cloudflare through WebView
         if (preferences.enableFlareSolverr().get()) {
             return false
         }
+        // SY <--
 
         // Check if Cloudflare anti-bot is on
         return response.code in ERROR_CODES && response.header("Server") in SERVER_CHECK
@@ -141,13 +145,18 @@ class CloudflareInterceptor(
                 context.toast(MR.strings.information_webview_outdated, Toast.LENGTH_LONG)
             }
 
-            throw CloudflareBypassException("Error resolving with WebView")
+            throw CloudflareBypassException(/* SY --> */"Error resolving with WebView"/* SY <-- */)
         }
     }
 }
 
+// SY -->
 val ERROR_CODES = listOf(403, 503)
 val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
+
+// SY <--
 private val COOKIE_NAMES = listOf("cf_clearance")
 
+// SY -->
 class CloudflareBypassException(message: String, cause: Throwable? = null) : Exception(message, cause)
+// SY <--

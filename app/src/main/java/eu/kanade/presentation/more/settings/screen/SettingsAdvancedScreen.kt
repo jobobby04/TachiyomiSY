@@ -262,13 +262,17 @@ object SettingsAdvancedScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
         val networkHelper = remember { Injekt.get<NetworkHelper>() }
+        // SY -->
         val scope = rememberCoroutineScope()
+        // SY <--
 
         val userAgentPref = networkPreferences.defaultUserAgent()
         val userAgent by userAgentPref.collectAsState()
+        // SY -->
         val flareSolverrUrlPref = networkPreferences.flareSolverrUrl()
         val enableFlareSolverrPref = networkPreferences.enableFlareSolverr()
         val enableFlareSolverr by enableFlareSolverrPref.collectAsState()
+        // SY <--
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_network),
@@ -348,6 +352,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                         context.toast(MR.strings.requires_app_restart)
                     },
                 ),
+                // SY -->
                 Preference.PreferenceItem.SwitchPreference(
                     preference = enableFlareSolverrPref,
                     title = stringResource(SYMR.strings.pref_enable_flare_solverr),
@@ -369,7 +374,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                         }
                     },
                 ),
-
+                // SY <--
             ),
         )
     }
@@ -887,6 +892,7 @@ object SettingsAdvancedScreen : SearchableSettings {
         )
     }
 
+    // SY -->
     @OptIn(InternalSerializationApi::class)
     private suspend fun testFlareSolverrAndUpdateUserAgent(
         flareSolverrUrlPref: BasePreference<String>,

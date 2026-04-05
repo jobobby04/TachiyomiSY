@@ -25,6 +25,7 @@ import uy.kohesive.injekt.injectLazy
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+// SY -->
 class FlareSolverrInterceptor(private val preferences: NetworkPreferences) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
@@ -205,3 +206,4 @@ class FlareSolverrInterceptor(private val preferences: NetworkPreferences) : Int
         private class CloudflareBypassException : Exception()
     }
 }
+// SY <--

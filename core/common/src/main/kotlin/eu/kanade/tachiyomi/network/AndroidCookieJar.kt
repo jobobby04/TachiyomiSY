@@ -52,6 +52,7 @@ class AndroidCookieJar : CookieJar {
         manager.removeAllCookies {}
     }
 
+    // SY -->
     fun addAll(url: HttpUrl, cookies: List<Cookie>) {
         val urlString = url.toString()
 
@@ -70,4 +71,5 @@ class AndroidCookieJar : CookieJar {
         val finalCookiesString = existingCookies.entries.joinToString("; ") { "${it.key}=${it.value}" }
         manager.setCookie(urlString, finalCookiesString)
     }
+    // SY <--
 }
