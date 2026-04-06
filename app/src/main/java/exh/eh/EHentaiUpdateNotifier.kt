@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
+import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
@@ -92,7 +93,7 @@ class EHentaiUpdateNotifier(private val context: Context) {
             Notifications.ID_EHENTAI_ERROR,
             Notifications.CHANNEL_LIBRARY_EHENTAI,
         ) {
-            setContentTitle(context.stringResource(MR.strings.notification_update_error, failed))
+            setContentTitle(context.pluralStringResource(MR.plurals.notification_update_error, failed, failed))
             setContentText(context.stringResource(MR.strings.action_show_errors))
             setSmallIcon(R.drawable.ic_tachi)
 
