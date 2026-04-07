@@ -25,8 +25,10 @@ sqldelight {
             packageName.set("tachiyomi.data")
             dialect(libs.sqldelight.dialects.sql)
             schemaOutputDirectory.set(project.file("./src/main/sqldelight"))
+            srcDirs("src/main/sqldelight")
         }
     }
+    linkSqlite.set(false)
 }
 
 kotlin {
