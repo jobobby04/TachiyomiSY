@@ -53,40 +53,49 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import java.lang.ref.WeakReference
+
+private val lock = Any()
 
 class AppModule(val app: Application) : InjektModule {
     // SY -->
     private val securityPreferences: SecurityPreferences by injectLazy()
     // SY <--
 
+    private var sqlDriverRef: WeakReference<SqlDriver>? = null
+
     override fun InjektRegistrar.registerInjectables() {
         addSingleton(app)
 
         addSingletonFactory<SqlDriver> {
-            // SY -->
-            if (securityPreferences.encryptDatabase().get()) {
-                System.loadLibrary("sqlcipher")
+            synchronized(lock) {
+                sqlDriverRef?.get()?.let { return@synchronized it }
 
-                return@addSingletonFactory AndroidSqliteDriver(
-                    schema = Database.Schema,
-                    context = app,
-                    name = CbzCrypto.DATABASE_NAME,
-                    factory = SupportOpenHelperFactory(CbzCrypto.getDecryptedPasswordSql(), null, false, 25),
-                    callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
-                        override fun onOpen(db: SupportSQLiteDatabase) {
-                            super.onOpen(db)
-                            setPragma(db, "foreign_keys = ON")
-                            setPragma(db, "journal_mode = WAL")
-                            setPragma(db, "synchronous = NORMAL")
-                        }
+                // SY -->
+                if (securityPreferences.encryptDatabase.get()) {
+                    System.loadLibrary("sqlcipher")
 
-                        private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
-                            val cursor = db.query("PRAGMA $pragma")
-                            cursor.moveToFirst()
-                            cursor.close()
-                        }
-                    },
-                )
+                    return@synchronized AndroidSqliteDriver(
+                        schema = Database.Schema,
+                        context = app,
+                        name = CbzCrypto.DATABASE_NAME,
+                        factory = SupportOpenHelperFactory(CbzCrypto.getDecryptedPasswordSql(), null, false, 25),
+                        callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
+                            override fun onOpen(db: SupportSQLiteDatabase) {
+                                super.onOpen(db)
+                                setPragma(db, "foreign_keys = ON")
+                                setPragma(db, "journal_mode = WAL")
+                                setPragma(db, "synchronous = NORMAL")
+                            }
+
+                            private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
+                                val cursor = db.query("PRAGMA $pragma")
+                                cursor.moveToFirst()
+                                cursor.close()
+                            }
+                        },
+                    ).also { sqlDriverRef = WeakReference(it) }
+                }
             }
             // SY <--
 
@@ -97,7 +106,7 @@ class AppModule(val app: Application) : InjektModule {
                 configuration = AndroidxSqliteConfiguration(
                     isForeignKeyConstraintsEnabled = true,
                 ),
-            )
+            ).also { sqlDriverRef = WeakReference(it) }
         }
         addSingletonFactory {
             Database(

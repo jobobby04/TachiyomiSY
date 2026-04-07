@@ -29,7 +29,7 @@ class BiometricTimesScreenModel(
     init {
         screenModelScope.launchIO {
             // todo usecase
-            preferences.authenticatorTimeRanges().changes()
+            preferences.authenticatorTimeRanges.changes()
                 .collectLatest { times ->
                     val context = Injekt.get<Application>()
                     mutableState.update {
@@ -58,7 +58,7 @@ class BiometricTimesScreenModel(
                 return@launchIO
             }
 
-            preferences.authenticatorTimeRanges() += timeRange.toPreferenceString()
+            preferences.authenticatorTimeRanges += timeRange.toPreferenceString()
         }
     }
 
@@ -71,7 +71,7 @@ class BiometricTimesScreenModel(
         // todo usecase
         screenModelScope.launchIO {
             val state = state.value as? BiometricTimesScreenState.Success ?: return@launchIO
-            preferences.authenticatorTimeRanges().set(
+            preferences.authenticatorTimeRanges.set(
                 state.timeRanges.filterNot { it == timeRange }.map { it.timeRange.toPreferenceString() }.toSet(),
             )
         }

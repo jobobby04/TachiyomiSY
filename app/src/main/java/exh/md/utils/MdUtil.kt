@@ -193,7 +193,7 @@ class MdUtil {
             sourceManager: SourceManager = Injekt.get(),
         ): MangaDex? {
             return getEnabledMangaDexs(sourcePreferences, sourceManager).let { mangadexs ->
-                sourcePreferences.preferredMangaDexId().get().toLongOrNull()?.nullIfZero()
+                sourcePreferences.preferredMangaDexId.get().toLongOrNull()?.nullIfZero()
                     ?.let { preferredMangaDexId ->
                         mangadexs.firstOrNull { it.id == preferredMangaDexId }
                     }
@@ -205,8 +205,8 @@ class MdUtil {
             preferences: SourcePreferences,
             sourceManager: SourceManager = Injekt.get(),
         ): List<MangaDex> {
-            val languages = preferences.enabledLanguages().get()
-            val disabledSourceIds = preferences.disabledSources().get()
+            val languages = preferences.enabledLanguages.get()
+            val disabledSourceIds = preferences.disabledSources.get()
 
             return sourceManager.getVisibleOnlineSources()
                 .asSequence()

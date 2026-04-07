@@ -36,7 +36,7 @@ internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader
                 error("Incorrect archive password")
             }
         }
-        if (readerPreferences.archiveReaderMode().get() == ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
+        if (readerPreferences.archiveReaderMode.get() == ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
             tmpDir.mkdirs()
             reader.useEntries { entries ->
                 entries
@@ -61,7 +61,7 @@ internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader
 
     override suspend fun getPages(): List<ReaderPage> = reader.useEntries { entries ->
         // SY -->
-        if (readerPreferences.archiveReaderMode().get() == ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
+        if (readerPreferences.archiveReaderMode.get() == ReaderPreferences.ArchiveReaderMode.CACHE_TO_DISK) {
             return DirectoryPageLoader(UniFile.fromFile(tmpDir)!!).getPages()
         }
         // SY <--
@@ -71,7 +71,7 @@ internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader
             .mapIndexed { i, entry ->
                 // SY -->
                 val imageBytesDeferred: Deferred<ByteArray>? =
-                    when (readerPreferences.archiveReaderMode().get()) {
+                    when (readerPreferences.archiveReaderMode.get()) {
                         ReaderPreferences.ArchiveReaderMode.LOAD_INTO_MEMORY -> {
                             CoroutineScope(Dispatchers.IO).async {
                                 mutex.withLock {

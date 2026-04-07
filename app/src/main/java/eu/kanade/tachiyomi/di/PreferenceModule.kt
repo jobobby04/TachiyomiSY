@@ -30,7 +30,7 @@ class PreferenceModule(val app: Application) : InjektModule {
         addSingletonFactory {
             NetworkPreferences(
                 preferenceStore = get(),
-                verboseLogging = isDevFlavor,
+                verboseLoggingDefault = isDevFlavor,
             )
         }
         addSingletonFactory {

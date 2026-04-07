@@ -11,7 +11,7 @@ class RemoveBatteryNotLowRestrictionMigration : Migration {
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
-        val pref = libraryPreferences.autoUpdateDeviceRestrictions()
+        val pref = libraryPreferences.autoUpdateDeviceRestrictions
         if (pref.isSet() && "battery_not_low" in pref.get()) {
             pref.getAndSet { it - "battery_not_low" }
         }

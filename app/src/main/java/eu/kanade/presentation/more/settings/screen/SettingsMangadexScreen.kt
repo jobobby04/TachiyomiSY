@@ -175,7 +175,7 @@ object SettingsMangadexScreen : SearchableSettings {
         sourcePreferences: SourcePreferences,
     ): Preference.PreferenceItem.ListPreference<String> {
         return Preference.PreferenceItem.ListPreference(
-            preference = sourcePreferences.preferredMangaDexId(),
+            preference = sourcePreferences.preferredMangaDexId,
             title = stringResource(SYMR.strings.mangadex_preffered_source),
             subtitle = stringResource(SYMR.strings.mangadex_preffered_source_summary),
             entries = MdUtil.getEnabledMangaDexs(sourcePreferences)
@@ -255,7 +255,7 @@ object SettingsMangadexScreen : SearchableSettings {
                 onDismissRequest = { dialogOpen = false },
                 onSelectionConfirmed = { items ->
                     dialogOpen = false
-                    sourcePreferences.mangadexSyncToLibraryIndexes().set(
+                    sourcePreferences.mangadexSyncToLibraryIndexes.set(
                         List(items.size) { index -> (index + 1).toString() }.toSet(),
                     )
                     LibraryUpdateJob.startNow(

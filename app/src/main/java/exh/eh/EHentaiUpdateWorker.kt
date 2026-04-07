@@ -202,10 +202,10 @@ class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerPara
                     updateHelper.findAcceptedRootAndDiscardOthers(manga.source, chapters)
 
                 if (new.isNotEmpty() && manga.id == acceptedRoot.manga.id) {
-                    libraryPreferences.newUpdatesCount().getAndSet { it + new.size }
+                    libraryPreferences.newUpdatesCount.getAndSet { it + new.size }
                     updatedManga += acceptedRoot.manga to new.toTypedArray()
                 } else if (exhNew.isNotEmpty() && updatedManga.none { it.first.id == acceptedRoot.manga.id }) {
-                    libraryPreferences.newUpdatesCount().getAndSet { it + exhNew.size }
+                    libraryPreferences.newUpdatesCount.getAndSet { it + exhNew.size }
                     updatedManga += acceptedRoot.manga to exhNew.toTypedArray()
                 }
 
@@ -214,7 +214,7 @@ class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerPara
                 updatedThisIteration++
             }
         } finally {
-            exhPreferences.exhAutoUpdateStats().set(
+            exhPreferences.exhAutoUpdateStats.set(
                 Json.encodeToString(
                     EHentaiUpdaterStats(
                         startTime,
@@ -279,9 +279,9 @@ class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerPara
 
         fun scheduleBackground(context: Context, prefInterval: Int? = null, prefRestrictions: Set<String>? = null) {
             val exhPreferences = Injekt.get<ExhPreferences>()
-            val interval = prefInterval ?: exhPreferences.exhAutoUpdateFrequency().get()
+            val interval = prefInterval ?: exhPreferences.exhAutoUpdateFrequency.get()
             if (interval > 0) {
-                val restrictions = prefRestrictions ?: exhPreferences.exhAutoUpdateRequirements().get()
+                val restrictions = prefRestrictions ?: exhPreferences.exhAutoUpdateRequirements.get()
                 val acRestriction = DEVICE_CHARGING in restrictions
 
                 val constraints = Constraints.Builder()
@@ -312,7 +312,7 @@ class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerPara
     }
 
     fun requiresWifiConnection(exhPreferences: ExhPreferences): Boolean {
-        val restrictions = exhPreferences.exhAutoUpdateRequirements().get()
+        val restrictions = exhPreferences.exhAutoUpdateRequirements.get()
         return DEVICE_ONLY_ON_WIFI in restrictions
     }
 }

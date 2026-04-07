@@ -8,7 +8,7 @@
     <string name="action_copy_now">Copy now</string>
     <string name="action_clean_titles">Clean titles</string>
     <string name="action_start_reading">Start reading</string>
-    <string name="action_edit_info">Edit info</string>
+    <string name="action_edit_info">Edgit statusit info</string>
 
     <!-- Entry Type -->
     <string name="entry_type_manga">Manga</string>

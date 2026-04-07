@@ -7,14 +7,14 @@ import tachiyomi.domain.library.service.LibraryPreferences
 class GetSortTag(private val preferences: LibraryPreferences) {
 
     fun subscribe(): Flow<List<String>> {
-        return preferences.sortTagsForLibrary().changes()
+        return preferences.sortTagsForLibrary.changes()
             .map(::mapSortTags)
     }
 
     fun await() = getSortTags(preferences).let(::mapSortTags)
 
     companion object {
-        fun getSortTags(preferences: LibraryPreferences) = preferences.sortTagsForLibrary().get()
+        fun getSortTags(preferences: LibraryPreferences) = preferences.sortTagsForLibrary.get()
 
         fun mapSortTags(tags: Set<String>) = tags.mapNotNull {
             val index = it.indexOf('|')

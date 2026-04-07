@@ -14,6 +14,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import logcat.logcat
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 data class SyncData(
@@ -134,14 +136,31 @@ abstract class SyncService(
             "Starting merge. Local list size: ${localMangaListSafe.size}, Remote list size: ${remoteMangaListSafe.size}"
         }
 
+        val lastSyncTime = syncPreferences.lastSyncTimestamp.get().milliseconds.inWholeSeconds
+        val syncOptions = syncPreferences.getSyncSettings()
+
         val mergedList = (localMangaMap.keys + remoteMangaMap.keys).distinct().mapNotNull { compositeKey ->
             val local = localMangaMap[compositeKey]
             val remote = remoteMangaMap[compositeKey]
 
             // New version comparison logic
             when {
-                local != null && remote == null -> updateCategories(local, localCategoriesMapByOrder)
-                local == null && remote != null -> updateCategories(remote, remoteCategoriesMapByOrder)
+                local != null && remote == null -> {
+                    if (lastSyncTime == 0L || local.lastModifiedAt > lastSyncTime) {
+                        updateCategories(local, localCategoriesMapByOrder)
+                    } else {
+                        logcat(LogPriority.DEBUG, logTag) { "Dropping local manga deleted on remote: ${local.title}." }
+                        null
+                    }
+                }
+                local == null && remote != null -> {
+                    if (lastSyncTime == 0L || remote.lastModifiedAt > lastSyncTime) {
+                        updateCategories(remote, remoteCategoriesMapByOrder)
+                    } else {
+                        logcat(LogPriority.DEBUG, logTag) { "Dropping deleted remote manga: ${remote.title}." }
+                        null
+                    }
+                }
                 local != null && remote != null -> {
                     // Compare versions to decide which manga to keep
                     if (local.version >= remote.version) {
@@ -149,7 +168,7 @@ abstract class SyncService(
                             "Keeping local version of ${local.title} with merged chapters."
                         }
                         updateCategories(
-                            local.copy(chapters = mergeChapters(local.chapters, remote.chapters)),
+                            local.copy(chapters = mergeChapters(local.chapters, remote.chapters, lastSyncTime, syncOptions.chapters)),
                             localCategoriesMapByOrder,
                         )
                     } else {
@@ -157,7 +176,7 @@ abstract class SyncService(
                             "Keeping remote version of ${remote.title} with merged chapters."
                         }
                         updateCategories(
-                            remote.copy(chapters = mergeChapters(local.chapters, remote.chapters)),
+                            remote.copy(chapters = mergeChapters(local.chapters, remote.chapters, lastSyncTime, syncOptions.chapters)),
                             remoteCategoriesMapByOrder,
                         )
                     }
@@ -197,8 +216,14 @@ abstract class SyncService(
     private fun mergeChapters(
         localChapters: List<BackupChapter>,
         remoteChapters: List<BackupChapter>,
+        lastSyncTime: Long,
+        syncingChapters: Boolean,
     ): List<BackupChapter> {
         val logTag = "MergeChapters"
+
+        if (!syncingChapters) {
+            return remoteChapters // If not syncing chapters, keep remote untouched
+        }
 
         fun chapterCompositeKey(chapter: BackupChapter): String {
             return "${chapter.url}|${chapter.name}|${chapter.chapterNumber}"
@@ -223,12 +248,22 @@ abstract class SyncService(
 
             when {
                 localChapter != null && remoteChapter == null -> {
-                    logcat(LogPriority.DEBUG, logTag) { "Keeping local chapter: ${localChapter.name}." }
-                    localChapter
+                    if (lastSyncTime == 0L || localChapter.lastModifiedAt > lastSyncTime) {
+                        logcat(LogPriority.DEBUG, logTag) { "Keeping local chapter: ${localChapter.name}." }
+                        localChapter
+                    } else {
+                        logcat(LogPriority.DEBUG, logTag) { "Dropping local chapter deleted on remote: ${localChapter.name}." }
+                        null
+                    }
                 }
                 localChapter == null && remoteChapter != null -> {
-                    logcat(LogPriority.DEBUG, logTag) { "Taking remote chapter: ${remoteChapter.name}." }
-                    remoteChapter
+                    if (lastSyncTime == 0L || remoteChapter.lastModifiedAt > lastSyncTime) {
+                        logcat(LogPriority.DEBUG, logTag) { "Taking remote chapter: ${remoteChapter.name}." }
+                        remoteChapter
+                    } else {
+                        logcat(LogPriority.DEBUG, logTag) { "Dropping deleted remote chapter: ${remoteChapter.name}." }
+                        null
+                    }
                 }
                 localChapter != null && remoteChapter != null -> {
                     // Use version number to decide which chapter to keep
@@ -274,37 +309,70 @@ abstract class SyncService(
         localCategoriesList: List<BackupCategory>?,
         remoteCategoriesList: List<BackupCategory>?,
     ): List<BackupCategory> {
+        val logTag = "MergeCategories"
         if (localCategoriesList == null) return remoteCategoriesList ?: emptyList()
         if (remoteCategoriesList == null) return localCategoriesList
-        val localCategoriesMap = localCategoriesList.associateBy { it.name }
-        val remoteCategoriesMap = remoteCategoriesList.associateBy { it.name }
 
-        val mergedCategoriesMap = mutableMapOf<String, BackupCategory>()
+        val result = mutableListOf<BackupCategory>()
+        val processedLocals = mutableSetOf<BackupCategory>()
 
-        localCategoriesMap.forEach { (name, localCategory) ->
-            val remoteCategory = remoteCategoriesMap[name]
-            if (remoteCategory != null) {
-                // Compare and merge local and remote categories
-                val mergedCategory = if (localCategory.order > remoteCategory.order) {
-                    localCategory
+        val localMapByUid = localCategoriesList.filter { it.uid != 0L }.associateBy { it.uid }
+        val localMapByName = localCategoriesList.associateBy { it.name }
+
+        val lastSyncTime = syncPreferences.lastSyncTimestamp.get()
+
+        remoteCategoriesList.forEach { remote ->
+            var localMatch: BackupCategory? = null
+
+            // 1. Try match by UID
+            if (remote.uid != 0L) {
+                localMatch = localMapByUid[remote.uid]
+            }
+
+            // 2. Try match by Name (fallback)
+            if (localMatch == null) {
+                localMatch = localMapByName[remote.name]
+            }
+
+            if (localMatch != null) {
+                processedLocals.add(localMatch)
+                // Conflict resolution
+                if (localMatch.version >= remote.version) {
+                    logcat(LogPriority.DEBUG, logTag) { "Keeping local category: ${localMatch.name} (UID: ${localMatch.uid})" }
+                    result.add(localMatch)
                 } else {
-                    remoteCategory
+                    logcat(LogPriority.DEBUG, logTag) { "Keeping remote category: ${remote.name} (UID: ${remote.uid})" }
+                    // Preserve Local UID if Remote was 0
+                    if (remote.uid == 0L) {
+                        remote.uid = localMatch.uid
+                    }
+                    result.add(remote)
                 }
-                mergedCategoriesMap[name] = mergedCategory
             } else {
-                // If the category is only in the local list, add it to the merged list
-                mergedCategoriesMap[name] = localCategory
+                val remoteModifiedTimeMillis = remote.lastModifiedAt.seconds.inWholeMilliseconds
+                if (lastSyncTime == 0L || remoteModifiedTimeMillis > lastSyncTime) {
+                    logcat(LogPriority.DEBUG, logTag) { "Adding new remote category: ${remote.name} (UID: ${remote.uid})" }
+                    result.add(remote)
+                } else {
+                    logcat(LogPriority.DEBUG, logTag) { "Dropping deleted remote category: ${remote.name} (UID: ${remote.uid})" }
+                }
             }
         }
 
-        // Add any categories from the remote list that are not in the local list
-        remoteCategoriesMap.forEach { (name, remoteCategory) ->
-            if (!mergedCategoriesMap.containsKey(name)) {
-                mergedCategoriesMap[name] = remoteCategory
+        // Add remaining Local Categories
+        localCategoriesList.forEach { local ->
+            if (local !in processedLocals) {
+                val localModifiedTimeMillis = local.lastModifiedAt.seconds.inWholeMilliseconds
+                if (lastSyncTime == 0L || localModifiedTimeMillis > lastSyncTime) {
+                    logcat(LogPriority.DEBUG, logTag) { "Keeping local only category: ${local.name} (UID: ${local.uid})" }
+                    result.add(local)
+                } else {
+                    logcat(LogPriority.DEBUG, logTag) { "Dropping local category deleted on remote: ${local.name} (UID: ${local.uid})" }
+                }
             }
         }
 
-        return mergedCategoriesMap.values.toList()
+        return result.sortedBy { it.order }
     }
 
     private fun mergeSourcesLists(
@@ -341,8 +409,8 @@ abstract class SyncService(
                     remoteSource
                 }
                 else -> {
-                    logcat(LogPriority.DEBUG, logTag) { "Remote and local is not empty: $sourceId. Skipping." }
-                    null
+                    logcat(LogPriority.DEBUG, logTag) { "Remote and local have the same source ID: $sourceId. Keeping local." }
+                    localSource
                 }
             }
         }
@@ -387,8 +455,8 @@ abstract class SyncService(
                     remotePreference
                 }
                 else -> {
-                    logcat(LogPriority.DEBUG, logTag) { "Both remote and local have keys. Skipping: $key" }
-                    null
+                    logcat(LogPriority.DEBUG, logTag) { "Both remote and local have the same preference key: $key. Keeping local." }
+                    localPreference
                 }
             }
         }
@@ -507,10 +575,8 @@ abstract class SyncService(
                 }
 
                 else -> {
-                    logcat(LogPriority.DEBUG, logTag) {
-                        "No saved search found for composite key: $compositeKey. Skipping."
-                    }
-                    null
+                    logcat(LogPriority.DEBUG, logTag) { "Both remote and local have the same saved search key: $compositeKey. Keeping local." }
+                    localSearch
                 }
             }
         }

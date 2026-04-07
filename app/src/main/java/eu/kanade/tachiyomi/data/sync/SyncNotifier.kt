@@ -42,7 +42,7 @@ class SyncNotifier(private val context: Context) {
         val builder = with(progressNotificationBuilder) {
             setContentTitle(context.getString(R.string.syncing_library))
 
-            if (!preferences.hideNotificationContent().get()) {
+            if (!preferences.hideNotificationContent.get()) {
                 setContentText(content)
             }
 

@@ -226,11 +226,11 @@ class ReaderViewModel @JvmOverloads constructor(
             ?: error("Requested chapter of id $chapterId not found in chapter list")
 
         val chaptersForReader = when {
-            (readerPreferences.skipRead().get() || readerPreferences.skipFiltered().get()) -> {
+            (readerPreferences.skipRead.get() || readerPreferences.skipFiltered.get()) -> {
                 val filteredChapters = chapters.filterNot {
                     when {
-                        readerPreferences.skipRead().get() && it.read -> true
-                        readerPreferences.skipFiltered().get() -> {
+                        readerPreferences.skipRead.get() && it.read -> true
+                        readerPreferences.skipFiltered.get() -> {
                             (manga.unreadFilterRaw == Manga.CHAPTER_SHOW_READ && !it.read) ||
                                 (manga.unreadFilterRaw == Manga.CHAPTER_SHOW_UNREAD && it.read) ||
                                 // SY -->
@@ -262,14 +262,14 @@ class ReaderViewModel @JvmOverloads constructor(
         val result = chaptersForReader
             .sortedWith(getChapterSort(manga, sortDescending = false))
             .run {
-                if (readerPreferences.skipDupe().get()) {
+                if (readerPreferences.skipDupe.get()) {
                     removeDuplicates(selectedChapter)
                 } else {
                     this
                 }
             }
             .run {
-                if (basePreferences.downloadedOnly().get()) {
+                if (basePreferences.downloadedOnly.get()) {
                     filterDownloaded(manga, mangaMap)
                 } else {
                     this
@@ -282,7 +282,7 @@ class ReaderViewModel @JvmOverloads constructor(
     }
 
     private val incognitoMode: Boolean by lazy { getIncognitoState.await(manga?.source) }
-    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileReading().get()
+    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileReading.get()
 
     init {
         // To save state
@@ -311,10 +311,10 @@ class ReaderViewModel @JvmOverloads constructor(
                 val parsed = text.toDoubleOrNull()
 
                 if (parsed == null || parsed <= 0 || parsed > 9999) {
-                    readerPreferences.autoscrollInterval().set(-1f)
+                    readerPreferences.autoscrollInterval.set(-1f)
                     mutableState.update { it.copy(isAutoScrollEnabled = false) }
                 } else {
-                    readerPreferences.autoscrollInterval().set(parsed.toFloat())
+                    readerPreferences.autoscrollInterval.set(parsed.toFloat())
                     mutableState.update { it.copy(isAutoScrollEnabled = true) }
                 }
             }
@@ -380,8 +380,8 @@ class ReaderViewModel @JvmOverloads constructor(
                     } else {
                         emptyMap()
                     }
-                    val relativeTime = uiPreferences.relativeTime().get()
-                    val autoScrollFreq = readerPreferences.autoscrollInterval().get()
+                    val relativeTime = uiPreferences.relativeTime.get()
+                    val autoScrollFreq = readerPreferences.autoscrollInterval.get()
                     // SY <--
                     mutableState.update {
                         it.copy(
@@ -443,7 +443,7 @@ class ReaderViewModel @JvmOverloads constructor(
                 chapter = it.chapter.toDomainChapter()!!,
                 manga = manga!!,
                 isCurrent = it.chapter.id == currentChapter?.chapter?.id,
-                dateFormat = UiPreferences.dateFormat(uiPreferences.dateFormat().get()),
+                dateFormat = UiPreferences.dateFormat(uiPreferences.dateFormat.get()),
             )
         }
     }
@@ -645,7 +645,7 @@ class ReaderViewModel @JvmOverloads constructor(
             if (!isNextChapterDownloaded) return@launchIO
 
             val chaptersToDownload = getNextChapters.await(manga.id, nextChapter.id!!).run {
-                if (readerPreferences.skipDupe().get()) {
+                if (readerPreferences.skipDupe.get()) {
                     removeDuplicates(nextChapter.toDomainChapter()!!)
                 } else {
                     this
@@ -675,7 +675,7 @@ class ReaderViewModel @JvmOverloads constructor(
      * @param currentChapter current chapter, which is going to be marked as read.
      */
     private suspend fun deleteChapterIfNeeded(currentChapter: ReaderChapter) {
-        val removeAfterReadSlots = downloadPreferences.removeAfterReadSlots().get()
+        val removeAfterReadSlots = downloadPreferences.removeAfterReadSlots.get()
         if (removeAfterReadSlots == -1) return
 
         // Determine which chapter should be deleted and enqueue
@@ -765,7 +765,7 @@ class ReaderViewModel @JvmOverloads constructor(
         updateTrackChapterRead(readerChapter)
         deleteChapterIfNeeded(readerChapter)
 
-        val markDuplicateAsRead = libraryPreferences.markDuplicateReadChapterAsRead().get()
+        val markDuplicateAsRead = libraryPreferences.markDuplicateReadChapterAsRead.get()
             .contains(LibraryPreferences.MARK_DUPLICATE_CHAPTER_READ_EXISTING)
         if (!markDuplicateAsRead) return
 
@@ -890,12 +890,12 @@ class ReaderViewModel @JvmOverloads constructor(
      * Returns the viewer position used by this manga or the default one.
      */
     fun getMangaReadingMode(resolveDefault: Boolean = true): Int {
-        val default = readerPreferences.defaultReadingMode().get()
+        val default = readerPreferences.defaultReadingMode.get()
         val manga = manga ?: return default
         val readingMode = ReadingMode.fromPreference(manga.readingMode.toInt())
         // SY -->
         return when {
-            resolveDefault && readingMode == ReadingMode.DEFAULT && readerPreferences.useAutoWebtoon().get() -> {
+            resolveDefault && readingMode == ReadingMode.DEFAULT && readerPreferences.useAutoWebtoon.get() -> {
                 manga.defaultReaderType(manga.mangaType(sourceName = sourceManager.get(manga.source)?.name))
                     ?: default
             }
@@ -933,7 +933,7 @@ class ReaderViewModel @JvmOverloads constructor(
      * Returns the orientation type used by this manga or the default one.
      */
     fun getMangaOrientation(resolveDefault: Boolean = true): Int {
-        val default = readerPreferences.defaultOrientationType().get()
+        val default = readerPreferences.defaultOrientationType.get()
         val orientation = ReaderOrientation.fromPreference(manga?.readerOrientation?.toInt())
         return when {
             resolveDefault && orientation == ReaderOrientation.DEFAULT -> default
@@ -972,11 +972,11 @@ class ReaderViewModel @JvmOverloads constructor(
         val isPagerType = ReadingMode.isPagerType(readingMode)
         val isWebtoon = ReadingMode.WEBTOON.flagValue == readingMode
         return if (isPagerType) {
-            readerPreferences.cropBorders().toggle()
+            readerPreferences.cropBorders.toggle()
         } else if (isWebtoon) {
-            readerPreferences.cropBordersWebtoon().toggle()
+            readerPreferences.cropBordersWebtoon.toggle()
         } else {
-            readerPreferences.cropBordersContinuousVertical().toggle()
+            readerPreferences.cropBordersContinuousVertical.toggle()
         }
     }
     // SY <--
@@ -1092,8 +1092,10 @@ class ReaderViewModel @JvmOverloads constructor(
         val filename = generateFilename(manga, page)
 
         // Pictures directory.
-        val relativePath = if (readerPreferences.folderPerManga().get()) {
-            DiskUtil.buildValidFilename(manga.title)
+        val relativePath = if (readerPreferences.folderPerManga.get()) {
+            DiskUtil.buildValidFilename(
+                manga.title,
+            )
         } else {
             ""
         }
@@ -1307,7 +1309,7 @@ class ReaderViewModel @JvmOverloads constructor(
      */
     private fun updateTrackChapterRead(readerChapter: ReaderChapter) {
         if (incognitoMode) return
-        if (!trackPreferences.autoUpdateTrack().get()) return
+        if (!trackPreferences.autoUpdateTrack.get()) return
 
         val manga = manga ?: return
         val context = Injekt.get<Application>()

@@ -78,7 +78,7 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
 
         fun setupTask(context: Context, prefInterval: Int? = null) {
             val syncPreferences = Injekt.get<SyncPreferences>()
-            val interval = prefInterval ?: syncPreferences.syncInterval().get()
+            val interval = prefInterval ?: syncPreferences.syncInterval.get()
 
             if (interval > 0) {
                 val request = PeriodicWorkRequestBuilder<SyncDataJob>(

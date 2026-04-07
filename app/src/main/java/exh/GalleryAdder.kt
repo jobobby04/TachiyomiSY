@@ -31,7 +31,7 @@ class GalleryAdder(
 ) {
 
     private val filters: Pair<Set<String>, Set<Long>> = Injekt.get<SourcePreferences>().run {
-        enabledLanguages().get() to disabledSources().get().map { it.toLong() }.toSet()
+        enabledLanguages.get() to disabledSources.get().map { it.toLong() }.toSet()
     }
 
     private val Pair<Set<String>, Set<Long>>.enabledLangs

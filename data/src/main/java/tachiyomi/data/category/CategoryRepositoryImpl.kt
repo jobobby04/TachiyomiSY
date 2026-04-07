@@ -42,6 +42,9 @@ class CategoryRepositoryImpl(
                 name = category.name,
                 order = category.order,
                 flags = category.flags,
+                version = category.version,
+                uid = category.uid,
+                last_modified_at = category.lastModifiedAt,
             )
             categoriesQueries.selectLastInsertedRowId()
         }
@@ -67,6 +70,10 @@ class CategoryRepositoryImpl(
             name = update.name,
             order = update.order,
             flags = update.flags,
+            version = update.version,
+            uid = update.uid,
+            last_modified_at = update.lastModifiedAt,
+            isSyncing = null,
             categoryId = update.id,
         )
     }

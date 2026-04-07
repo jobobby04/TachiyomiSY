@@ -20,7 +20,7 @@ class MoveSortingModeSettingsMigration : Migration {
         val handler = migrationContext.get<DatabaseHandler>() ?: return@withIOContext false
         // Handle renamed enum values
         val newSortingMode = when (
-            val oldSortingMode = prefs.getString(libraryPreferences.sortingMode().key(), "ALPHABETICAL")
+            val oldSortingMode = prefs.getString(libraryPreferences.sortingMode.key(), "ALPHABETICAL")
         ) {
             "LAST_CHECKED" -> "LAST_MANGA_UPDATE"
             "UNREAD" -> "UNREAD_COUNT"
@@ -29,7 +29,7 @@ class MoveSortingModeSettingsMigration : Migration {
             else -> oldSortingMode
         }
         prefs.edit {
-            putString(libraryPreferences.sortingMode().key(), newSortingMode)
+            putString(libraryPreferences.sortingMode.key(), newSortingMode)
         }
         handler.await(true) {
             categoriesQueries.getCategories(CategoryMapper::mapCategory).executeAsList()
@@ -39,6 +39,10 @@ class MoveSortingModeSettingsMigration : Migration {
                         categoryId = it.id,
                         flags = it.flags and 0b00111100L.inv(),
                         name = null,
+                        version = it.version,
+                        uid = it.uid,
+                        last_modified_at = null,
+                        isSyncing = null,
                         order = null,
                     )
                 }

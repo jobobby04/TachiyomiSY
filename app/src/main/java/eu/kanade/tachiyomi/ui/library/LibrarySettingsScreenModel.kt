@@ -38,7 +38,7 @@ class LibrarySettingsScreenModel(
         )
 
     // SY -->
-    val grouping by libraryPreferences.groupLibraryBy().asState(screenModelScope)
+    val grouping by libraryPreferences.groupLibraryBy.asState(screenModelScope)
 
     // SY <--
     fun toggleFilter(preference: (LibraryPreferences) -> Preference<TriState>) {
@@ -64,7 +64,7 @@ class LibrarySettingsScreenModel(
     // SY -->
     fun setGrouping(grouping: Int) {
         screenModelScope.launchIO {
-            libraryPreferences.groupLibraryBy().set(grouping)
+            libraryPreferences.groupLibraryBy.set(grouping)
         }
     }
     // SY <--

@@ -13,10 +13,10 @@ class ChangeMiuiExtensionInstallerMigration : Migration {
         val basePreferences = migrationContext.get<BasePreferences>() ?: return@withIOContext false
         if (
             DeviceUtil.isMiui &&
-            basePreferences.extensionInstaller().get() == BasePreferences.ExtensionInstaller
+            basePreferences.extensionInstaller.get() == BasePreferences.ExtensionInstaller
                 .PACKAGEINSTALLER
         ) {
-            basePreferences.extensionInstaller().set(BasePreferences.ExtensionInstaller.LEGACY)
+            basePreferences.extensionInstaller.set(BasePreferences.ExtensionInstaller.LEGACY)
         }
 
         return@withIOContext true

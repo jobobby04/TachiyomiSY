@@ -164,7 +164,7 @@ class DownloadProvider(
     fun getSourceDirName(source: Source): String {
         return DiskUtil.buildValidFilename(
             source.toString(),
-            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames().get(),
+            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames.get(),
         )
     }
 
@@ -176,7 +176,7 @@ class DownloadProvider(
     fun getMangaDirName(mangaTitle: String): String {
         return DiskUtil.buildValidFilename(
             mangaTitle,
-            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames().get(),
+            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames.get(),
         )
     }
 
@@ -191,8 +191,8 @@ class DownloadProvider(
         chapterName: String,
         chapterScanlator: String?,
         chapterUrl: String,
-        disallowNonAsciiFilenames: Boolean = libraryPreferences.disallowNonAsciiFilenames().get(),
-        includeChapterUrlHash: Boolean = downloadPreferences.includeChapterUrlHash().get(),
+        disallowNonAsciiFilenames: Boolean = libraryPreferences.disallowNonAsciiFilenames.get(),
+        includeChapterUrlHash: Boolean = downloadPreferences.includeChapterUrlHash.get(),
     ): String {
         var dirName = sanitizeChapterName(chapterName)
         if (!chapterScanlator.isNullOrBlank()) {
@@ -235,8 +235,8 @@ class DownloadProvider(
                 chapterName,
                 chapterScanlator,
                 chapterUrl,
-                !libraryPreferences.disallowNonAsciiFilenames().get(),
-                !downloadPreferences.includeChapterUrlHash().get(),
+                !libraryPreferences.disallowNonAsciiFilenames.get(),
+                !downloadPreferences.includeChapterUrlHash.get(),
             )
 
         return buildList(2) {

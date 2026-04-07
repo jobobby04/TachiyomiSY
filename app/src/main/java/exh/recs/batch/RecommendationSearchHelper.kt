@@ -70,7 +70,7 @@ class RecommendationSearchHelper(val context: Context) {
     }
 
     private suspend fun beginSearch(mangaList: List<Manga>) {
-        val flags = preferences.recommendationSearchFlags().get()
+        val flags = preferences.recommendationSearchFlags.get()
         val libraryManga = getLibraryManga.await()
         val tracks = getTracks.await()
 
@@ -195,7 +195,7 @@ class RecommendationSearchHelper(val context: Context) {
         libraryManga: List<LibraryManga>,
         tracks: List<Track>,
     ): List<SManga> {
-        val flags = preferences.recommendationSearchFlags().get()
+        val flags = preferences.recommendationSearchFlags.get()
 
         if (!SearchFlags.hasHideLibraryResults(flags)) {
             return this

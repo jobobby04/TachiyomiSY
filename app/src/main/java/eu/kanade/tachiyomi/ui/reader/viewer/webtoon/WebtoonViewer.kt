@@ -82,7 +82,7 @@ class WebtoonViewer(
 
     private val threshold: Int =
         Injekt.get<ReaderPreferences>()
-            .readerHideThreshold()
+            .readerHideThreshold
             .get()
             .threshold
 

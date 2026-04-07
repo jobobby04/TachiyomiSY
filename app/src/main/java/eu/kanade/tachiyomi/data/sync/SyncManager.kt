@@ -73,6 +73,7 @@ class SyncManager(
         handler.await(inTransaction = true) {
             mangasQueries.resetIsSyncing()
             chaptersQueries.resetIsSyncing()
+            categoriesQueries.resetIsSyncing()
         }
 
         val syncOptions = syncPreferences.getSyncSettings()
@@ -119,7 +120,7 @@ class SyncManager(
         )
 
         // Handle sync based on the selected service
-        val syncService = when (val syncService = SyncService.fromInt(syncPreferences.syncService().get())) {
+        val syncService = when (val syncService = SyncService.fromInt(syncPreferences.syncService.get())) {
             SyncService.SYNCYOMI -> {
                 SyncYomiSyncService(
                     context,
@@ -150,21 +151,21 @@ class SyncManager(
         if (remoteBackup === syncData.backup) {
             // nothing changed
             logcat(LogPriority.DEBUG) { "Skip restore due to remote was overwrite from local" }
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Sync completed successfully")
             return
         }
 
         // Stop the sync early if the remote backup is null or empty
-        if (remoteBackup.backupManga.size == 0) {
+        if (remoteBackup.backupManga.isEmpty() && remoteBackup.backupCategories.isEmpty() && remoteBackup.backupSources.isEmpty()) {
             notifier.showSyncError("No data found on remote server.")
             return
         }
 
         // Check if it's first sync based on lastSyncTimestamp
-        if (syncPreferences.lastSyncTimestamp().get() == 0L && databaseManga.isNotEmpty()) {
+        if (syncPreferences.lastSyncTimestamp.get() == 0L && databaseManga.isNotEmpty()) {
             // It's first sync no need to restore data. (just update remote data)
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Updated remote data successfully")
             return
         }
@@ -185,12 +186,38 @@ class SyncManager(
             // SY <--
         )
 
-        // It's local sync no need to restore data. (just update remote data)
-        if (filteredFavorites.isEmpty()) {
+        val hasMangaChanges = filteredFavorites.isNotEmpty()
+        val hasCategoryChanges = remoteBackup.backupCategories != backup.backupCategories
+        val hasSourceChanges = remoteBackup.backupSources != backup.backupSources
+        val hasPreferenceChanges = remoteBackup.backupPreferences != backup.backupPreferences
+        val hasSourcePreferenceChanges = remoteBackup.backupSourcePreferences != backup.backupSourcePreferences
+        val hasExtensionRepoChanges = remoteBackup.backupExtensionRepo != backup.backupExtensionRepo
+        val hasSavedSearchChanges = remoteBackup.backupSavedSearches != backup.backupSavedSearches
+
+        if (!hasMangaChanges && !hasCategoryChanges && !hasSourceChanges &&
+            !hasPreferenceChanges && !hasSourcePreferenceChanges &&
+            !hasExtensionRepoChanges && !hasSavedSearchChanges
+        ) {
             // update the sync timestamp
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Sync completed successfully")
             return
+        }
+
+        if (syncOptions.categories) {
+            val mergedUids = newSyncData.backupCategories.map { it.uid }.toSet()
+            val mergedNames = newSyncData.backupCategories.map { it.name }.toSet()
+            val localCategories = getCategories.await().filterNot { it.id == 0L } // Exclude system category
+            val categoriesToDelete = localCategories.filter {
+                it.uid !in mergedUids && it.name !in mergedNames
+            }
+            if (categoriesToDelete.isNotEmpty()) {
+                handler.await(inTransaction = true) {
+                    categoriesToDelete.forEach {
+                        categoriesQueries.delete(it.id)
+                    }
+                }
+            }
         }
 
         val backupUri = writeSyncDataToCache(context, newSyncData)
@@ -201,15 +228,19 @@ class SyncManager(
                 backupUri,
                 sync = true,
                 options = RestoreOptions(
-                    appSettings = true,
-                    sourceSettings = true,
-                    libraryEntries = true,
-                    extensionRepoSettings = true,
+                    appSettings = syncOptions.appSettings,
+                    sourceSettings = syncOptions.sourceSettings,
+                    libraryEntries = syncOptions.libraryEntries,
+                    categories = syncOptions.categories,
+                    extensionRepoSettings = syncOptions.extensionRepoSettings,
+                    // SY -->
+                    savedSearches = syncOptions.savedSearches,
+                    // SY <--
                 ),
             )
 
             // update the sync timestamp
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
         } else {
             logcat(LogPriority.ERROR) { "Failed to write sync data to file" }
         }

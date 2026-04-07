@@ -146,13 +146,13 @@ class EHConfigurator(val context: Context) {
         }?.removePrefix("hath_perks=")?.substringBefore(';')
 
         if (keyCookie != null) {
-            exhPreferences.exhSettingsKey().set(keyCookie)
+            exhPreferences.exhSettingsKey.set(keyCookie)
         }
         if (sessionCookie != null) {
-            exhPreferences.exhSessionCookie().set(sessionCookie)
+            exhPreferences.exhSessionCookie.set(sessionCookie)
         }
         if (hathPerksCookie != null) {
-            exhPreferences.exhHathPerksCookies().set(hathPerksCookie)
+            exhPreferences.exhHathPerksCookies.set(hathPerksCookie)
         }
     }
 

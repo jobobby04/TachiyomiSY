@@ -33,7 +33,7 @@ class RecommendationSearchBottomSheetDialogState(private val onSearchRequest: ()
     private val preferences: SourcePreferences by injectLazy()
 
     fun initPreferences(binding: RecommendationSearchBottomSheetBinding) {
-        val flags = preferences.recommendationSearchFlags().get()
+        val flags = preferences.recommendationSearchFlags.get()
 
         binding.recSources.isChecked = SearchFlags.hasIncludeSources(flags)
         binding.recTrackers.isChecked = SearchFlags.hasIncludeTrackers(flags)
@@ -53,7 +53,7 @@ class RecommendationSearchBottomSheetDialogState(private val onSearchRequest: ()
         if (binding.recSources.isChecked) flags = flags or SearchFlags.INCLUDE_SOURCES
         if (binding.recTrackers.isChecked) flags = flags or SearchFlags.INCLUDE_TRACKERS
         if (binding.recHideLibraryEntries.isChecked) flags = flags or SearchFlags.HIDE_LIBRARY_RESULTS
-        preferences.recommendationSearchFlags().set(flags)
+        preferences.recommendationSearchFlags.set(flags)
 
         validate(binding)
     }

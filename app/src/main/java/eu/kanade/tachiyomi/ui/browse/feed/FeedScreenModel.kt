@@ -156,9 +156,9 @@ open class FeedScreenModel(
     }
 
     fun getEnabledSources(): ImmutableList<CatalogueSource> {
-        val languages = sourcePreferences.enabledLanguages().get()
-        val pinnedSources = sourcePreferences.pinnedSources().get()
-        val disabledSources = sourcePreferences.disabledSources().get()
+        val languages = sourcePreferences.enabledLanguages.get()
+        val pinnedSources = sourcePreferences.pinnedSources.get()
+        val disabledSources = sourcePreferences.disabledSources.get()
             .mapNotNull { it.toLongOrNull() }
 
         val list = sourceManager.getVisibleCatalogueSources()

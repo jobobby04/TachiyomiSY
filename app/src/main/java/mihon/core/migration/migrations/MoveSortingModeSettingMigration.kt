@@ -16,9 +16,9 @@ class MoveSortingModeSettingMigration : Migration {
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         prefs.edit {
-            val sort = prefs.getString(libraryPreferences.sortingMode().key(), null) ?: return@edit
+            val sort = prefs.getString(libraryPreferences.sortingMode.key(), null) ?: return@edit
             val direction = prefs.getString("library_sorting_ascending", "ASCENDING")!!
-            putString(libraryPreferences.sortingMode().key(), "$sort,$direction")
+            putString(libraryPreferences.sortingMode.key(), "$sort,$direction")
             remove("library_sorting_ascending")
         }
 

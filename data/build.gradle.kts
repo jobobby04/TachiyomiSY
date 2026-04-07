@@ -1,33 +1,26 @@
 plugins {
-    id("mihon.library")
-    kotlin("android")
-    kotlin("plugin.serialization")
+    alias(mihonx.plugins.android.library)
+    alias(mihonx.plugins.spotless)
+
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
 }
 
 android {
     namespace = "tachiyomi.data"
 
-    defaultConfig {
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    sourceSets {
-        getByName("main") {
-            java.srcDir("build/generated/sqldelight/code/Database/debug")
+    sqldelight {
+        databases {
+            create("Database") {
+                packageName.set("tachiyomi.data")
+                dialect(libs.sqldelight.sqliteDialect338)
+                schemaOutputDirectory.set(project.file("./src/main/sqldelight"))
+            }
         }
     }
 }
 
 sqldelight {
-    databases {
-        create("Database") {
-            packageName.set("tachiyomi.data")
-            dialect(libs.sqldelight.dialects.sql)
-            schemaOutputDirectory.set(project.file("./src/main/sqldelight"))
-            srcDirs("src/main/sqldelight")
-        }
-    }
     linkSqlite.set(false)
 }
 

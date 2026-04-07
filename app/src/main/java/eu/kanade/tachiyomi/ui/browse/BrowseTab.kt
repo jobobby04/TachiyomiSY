@@ -66,8 +66,8 @@ data object BrowseTab : Tab {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         // SY -->
-        val hideFeedTab by remember { Injekt.get<UiPreferences>().hideFeedTab().asState(scope) }
-        val feedTabInFront by remember { Injekt.get<UiPreferences>().feedTabInFront().asState(scope) }
+        val hideFeedTab by remember { Injekt.get<UiPreferences>().hideFeedTab.asState(scope) }
+        val feedTabInFront by remember { Injekt.get<UiPreferences>().feedTabInFront.asState(scope) }
         // SY <--
 
         // Hoisted for extensions tab's search bar

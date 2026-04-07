@@ -93,7 +93,7 @@ internal class ExtensionApi {
         }
 
         // SY -->
-        val blacklistEnabled = sourcePreferences.enableSourceBlacklist().get()
+        val blacklistEnabled = sourcePreferences.enableSourceBlacklist.get()
         // SY <--
 
         val installedExtensions = ExtensionLoader.loadExtensions(context)
@@ -155,7 +155,7 @@ internal class ExtensionApi {
 
     // SY -->
     private fun Extension.isBlacklisted(
-        blacklistEnabled: Boolean = sourcePreferences.enableSourceBlacklist().get(),
+        blacklistEnabled: Boolean = sourcePreferences.enableSourceBlacklist.get(),
     ): Boolean {
         return pkgName in BlacklistedSources.BLACKLISTED_EXTENSIONS && blacklistEnabled
     }

@@ -138,7 +138,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         if (tags.contains(WORK_NAME_AUTO)) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                 val preferences = Injekt.get<LibraryPreferences>()
-                val restrictions = preferences.autoUpdateDeviceRestrictions().get()
+                val restrictions = preferences.autoUpdateDeviceRestrictions.get()
                 if ((DEVICE_ONLY_ON_WIFI in restrictions) && !context.isConnectedToWifi()) {
                     return Result.retry()
                 }
@@ -157,7 +157,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
         // If this is a chapter update, set the last update time to now
         if (target == Target.CHAPTERS) {
-            libraryPreferences.lastUpdatedTimestamp().set(Instant.now().toEpochMilli())
+            libraryPreferences.lastUpdatedTimestamp.set(Instant.now().toEpochMilli())
         }
 
         val categoryId = inputData.getLong(KEY_CATEGORY, -1L)
@@ -213,7 +213,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private suspend fun addMangaToQueue(categoryId: Long, group: Int, groupExtra: String?) {
         val libraryManga = getLibraryManga.await()
         // SY -->
-        val groupLibraryUpdateType = libraryPreferences.groupLibraryUpdateType().get()
+        val groupLibraryUpdateType = libraryPreferences.groupLibraryUpdateType.get()
         // SY <--
 
         val listToUpdate = if (categoryId != -1L) {
@@ -225,8 +225,8 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
             (groupLibraryUpdateType == GroupLibraryMode.ALL_BUT_UNGROUPED && group == LibraryGroup.UNGROUPED)
         ) {
             // SY <--
-            val includedCategories = libraryPreferences.updateCategories().get().map { it.toLong() }.toSet()
-            val excludedCategories = libraryPreferences.updateCategoriesExclude().get().map { it.toLong() }.toSet()
+            val includedCategories = libraryPreferences.updateCategories.get().map { it.toLong() }.toSet()
+            val excludedCategories = libraryPreferences.updateCategoriesExclude.get().map { it.toLong() }.toSet()
 
             libraryManga.filter {
                 val included = includedCategories.isEmpty() || it.categories.intersect(includedCategories).isNotEmpty()
@@ -271,7 +271,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
             // SY <--
         }
 
-        val restrictions = libraryPreferences.autoUpdateMangaRestrictions().get()
+        val restrictions = libraryPreferences.autoUpdateMangaRestrictions.get()
         val skippedUpdates = mutableListOf<Pair<Manga, String?>>()
         val (_, fetchWindowUpperBound) = fetchInterval.getWindow(ZonedDateTime.now())
 
@@ -406,7 +406,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                                 hasDownloads.store(true)
                                             }
 
-                                            libraryPreferences.newUpdatesCount().getAndSet { it + newChapters.size }
+                                            libraryPreferences.newUpdatesCount.getAndSet { it + newChapters.size }
 
                                             // Convert to the manga that contains new chapters
                                             newUpdates.add(manga to newChapters.toTypedArray())
@@ -482,7 +482,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         val source = sourceManager.getOrStub(manga.source)
 
         // Update manga metadata if needed
-        if (libraryPreferences.autoUpdateMetadata().get()) {
+        if (libraryPreferences.autoUpdateMetadata.get()) {
             val networkManga = source.getMangaDetails(manga.toSManga())
             updateManga.awaitUpdateFromSource(manga, networkManga, manualFetch = false, coverCache)
         }
@@ -559,7 +559,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         var count = 0
         val mangaDex = MdUtil.getEnabledMangaDex(preferences, sourceManager = sourceManager)
             ?: return@coroutineScope
-        val syncFollowStatusInts = preferences.mangadexSyncToLibraryIndexes().get().map { it.toInt() }
+        val syncFollowStatusInts = preferences.mangadexSyncToLibraryIndexes.get().map { it.toInt() }
 
         val size: Int
         mangaDex.fetchAllFollows()
@@ -740,9 +740,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
             prefInterval: Int? = null,
         ) {
             val preferences = Injekt.get<LibraryPreferences>()
-            val interval = prefInterval ?: preferences.autoUpdateInterval().get()
+            val interval = prefInterval ?: preferences.autoUpdateInterval.get()
             if (interval > 0) {
-                val restrictions = preferences.autoUpdateDeviceRestrictions().get()
+                val restrictions = preferences.autoUpdateDeviceRestrictions.get()
                 val networkType = if (DEVICE_NETWORK_NOT_METERED in restrictions) {
                     NetworkType.UNMETERED
                 } else {
