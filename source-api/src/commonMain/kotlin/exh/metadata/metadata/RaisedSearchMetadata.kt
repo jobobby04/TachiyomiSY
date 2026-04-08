@@ -14,6 +14,8 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import kotlinx.serialization.serializer
+
 
 @Serializable
 sealed class RaisedSearchMetadata {
@@ -87,7 +89,7 @@ sealed class RaisedSearchMetadata {
     fun flatten(): FlatMetadata {
         require(mangaId != -1L)
 
-        val extra = raiseFlattenJson.encodeToString(this)
+        val extra = raiseFlattenJson.encodeToString(serializer(), this)
         return FlatMetadata(
             SearchMetadata(
                 mangaId,

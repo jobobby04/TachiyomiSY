@@ -2,7 +2,6 @@ package exh.recs.sources
 
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.network.GET
-import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.model.SManga
@@ -14,10 +13,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.put
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.manga.model.Manga
@@ -69,20 +65,12 @@ abstract class MangaUpdatesPagingSource(manga: Manga) : TrackerRecommendationPag
         val url = endpoint.toHttpUrl()
             .newBuilder()
             .addPathSegments("series/search")
+            .addQueryParameter("search", search)
+            .addQueryParameter("stype", "title")
             .build()
-            .toString()
-
-        val payload = buildJsonObject {
-            put("search", search)
-            put("stype", "title")
-        }
-
-        val body = payload
-            .toString()
-            .toRequestBody("application/json; charset=utf-8".toMediaType())
 
         val data = with(json) {
-            client.newCall(POST(url, body = body))
+            client.newCall(GET(url))
                 .awaitSuccess()
                 .parseAs<JsonObject>()
         }

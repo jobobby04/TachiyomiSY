@@ -183,7 +183,7 @@ class LibraryScreenModel(
                 // SY <--
                 getLibraryItemPreferencesFlow(),
             ) { (searchQuery, categories, favorites), (tracksMap, trackingFilters), /* SY --> */ (groupType, sortingMode)/* <-- SY */, itemPreferences ->
-                val showSystemCategory = favorites.any { it.libraryManga.categories.contains(0) }
+                val showSystemCategory = favorites.any { it.libraryManga.categories.contains(0L) }
                 val filteredFavorites = favorites
                     .applyFilters(tracksMap, trackingFilters, itemPreferences)
                     .let {
@@ -233,7 +233,7 @@ class LibraryScreenModel(
                             data.showSystemCategory,
                             // SY -->
                             groupType,
-                            // SY <--
+                            // <-- SY
                         )
                         .applySort(
                             data.favoritesById,
@@ -274,9 +274,9 @@ class LibraryScreenModel(
             .onEach { (showCategoryTabs, showMangaCount, showMangaContinueButton) ->
                 mutableState.update { state ->
                     state.copy(
-                        showCategoryTabs = showCategoryTabs,
-                        showMangaCount = showMangaCount,
-                        showMangaContinueButton = showMangaContinueButton,
+                        showCategoryTabs = showCategoryTabs as Boolean,
+                        showMangaCount = showMangaCount as Boolean,
+                        showMangaContinueButton = showMangaContinueButton as Boolean,
                     )
                 }
             }
@@ -712,7 +712,7 @@ class LibraryScreenModel(
     suspend fun getNextUnreadChapter(manga: Manga): Chapter? {
         // SY -->
         val mergedManga = getMergedMangaById.await(manga.id).associateBy { it.id }
-        return if (manga.id == MERGED_SOURCE_ID) {
+        return if (manga.source == MERGED_SOURCE_ID) {
             getMergedChaptersByMangaId.await(manga.id, applyScanlatorFilter = true)
         } else {
             getChaptersByMangaId.await(manga.id, applyScanlatorFilter = true)
@@ -1047,6 +1047,8 @@ class LibraryScreenModel(
                             tracks = tracks[mangaId],
                             source = sources[sourceId],
                             loggedInTrackServices = loggedInTrackServices,
+                            searchTags = null,
+                            searchTitles = null,
                         )
                     } else {
                         val tags = getSearchTags.await(mangaId)
@@ -1069,6 +1071,8 @@ class LibraryScreenModel(
                         tracks = tracks[mangaId],
                         source = sources[sourceId],
                         loggedInTrackServices = loggedInTrackServices,
+                        searchTags = null,
+                        searchTitles = null,
                     )
                 }
             }.toList()
@@ -1085,7 +1089,7 @@ class LibraryScreenModel(
         checkGenre: Boolean = true,
         searchTags: List<SearchTag>? = null,
         searchTitles: List<SearchTitle>? = null,
-        loggedInTrackServices: Map<Long, TriState>,
+        loggedInTrackServices: Map<Long, TriState> = emptyMap(),
     ): Boolean {
         val manga = libraryManga.manga
         val sourceIdString = manga.source.takeUnless { it == LocalSource.ID }?.toString()
