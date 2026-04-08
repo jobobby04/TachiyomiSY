@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <!-- For You -->
-    <string name="label_para_voce">Para Você</string>
-
     <!-- Actions -->
     <string name="action_skip_entry">Não migrar</string>
     <string name="action_search_manually">Pesquisar manualmente</string>
@@ -12,8 +8,6 @@
     <string name="action_clean_titles">Limpar títulos</string>
     <string name="action_start_reading">Iniciar leitura</string>
     <string name="action_edit_info">Editar informações</string>
-
-    <!-- resto continua exatamente como já está -->
     <!-- Manga Type -->
     <string name="entry_type_manhwa">Manhwa</string>
     <string name="entry_type_manhua">Manhua</string>
@@ -680,5 +674,6 @@
     <string name="data_saver_stop_exclude">Parar de excluir da economia de dados</string>
     <string name="rec_processing_state">Processando entrada %1$d de %2$d</string>
     <string name="base_url">Url base</string>
->>>>>>> upstream/master
+
+    <string name="label_para_voce">Para Você</string>
 </resources>

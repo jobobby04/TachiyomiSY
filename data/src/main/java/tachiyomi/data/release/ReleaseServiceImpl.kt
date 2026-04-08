@@ -14,10 +14,12 @@ class ReleaseServiceImpl(
 ) : ReleaseService {
 
     override suspend fun latest(repository: String): Release {
-        return networkService.client
-            .newCall(GET("https://api.github.com/repos/$repository/releases/latest"))
-            .awaitSuccess()
-            .parseAs<GithubRelease>(json)
-            .let(releaseMapper)
+        return with(json) {
+            networkService.client
+                .newCall(GET("https://api.github.com/repos/$repository/releases/latest"))
+                .awaitSuccess()
+                .parseAs<GithubRelease>()
+                .let(releaseMapper)
+        }
     }
 }
