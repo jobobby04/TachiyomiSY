@@ -25,6 +25,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
@@ -49,6 +50,7 @@ import okhttp3.Response
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.extension
 import tachiyomi.core.common.util.lang.launchIO
+import tachiyomi.core.common.util.lang.launchNow
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
@@ -119,9 +121,9 @@ class Downloader(
     var isPaused: Boolean = false
 
     init {
-        scope.launch {
-            val chapters = store.restore()
-            addAllToQueue(chapters)
+        launchNow {
+            val chapters = async { store.restore() }
+            addAllToQueue(chapters.await())
         }
     }
 
