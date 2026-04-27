@@ -25,15 +25,15 @@ selectNamesAndSources:
 SELECT source, name
 FROM saved_search;
 
-insert:
-INSERT INTO saved_search (source, name, query, filters_json)
-VALUES (:source, :name, :query, :filtersJson);
+insert {
+    INSERT INTO saved_search (source, name, query, filters_json)
+    VALUES (:source, :name, :query, :filtersJson);
+
+    SELECT last_insert_rowid();
+}
 
 deleteById:
 DELETE FROM saved_search WHERE _id = :id;
 
 deleteAll:
 DELETE FROM saved_search;
-
-selectLastInsertedRowId:
-SELECT last_insert_rowid();

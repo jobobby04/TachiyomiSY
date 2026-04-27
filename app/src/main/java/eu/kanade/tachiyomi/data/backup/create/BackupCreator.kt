@@ -26,7 +26,6 @@ import okio.gzip
 import okio.sink
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.data.DatabaseHandler
 import tachiyomi.domain.backup.service.BackupPreferences
 import tachiyomi.domain.manga.interactor.GetFavorites
 import tachiyomi.domain.manga.interactor.GetMergedManga
@@ -58,7 +57,6 @@ class BackupCreator(
     // SY -->
     private val savedSearchBackupCreator: SavedSearchBackupCreator = SavedSearchBackupCreator(),
     private val getMergedManga: GetMergedManga = Injekt.get(),
-    private val handler: DatabaseHandler = Injekt.get(),
     // SY <--
 ) {
 

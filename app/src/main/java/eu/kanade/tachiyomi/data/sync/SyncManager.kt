@@ -2,11 +2,11 @@ package eu.kanade.tachiyomi.data.sync
 
 import android.content.Context
 import android.net.Uri
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.create.BackupCreator
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.data.backup.models.Backup
-import eu.kanade.tachiyomi.data.backup.models.BackupCategory
 import eu.kanade.tachiyomi.data.backup.models.BackupChapter
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.restore.BackupRestoreJob
@@ -21,7 +21,7 @@ import logcat.LogPriority
 import logcat.logcat
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.Chapters
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
 import tachiyomi.data.manga.MangaMapper.mapManga
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.manga.model.Manga
@@ -40,7 +40,7 @@ import kotlin.system.measureTimeMillis
  */
 class SyncManager(
     private val context: Context,
-    private val handler: DatabaseHandler = Injekt.get(),
+    private val database: Database = Injekt.get(),
     private val syncPreferences: SyncPreferences = Injekt.get(),
     private var json: Json = Json {
         encodeDefaults = true
@@ -71,10 +71,10 @@ class SyncManager(
      */
     suspend fun syncData() {
         // Reset isSyncing in case it was left over or failed syncing during restore.
-        handler.await(inTransaction = true) {
-            mangasQueries.resetIsSyncing()
-            chaptersQueries.resetIsSyncing()
-            categoriesQueries.resetIsSyncing()
+        database.transaction {
+            database.mangasQueries.resetIsSyncing()
+            database.chaptersQueries.resetIsSyncing()
+            database.categoriesQueries.resetIsSyncing()
         }
 
         val syncOptions = syncPreferences.getSyncSettings()
@@ -213,9 +213,9 @@ class SyncManager(
                 it.uid !in mergedUids && it.name !in mergedNames
             }
             if (categoriesToDelete.isNotEmpty()) {
-                handler.await(inTransaction = true) {
+                database.transaction {
                     categoriesToDelete.forEach {
-                        categoriesQueries.delete(it.id)
+                        database.categoriesQueries.delete(it.id)
                     }
                 }
             }
@@ -266,15 +266,19 @@ class SyncManager(
      * @return a list of all manga stored in the database
      */
     private suspend fun getAllMangaFromDB(): List<Manga> {
-        return handler.awaitList { mangasQueries.getAllManga(::mapManga) }
+        return database.mangasQueries
+            .getAllManga(::mapManga)
+            .awaitAsList()
     }
 
     private suspend fun getAllMangaThatNeedsSync(): List<Manga> {
-        return handler.awaitList { mangasQueries.getMangasWithFavoriteTimestamp(::mapManga) }
+        return database.mangasQueries
+            .getMangasWithFavoriteTimestamp(::mapManga)
+            .awaitAsList()
     }
 
     private suspend fun isMangaDifferent(localManga: Manga, remoteManga: BackupManga): Boolean {
-        val localChapters = handler.await { chaptersQueries.getChaptersByMangaId(localManga.id, 0).executeAsList() }
+        val localChapters = database.chaptersQueries.getChaptersByMangaId(localManga.id, 0).awaitAsList()
         val localCategories = getCategories.await(localManga.id).map { it.order }
 
         if (areChaptersDifferent(localChapters, remoteManga.chapters)) {

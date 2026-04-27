@@ -77,9 +77,12 @@ JOIN mangas_categories MC
 ON C._id = MC.category_id
 WHERE MC.manga_id = :mangaId;
 
-insert:
-INSERT INTO categories(name, sort, flags, manga_order, version, uid, last_modified_at)
-VALUES (:name, :order, :flags, "", :version, :uid, :last_modified_at);
+insert {
+    INSERT INTO categories(name, sort, flags, manga_order, version, uid, last_modified_at)
+    VALUES (:name, :order, :flags, "", :version, :uid, :last_modified_at);
+
+    SELECT last_insert_rowid();
+}
 
 delete:
 DELETE FROM categories
@@ -99,9 +102,6 @@ WHERE _id = :categoryId;
 updateAllFlags:
 UPDATE categories SET
 flags = coalesce(?, flags);
-
-selectLastInsertedRowId:
-SELECT last_insert_rowid();
 
 resetIsSyncing:
 UPDATE categories

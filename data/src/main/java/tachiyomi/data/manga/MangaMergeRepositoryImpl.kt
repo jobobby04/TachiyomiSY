@@ -1,40 +1,56 @@
 package tachiyomi.data.manga
 
+import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOne
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
+import tachiyomi.data.subscribeToList
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
 import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.domain.manga.repository.MangaMergeRepository
 
 class MangaMergeRepositoryImpl(
-    private val handler: DatabaseHandler,
+    private val database: Database,
 ) : MangaMergeRepository {
 
     override suspend fun getMergedManga(): List<Manga> {
-        return handler.awaitList { mergedQueries.selectAllMergedMangas(MangaMapper::mapManga) }
+        return database.mergedQueries
+            .selectAllMergedMangas(MangaMapper::mapManga)
+            .awaitAsList()
     }
 
     override suspend fun subscribeMergedManga(): Flow<List<Manga>> {
-        return handler.subscribeToList { mergedQueries.selectAllMergedMangas(MangaMapper::mapManga) }
+        return database.mergedQueries
+            .selectAllMergedMangas(MangaMapper::mapManga)
+            .subscribeToList()
     }
 
     override suspend fun getMergedMangaById(id: Long): List<Manga> {
-        return handler.awaitList { mergedQueries.selectMergedMangasById(id, MangaMapper::mapManga) }
+        return database.mergedQueries
+            .selectMergedMangasById(id, MangaMapper::mapManga)
+            .awaitAsList()
     }
 
     override suspend fun subscribeMergedMangaById(id: Long): Flow<List<Manga>> {
-        return handler.subscribeToList { mergedQueries.selectMergedMangasById(id, MangaMapper::mapManga) }
+        return database.mergedQueries
+            .selectMergedMangasById(id, MangaMapper::mapManga)
+            .subscribeToList()
     }
 
     override suspend fun getReferencesById(id: Long): List<MergedMangaReference> {
-        return handler.awaitList { mergedQueries.selectByMergeId(id, MergedMangaMapper::map) }
+        return database.mergedQueries
+            .selectByMergeId(id, MergedMangaMapper::map)
+            .awaitAsList()
     }
 
     override suspend fun subscribeReferencesById(id: Long): Flow<List<MergedMangaReference>> {
-        return handler.subscribeToList { mergedQueries.selectByMergeId(id, MergedMangaMapper::map) }
+        return database.mergedQueries
+            .selectByMergeId(id, MergedMangaMapper::map)
+            .subscribeToList()
     }
 
     override suspend fun updateSettings(update: MergeMangaSettingsUpdate): Boolean {
@@ -58,9 +74,9 @@ class MangaMergeRepositoryImpl(
     }
 
     private suspend fun partialUpdate(vararg values: MergeMangaSettingsUpdate) {
-        handler.await(inTransaction = true) {
+        database.transaction {
             values.forEach { value ->
-                mergedQueries.updateSettingsById(
+                database.mergedQueries.updateSettingsById(
                     id = value.id,
                     getChapterUpdates = value.getChapterUpdates,
                     downloadChapters = value.downloadChapters,
@@ -73,8 +89,8 @@ class MangaMergeRepositoryImpl(
     }
 
     override suspend fun insert(reference: MergedMangaReference): Long? {
-        return handler.awaitOneOrNullExecutable {
-            mergedQueries.insert(
+        return database.mergedQueries
+            .insert(
                 infoManga = reference.isInfoManga,
                 getChapterUpdates = reference.getChapterUpdates,
                 chapterSortMode = reference.chapterSortMode.toLong(),
@@ -86,14 +102,13 @@ class MangaMergeRepositoryImpl(
                 mangaUrl = reference.mangaUrl,
                 mangaSource = reference.mangaSourceId,
             )
-            mergedQueries.selectLastInsertedRowId()
-        }
+            .awaitAsOneOrNull()
     }
 
     override suspend fun insertAll(references: List<MergedMangaReference>) {
-        handler.await(true) {
+        database.transaction {
             references.forEach { reference ->
-                mergedQueries.insert(
+                database.mergedQueries.insert(
                     infoManga = reference.isInfoManga,
                     getChapterUpdates = reference.getChapterUpdates,
                     chapterSortMode = reference.chapterSortMode.toLong(),
@@ -104,24 +119,24 @@ class MangaMergeRepositoryImpl(
                     mangaId = reference.mangaId,
                     mangaUrl = reference.mangaUrl,
                     mangaSource = reference.mangaSourceId,
-                )
+                ).awaitAsOne()
             }
         }
     }
 
     override suspend fun deleteById(id: Long) {
-        handler.await {
-            mergedQueries.deleteById(id)
-        }
+        database.mergedQueries
+            .deleteById(id)
     }
 
     override suspend fun deleteByMergeId(mergeId: Long) {
-        handler.await {
-            mergedQueries.deleteByMergeId(mergeId)
-        }
+        database.mergedQueries
+            .deleteByMergeId(mergeId)
     }
 
     override suspend fun getMergeMangaForDownloading(mergeId: Long): List<Manga> {
-        return handler.awaitList { mergedQueries.selectMergedMangasForDownloadingById(mergeId, MangaMapper::mapManga) }
+        return database.mergedQueries
+            .selectMergedMangasForDownloadingById(mergeId, MangaMapper::mapManga)
+            .awaitAsList()
     }
 }

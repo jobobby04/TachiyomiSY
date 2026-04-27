@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.core.content.ContextCompat
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteConfiguration
@@ -36,9 +37,7 @@ import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.serialization.XML
 import tachiyomi.core.common.storage.AndroidStorageFolderProvider
 import tachiyomi.core.common.storage.UniFileTempFileManager
-import tachiyomi.data.AndroidDatabaseHandler
 import tachiyomi.data.Database
-import tachiyomi.data.DatabaseHandler
 import tachiyomi.data.DateColumnAdapter
 import tachiyomi.data.History
 import tachiyomi.data.Mangas
@@ -76,11 +75,11 @@ class AppModule(val app: Application) : InjektModule {
                     System.loadLibrary("sqlcipher")
 
                     return@synchronized AndroidSqliteDriver(
-                        schema = Database.Schema,
+                        schema = Database.Schema.synchronous(),
                         context = app,
                         name = CbzCrypto.DATABASE_NAME,
                         factory = SupportOpenHelperFactory(CbzCrypto.getDecryptedPasswordSql(), null, false, 25),
-                        callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
+                        callback = object : AndroidSqliteDriver.Callback(Database.Schema.synchronous()) {
                             override fun onOpen(db: SupportSQLiteDatabase) {
                                 super.onOpen(db)
                                 setPragma(db, "foreign_keys = ON")
@@ -120,7 +119,6 @@ class AppModule(val app: Application) : InjektModule {
                 ),
             )
         }
-        addSingletonFactory<DatabaseHandler> { AndroidDatabaseHandler(get(), get()) }
 
         addSingletonFactory {
             Json {
