@@ -111,7 +111,7 @@ abstract class SyncService(
         }
 
         fun mangaCompositeKey(manga: BackupManga): String {
-            return "${manga.source}|${manga.url}|${manga.title.lowercase().trim()}|${manga.author?.lowercase()?.trim()}"
+            return "${manga.source}|${manga.url}"
         }
 
         // Create maps using composite keys
@@ -226,7 +226,7 @@ abstract class SyncService(
         }
 
         fun chapterCompositeKey(chapter: BackupChapter): String {
-            return "${chapter.url}|${chapter.name}|${chapter.chapterNumber}"
+            return chapter.url
         }
 
         val localChapterMap = localChapters.associateBy { chapterCompositeKey(it) }
