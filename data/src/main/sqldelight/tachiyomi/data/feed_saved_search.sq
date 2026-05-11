@@ -20,12 +20,14 @@ SELECT count(*) FROM feed_saved_search WHERE global = 1;
 selectBySource:
 SELECT * FROM feed_saved_search WHERE source = :sourceId AND global = 0;
 
-insert {
-    INSERT INTO feed_saved_search (source, saved_search, global)
-    VALUES (:sourceId, :savedSearch, :global);
+insertReturningId:
+INSERT INTO feed_saved_search (source, saved_search, global)
+VALUES (:sourceId, :savedSearch, :global)
+RETURNING _id;
 
-    SELECT last_insert_rowid();
-}
+insert:
+INSERT INTO feed_saved_search (source, saved_search, global)
+VALUES (:sourceId, :savedSearch, :global);
 
 deleteById:
 DELETE FROM feed_saved_search WHERE _id = :id;

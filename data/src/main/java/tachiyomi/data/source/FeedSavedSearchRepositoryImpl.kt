@@ -67,7 +67,7 @@ class FeedSavedSearchRepositoryImpl(
     }
 
     override suspend fun insert(feedSavedSearch: FeedSavedSearch): Long {
-        return database.feed_saved_searchQueries.insert(
+        return database.feed_saved_searchQueries.insertReturningId(
             feedSavedSearch.source,
             feedSavedSearch.savedSearch,
             feedSavedSearch.global,
@@ -81,7 +81,7 @@ class FeedSavedSearchRepositoryImpl(
                     it.source,
                     it.savedSearch,
                     it.global,
-                ).awaitAsOne()
+                )
             }
         }
     }

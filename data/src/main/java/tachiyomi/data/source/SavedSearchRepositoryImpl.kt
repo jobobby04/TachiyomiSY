@@ -37,7 +37,7 @@ class SavedSearchRepositoryImpl(
     }
 
     override suspend fun insert(savedSearch: SavedSearch): Long {
-        return database.saved_searchQueries.insert(
+        return database.saved_searchQueries.insertReturningId(
             savedSearch.source,
             savedSearch.name,
             savedSearch.query,
@@ -53,7 +53,7 @@ class SavedSearchRepositoryImpl(
                     it.name,
                     it.query,
                     it.filtersJson,
-                ).awaitAsOneOrNull()
+                )
             }
         }
     }

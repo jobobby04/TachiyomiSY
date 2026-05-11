@@ -1,7 +1,6 @@
 package tachiyomi.data.manga
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
-import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
@@ -90,7 +89,7 @@ class MangaMergeRepositoryImpl(
 
     override suspend fun insert(reference: MergedMangaReference): Long? {
         return database.mergedQueries
-            .insert(
+            .insertReturningId(
                 infoManga = reference.isInfoManga,
                 getChapterUpdates = reference.getChapterUpdates,
                 chapterSortMode = reference.chapterSortMode.toLong(),
@@ -119,7 +118,7 @@ class MangaMergeRepositoryImpl(
                     mangaId = reference.mangaId,
                     mangaUrl = reference.mangaUrl,
                     mangaSource = reference.mangaSourceId,
-                ).awaitAsOne()
+                )
             }
         }
     }

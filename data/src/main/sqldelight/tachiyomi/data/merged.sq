@@ -75,34 +75,58 @@ FROM (
 JOIN chapters
 ON chapters.manga_id = M.manga_id;
 
-insert {
-    INSERT INTO merged(
-        info_manga,
-        get_chapter_updates,
-        chapter_sort_mode,
-        chapter_priority,
-        download_chapters,
-        merge_id,
-        merge_url,
-        manga_id,
-        manga_url,
-        manga_source
-    )
-    VALUES (
-        :infoManga,
-        :getChapterUpdates,
-        :chapterSortMode,
-        :chapterPriority,
-        :downloadChapters,
-        :mergeId,
-        :mergeUrl,
-        :mangaId,
-        :mangaUrl,
-        :mangaSource
-    );
+insertReturningId:
+INSERT INTO merged(
+    info_manga,
+    get_chapter_updates,
+    chapter_sort_mode,
+    chapter_priority,
+    download_chapters,
+    merge_id,
+    merge_url,
+    manga_id,
+    manga_url,
+    manga_source
+)
+VALUES (
+    :infoManga,
+    :getChapterUpdates,
+    :chapterSortMode,
+    :chapterPriority,
+    :downloadChapters,
+    :mergeId,
+    :mergeUrl,
+    :mangaId,
+    :mangaUrl,
+    :mangaSource
+)
+RETURNING _id;
 
-    SELECT last_insert_rowid();
-}
+insert:
+INSERT INTO merged(
+    info_manga,
+    get_chapter_updates,
+    chapter_sort_mode,
+    chapter_priority,
+    download_chapters,
+    merge_id,
+    merge_url,
+    manga_id,
+    manga_url,
+    manga_source
+)
+VALUES (
+    :infoManga,
+    :getChapterUpdates,
+    :chapterSortMode,
+    :chapterPriority,
+    :downloadChapters,
+    :mergeId,
+    :mergeUrl,
+    :mangaId,
+    :mangaUrl,
+    :mangaSource
+);
 
 updateSettingsById:
 UPDATE merged
