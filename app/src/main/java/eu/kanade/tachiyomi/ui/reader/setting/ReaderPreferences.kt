@@ -34,6 +34,16 @@ class ReaderPreferences(
 
     val showPageNumber: Preference<Boolean> = preferenceStore.getBoolean("pref_show_page_number_key", true)
 
+    val verticalNavigatorForLongStrip: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_webtoon_vertical_navigator",
+        true,
+    )
+
+    val verticalNavigatorOnLeft: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_webtoon_vertical_navigator_on_left",
+        false,
+    )
+
     val showReadingMode: Preference<Boolean> = preferenceStore.getBoolean("pref_show_reading_mode", true)
 
     val fullscreen: Preference<Boolean> = preferenceStore.getBoolean("fullscreen", true)
@@ -202,12 +212,6 @@ class ReaderPreferences(
     val continuousVerticalTappingByPage: Preference<Boolean> = preferenceStore.getBoolean("continuous_vertical_tapping_by_page", false)
 
     val cropBordersContinuousVertical: Preference<Boolean> = preferenceStore.getBoolean("crop_borders_continues_vertical", false)
-
-    val forceHorizontalSeekbar: Preference<Boolean> = preferenceStore.getBoolean("pref_force_horz_seekbar", false)
-
-    val landscapeVerticalSeekbar: Preference<Boolean> = preferenceStore.getBoolean("pref_show_vert_seekbar_landscape", false)
-
-    val leftVerticalSeekbar: Preference<Boolean> = preferenceStore.getBoolean("pref_left_handed_vertical_seekbar", false)
 
     val readerBottomButtons: Preference<Set<String>> = preferenceStore.getStringSet("reader_bottom_buttons", ReaderBottomButton.BUTTONS_DEFAULTS)
 

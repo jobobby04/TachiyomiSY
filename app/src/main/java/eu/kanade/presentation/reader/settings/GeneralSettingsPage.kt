@@ -62,25 +62,18 @@ internal fun ColumnScope.GeneralPage(screenModel: ReaderSettingsScreenModel) {
         pref = screenModel.preferences.showPageNumber,
     )
 
-    // SY -->
-    val forceHorizontalSeekbar by screenModel.preferences.forceHorizontalSeekbar.collectAsState()
+    val verticalNavigatorForLongStrip by screenModel.preferences.verticalNavigatorForLongStrip.collectAsState()
     CheckboxItem(
-        label = stringResource(SYMR.strings.pref_force_horz_seekbar),
-        pref = screenModel.preferences.forceHorizontalSeekbar,
+        label = stringResource(MR.strings.pref_webtoon_vertical_navigator),
+        pref = screenModel.preferences.verticalNavigatorForLongStrip,
     )
 
-    if (!forceHorizontalSeekbar) {
+    if (verticalNavigatorForLongStrip) {
         CheckboxItem(
-            label = stringResource(SYMR.strings.pref_show_vert_seekbar_landscape),
-            pref = screenModel.preferences.landscapeVerticalSeekbar,
-        )
-
-        CheckboxItem(
-            label = stringResource(SYMR.strings.pref_left_handed_vertical_seekbar),
-            pref = screenModel.preferences.leftVerticalSeekbar,
+            label = stringResource(MR.strings.pref_webtoon_vertical_navigator_on_left),
+            pref = screenModel.preferences.verticalNavigatorOnLeft,
         )
     }
-    // SY <--
 
     CheckboxItem(
         label = stringResource(MR.strings.pref_fullscreen),
