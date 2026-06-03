@@ -113,7 +113,7 @@ private class SyncSettingsSelectorModel(
                 tracking = syncSettings.tracking,
                 history = syncSettings.history,
                 appSettings = syncSettings.appSettings,
-                extensionRepoSettings = syncSettings.extensionRepoSettings,
+                extensionStores = syncSettings.extensionStores,
                 sourceSettings = syncSettings.sourceSettings,
                 privateSettings = syncSettings.privateSettings,
 
@@ -133,7 +133,7 @@ private class SyncSettingsSelectorModel(
                 tracking = backupOptions.tracking,
                 history = backupOptions.history,
                 appSettings = backupOptions.appSettings,
-                extensionRepoSettings = backupOptions.extensionRepoSettings,
+                extensionStores = backupOptions.extensionStores,
                 sourceSettings = backupOptions.sourceSettings,
                 privateSettings = backupOptions.privateSettings,
 

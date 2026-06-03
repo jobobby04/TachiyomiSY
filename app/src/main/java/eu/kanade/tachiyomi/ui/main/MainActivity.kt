@@ -61,7 +61,7 @@ import eu.kanade.presentation.components.IncognitoModeBannerBackgroundColor
 import eu.kanade.presentation.components.IndexingBannerBackgroundColor
 import eu.kanade.presentation.more.settings.screen.ConfigureExhDialog
 import eu.kanade.presentation.more.settings.screen.about.WhatsNewDialog
-import eu.kanade.presentation.more.settings.screen.browse.ExtensionReposScreen
+import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.presentation.more.settings.screen.data.RestoreBackupScreen
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.DefaultNavigatorScreenTransition
@@ -506,11 +506,11 @@ class MainActivity : BaseActivity() {
                     navigator.popUntilRoot()
                     navigator.push(RestoreBackupScreen(intent.data.toString()))
                 }
-                // Deep link to add extension repo
-                else if (intent.scheme == "tachiyomi" && intent.data?.host == "add-repo") {
+                // Deep link to add extension store
+                else if (intent.isAddExtensionStoreIntent()) {
                     intent.data?.getQueryParameter("url")?.let { repoUrl ->
                         navigator.popUntilRoot()
-                        navigator.push(ExtensionReposScreen(repoUrl))
+                        navigator.push(ExtensionStoresScreen(repoUrl))
                     }
                 }
                 null
@@ -524,6 +524,11 @@ class MainActivity : BaseActivity() {
 
         ready = true
         return true
+    }
+
+    private fun Intent.isAddExtensionStoreIntent(): Boolean {
+        return (scheme == "tachiyomi" && data?.host == "add-repo") ||
+            (scheme == "mihon" && data?.host == "extension-store")
     }
 
     // SY -->
