@@ -12,9 +12,6 @@ import eu.kanade.presentation.browse.FeedItemUI
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.util.system.LocaleHelper
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -132,9 +129,9 @@ open class FeedScreenModel(
                     dialog = Dialog.AddFeedSearch(
                         source,
                         (
-                            (if (source.supportsLatest) persistentListOf(null) else persistentListOf()) +
+                            (if (source.supportsLatest) listOf(null) else emptyList()) +
                                 getSourceSavedSearches(source.id)
-                            ).toImmutableList(),
+                            ),
                     ),
                 )
             }
@@ -155,7 +152,7 @@ open class FeedScreenModel(
         return countFeedSavedSearchGlobal.await() > 10
     }
 
-    fun getEnabledSources(): ImmutableList<CatalogueSource> {
+    fun getEnabledSources(): List<CatalogueSource> {
         val languages = sourcePreferences.enabledLanguages.get()
         val pinnedSources = sourcePreferences.pinnedSources.get()
         val disabledSources = sourcePreferences.disabledSources.get()
@@ -166,11 +163,11 @@ open class FeedScreenModel(
             .filterNot { it.id in disabledSources }
             .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { "(${it.lang}) ${it.name}" })
 
-        return list.sortedBy { it.id.toString() !in pinnedSources }.toImmutableList()
+        return list.sortedBy { it.id.toString() !in pinnedSources }
     }
 
-    suspend fun getSourceSavedSearches(sourceId: Long): ImmutableList<SavedSearch> {
-        return getSavedSearchBySourceId.await(sourceId).toImmutableList()
+    suspend fun getSourceSavedSearches(sourceId: Long): List<SavedSearch> {
+        return getSavedSearchBySourceId.await(sourceId)
     }
 
     fun createFeed(source: CatalogueSource, savedSearch: SavedSearch?) {
@@ -299,8 +296,8 @@ open class FeedScreenModel(
     }
 
     sealed class Dialog {
-        data class AddFeed(val options: ImmutableList<CatalogueSource>) : Dialog()
-        data class AddFeedSearch(val source: CatalogueSource, val options: ImmutableList<SavedSearch?>) : Dialog()
+        data class AddFeed(val options: List<CatalogueSource>) : Dialog()
+        data class AddFeedSearch(val source: CatalogueSource, val options: List<SavedSearch?>) : Dialog()
         data class DeleteFeed(val feed: FeedSavedSearch) : Dialog()
     }
 

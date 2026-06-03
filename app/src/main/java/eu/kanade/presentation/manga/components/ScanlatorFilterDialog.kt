@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import kotlinx.collections.immutable.ImmutableSet
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.components.material.padding
@@ -35,8 +34,8 @@ import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun ScanlatorFilterDialog(
-    availableScanlators: ImmutableSet<String>,
-    excludedScanlators: ImmutableSet<String>,
+    availableScanlators: Set<String>,
+    excludedScanlators: Set<String>,
     onDismissRequest: () -> Unit,
     onConfirm: (Set<String>) -> Unit,
 ) {

@@ -16,7 +16,6 @@ import eu.kanade.presentation.more.settings.screen.browse.components.ExtensionRe
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.flow.collectLatest
 import tachiyomi.presentation.core.screens.LoadingScreen
 
@@ -58,7 +57,7 @@ class ExtensionReposScreen(
                 ExtensionRepoCreateDialog(
                     onDismissRequest = screenModel::dismissDialog,
                     onCreate = { screenModel.createRepo(it) },
-                    repoUrls = successState.repos.map { it.baseUrl }.toImmutableSet(),
+                    repoUrls = successState.repos.map { it.baseUrl }.toSet(),
                 )
             }
             is RepoDialog.Delete -> {

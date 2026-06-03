@@ -18,7 +18,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
-import kotlinx.collections.immutable.ImmutableSet
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -26,7 +25,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 @Composable
 fun ReaderBottomBar(
     // SY -->
-    enabledButtons: ImmutableSet<String>,
+    enabledButtons: Set<String>,
     // SY <--
     readingMode: ReadingMode,
     onClickReadingMode: () -> Unit,

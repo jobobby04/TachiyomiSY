@@ -8,8 +8,6 @@ import eu.kanade.domain.source.interactor.CreateSourceCategory
 import eu.kanade.domain.source.interactor.DeleteSourceCategory
 import eu.kanade.domain.source.interactor.GetSourceCategories
 import eu.kanade.domain.source.interactor.RenameSourceCategory
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -36,7 +34,7 @@ class SourceCategoryScreenModel(
                 .collectLatest { categories ->
                     mutableState.update {
                         SourceCategoryScreenState.Success(
-                            categories = categories.toImmutableList(),
+                            categories = categories,
                         )
                     }
                 }
@@ -121,7 +119,7 @@ sealed class SourceCategoryScreenState {
 
     @Immutable
     data class Success(
-        val categories: ImmutableList<String>,
+        val categories: List<String>,
         val dialog: SourceCategoryDialog? = null,
     ) : SourceCategoryScreenState() {
 

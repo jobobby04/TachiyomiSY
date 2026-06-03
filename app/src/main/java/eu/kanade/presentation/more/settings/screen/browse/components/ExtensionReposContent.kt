@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import eu.kanade.tachiyomi.util.system.copyToClipboard
-import kotlinx.collections.immutable.ImmutableSet
 import mihon.domain.extensionrepo.model.ExtensionRepo
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
@@ -30,7 +29,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun ExtensionReposContent(
-    repos: ImmutableSet<ExtensionRepo>,
+    repos: Set<ExtensionRepo>,
     lazyListState: LazyListState,
     paddingValues: PaddingValues,
     onOpenWebsite: (ExtensionRepo) -> Unit,

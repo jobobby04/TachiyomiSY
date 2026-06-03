@@ -16,9 +16,6 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.source.service.SourcePreferences.DataSaver
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.browse.SourceUiModel
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.catch
@@ -127,12 +124,10 @@ class SourcesScreenModel(
                                 SourceUiModel.Item(source)
                             }.toTypedArray(),
                         )
-                    }
-                    .toImmutableList(),
+                    },
                 // SY -->
                 categories = categories
-                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it })
-                    .toImmutableList(),
+                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it }),
                 showPin = showPin,
                 showLatest = showLatest,
                 // SY <--
@@ -183,9 +178,9 @@ class SourcesScreenModel(
     data class State(
         val dialog: Dialog? = null,
         val isLoading: Boolean = true,
-        val items: ImmutableList<SourceUiModel> = persistentListOf(),
+        val items: List<SourceUiModel> = emptyList(),
         // SY -->
-        val categories: ImmutableList<String> = persistentListOf(),
+        val categories: List<String> = emptyList(),
         val showPin: Boolean = true,
         val showLatest: Boolean = false,
         val dataSaverEnabled: Boolean = false,

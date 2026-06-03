@@ -8,11 +8,6 @@ import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.source.CatalogueSource
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.StaticResultPagingSource
-import kotlinx.collections.immutable.PersistentMap
-import kotlinx.collections.immutable.mutate
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -66,8 +61,7 @@ open class RecommendsScreenModel(
 
             updateItems(
                 recommendationSources
-                    .associateWith { RecommendationItemResult.Loading }
-                    .toPersistentMap(),
+                    .associateWith { RecommendationItemResult.Loading },
             )
 
             recommendationSources.map { recSource ->
@@ -116,34 +110,31 @@ open class RecommendsScreenModel(
         }
     }
 
-    private fun updateItems(items: PersistentMap<RecommendationPagingSource, RecommendationItemResult>) {
+    private fun updateItems(items: Map<RecommendationPagingSource, RecommendationItemResult>) {
         mutableState.update {
             it.copy(
                 items = items
-                    .toSortedMap(sortComparator(items))
-                    .toPersistentMap(),
+                    .toSortedMap(sortComparator(items)),
             )
         }
     }
 
     private fun updateItem(source: RecommendationPagingSource, result: RecommendationItemResult) {
         synchronized(state.value.items) {
-            val newItems = state.value.items.mutate {
-                it[source] = result
-            }
-            updateItems(newItems)
+            val map = state.value.items.toMutableMap()
+            map[source] = result
+            updateItems(map.toMap())
         }
     }
 
     @Immutable
     data class State(
         val title: String? = null,
-        val items: PersistentMap<RecommendationPagingSource, RecommendationItemResult> = persistentMapOf(),
+        val items: Map<RecommendationPagingSource, RecommendationItemResult> = emptyMap(),
     ) {
         val progress: Int = items.count { it.value !is RecommendationItemResult.Loading }
         val total: Int = items.size
         val filteredItems = items.filter { (_, result) -> result.isVisible(false) }
-            .toImmutableMap()
     }
 }
 

@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.DialogProperties
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
@@ -88,7 +87,7 @@ fun SavedSearchDeleteDialog(
 @Composable
 fun SavedSearchCreateDialog(
     onDismissRequest: () -> Unit,
-    currentSavedSearches: ImmutableList<String>,
+    currentSavedSearches: List<String>,
     saveSearch: (String) -> Unit,
 ) {
     var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {

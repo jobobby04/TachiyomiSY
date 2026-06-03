@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.KeyboardType
-import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.coroutines.delay
 import mihon.domain.extensionrepo.model.ExtensionRepo
 import tachiyomi.i18n.MR
@@ -28,7 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 fun ExtensionRepoCreateDialog(
     onDismissRequest: () -> Unit,
     onCreate: (String) -> Unit,
-    repoUrls: ImmutableSet<String>,
+    repoUrls: Set<String>,
 ) {
     var name by remember { mutableStateOf("") }
 

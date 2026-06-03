@@ -27,7 +27,6 @@ import eu.kanade.tachiyomi.ui.browse.migration.sources.migrateSourceTab
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.browse.source.sourcesTab
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
@@ -76,20 +75,20 @@ data object BrowseTab : Tab {
 
         // SY -->
         val tabs = if (hideFeedTab) {
-            persistentListOf(
+            listOf(
                 sourcesTab(),
                 extensionsTab(extensionsScreenModel),
                 migrateSourceTab(),
             )
         } else if (feedTabInFront) {
-            persistentListOf(
+            listOf(
                 feedTab(),
                 sourcesTab(),
                 extensionsTab(extensionsScreenModel),
                 migrateSourceTab(),
             )
         } else {
-            persistentListOf(
+            listOf(
                 sourcesTab(),
                 feedTab(),
                 extensionsTab(extensionsScreenModel),

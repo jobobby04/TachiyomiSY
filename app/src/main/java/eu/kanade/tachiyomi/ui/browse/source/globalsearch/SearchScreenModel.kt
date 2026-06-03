@@ -9,11 +9,6 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.CatalogueSource
-import kotlinx.collections.immutable.PersistentMap
-import kotlinx.collections.immutable.mutate
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
@@ -147,14 +142,12 @@ abstract class SearchScreenModel(
             val existingResults = state.value.items
             updateItems(
                 sources
-                    .associateWith { existingResults[it] ?: SearchItemResult.Loading }
-                    .toPersistentMap(),
+                    .associateWith { existingResults[it] ?: SearchItemResult.Loading },
             )
         } else {
             updateItems(
                 sources
-                    .associateWith { SearchItemResult.Loading }
-                    .toPersistentMap(),
+                    .associateWith { SearchItemResult.Loading },
             )
         }
 
@@ -189,21 +182,17 @@ abstract class SearchScreenModel(
         }
     }
 
-    private fun updateItems(items: PersistentMap<CatalogueSource, SearchItemResult>) {
+    private fun updateItems(items: Map<CatalogueSource, SearchItemResult>) {
         mutableState.update {
             it.copy(
                 items = items
-                    .toSortedMap(sortComparator(items))
-                    .toPersistentMap(),
+                    .toSortedMap(sortComparator(items)),
             )
         }
     }
 
     private fun updateItem(source: CatalogueSource, result: SearchItemResult) {
-        val newItems = state.value.items.mutate {
-            it[source] = result
-        }
-        updateItems(newItems)
+        updateItems(state.value.items + (source to result))
     }
 
     fun setMigrateDialog(currentId: Long, target: Manga) {
@@ -223,13 +212,12 @@ abstract class SearchScreenModel(
         val searchQuery: String? = null,
         val sourceFilter: SourceFilter = SourceFilter.PinnedOnly,
         val onlyShowHasResults: Boolean = false,
-        val items: PersistentMap<CatalogueSource, SearchItemResult> = persistentMapOf(),
+        val items: Map<CatalogueSource, SearchItemResult> = mapOf(),
         val dialog: Dialog? = null,
     ) {
         val progress: Int = items.count { it.value !is SearchItemResult.Loading }
         val total: Int = items.size
         val filteredItems = items.filter { (_, result) -> result.isVisible(onlyShowHasResults) }
-            .toImmutableMap()
     }
 
     sealed interface Dialog {

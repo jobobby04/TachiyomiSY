@@ -34,7 +34,6 @@ import eu.kanade.presentation.reader.components.ChapterNavigator
 import eu.kanade.presentation.reader.components.ChapterNavigatorType
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
-import kotlinx.collections.immutable.ImmutableSet
 import tachiyomi.presentation.core.components.material.padding
 
 private val readerBarsSlideAnimationSpec = tween<IntOffset>(200)
@@ -84,7 +83,7 @@ fun ReaderAppBars(
     onClickBoostPage: () -> Unit,
     onClickBoostPageHelp: () -> Unit,
     currentPageText: String,
-    enabledButtons: ImmutableSet<String>,
+    enabledButtons: Set<String>,
     currentReadingMode: ReadingMode,
     dualPageSplitEnabled: Boolean,
     doublePages: Boolean,

@@ -6,8 +6,6 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -36,8 +34,7 @@ class BiometricTimesScreenModel(
                         BiometricTimesScreenState.Success(
                             timeRanges = times.toList()
                                 .mapNotNull(TimeRange::fromPreferenceString)
-                                .map { TimeRangeItem(it, it.getFormattedString(context)) }
-                                .toImmutableList(),
+                                .map { TimeRangeItem(it, it.getFormattedString(context)) },
                         )
                     }
                 }
@@ -122,7 +119,7 @@ sealed class BiometricTimesScreenState {
 
     @Immutable
     data class Success(
-        val timeRanges: ImmutableList<TimeRangeItem>,
+        val timeRanges: List<TimeRangeItem>,
         val dialog: BiometricTimesDialog? = null,
     ) : BiometricTimesScreenState() {
 

@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.data.backup.create
 
 import dev.icerock.moko.resources.StringResource
-import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 
@@ -43,7 +42,7 @@ data class BackupOptions(
         libraryEntries || categories || appSettings || extensionRepoSettings || sourceSettings || savedSearches
 
     companion object {
-        val libraryOptions = persistentListOf(
+        val libraryOptions = listOf(
             Entry(
                 label = MR.strings.manga,
                 getter = BackupOptions::libraryEntries,
@@ -93,7 +92,7 @@ data class BackupOptions(
             // SY <--
         )
 
-        val settingsOptions = persistentListOf(
+        val settingsOptions = listOf(
             Entry(
                 label = MR.strings.app_settings,
                 getter = BackupOptions::appSettings,
