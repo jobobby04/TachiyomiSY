@@ -51,6 +51,11 @@ abstract class RecommendationPagingSource(
                 add(MangaUpdatesCommunityPagingSource(manga))
                 add(MangaUpdatesSimilarPagingSource(manga))
                 add(MyAnimeListPagingSource(manga))
+                // SY -->
+                add(KitsuPagingSource(manga))
+                add(ShikimoriPagingSource(manga))
+                add(BangumiPagingSource(manga))
+                // SY <--
 
                 // Only include MangaDex if the delegate sources are enabled and the source is MD-based
                 if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources.get()) {

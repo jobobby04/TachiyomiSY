@@ -1,4 +1,3 @@
-
 import mihon.gradle.getBuildTime
 import mihon.gradle.getLatestCommitCount
 import mihon.gradle.getLatestCommitSha
@@ -49,8 +48,6 @@ android {
         }
         create("releaseTest") {
             applicationIdSuffix = ".rt"
-            // isMinifyEnabled = true
-            // isShrinkResources = true
             setProguardFiles(listOf(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
             matchingFallbacks.add("release")
         }
@@ -110,8 +107,7 @@ android {
                 "libimagedecoder",
                 "libquickjs",
                 "libsqlite3x",
-            )
-                .map { "**/$it.so" }
+            ).map { "**/$it.so" }
         }
         resources {
             excludes += setOf(
@@ -138,7 +134,6 @@ android {
         buildConfig = true
         aidl = true
 
-        // Disable some unused things
         renderScript = false
         shaders = false
     }

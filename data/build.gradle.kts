@@ -20,6 +20,10 @@ android {
     }
 }
 
+sqldelight {
+    linkSqlite.set(false)
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-opt-in=kotlinx.serialization.ExperimentalSerializationApi")

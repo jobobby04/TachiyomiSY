@@ -12,7 +12,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.components.BrowseSourceSimpleToolbar
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
+import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import exh.recs.batch.RankedSearchResults
@@ -51,26 +51,27 @@ class BrowseRecommendsScreen(
         val snackbarHostState = remember { SnackbarHostState() }
 
         val onClickItem = { manga: Manga ->
-            navigator.push(
-                when (isExternalSource) {
-                    true -> SourcesScreen(SourcesScreen.SmartSearchConfig(manga.ogTitle))
-                    false -> MangaScreen(manga.id, true)
-                },
-            )
+            if (isExternalSource || manga.source == -1L) {
+                // FIX: Usa a busca global pura para evitar o modo de mesclagem (Juntar com outra)
+                navigator.push(GlobalSearchScreen(manga.ogTitle))
+            } else {
+                navigator.push(MangaScreen(manga.id, true))
+            }
         }
 
         val onLongClickItem = { manga: Manga ->
-            when (isExternalSource) {
-                true -> WebViewActivity.newIntent(context, manga.url, title = manga.title).let(context::startActivity)
-                false -> onClickItem(manga)
+            if (isExternalSource || manga.source == -1L) {
+                WebViewActivity.newIntent(context, manga.url, title = manga.title).let(context::startActivity)
+            } else {
+                onClickItem(manga)
             }
         }
 
         Scaffold(
             topBar = { scrollBehavior ->
                 val title = remember {
-                    val recSource = screenModel.recommendationSource
-                    "${recSource.name} (${recSource.category.getString(context)})"
+                    val recSource = screenModel.createSourcePagingSource("", eu.kanade.tachiyomi.source.model.FilterList())
+                    recSource.name
                 }
 
                 BrowseSourceSimpleToolbar(
@@ -87,9 +88,7 @@ class BrowseRecommendsScreen(
                 source = screenModel.source,
                 mangaList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
-                // SY -->
                 ehentaiBrowseDisplayMode = false,
-                // SY <--
                 displayMode = screenModel.displayMode,
                 snackbarHostState = snackbarHostState,
                 contentPadding = paddingValues,

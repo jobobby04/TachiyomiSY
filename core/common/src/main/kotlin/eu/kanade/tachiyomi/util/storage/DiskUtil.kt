@@ -137,6 +137,7 @@ object DiskUtil {
      * their issue nor any documentation or tests that would allow us
      * to determine which characters are problems and which are not.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     fun buildValidFilename(
         origName: String,
         maxBytes: Int = MAX_FILE_NAME_BYTES,

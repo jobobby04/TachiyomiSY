@@ -674,4 +674,6 @@
     <string name="data_saver_stop_exclude">Parar de excluir da economia de dados</string>
     <string name="rec_processing_state">Processando entrada %1$d de %2$d</string>
     <string name="base_url">Url base</string>
+
+    <string name="label_para_voce">Para Você</string>
 </resources>

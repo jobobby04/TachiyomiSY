@@ -62,6 +62,8 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import eu.kanade.tachiyomi.ui.recommendations.RecommendationsTab
+
 
 object HomeScreen : Screen() {
 
@@ -80,6 +82,7 @@ object HomeScreen : Screen() {
         UpdatesTab,
         HistoryTab,
         BrowseTab,
+        RecommendationsTab,
         MoreTab,
     )
 
@@ -182,7 +185,7 @@ object HomeScreen : Screen() {
                                 }
                                 BrowseTab
                             }
-
+                            is Tab.Recommendations -> RecommendationsTab
                             is Tab.More -> MoreTab
                         }
 
@@ -332,6 +335,7 @@ object HomeScreen : Screen() {
         data object Updates : Tab
         data object History : Tab
         data class Browse(val toExtensions: Boolean = false) : Tab
+        data object Recommendations : Tab
         data class More(val toDownloads: Boolean) : Tab
     }
 }

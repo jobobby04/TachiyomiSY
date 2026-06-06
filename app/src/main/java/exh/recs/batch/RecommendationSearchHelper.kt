@@ -145,25 +145,28 @@ class RecommendationSearchHelper(val context: Context) {
                 throttleManager.throttle()
             }
 
-            val rankedMap = resultsMap.map {
-                RankedSearchResults(
-                    recSourceName = it.value.recSourceName,
-                    recSourceCategoryResId = it.value.recSourceCategoryResId,
-                    recAssociatedSourceId = it.value.recAssociatedSourceId,
-                    results = it.value.results
-                        // Group by URL and count occurrences
-                        .groupingBy(SManga::url)
-                        .eachCount()
-                        .entries
-                        // Sort by occurrences desc
-                        .sortedByDescending(Map.Entry<String, Int>::value)
-                        // Resolve SManga instances from URL keys
-                        .associate { (url, count) ->
-                            val manga = it.value.results.first { manga -> manga.url == url }
-                            manga to count
-                        },
-                )
-            }
+            val sourceOrder = listOf("AniList", "MyAnimeList", "MangaUpdates", "Kitsu", "Shikimori", "Bangumi")
+            val rankedMap = resultsMap.entries
+                .sortedBy { entry ->
+                    sourceOrder.indexOf(entry.value.recSourceName)
+                        .let { if (it == -1) Int.MAX_VALUE else it }
+                }
+                .map { entry ->
+                    RankedSearchResults(
+                        recSourceName = entry.value.recSourceName,
+                        recSourceCategoryResId = entry.value.recSourceCategoryResId,
+                        recAssociatedSourceId = entry.value.recAssociatedSourceId,
+                        results = entry.value.results
+                            .groupingBy(SManga::url)
+                            .eachCount()
+                            .entries
+                            .sortedByDescending(Map.Entry<String, Int>::value)
+                            .associate { (url, count) ->
+                                val manga = entry.value.results.first { manga -> manga.url == url }
+                                manga to count
+                            },
+                    )
+                }
 
             status.value = when {
                 rankedMap.isNotEmpty() -> SearchStatus.Finished.WithResults(rankedMap)

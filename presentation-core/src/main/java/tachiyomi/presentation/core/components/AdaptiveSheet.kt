@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
@@ -110,19 +109,22 @@ fun AdaptiveSheet(
             }
         }
     } else {
-        val anchoredDraggableState = rememberSaveable(saver = AnchoredDraggableState.Saver()) {
-            AnchoredDraggableState(initialValue = 1)
+        val anchoredDraggableState = remember {
+            AnchoredDraggableState(
+                initialValue = 1f,
+                positionalThreshold = { distance -> distance * 0.5f },
+                velocityThreshold = { with(density) { 125.dp.toPx() } },
+                snapAnimationSpec = sheetAnimationSpec,
+                decayAnimationSpec = androidx.compose.animation.core.exponentialDecay(),
+            )
         }
-        val flingBehavior = AnchoredDraggableDefaults.flingBehavior(
-            state = anchoredDraggableState,
-            positionalThreshold = { _: Float -> with(density) { 56.dp.toPx() } },
-            animationSpec = sheetAnimationSpec,
-        )
+
         val internalOnDismissRequest = {
-            if (anchoredDraggableState.settledValue == 0) {
-                scope.launch { anchoredDraggableState.animateTo(1) }
+            if (anchoredDraggableState.settledValue == 0f) {
+                scope.launch { anchoredDraggableState.animateTo(1f) }
             }
         }
+
         Box(
             modifier = Modifier
                 .clickable(
@@ -133,8 +135,8 @@ fun AdaptiveSheet(
                 .fillMaxSize()
                 .onSizeChanged {
                     val anchors = DraggableAnchors {
-                        0 at 0f
-                        1 at it.height.toFloat()
+                        0f at 0f
+                        1f at it.height.toFloat()
                     }
                     anchoredDraggableState.updateAnchors(anchors)
                 },
@@ -153,7 +155,7 @@ fun AdaptiveSheet(
                             Modifier.nestedScroll(
                                 remember(anchoredDraggableState) {
                                     anchoredDraggableState.preUpPostDownNestedScrollConnection {
-                                        scope.launch { anchoredDraggableState.settle(sheetAnimationSpec) }
+                                        scope.launch { anchoredDraggableState.animateTo(1f) }
                                     }
                                 },
                             )
@@ -175,7 +177,6 @@ fun AdaptiveSheet(
                         state = anchoredDraggableState,
                         orientation = Orientation.Vertical,
                         enabled = enableSwipeDismiss,
-                        flingBehavior = flingBehavior,
                     )
                     .navigationBarsPadding()
                     .statusBarsPadding(),
@@ -183,7 +184,7 @@ fun AdaptiveSheet(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 content = {
                     BackHandler(
-                        enabled = anchoredDraggableState.targetValue == 0,
+                        enabled = anchoredDraggableState.targetValue == 0f,
                         onBack = internalOnDismissRequest,
                     )
                     content()
@@ -191,10 +192,10 @@ fun AdaptiveSheet(
             )
 
             LaunchedEffect(anchoredDraggableState) {
-                scope.launch { anchoredDraggableState.animateTo(0) }
+                scope.launch { anchoredDraggableState.animateTo(0f) }
                 snapshotFlow { anchoredDraggableState.settledValue }
                     .drop(1)
-                    .filter { it == 1 }
+                    .filter { it == 1f }
                     .collectLatest {
                         onDismissRequest()
                     }
@@ -229,9 +230,8 @@ private fun <T> AnchoredDraggableState<T>.preUpPostDownNestedScrollConnection(
 
     override suspend fun onPreFling(available: Velocity): Velocity {
         val toFling = available.toFloat()
-        return if (toFling < 0 && offset > anchors.minPosition()) {
+        return if (toFling < 0 && offset > 0f) {
             onFling(toFling)
-            // since we go to the anchor with tween settling, consume all for the best UX
             available
         } else {
             Velocity.Zero

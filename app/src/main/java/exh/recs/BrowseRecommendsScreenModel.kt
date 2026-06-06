@@ -22,25 +22,36 @@ class BrowseRecommendsScreenModel(
 ) : BrowseSourceScreenModel(
     sourceId = when (args) {
         is BrowseRecommendsScreen.Args.SingleSourceManga -> args.sourceId
-        is BrowseRecommendsScreen.Args.MergedSourceMangas -> args.results.recAssociatedSourceId ?: -1
+        is BrowseRecommendsScreen.Args.MergedSourceMangas -> args.results.recAssociatedSourceId ?: -1L
     },
     listingQuery = null,
 ) {
-    val recommendationSource: RecommendationPagingSource
-        get() = when (args) {
-            is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
-            is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
-                runBlocking { getManga.await(args.mangaId)!! },
-                source as CatalogueSource,
-            ).first {
-                it::class.qualifiedName == args.recommendationSourceName
+    // IMPORTANTE: Para evitar o NullPointerException, nunca retorne null aqui.
+    // Se a fonte não for uma CatalogueSource real, usamos o StaticResultPagingSource.
+    override fun createSourcePagingSource(query: String, filters: FilterList): RecommendationPagingSource {
+        return try {
+            when (args) {
+                is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
+                is BrowseRecommendsScreen.Args.SingleSourceManga -> {
+                    val manga = runBlocking { getManga.await(args.mangaId) }
+                    val currentSource = source as? CatalogueSource
+                    if (manga != null && currentSource != null) {
+                        RecommendationPagingSource.createSources(manga, currentSource).firstOrNull {
+                            it::class.qualifiedName == args.recommendationSourceName
+                        } ?: StaticResultPagingSource(exh.recs.batch.RankedSearchResults("Recomendações", args.sourceId.toInt(), null, emptyMap()))
+                    } else {
+                        // Fallback seguro se o mangá ou fonte sumirem
+                        StaticResultPagingSource(exh.recs.batch.RankedSearchResults("Recomendações", -1, null, emptyMap()))
+                    }
+                }
             }
+        } catch (e: Exception) {
+            // Última linha de defesa contra o NullPointerException
+            StaticResultPagingSource(exh.recs.batch.RankedSearchResults("Erro ao carregar", -1, null, emptyMap()))
         }
-
-    override fun createSourcePagingSource(query: String, filters: FilterList) = recommendationSource
+    }
 
     override fun Flow<Manga>.combineMetadata(metadata: RaisedSearchMetadata?): Flow<Pair<Manga, RaisedSearchMetadata?>> {
-        // Overridden to prevent our custom metadata from being replaced from a cache
         return flatMapLatest { manga -> flowOf(manga to metadata) }
     }
 
