@@ -280,14 +280,14 @@ actual class LocalSource(
     }
 
     private fun <T> getComicInfoForChapter(chapter: UniFile, block: (InputStream, /* SY --> */ Boolean /* <-- SY */) -> T): T? {
-        if (chapter.isDirectory) {
-            return chapter.findFile(COMIC_INFO_FILE)?.let { file ->
+        return if (chapter.isDirectory) {
+            chapter.findFile(COMIC_INFO_FILE)?.let { file ->
                 file.openInputStream().use {
                     block(it, /* SY --> */ false /* SY <-- */)
                 }
             }
         } else {
-            return chapter.archiveReader(context).use { reader ->
+            chapter.archiveReader(context).use { reader ->
                 reader.getInputStream(COMIC_INFO_FILE)?.use {
                     block(it, /* SY --> */ reader.encrypted /* SY <-- */)
                 }

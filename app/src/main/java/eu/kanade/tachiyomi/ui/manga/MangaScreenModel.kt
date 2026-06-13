@@ -146,7 +146,7 @@ class MangaScreenModel(
     private val isFromSource: Boolean,
     val smartSearched: Boolean,
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val trackPreferences: TrackPreferences = Injekt.get(),
+    trackPreferences: TrackPreferences = Injekt.get(),
     readerPreferences: ReaderPreferences = Injekt.get(),
     uiPreferences: UiPreferences = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),

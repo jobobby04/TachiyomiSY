@@ -97,7 +97,7 @@ open class BrowseSourceScreenModel(
     private val getManga: GetManga = Injekt.get(),
     private val updateManga: UpdateManga = Injekt.get(),
     private val addTracks: AddTracks = Injekt.get(),
-    private val getIncognitoState: GetIncognitoState = Injekt.get(),
+    getIncognitoState: GetIncognitoState = Injekt.get(),
 
     // SY -->
     exhPreferences: ExhPreferences = Injekt.get(),

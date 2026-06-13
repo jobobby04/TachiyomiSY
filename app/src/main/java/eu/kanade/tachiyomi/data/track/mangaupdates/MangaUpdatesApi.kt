@@ -174,7 +174,7 @@ class MangaUpdatesApi(
         }
     }
 
-    suspend fun authenticate(username: String, password: String): MUContext? {
+    suspend fun authenticate(username: String, password: String): MUContext {
         val body = buildJsonObject {
             put("username", username)
             put("password", password)
