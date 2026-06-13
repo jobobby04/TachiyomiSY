@@ -1371,7 +1371,7 @@ class ReaderActivity : BaseActivity() {
         private fun setCustomBrightness(enabled: Boolean) {
             if (enabled) {
                 readerPreferences.customBrightnessValue.changes()
-                    .sample(100)
+                    .sample(0.1.seconds)
                     .onEach(::setCustomBrightnessValue)
                     .launchIn(lifecycleScope)
             } else {
