@@ -3,7 +3,7 @@ package exh.recs.sources
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.NetworkHelper
-import eu.kanade.tachiyomi.source.CatalogueSource
+import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.all.MangaDex
@@ -28,7 +28,7 @@ import uy.kohesive.injekt.injectLazy
  */
 abstract class RecommendationPagingSource(
     protected val manga: Manga,
-    source: CatalogueSource? = null,
+    source: Source? = null,
 ) : BaseSourcePagingSource(source) {
     // Display name
     abstract val name: String
@@ -45,7 +45,7 @@ abstract class RecommendationPagingSource(
     open val associatedSourceId: Long? = null
 
     companion object {
-        fun createSources(manga: Manga, source: CatalogueSource): List<RecommendationPagingSource> {
+        fun createSources(manga: Manga, source: Source): List<RecommendationPagingSource> {
             return buildList {
                 add(AniListPagingSource(manga))
                 add(MangaUpdatesCommunityPagingSource(manga))

@@ -5,7 +5,7 @@ import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
-import eu.kanade.tachiyomi.source.CatalogueSource
+import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SManga
 import kotlinx.coroutines.coroutineScope
@@ -23,11 +23,11 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 
-fun CatalogueSource.isComickSource() = name == "Comick"
+fun Source.isComickSource() = name == "Comick"
 
 class ComickPagingSource(
     manga: Manga,
-    private val comickSource: CatalogueSource,
+    private val comickSource: Source,
 ) : RecommendationPagingSource(manga, comickSource) {
 
     override val name: String

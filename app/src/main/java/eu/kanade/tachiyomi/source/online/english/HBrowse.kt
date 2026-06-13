@@ -18,6 +18,8 @@ import exh.util.urlImportFetchSearchManga
 import exh.util.urlImportFetchSearchMangaSuspend
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import rx.Observable
+import tachiyomi.core.common.util.lang.runAsObservable
 
 class HBrowse(delegate: HttpSource, val context: Context) :
     DelegatedHttpSource(delegate),
@@ -42,9 +44,12 @@ class HBrowse(delegate: HttpSource, val context: Context) :
         }
     }
 
-    override suspend fun getMangaDetails(manga: SManga): SManga {
-        val response = client.newCall(mangaDetailsRequest(manga)).awaitSuccess()
-        return parseToManga(manga, response.asJsoup())
+    @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
+    override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
+        return runAsObservable {
+            val response = client.newCall(mangaDetailsRequest(manga)).awaitSuccess()
+            parseToManga(manga, response.asJsoup())
+        }
     }
 
     override suspend fun parseIntoMetadata(metadata: HBrowseSearchMetadata, input: Document) {

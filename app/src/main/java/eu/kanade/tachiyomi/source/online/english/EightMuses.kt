@@ -6,7 +6,9 @@ import androidx.core.net.toUri
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
+import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.NamespaceSource
@@ -19,6 +21,8 @@ import exh.util.urlImportFetchSearchManga
 import exh.util.urlImportFetchSearchMangaSuspend
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import rx.Observable
+import tachiyomi.core.common.util.lang.runAsObservable
 
 class EightMuses(delegate: HttpSource, val context: Context) :
     DelegatedHttpSource(delegate),
@@ -43,9 +47,21 @@ class EightMuses(delegate: HttpSource, val context: Context) :
         }
     }
 
-    override suspend fun getMangaDetails(manga: SManga): SManga {
-        val response = client.newCall(mangaDetailsRequest(manga)).awaitSuccess()
-        return parseToManga(manga, response.asJsoup())
+    override suspend fun getMangaUpdate(
+        manga: SManga,
+        chapters: List<SChapter>,
+        fetchDetails: Boolean,
+        fetchChapters: Boolean,
+    ): SMangaUpdate {
+        return super<DelegatedHttpSource>.getMangaUpdate(manga, chapters, fetchDetails, fetchChapters)
+    }
+
+    @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
+    override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
+        return runAsObservable {
+            val response = client.newCall(mangaDetailsRequest(manga)).awaitSuccess()
+            parseToManga(manga, response.asJsoup())
+        }
     }
 
     data class SelfContents(val albums: List<Element>, val images: List<Element>)

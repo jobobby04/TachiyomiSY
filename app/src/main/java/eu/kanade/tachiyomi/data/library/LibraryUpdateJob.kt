@@ -18,15 +18,11 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
 import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.copyFrom
-import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.track.model.toDomainTrack
-import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.sync.SyncDataJob
@@ -34,8 +30,6 @@ import eu.kanade.tachiyomi.data.track.TrackStatus
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
-import eu.kanade.tachiyomi.source.online.all.MergedSource
-import eu.kanade.tachiyomi.util.prepUpdateCover
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.createFileInCacheDir
 import eu.kanade.tachiyomi.util.system.isConnectedToWifi
@@ -60,6 +54,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
 import mihon.domain.chapter.interactor.FilterChaptersForDownload
+import mihon.domain.source.interactor.UpdateMangaFromRemote
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.core.common.util.lang.withIOContext
@@ -86,7 +81,6 @@ import tachiyomi.domain.manga.interactor.GetMergedMangaForDownloading
 import tachiyomi.domain.manga.interactor.InsertFlatMetadata
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.toMangaUpdate
 import tachiyomi.domain.source.model.SourceNotInstalledException
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
@@ -111,13 +105,12 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private val sourceManager: SourceManager = Injekt.get()
     private val libraryPreferences: LibraryPreferences = Injekt.get()
     private val downloadManager: DownloadManager = Injekt.get()
-    private val coverCache: CoverCache = Injekt.get()
     private val getLibraryManga: GetLibraryManga = Injekt.get()
     private val getManga: GetManga = Injekt.get()
-    private val updateManga: UpdateManga = Injekt.get()
-    private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get()
     private val fetchInterval: FetchInterval = Injekt.get()
     private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get()
+    private val updateManga: UpdateManga = Injekt.get()
+    private val updateMangaFromRemote: UpdateMangaFromRemote = Injekt.get()
 
     // SY -->
     private val getFavorites: GetFavorites = Injekt.get()
@@ -481,23 +474,16 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private suspend fun updateManga(manga: Manga, fetchWindow: Pair<Long, Long>): List<Chapter> {
         val source = sourceManager.getOrStub(manga.source)
 
-        // Update manga metadata if needed
-        if (libraryPreferences.autoUpdateMetadata.get()) {
-            val networkManga = source.getMangaDetails(manga.toSManga())
-            updateManga.awaitUpdateFromSource(manga, networkManga, manualFetch = false, coverCache)
-        }
+        val update = updateMangaFromRemote(
+            source = source,
+            manga = manga,
+            fetchDetails = libraryPreferences.autoUpdateMetadata.get(),
+            fetchChapters = true,
+            fetchWindow = fetchWindow,
+        )
+            .getOrThrow()
 
-        if (source is MergedSource) {
-            return source.fetchChaptersAndSync(manga, false)
-        }
-
-        val chapters = source.getChapterList(manga.toSManga())
-
-        // Get manga from database to account for if it was removed during the update and
-        // to get latest data so it doesn't get overwritten later on
-        val dbManga = getManga.await(manga.id)?.takeIf { it.favorite } ?: return emptyList()
-
-        return syncChaptersWithSource.await(chapters, dbManga, source, false, fetchWindow)
+        return if (update.manga.favorite) update.newChapters else emptyList()
     }
 
     private suspend fun updateCovers() {
@@ -522,18 +508,13 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                 ) {
                                     val source = sourceManager.get(manga.source) ?: return@withUpdateNotification
                                     try {
-                                        val networkManga = source.getMangaDetails(manga.toSManga())
-                                        val updatedManga = manga.prepUpdateCover(
-                                            coverCache,
-                                            networkManga,
-                                            true,
-                                        )
-                                            .copyFrom(networkManga)
-                                        try {
-                                            updateManga.await(updatedManga.toMangaUpdate())
-                                        } catch (_: Exception) {
-                                            logcat(LogPriority.ERROR) { "Manga doesn't exist anymore" }
-                                        }
+                                        updateMangaFromRemote(
+                                            source,
+                                            manga,
+                                            fetchDetails = true,
+                                            fetchChapters = false,
+                                            manualFetch = true,
+                                        ).getOrThrow()
                                     } catch (e: Throwable) {
                                         // Ignore errors and continue
                                         logcat(LogPriority.ERROR, e)
@@ -593,7 +574,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                     updateManga.awaitUpdateFavorite(dbManga.id, true)
                 }
 
-                updateManga.awaitUpdateFromSource(dbManga, networkManga, true)
+                updateMangaFromRemote.awaitUpdateFromSource(dbManga, networkManga, true)
                 metadata.mangaId = dbManga.id
                 insertFlatMetadata.await(metadata)
             }

@@ -27,6 +27,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.CacheControl
 import okhttp3.Request
 import okhttp3.Response
+import rx.Observable
+import tachiyomi.core.common.util.lang.runAsObservable
 import java.io.IOException
 import java.time.Instant
 import java.time.ZoneOffset
@@ -74,9 +76,12 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
         return GET(uri.toString(), headers)
     }
 
-    override suspend fun getMangaDetails(manga: SManga): SManga {
-        val response = client.newCall(customMangaDetailsRequest(manga)).awaitSuccess()
-        return parseToManga(manga, response)
+    @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
+    override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
+        return runAsObservable {
+            val response = client.newCall(mangaDetailsRequest(manga)).awaitSuccess()
+            parseToManga(manga, response)
+        }
     }
 
     override suspend fun parseIntoMetadata(metadata: LanraragiSearchMetadata, input: Response) {

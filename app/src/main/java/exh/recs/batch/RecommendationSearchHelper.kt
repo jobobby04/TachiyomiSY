@@ -7,7 +7,6 @@ import androidx.annotation.StringRes
 import androidx.core.net.toUri
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.service.SourcePreferences
-import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.SManga
 import exh.log.xLog
 import exh.recs.sources.RecommendationPagingSource
@@ -23,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -38,7 +38,6 @@ import tachiyomi.domain.track.model.Track
 import uy.kohesive.injekt.injectLazy
 import java.io.Serializable
 import java.util.Collections
-import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -96,13 +95,13 @@ class RecommendationSearchHelper(val context: Context) {
 
             mangaList.forEachIndexed { index, sourceManga ->
                 // Check if the job has been cancelled
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
 
                 status.value = SearchStatus.Processing(sourceManga.toSManga(), index + 1, mangaList.size)
 
                 val jobs = RecommendationPagingSource.createSources(
                     sourceManga,
-                    sourceManager.get(sourceManga.source) as CatalogueSource,
+                    sourceManager.getOrStub(sourceManga.source),
                 ).mapNotNull { source ->
                     // Apply source filters
                     if (source is TrackerRecommendationPagingSource && !SearchFlags.hasIncludeTrackers(flags)) {
@@ -114,7 +113,7 @@ class RecommendationSearchHelper(val context: Context) {
                     }
 
                     // Parallelize fetching recommendations from all sources in the current context
-                    CoroutineScope(coroutineContext).async(Dispatchers.IO) {
+                    CoroutineScope(currentCoroutineContext()).async(Dispatchers.IO) {
                         val recSourceId = source::class.qualifiedName!!
 
                         try {

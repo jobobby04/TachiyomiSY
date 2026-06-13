@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.source.model.copy
 import eu.kanade.tachiyomi.source.online.HttpSource
 import exh.source.MERGED_SOURCE_ID
@@ -19,6 +20,7 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import mihon.domain.chapter.interactor.FilterChaptersForDownload
+import mihon.domain.source.interactor.UpdateMangaFromRemote
 import okhttp3.Response
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.category.interactor.GetCategories
@@ -38,6 +40,7 @@ class MergedSource : HttpSource() {
     private val syncChaptersWithSource: SyncChaptersWithSource by injectLazy()
     private val networkToLocalManga: NetworkToLocalManga by injectLazy()
     private val updateManga: UpdateManga by injectLazy()
+    private val updateMangaFromRemote: UpdateMangaFromRemote by injectLazy()
     private val getCategories: GetCategories by injectLazy()
     private val sourceManager: SourceManager by injectLazy()
     private val downloadManager: DownloadManager by injectLazy()
@@ -60,13 +63,11 @@ class MergedSource : HttpSource() {
     override fun latestUpdatesParse(response: Response) = throw UnsupportedOperationException()
     override fun mangaDetailsParse(response: Response) = throw UnsupportedOperationException()
     override fun chapterListParse(response: Response) = throw UnsupportedOperationException()
-    override fun chapterPageParse(response: Response) = throw UnsupportedOperationException()
     override fun pageListParse(response: Response) = throw UnsupportedOperationException()
     override fun imageUrlParse(response: Response) = throw UnsupportedOperationException()
 
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getChapterList"))
     override fun fetchChapterList(manga: SManga) = throw UnsupportedOperationException()
-    override suspend fun getChapterList(manga: SManga) = throw UnsupportedOperationException()
     override suspend fun getImage(page: Page): Response = throw UnsupportedOperationException()
 
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getImageUrl"))
@@ -85,7 +86,19 @@ class MergedSource : HttpSource() {
     override fun fetchPopularManga(page: Int) = throw UnsupportedOperationException()
     override suspend fun getPopularManga(page: Int) = throw UnsupportedOperationException()
 
-    override suspend fun getMangaDetails(manga: SManga): SManga {
+    override suspend fun getMangaUpdate(
+        manga: SManga,
+        chapters: List<SChapter>,
+        fetchDetails: Boolean,
+        fetchChapters: Boolean,
+    ): SMangaUpdate {
+        return SMangaUpdate(
+            getMangaDetails(manga),
+            emptyList(),
+        )
+    }
+
+    suspend fun getMangaDetails(manga: SManga): SManga {
         return withIOContext {
             val mergedManga = requireNotNull(getManga.await(manga.url, id)) { "merged manga not in db" }
             val mangaReferences = getMergedReferencesById.await(mergedManga.id)
@@ -133,7 +146,12 @@ class MergedSource : HttpSource() {
                                 try {
                                     val (source, loadedManga, reference) = it.load()
                                     if (loadedManga != null && reference.getChapterUpdates) {
-                                        val chapterList = source.getChapterList(loadedManga.toSManga())
+                                        val chapterList = source.getMangaUpdate(
+                                            loadedManga.toSManga(),
+                                            emptyList(),
+                                            fetchDetails = false,
+                                            fetchChapters = true,
+                                        ).chapters
                                         val results =
                                             syncChaptersWithSource.await(chapterList, loadedManga, source)
 
@@ -176,7 +194,16 @@ class MergedSource : HttpSource() {
                     url = mangaUrl,
                 ),
             )
-            updateManga.awaitUpdateFromSource(newManga, source.getMangaDetails(newManga.toSManga()), false)
+            updateMangaFromRemote.awaitUpdateFromSource(
+                newManga,
+                source.getMangaUpdate(
+                    manga = newManga.toSManga(),
+                    chapters = emptyList(),
+                    fetchDetails = true,
+                    fetchChapters = false,
+                ).manga,
+                false,
+            )
             manga = getManga.await(newManga.id)!!
         }
         return LoadedMangaSource(source, manga, this)

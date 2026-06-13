@@ -5,7 +5,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.produceState
 import cafe.adriel.voyager.core.model.StateScreenModel
 import eu.kanade.presentation.util.ioCoroutineScope
-import eu.kanade.tachiyomi.source.CatalogueSource
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.StaticResultPagingSource
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +50,7 @@ open class RecommendsScreenModel(
 
                     RecommendationPagingSource.createSources(
                         manga,
-                        sourceManager.getOrStub(args.sourceId) as CatalogueSource,
+                        sourceManager.getOrStub(args.sourceId),
                     )
                 }
                 is RecommendsScreen.Args.MergedSourceMangas -> {

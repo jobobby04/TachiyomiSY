@@ -1,6 +1,5 @@
 package exh.recs
 
-import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import exh.metadata.metadata.RaisedSearchMetadata
@@ -31,7 +30,7 @@ class BrowseRecommendsScreenModel(
             is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
             is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
                 runBlocking { getManga.await(args.mangaId)!! },
-                source as CatalogueSource,
+                source,
             ).first {
                 it::class.qualifiedName == args.recommendationSourceName
             }

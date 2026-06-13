@@ -66,9 +66,7 @@ class AndroidSourceManager(
 
     private val stubSourcesMap = ConcurrentHashMap<Long, StubSource>()
 
-    override val catalogueSources: Flow<List<CatalogueSource>> = sourcesMapFlow.map {
-        it.values.filterIsInstance<CatalogueSource>()
-    }
+    override val sources: Flow<List<Source>> = sourcesMapFlow.map { it.values.toList() }
 
     // SY -->
     private val exhPreferences: ExhPreferences by injectLazy()
@@ -169,7 +167,7 @@ class AndroidSourceManager(
                 "Removing blacklisted source: (id: %s, name: %s, lang: %s)!",
                 id,
                 name,
-                (this as? CatalogueSource)?.lang,
+                lang,
             )
             null
         } else {
@@ -188,9 +186,9 @@ class AndroidSourceManager(
         }
     }
 
-    override fun getOnlineSources() = sourcesMapFlow.value.values.filterIsInstance<HttpSource>()
+    override fun getAll() = sourcesMapFlow.value.values.toList()
 
-    override fun getCatalogueSources() = sourcesMapFlow.value.values.filterIsInstance<CatalogueSource>()
+    override fun getOnlineSources() = sourcesMapFlow.value.values.filterIsInstance<HttpSource>()
 
     override fun getStubSources(): List<StubSource> {
         val onlineSourceIds = getOnlineSources().map { it.id }
@@ -204,8 +202,7 @@ class AndroidSourceManager(
             it.id !in BlacklistedSources.HIDDEN_SOURCES
         }
 
-    override fun getVisibleCatalogueSources() = sourcesMapFlow.value.values
-        .filterIsInstance<CatalogueSource>()
+    override fun getVisibleSources() = sourcesMapFlow.value.values
         .filter {
             it.id !in BlacklistedSources.HIDDEN_SOURCES
         }
