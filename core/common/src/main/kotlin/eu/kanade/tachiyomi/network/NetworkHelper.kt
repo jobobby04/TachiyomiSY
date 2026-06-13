@@ -65,8 +65,6 @@ open /* SY <-- */ class NetworkHelper(
         }
     }
 
-    val nonCloudflareClient = clientBuilder.build()
-
     /* SY --> */
     open /* SY <-- */ val client = clientBuilder
         .addInterceptor(
