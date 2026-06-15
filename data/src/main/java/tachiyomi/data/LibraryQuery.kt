@@ -37,13 +37,14 @@ private val mapper = { cursor: SqlCursor ->
         version = cursor.getLong(23)!!,
         is_syncing = cursor.getLong(24)!!,
         notes = cursor.getString(25)!!,
-        totalCount = cursor.getLong(26)!!,
-        readCount = cursor.getDouble(27)!!,
-        latestUpload = cursor.getLong(28)!!,
-        chapterFetchedAt = cursor.getLong(29)!!,
-        lastRead = cursor.getLong(30)!!,
-        bookmarkCount = cursor.getDouble(31)!!,
-        categories = cursor.getString(32)!!,
+        memo = MemoColumnAdapter.decode(cursor.getBytes(26)!!),
+        totalCount = cursor.getLong(27)!!,
+        readCount = cursor.getDouble(28)!!,
+        latestUpload = cursor.getLong(29)!!,
+        chapterFetchedAt = cursor.getLong(30)!!,
+        lastRead = cursor.getLong(31)!!,
+        bookmarkCount = cursor.getDouble(32)!!,
+        categories = cursor.getString(33)!!,
     )
 }
 
