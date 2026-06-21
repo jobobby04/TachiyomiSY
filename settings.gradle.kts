@@ -33,6 +33,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "TachiyomiSY"
 include(":app")
+include(":baseline-profile")
 include(":core-metadata")
 include(":core:common")
 include(":data")
@@ -41,7 +42,6 @@ include(":i18n")
 // SY -->
 include(":i18n-sy")
 // SY <--
-include(":macrobenchmark")
 include(":presentation-core")
 include(":presentation-widget")
 include(":source-api")

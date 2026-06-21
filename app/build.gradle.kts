@@ -12,6 +12,7 @@ plugins {
     kotlin("plugin.parcelize")
 
     alias(libs.plugins.aboutLibraries)
+    alias(libs.plugins.androidx.baselineProfile)
     alias(libs.plugins.kotlin.serialization)
 
     id("com.github.ben-manes.versions")
@@ -57,6 +58,7 @@ android {
         named("release") {
             isMinifyEnabled = true
             isShrinkResources = true
+            isProfileable = true
             setProguardFiles(listOf(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
 
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLatestCommitTime = true)}\"")
@@ -66,8 +68,6 @@ android {
 
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks.add("release")
-            isDebuggable = false
-            isProfileable = true
             versionNameSuffix = "-benchmark"
             applicationIdSuffix = ".benchmark"
         }
@@ -164,7 +164,14 @@ kotlin {
     }
 }
 
+baselineProfile {
+    baselineProfileOutputDir = "baselineProfiles"
+    mergeIntoMain = true
+}
+
 dependencies {
+    baselineProfile(projects.baselineProfile)
+
     implementation(projects.i18n)
     // SY -->
     implementation(projects.i18nSy)

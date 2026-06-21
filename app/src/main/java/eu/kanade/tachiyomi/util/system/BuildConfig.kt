@@ -11,3 +11,7 @@ val isPreviewBuildType: Boolean
 
 val isReleaseBuildType: Boolean
     get() = BuildConfig.BUILD_TYPE == "release" /* SY --> */ && syDebugVersion == "0" /* SY <-- */
+
+
+val isBenchmarkBuildType: Boolean
+    inline get() = BuildConfig.BUILD_TYPE.contains("nonMinified") || BuildConfig.BUILD_TYPE.contains("benchmark")
