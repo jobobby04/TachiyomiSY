@@ -17,3 +17,4 @@ DROP TABLE extension_repos;
 
 ALTER TABLE mangas ADD COLUMN memo BLOB NOT NULL DEFAULT '{}';
 ALTER TABLE chapters ADD COLUMN memo BLOB NOT NULL DEFAULT '{}';
+ALTER TABLE extension_store ADD COLUMN extension_list_url TEXT;
