@@ -17,7 +17,7 @@ class MangaKeyer(
         return if (data.hasCustomCover()) {
             "${data.id};${data.coverLastModified}"
         } else {
-            "${data.thumbnailUrl};${data.coverLastModified};${sourcePreferences.getCoverDataSaverKey(data.source)}"
+            "${data.thumbnailUrl};${data.coverLastModified};${getCoverDataSaverKey(sourcePreferences, data.source)}"
         }
     }
 }
@@ -30,7 +30,20 @@ class MangaCoverKeyer(
         return if (coverCache.getCustomCoverFile(data.mangaId).exists()) {
             "${data.mangaId};${data.lastModified}"
         } else {
-            "${data.url};${data.lastModified};${sourcePreferences.getCoverDataSaverKey(data.sourceId)}"
+            "${data.url};${data.lastModified};${getCoverDataSaverKey(sourcePreferences, data.sourceId)}"
         }
     }
+}
+
+private fun getCoverDataSaverKey(sourcePreferences: SourcePreferences, sourceId: Long?): String {
+    val dataSaver = sourcePreferences.dataSaver.get()
+    val dataSaverCovers = sourcePreferences.dataSaverCovers.get()
+    val excludedSources = sourcePreferences.dataSaverExcludedSources.get()
+    if (dataSaver == SourcePreferences.DataSaver.NONE || !dataSaverCovers || sourceId?.toString() in excludedSources) {
+        return ""
+    }
+    val quality = sourcePreferences.dataSaverImageQuality.get()
+    val format = sourcePreferences.dataSaverImageFormatJpeg.get()
+    val colorBW = sourcePreferences.dataSaverColorBW.get()
+    return "$dataSaver-$quality-$format-$colorBW"
 }

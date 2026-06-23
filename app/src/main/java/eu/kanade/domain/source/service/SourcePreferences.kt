@@ -93,19 +93,6 @@ class SourcePreferences(
 
     val dataSaverCovers: Preference<Boolean> = preferenceStore.getBoolean("data_saver_covers", false)
 
-    fun getCoverDataSaverKey(sourceId: Long?): String {
-        val dataSaver = dataSaver.get()
-        val dataSaverCovers = dataSaverCovers.get()
-        val excludedSources = dataSaverExcludedSources.get()
-        if (dataSaver == DataSaver.NONE || !dataSaverCovers || sourceId?.toString() in excludedSources) {
-            return ""
-        }
-        val quality = dataSaverImageQuality.get()
-        val format = dataSaverImageFormatJpeg.get()
-        val colorBW = dataSaverColorBW.get()
-        return "$dataSaver-$quality-$format-$colorBW"
-    }
-
     enum class DataSaver {
         NONE,
         BANDWIDTH_HERO,
