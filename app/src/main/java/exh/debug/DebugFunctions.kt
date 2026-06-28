@@ -87,24 +87,22 @@ object DebugFunctions {
         runBlocking {
             val allManga = getExhFavoriteMangaWithMetadata.await()
 
-            val eh = sourceManager.get(EH_SOURCE_ID)
-            val ex = sourceManager.get(EXH_SOURCE_ID)
+            val eh = sourceManager.getOrStub(EH_SOURCE_ID)
+            val ex = sourceManager.getOrStub(EXH_SOURCE_ID)
 
             allManga.forEach { manga ->
                 throttleManager.throttle()
 
-                val networkManga = when (manga.source) {
-                    EH_SOURCE_ID -> eh
-                    EXH_SOURCE_ID -> ex
-                    else -> return@forEach
-                }?.getMangaUpdate(
-                    manga.toSManga(),
-                    emptyList(),
+                updateMangaFromRemote(
+                    when (manga.source) {
+                        EH_SOURCE_ID -> eh
+                        EXH_SOURCE_ID -> ex
+                        else -> return@forEach
+                    },
+                    manga,
                     fetchDetails = true,
                     fetchChapters = false,
-                )?.manga ?: return@forEach
-
-                updateMangaFromRemote.awaitUpdateFromSource(manga, networkManga, true)
+                )
             }
         }
     }

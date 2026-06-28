@@ -110,8 +110,7 @@ class UpdateMangaFromRemote(
         }
     }
 
-    // SY --> private <-- SY //
-    suspend fun awaitUpdateFromSource(
+    private suspend fun awaitUpdateFromSource(
         localManga: Manga,
         remoteManga: SManga,
         manualFetch: Boolean,
