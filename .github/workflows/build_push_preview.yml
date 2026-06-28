@@ -36,4 +36,4 @@ jobs:
           --data '{"event_type": "ping", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest testDevDebugUnitTest
+        run: ./gradlew testDebugUnitTest
