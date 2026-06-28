@@ -24,10 +24,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build app
-        run: ./gradlew spotlessCheck assembleDevDebug
+        run: ./gradlew spotlessCheck assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
           name: TachiyomiSY-${{ github.sha }}.apk
-          path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk

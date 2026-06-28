@@ -25,21 +25,6 @@ android {
             systemImageSource = "google"
         }
     }
-
-    // SY -->
-    flavorDimensions += "default"
-    productFlavors {
-        create("standard") {
-            dimension = "default"
-        }
-        create("fdroid") {
-            dimension = "default"
-        }
-        create("dev") {
-            dimension = "default"
-        }
-    }
-    // SY <--
 }
 
 // This is the configuration block for the Baseline Profile plugin.

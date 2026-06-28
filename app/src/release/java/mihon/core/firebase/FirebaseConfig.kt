@@ -6,20 +6,20 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 object FirebaseConfig {
-    private lateinit var analytics: FirebaseAnalytics
-    private lateinit var crashlytics: FirebaseCrashlytics
+    private var analytics: FirebaseAnalytics? = null
+    private var crashlytics: FirebaseCrashlytics? = null
 
     fun init(context: Context) {
-        analytics = FirebaseAnalytics.getInstance(context)
         FirebaseApp.initializeApp(context)
+        analytics = FirebaseAnalytics.getInstance(context)
         crashlytics = FirebaseCrashlytics.getInstance()
     }
 
     fun setAnalyticsEnabled(enabled: Boolean) {
-        analytics.setAnalyticsCollectionEnabled(enabled)
+        analytics?.setAnalyticsCollectionEnabled(enabled)
     }
 
     fun setCrashlyticsEnabled(enabled: Boolean) {
-        crashlytics.isCrashlyticsCollectionEnabled = enabled
+        crashlytics?.isCrashlyticsCollectionEnabled = enabled
     }
 }

@@ -179,7 +179,7 @@ class MainActivity : BaseActivity() {
 
         // SY -->
         @Suppress("KotlinConstantConditions", "SimplifyBooleanWithConstants")
-        val hasDebugOverlay = (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "releaseTest")
+        val hasDebugOverlay = (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "releaseTest") && !isBenchmarkBuildType
         // SY <--
 
         setComposeContent {
@@ -312,8 +312,8 @@ class MainActivity : BaseActivity() {
             }
             // SY <--
 
-            var showChangelog by remember { mutableStateOf(didMigration && !BuildConfig.DEBUG) }
-            if (showChangelog && !isBenchmarkBuildType) {
+            var showChangelog by remember { mutableStateOf(didMigration && !BuildConfig.DEBUG && !isBenchmarkBuildType) }
+            if (showChangelog) {
                 // SY -->
                 WhatsNewDialog(onDismissRequest = { showChangelog = false })
                 // SY <--

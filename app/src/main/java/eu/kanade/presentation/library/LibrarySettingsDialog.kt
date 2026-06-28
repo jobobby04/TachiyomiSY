@@ -24,7 +24,7 @@ import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.library.LibrarySettingsScreenModel
-import eu.kanade.tachiyomi.util.system.isDevFlavor
+import eu.kanade.tachiyomi.util.system.isDebugBuildType
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import kotlinx.coroutines.flow.map
 import tachiyomi.core.common.preference.TriState
@@ -138,7 +138,7 @@ private fun ColumnScope.FilterPage(
     )
     // TODO: re-enable when custom intervals are ready for stable
     if (
-        (isDevFlavor || isPreviewBuildType) &&
+        (isDebugBuildType || isPreviewBuildType) &&
         LibraryPreferences.MANGA_OUTSIDE_RELEASE_PERIOD in autoUpdateMangaRestrictions
     ) {
         val filterIntervalCustom by screenModel.libraryPreferences.filterIntervalCustom.collectAsState()

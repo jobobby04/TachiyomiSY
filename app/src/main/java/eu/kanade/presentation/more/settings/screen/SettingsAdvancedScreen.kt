@@ -61,7 +61,7 @@ import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.system.GLUtil
-import eu.kanade.tachiyomi.util.system.isDevFlavor
+import eu.kanade.tachiyomi.util.system.isDebugBuildType
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import eu.kanade.tachiyomi.util.system.isShizukuInstalled
 import eu.kanade.tachiyomi.util.system.powerManager
@@ -489,7 +489,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                     entries = extensionInstallerPref.entries
                         .filter {
                             // TODO: allow private option in stable versions once URL handling is more fleshed out
-                            if (isPreviewBuildType || isDevFlavor) {
+                            if (isPreviewBuildType || isDebugBuildType) {
                                 true
                             } else {
                                 it != BasePreferences.ExtensionInstaller.PRIVATE

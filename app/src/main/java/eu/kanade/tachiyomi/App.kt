@@ -105,7 +105,11 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     @SuppressLint("LaunchActivityFromNotification")
     override fun onCreate() {
         super<Application>.onCreate()
-        FirebaseConfig.init(applicationContext)
+        try {
+            FirebaseConfig.init(applicationContext)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
@@ -359,7 +363,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         xLogD("Application booting...")
         xLogD(
             """
-                App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
+                App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.BUILD_TYPE}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
                 Preview build: $syDebugVersion
                 Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})
                 Android build ID: ${Build.DISPLAY}

@@ -50,15 +50,15 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: Build app
-        run: ./gradlew assembleStandardRelease
+        run: ./gradlew assembleRelease
 
       - name: Run unit tests
-        run: ./gradlew testReleaseUnitTest testStandardReleaseUnitTest
+        run: ./gradlew testReleaseUnitTest testReleaseUnitTest
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: app/build/outputs/apk/standard/release
+          releaseDirectory: app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -70,11 +70,11 @@ jobs:
         run: |
           set -e
 
-          mv app/build/outputs/apk/standard/release/app-standard-universal-release-unsigned-signed.apk TachiyomiSY.apk
-          mv app/build/outputs/apk/standard/release/app-standard-arm64-v8a-release-unsigned-signed.apk TachiyomiSY-arm64-v8a.apk
-          mv app/build/outputs/apk/standard/release/app-standard-armeabi-v7a-release-unsigned-signed.apk TachiyomiSY-armeabi-v7a.apk
-          mv app/build/outputs/apk/standard/release/app-standard-x86-release-unsigned-signed.apk TachiyomiSY-x86.apk
-          mv app/build/outputs/apk/standard/release/app-standard-x86_64-release-unsigned-signed.apk TachiyomiSY-x86_64.apk
+          mv app/build/outputs/apk/release/app-universal-release-unsigned-signed.apk TachiyomiSY.apk
+          mv app/build/outputs/apk/release/app-arm64-v8a-release-unsigned-signed.apk TachiyomiSY-arm64-v8a.apk
+          mv app/build/outputs/apk/release/app-armeabi-v7a-release-unsigned-signed.apk TachiyomiSY-armeabi-v7a.apk
+          mv app/build/outputs/apk/release/app-x86-release-unsigned-signed.apk TachiyomiSY-x86.apk
+          mv app/build/outputs/apk/release/app-x86_64-release-unsigned-signed.apk TachiyomiSY-x86_64.apk
 
       - name: Create release
         uses: softprops/action-gh-release@v3
