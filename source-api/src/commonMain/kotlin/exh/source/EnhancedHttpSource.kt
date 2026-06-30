@@ -266,7 +266,7 @@ class EnhancedHttpSource(
      *
      * @param page the page whose source image has to be downloaded.
      */
-    override suspend fun getImage(page: Page) = source().getImage(page)
+    override suspend fun getImage(page: Page, existingSize: Long) = source().getImage(page, existingSize)
 
     /**
      * Returns the url of the provided manga

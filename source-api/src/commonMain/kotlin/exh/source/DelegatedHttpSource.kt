@@ -321,9 +321,9 @@ abstract class DelegatedHttpSource(val delegate: HttpSource) : HttpSource() {
      *
      * @param page the page whose source image has to be downloaded.
      */
-    override suspend fun getImage(page: Page): Response {
+    override suspend fun getImage(page: Page, existingSize: Long): Response {
         ensureDelegateCompatible()
-        return delegate.getImage(page)
+        return delegate.getImage(page, existingSize)
     }
 
     /**
