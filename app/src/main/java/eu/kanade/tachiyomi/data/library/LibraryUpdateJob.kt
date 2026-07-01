@@ -573,7 +573,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 } else if (!dbManga.favorite) {
                     updateManga.awaitUpdateFavorite(dbManga.id, true)
                 }
-                
+
                 updateMangaFromRemote(
                     dbManga,
                     fetchDetails = false,
