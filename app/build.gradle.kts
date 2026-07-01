@@ -55,6 +55,7 @@ android {
             setProguardFiles(listOf(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
 
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLatestCommitTime = true)}\"")
+            buildConfigField("boolean", "INCLUDE_UPDATER", "true")
         }
         create("foss") {
             initWith(getByName("release"))
@@ -62,6 +63,8 @@ android {
             applicationIdSuffix = ".foss"
 
             matchingFallbacks.add("release")
+
+            buildConfigField("boolean", "INCLUDE_UPDATER", "false")
         }
         create("benchmark") {
             initWith(getByName("release"))
@@ -70,6 +73,8 @@ android {
             matchingFallbacks.add("release")
             versionNameSuffix = "-benchmark"
             applicationIdSuffix = ".benchmark"
+
+            buildConfigField("boolean", "INCLUDE_UPDATER", "false")
         }
     }
 
