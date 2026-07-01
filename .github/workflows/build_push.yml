@@ -53,7 +53,7 @@ jobs:
         run: ./gradlew assembleRelease
 
       - name: Run unit tests
-        run: ./gradlew testReleaseUnitTest testReleaseUnitTest
+        run: ./gradlew testReleaseUnitTest
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
