@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.data.track.shikimori.dto.SMAddMangaResponse
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMMetadata
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMSearchResult
+import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUser
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserListResult
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserResult
 import eu.kanade.tachiyomi.network.DELETE
@@ -173,12 +174,13 @@ class ShikimoriApi(
         }
     }
 
-    suspend fun getCurrentUser(): Int {
+    suspend fun getCurrentUser(): SMUser {
         return with(json) {
             val query = """
             |{
                 |currentUser {
                     |id
+                    |nickname
                 |}
             |}
             """.trimMargin()
@@ -193,8 +195,7 @@ class ShikimoriApi(
             )
                 .awaitSuccess()
                 .parseAs<SMUserResult>()
-                .data.currentUser.id
-                .toInt()
+                .data.currentUser
         }
     }
 
