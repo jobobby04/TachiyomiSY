@@ -18,21 +18,10 @@ data class SMMetadataResult(
     val name: String,
     val description: String,
     val poster: SMMangaPoster,
-    val personRoles: List<SMMangaPersonRoles>,
+    val personRoles: List<SMPersonRole>,
 )
 
 @Serializable
 data class SMMangaPoster(
     val originalUrl: String,
-)
-
-@Serializable
-data class SMMangaPersonRoles(
-    val person: SMPerson,
-    val rolesEn: List<String>,
-)
-
-@Serializable
-data class SMPerson(
-    val name: String,
 )

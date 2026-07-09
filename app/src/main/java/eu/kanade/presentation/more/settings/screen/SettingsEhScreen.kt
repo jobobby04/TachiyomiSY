@@ -970,7 +970,7 @@ object SettingsEhScreen : SearchableSettings {
     @Composable
     fun autoUpdateRequirements(
         exhPreferences: ExhPreferences,
-    ): Preference.PreferenceItem.MultiSelectListPreference {
+    ): Preference.PreferenceItem.MultiSelectListPreference<String> {
         val value by exhPreferences.exhAutoUpdateRequirements.collectAsState()
         val context = LocalContext.current
         return Preference.PreferenceItem.MultiSelectListPreference(

@@ -44,7 +44,7 @@ class TrackerManager {
 
     val trackers = listOf(
         // SY -->
-        mdlist,
+        mdList,
         // SY <--
         myAnimeList,
         aniList,

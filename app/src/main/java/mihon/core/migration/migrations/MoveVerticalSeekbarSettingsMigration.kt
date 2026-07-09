@@ -19,7 +19,7 @@ class MoveVerticalSeekbarSettingsMigration : Migration {
             val forceHorzSeekbar = prefs.getBoolean("pref_force_horz_seekbar", false)
             if (forceHorzSeekbar) {
                 putBoolean(
-                    readerPreferences.verticalNavigatorForLongStrip.key(),
+                    "pref_webtoon_vertical_navigator",
                     false,
                 )
             }

@@ -50,7 +50,7 @@ object DebugFunctions {
     private val getAllManga: GetAllManga by injectLazy()
 
     fun forceUpgradeMigration(): Boolean {
-        val migrationContext = MigrationContext(dryrun = false)
+        val migrationContext = MigrationContext(dryrun = false, 0)
         val migrationJobFactory = MigrationJobFactory(migrationContext, Migrator.scope)
         val migrationStrategyFactory = MigrationStrategyFactory(migrationJobFactory, {})
         val strategy = migrationStrategyFactory.create(1, BuildConfig.VERSION_CODE)
@@ -58,7 +58,7 @@ object DebugFunctions {
     }
 
     fun forceSetupJobs(): Boolean {
-        val migrationContext = MigrationContext(dryrun = false)
+        val migrationContext = MigrationContext(dryrun = false, 0)
         val migrationJobFactory = MigrationJobFactory(migrationContext, Migrator.scope)
         val migrationStrategyFactory = MigrationStrategyFactory(migrationJobFactory, {})
         val strategy = migrationStrategyFactory.create(0, BuildConfig.VERSION_CODE)
