@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
+    <changelogversion versionName="1.13.0" changeDate="July 9,2026">
+        <changelogtext>[b]Based on Mihon stable 0.20.1(from 0.18.0)[/b]</changelogtext>
+        <changelogtext>Fixes screen staying on when in Library (Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Fix jump to notification settings for Android SDK 23-25</changelogtext>
+        <changelogtext>Remove the unused mark duplicate as read preference (Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Fix deletion of duplicate downloaded chapters when automatically marked as read (Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Add preference to toggle chapter URL hash for downloads (Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Add sync events to SyncYomi (Thanks @kaiserbh)</changelogtext>
+        <changelogtext>Improve sync merging categories (Thanks @kaiserbh)</changelogtext>
+        <changelogtext>Prevent deleted "ghost chapters" from reappearing during sync (Thanks @kaiserbh)</changelogtext>
+        <changelogtext>Fix infinite sync loops caused by metadata conflicts (Thanks @Lolle2000la)</changelogtext>
+        <changelogtext>Copy last page read on migrate</changelogtext>
+        <changelogtext>Migrate chapters read history (Thanks @BrutuZ)</changelogtext>
+        <changelogtext>Delegate Lanraragi</changelogtext>
+        <changelogtext>Fix E-Hentai Jump/Seek match for detailed date (Thanks @NendoZen)</changelogtext>
+        <changelogtext>Fix blank page on E-Hentai Cloudflare guard</changelogtext>
+        <changelogtext>Fix MangaDex Manga Info and Chapter requests</changelogtext>
+        <changelogtext>Add handling for previously unhandled MangaDex preferences (Thanks @NGB-Was-Taken)</changelogtext>
+        <changelogtext>Migrate NHentai to the v2 API (Thanks @MediocreLegion)</changelogtext>
+    </changelogversion>
     <changelogversion versionName="1.12.0" changeDate="May 11,2025">
         <changelogtext>[b]Based on Mihon stable 0.18.0(from 0.17.0)[/b]</changelogtext>
         <changelogtext>Use Complete Category for sync completion(Thanks @lord-ne)</changelogtext>
