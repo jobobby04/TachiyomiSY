@@ -514,7 +514,7 @@ class Downloader(
                 ?: tmpDir.createFile("$filename.tmp")!!
 
             try {
-                source.getImage(page, file.length(), dataSaver).use {
+                source.getImage(page, dataSaver = dataSaver).use {
                     it.body.source().saveTo(
                         // If the server supports partial downloads (HTTP 206),
                         // append to the existing file.
