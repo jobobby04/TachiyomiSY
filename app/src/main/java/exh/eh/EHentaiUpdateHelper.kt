@@ -257,7 +257,7 @@ class EHentaiUpdateHelper(context: Context) {
                         sourceOrder = -1,
                         lastModifiedAt = 0,
                         version = 0,
-                        memo = JsonObject.EMPTY
+                        memo = JsonObject.EMPTY,
                     )
                 }
             }
