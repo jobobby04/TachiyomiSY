@@ -49,4 +49,5 @@ val migrations: List<Migration>
         RemoveDuplicateReaderPreferenceMigration(),
         InstallationIdMigration(),
         MoveVerticalSeekbarSettingsMigration(),
+        VerticalNavigatorMigration(),
     )
