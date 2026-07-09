@@ -46,6 +46,7 @@ class CrashLogUtil(
             App ID: ${BuildConfig.APPLICATION_ID}
             App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.BUILD_TYPE}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE}, ${BuildConfig.BUILD_TIME})
             Preview build: $syDebugVersion
+            Upstream Version: ${BuildConfig.UPSTREAM_VERSION}
             Installation ID: ${preferences.installationId.get()}
             Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}; build ${Build.DISPLAY})
             Device brand: ${Build.BRAND}

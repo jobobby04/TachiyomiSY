@@ -34,6 +34,8 @@ android {
         versionCode = 79
         versionName = "1.13.0"
 
+        buildConfigField("String", "UPSTREAM_VERSION", """"0.20.1"""")
+
         buildConfigField("String", "COMMIT_COUNT", "\"${getLatestCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getLatestCommitSha()}\"")
         buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLatestCommitTime = false)}\"")
