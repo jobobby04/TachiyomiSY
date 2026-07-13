@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.data.updater
 
 import android.content.Context
+import android.os.Build
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import exh.syDebugVersion
@@ -14,9 +15,9 @@ class AppUpdateChecker {
 
     suspend fun checkForUpdate(context: Context, forceCheck: Boolean = false): GetApplicationRelease.Result {
         // Disable app update checks for older Android versions that we're going to drop support for
-        // if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-        //     return GetApplicationRelease.Result.OsTooOld
-        // }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return GetApplicationRelease.Result.OsTooOld
+        }
 
         return withIOContext {
             val result = getApplicationRelease.await(
