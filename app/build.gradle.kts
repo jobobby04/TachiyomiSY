@@ -31,8 +31,8 @@ android {
     defaultConfig {
         applicationId = "eu.kanade.tachiyomi.sy"
 
-        versionCode = 80
-        versionName = "1.13.1"
+        versionCode = 81
+        versionName = "1.13.2"
 
         buildConfigField("String", "UPSTREAM_VERSION", """"0.20.1"""")
 
