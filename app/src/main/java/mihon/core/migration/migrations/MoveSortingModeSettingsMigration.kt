@@ -3,6 +3,7 @@ package mihon.core.migration.migrations
 import android.app.Application
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import tachiyomi.core.common.util.lang.withIOContext
@@ -32,7 +33,7 @@ class MoveSortingModeSettingsMigration : Migration {
             putString(libraryPreferences.sortingMode.key(), newSortingMode)
         }
         database.transaction {
-            database.categoriesQueries.getCategories(CategoryMapper::mapCategory).executeAsList()
+            database.categoriesQueries.getCategories(CategoryMapper::mapCategory).awaitAsList()
                 .filter { (it.flags and 0b00111100L) == 0b00100000L }
                 .forEach {
                     database.categoriesQueries.update(
