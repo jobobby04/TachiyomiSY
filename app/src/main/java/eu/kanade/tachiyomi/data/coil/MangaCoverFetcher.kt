@@ -12,10 +12,12 @@ import coil3.fetch.SourceFetchResult
 import coil3.getOrDefault
 import coil3.request.Options
 import com.hippo.unifile.UniFile
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.coil.MangaCoverFetcher.Companion.USE_CUSTOM_COVER_KEY
 import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.source.online.HttpSource
+import exh.util.DataSaver
 import logcat.LogPriority
 import okhttp3.CacheControl
 import okhttp3.Call
@@ -56,6 +58,8 @@ class MangaCoverFetcher(
     private val callFactoryLazy: Lazy<Call.Factory>,
     private val imageLoader: ImageLoader,
 ) : Fetcher {
+
+    private val sourcePreferences: SourcePreferences by injectLazy()
 
     private val diskCacheKey: String
         get() = diskCacheKeyLazy.value
@@ -181,9 +185,15 @@ class MangaCoverFetcher(
 
     private fun newRequest(): Request {
         val request = Request.Builder().apply {
-            url(url!!)
+            val source = sourceLazy.value
+            val dataSaver = if (source != null && sourcePreferences.dataSaverCovers.get()) {
+                DataSaver(source, sourcePreferences)
+            } else {
+                DataSaver.NoOp
+            }
+            url(dataSaver.compress(url!!))
 
-            val sourceHeaders = sourceLazy.value?.headers
+            val sourceHeaders = source?.headers
             if (sourceHeaders != null) {
                 headers(sourceHeaders)
             }

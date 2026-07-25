@@ -91,6 +91,8 @@ class SourcePreferences(
 
     val dataSaverDownloader: Preference<Boolean> = preferenceStore.getBoolean("data_saver_downloader", true)
 
+    val dataSaverCovers: Preference<Boolean> = preferenceStore.getBoolean("data_saver_covers", false)
+
     enum class DataSaver {
         NONE,
         BANDWIDTH_HERO,
