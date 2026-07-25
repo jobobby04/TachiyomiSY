@@ -43,6 +43,7 @@ import okio.BufferedSource
 import tachiyomi.core.common.util.system.ImageUtil
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import kotlin.math.min
 
 /**
  * A wrapper view for showing page image.
@@ -138,7 +139,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 }
 
                 val targetScale = height.toFloat() / sHeight.toFloat()
-                (animateScaleAndCenter(targetScale, point) ?: return@postDelayed)
+                (animateScaleAndCenter(min(targetScale, minScale * 2), point) ?: return@postDelayed)
                     .withDuration(500)
                     .withEasing(EASE_IN_OUT_QUAD)
                     .withInterruptible(true)
