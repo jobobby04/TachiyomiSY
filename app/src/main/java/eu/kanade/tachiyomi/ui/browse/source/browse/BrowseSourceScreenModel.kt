@@ -16,6 +16,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.source.interactor.GetBrowseMangaFilter
 import eu.kanade.domain.source.interactor.GetExhSavedSearch
 import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.domain.source.service.SourcePreferences
@@ -84,6 +85,7 @@ open class BrowseSourceScreenModel(
     private val filtersJson: String? = null,
     private val savedSearch: Long? = null,
     // SY <--
+    private val filterReadItems: Boolean = true,
     private val sourceManager: SourceManager = Injekt.get(),
     sourcePreferences: SourcePreferences = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
@@ -94,6 +96,7 @@ open class BrowseSourceScreenModel(
     private val setMangaCategories: SetMangaCategories = Injekt.get(),
     private val setMangaDefaultChapterFlags: SetMangaDefaultChapterFlags = Injekt.get(),
     private val getManga: GetManga = Injekt.get(),
+    private val getBrowseMangaFilter: GetBrowseMangaFilter = Injekt.get(),
     private val updateManga: UpdateManga = Injekt.get(),
     private val addTracks: AddTracks = Injekt.get(),
     getIncognitoState: GetIncognitoState = Injekt.get(),
@@ -172,7 +175,6 @@ open class BrowseSourceScreenModel(
     /**
      * Flow of Pager flow tied to [State.listing]
      */
-    private val hideInLibraryItems = sourcePreferences.hideInLibraryItems.get()
     val mangaPagerFlowFlow = state.map { it.listing }
         .distinctUntilChanged()
         .map { listing ->
@@ -181,15 +183,17 @@ open class BrowseSourceScreenModel(
                 createSourcePagingSource(listing.query ?: "", listing.filters)
                 // SY <--
             }.flow.map { pagingData ->
-                pagingData.map { (manga, metadata) ->
-                    getManga.subscribe(manga.url, manga.source)
-                        .map { it ?: manga }
-                        // SY -->
-                        .combineMetadata(metadata)
-                        // SY <--
-                        .stateIn(ioCoroutineScope)
-                }
-                    .filter { !hideInLibraryItems || !it.value.first.favorite }
+                val browseMangaFilter = getBrowseMangaFilter(filterReadItems)
+                pagingData
+                    .filter { (manga) -> browseMangaFilter.isVisible(manga) }
+                    .map { (manga, metadata) ->
+                        getManga.subscribe(manga.url, manga.source)
+                            .map { it ?: manga }
+                            // SY -->
+                            .combineMetadata(metadata)
+                            // SY <--
+                            .stateIn(ioCoroutineScope)
+                    }
             }
                 .cachedIn(ioCoroutineScope)
         }

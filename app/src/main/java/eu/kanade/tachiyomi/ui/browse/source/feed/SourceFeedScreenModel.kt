@@ -10,6 +10,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.source.interactor.GetBrowseMangaFilter
 import eu.kanade.domain.source.interactor.GetExhSavedSearch
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.browse.SourceFeedUI
@@ -58,6 +59,7 @@ open class SourceFeedScreenModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val getManga: GetManga = Injekt.get(),
     private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
+    private val getBrowseMangaFilter: GetBrowseMangaFilter = Injekt.get(),
     private val updateManga: UpdateManga = Injekt.get(),
     private val getFeedSavedSearchBySourceId: GetFeedSavedSearchBySourceId = Injekt.get(),
     private val getSavedSearchBySourceIdFeed: GetSavedSearchBySourceIdFeed = Injekt.get(),
@@ -145,6 +147,7 @@ open class SourceFeedScreenModel(
      */
     private fun getFeed(feedSavedSearch: List<SourceFeedUI>) {
         screenModelScope.launch {
+            val browseMangaFilter = getBrowseMangaFilter()
             feedSavedSearch.map { sourceFeed ->
                 async {
                     val page = try {
@@ -165,6 +168,7 @@ open class SourceFeedScreenModel(
 
                     val titles = withIOContext {
                         networkToLocalManga(page.map { it.toDomainManga(source.id) })
+                            .filter(browseMangaFilter::isVisible)
                     }
 
                     mutableState.update { state ->

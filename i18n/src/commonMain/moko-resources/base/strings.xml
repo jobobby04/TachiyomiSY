@@ -542,6 +542,8 @@
 
       <!-- Browse section -->
     <string name="pref_hide_in_library_items">Hide entries already in library</string>
+    <string name="pref_hide_read_items">Hide entries with reading history</string>
+    <string name="pref_hide_read_items_summary">Includes read chapters and saved reading progress</string>
 
       <!-- Data and storage section -->
     <string name="pref_storage_location">Storage location</string>

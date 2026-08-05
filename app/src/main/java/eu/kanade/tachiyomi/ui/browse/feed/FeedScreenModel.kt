@@ -7,6 +7,7 @@ import androidx.compose.ui.util.fastAny
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.source.interactor.GetBrowseMangaFilter
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.browse.FeedItemUI
 import eu.kanade.tachiyomi.source.Source
@@ -56,6 +57,7 @@ open class FeedScreenModel(
     val sourcePreferences: SourcePreferences = Injekt.get(),
     private val getManga: GetManga = Injekt.get(),
     private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
+    private val getBrowseMangaFilter: GetBrowseMangaFilter = Injekt.get(),
     private val updateManga: UpdateManga = Injekt.get(),
     private val getFeedSavedSearchGlobal: GetFeedSavedSearchGlobal = Injekt.get(),
     private val getSavedSearchGlobalFeed: GetSavedSearchGlobalFeed = Injekt.get(),
@@ -224,6 +226,7 @@ open class FeedScreenModel(
      */
     private fun getFeed(feedSavedSearch: List<FeedItemUI>) {
         screenModelScope.launch {
+            val browseMangaFilter = getBrowseMangaFilter()
             feedSavedSearch.map { itemUI ->
                 async {
                     val page = try {
@@ -248,7 +251,8 @@ open class FeedScreenModel(
 
                     val result = withIOContext {
                         itemUI.copy(
-                            results = networkToLocalManga(page.map { it.toDomainManga(itemUI.source!!.id) }),
+                            results = networkToLocalManga(page.map { it.toDomainManga(itemUI.source!!.id) })
+                                .filter(browseMangaFilter::isVisible),
                         )
                     }
 

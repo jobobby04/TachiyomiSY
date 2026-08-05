@@ -12,6 +12,7 @@ import eu.kanade.domain.manga.interactor.GetExcludedScanlators
 import eu.kanade.domain.manga.interactor.SetExcludedScanlators
 import eu.kanade.domain.manga.interactor.SetMangaViewerFlags
 import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.source.interactor.GetBrowseMangaFilter
 import eu.kanade.domain.source.interactor.GetEnabledSources
 import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.domain.source.interactor.GetLanguagesWithSources
@@ -81,6 +82,7 @@ import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaByUrlAndSourceId
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
+import tachiyomi.domain.manga.interactor.GetReadMangaIds
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.interactor.ResetViewerFlags
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
@@ -122,6 +124,7 @@ class DomainModule : InjektModule {
         addFactory { GetMangaWithChapters(get(), get()) }
         addFactory { GetMangaByUrlAndSourceId(get()) }
         addFactory { GetManga(get()) }
+        addFactory { GetReadMangaIds(get()) }
         addFactory { GetNextChapters(get(), get(), get(), get()) }
         addFactory { GetUpcomingManga(get()) }
         addFactory { ResetViewerFlags(get()) }
@@ -133,6 +136,7 @@ class DomainModule : InjektModule {
         addFactory { UpdateManga(get(), get()) }
         addFactory { UpdateMangaNotes(get()) }
         addFactory { SetMangaCategories(get()) }
+        addFactory { GetBrowseMangaFilter(get(), get()) }
         addFactory { GetExcludedScanlators(get()) }
         addFactory { SetExcludedScanlators(get()) }
         addFactory {
