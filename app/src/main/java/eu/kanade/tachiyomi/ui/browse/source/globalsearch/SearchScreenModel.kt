@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.produceState
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import eu.kanade.domain.source.interactor.GetBrowseMangaFilter
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.extension.ExtensionManager
@@ -32,11 +33,13 @@ import java.util.concurrent.Executors
 
 abstract class SearchScreenModel(
     initialState: State = State(),
+    private val filterReadItems: Boolean = true,
     sourcePreferences: SourcePreferences = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
     private val extensionManager: ExtensionManager = Injekt.get(),
     private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
     private val getManga: GetManga = Injekt.get(),
+    private val getBrowseMangaFilter: GetBrowseMangaFilter = Injekt.get(),
     private val preferences: SourcePreferences = Injekt.get(),
 ) : StateScreenModel<SearchScreenModel.State>(initialState) {
 
@@ -151,6 +154,7 @@ abstract class SearchScreenModel(
         }
 
         searchJob = ioCoroutineScope.launch {
+            val browseMangaFilter = getBrowseMangaFilter(filterReadItems)
             sources.map { source ->
                 async {
                     if (state.value.items[source] !is SearchItemResult.Loading) {
@@ -166,6 +170,7 @@ abstract class SearchScreenModel(
                             .map { it.toDomainManga(source.id) }
                             .distinctBy { it.url }
                             .let { networkToLocalManga(it) }
+                            .filter(browseMangaFilter::isVisible)
 
                         if (isActive) {
                             updateItem(source, SearchItemResult.Success(titles))

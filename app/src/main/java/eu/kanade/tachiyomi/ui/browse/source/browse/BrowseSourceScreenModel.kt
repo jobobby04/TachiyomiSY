@@ -178,12 +178,12 @@ open class BrowseSourceScreenModel(
     val mangaPagerFlowFlow = state.map { it.listing }
         .distinctUntilChanged()
         .map { listing ->
-            val browseMangaFilter = getBrowseMangaFilter(filterReadItems)
             Pager(PagingConfig(pageSize = 25)) {
                 // SY -->
                 createSourcePagingSource(listing.query ?: "", listing.filters)
                 // SY <--
             }.flow.map { pagingData ->
+                val browseMangaFilter = getBrowseMangaFilter(filterReadItems)
                 pagingData
                     .filter { (manga) -> browseMangaFilter.isVisible(manga) }
                     .map { (manga, metadata) ->
