@@ -92,6 +92,11 @@ WHERE favorite = 0 AND _id IN (
     WHERE read = 1 OR last_page_read != 0
 );
 
+getReadMangaIds:
+SELECT DISTINCT manga_id
+FROM chapters
+WHERE read = 1 OR last_page_read != 0;
+
 getAllManga:
 SELECT *
 FROM mangas;

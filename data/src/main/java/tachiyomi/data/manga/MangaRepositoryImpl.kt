@@ -63,6 +63,13 @@ class MangaRepositoryImpl(
             .awaitAsList()
     }
 
+    override suspend fun getReadMangaIds(): Set<Long> {
+        return database.mangasQueries
+            .getReadMangaIds()
+            .awaitAsList()
+            .toSet()
+    }
+
     override suspend fun getLibraryManga(): List<LibraryManga> {
         return getLibraryQuery()
             .awaitAsList()
