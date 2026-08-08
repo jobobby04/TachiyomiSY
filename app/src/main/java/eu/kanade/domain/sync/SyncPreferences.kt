@@ -13,7 +13,7 @@ class SyncPreferences(
     val clientAPIKey: Preference<String> = preferenceStore.getString("sync_client_api_key", "")
     val lastSyncTimestamp: Preference<Long> = preferenceStore.getLong(Preference.appStateKey("last_sync_timestamp"), 0L)
 
-    val lastSyncEtag: Preference<String> = preferenceStore.getString("sync_etag", "")
+    val lastSyncEtag: Preference<String> = preferenceStore.getString(Preference.appStateKey("sync_etag"), "")
 
     val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
     val syncService: Preference<Int> = preferenceStore.getInt("sync_service", 0)
