@@ -28,8 +28,6 @@ import kotlinx.datetime.toLocalDateTime
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.time.Clock
@@ -44,11 +42,11 @@ fun ChapterListDialog(
     onClickChapter: (Chapter) -> Unit,
     onBookmark: (Chapter) -> Unit,
     dateRelativeTime: Boolean,
+    downloadManager: DownloadManager,
 ) {
     val manga by viewModel.mangaFlow.collectAsState()
     val context = LocalContext.current
     val state = rememberLazyListState(chapters.indexOfFirst { it.isCurrent }.coerceAtLeast(0))
-    val downloadManager: DownloadManager = remember { Injekt.get() }
     val downloadQueueState by downloadManager.queueState.collectAsState()
 
     AdaptiveSheet(

@@ -10,10 +10,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.components.BrowseSourceSimpleToolbar
 import eu.kanade.presentation.browse.components.RemoveMangaDialog
@@ -44,12 +43,9 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
-        val viewModel = viewModel<MangaDexFollowsViewModel>(
-            factory = MangaDexFollowsViewModel.Factory,
-            extras = CreationExtras {
-                set(MangaDexFollowsViewModel.SOURCE_ID_KEY, sourceId)
-            },
-        )
+        val viewModel = assistedMetroViewModel<MangaDexFollowsViewModel, MangaDexFollowsViewModel.Factory> {
+            create(sourceId = sourceId)
+        }
         val state by viewModel.state.collectAsState()
 
         val snackbarHostState = remember { SnackbarHostState() }

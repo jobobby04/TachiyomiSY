@@ -1,6 +1,9 @@
 package mihon.core.migration.migrations
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.tachiyomi.source.Source
 import exh.source.MERGED_SOURCE_ID
@@ -23,18 +26,21 @@ import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.domain.source.service.SourceManager
 
-class MergedMangaRewriteMigration : Migration {
+@Inject
+@ContributesIntoSet(AppScope::class)
+class MergedMangaRewriteMigration(
+    private val database: Database,
+    private val getMangaBySource: GetMangaBySource,
+    private val getManga: GetManga,
+    private val updateManga: UpdateManga,
+    private val insertMergedReference: InsertMergedReference,
+    private val sourceManager: SourceManager,
+    private val deleteChapters: DeleteChapters,
+    private val updateChapter: UpdateChapter,
+) : Migration {
     override val version: Float = 7f
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
-        val database = migrationContext.get<Database>() ?: return@withIOContext false
-        val getMangaBySource = migrationContext.get<GetMangaBySource>() ?: return@withIOContext false
-        val getManga = migrationContext.get<GetManga>() ?: return@withIOContext false
-        val updateManga = migrationContext.get<UpdateManga>() ?: return@withIOContext false
-        val insertMergedReference = migrationContext.get<InsertMergedReference>() ?: return@withIOContext false
-        val sourceManager = migrationContext.get<SourceManager>() ?: return@withIOContext false
-        val deleteChapters = migrationContext.get<DeleteChapters>() ?: return@withIOContext false
-        val updateChapter = migrationContext.get<UpdateChapter>() ?: return@withIOContext false
         val mergedMangas = getMangaBySource.await(MERGED_SOURCE_ID)
 
         if (mergedMangas.isNotEmpty()) {

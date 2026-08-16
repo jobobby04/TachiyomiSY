@@ -19,7 +19,6 @@ import androidx.compose.runtime.RememberObserver
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,20 +31,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.kanade.core.preference.asState
-import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.BuildConfig
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.time.Duration.Companion.nanoseconds
 
 @Composable
-fun DebugModeOverlay() {
+fun DebugModeOverlay(enableSourceBlacklist: Boolean) {
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -58,7 +53,7 @@ fun DebugModeOverlay() {
                 .padding(4.dp),
         ) {
             FpsDebugModeOverlay()
-            EHDebugModeOverlay()
+            EHDebugModeOverlay(enableSourceBlacklist)
         }
     }
 }
@@ -84,11 +79,7 @@ private fun FpsDebugModeOverlay() {
 }
 
 @Composable
-private fun EHDebugModeOverlay() {
-    val scope = rememberCoroutineScope()
-    val enableSourceBlacklist by remember {
-        Injekt.get<SourcePreferences>().enableSourceBlacklist.asState(scope)
-    }
+private fun EHDebugModeOverlay(enableSourceBlacklist: Boolean) {
     val context = LocalContext.current
     Text(
         text = remember(enableSourceBlacklist) {

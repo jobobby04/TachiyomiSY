@@ -1,7 +1,9 @@
 package eu.kanade.domain.manga.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.domain.library.service.LibraryPreferences
 
+@Inject
 class ReorderSortTag(
     private val preferences: LibraryPreferences,
     private val getSortTag: GetSortTag,

@@ -5,9 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.domain.manga.interactor.GetPagePreviews
 import eu.kanade.domain.manga.model.PagePreview
 import eu.kanade.tachiyomi.source.Source
@@ -23,30 +27,24 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@AssistedInject
 class PagePreviewViewModel(
-    private val mangaId: Long,
-    private val getPagePreviews: GetPagePreviews = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
+    @Assisted private val mangaId: Long,
+    private val getPagePreviews: GetPagePreviews,
+    private val getManga: GetManga,
+    private val getChaptersByMangaId: GetChaptersByMangaId,
+    private val sourceManager: SourceManager,
 ) : ViewModel() {
 
     val state: StateFlow<PagePreviewState>
         field = MutableStateFlow<PagePreviewState>(PagePreviewState.Loading)
 
-    companion object {
-        val MANGA_ID_KEY = CreationExtras.Key<Long>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                PagePreviewViewModel(
-                    mangaId = get(MANGA_ID_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(mangaId: Long): PagePreviewViewModel
     }
 
     private val page = MutableStateFlow(1)

@@ -4,10 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
@@ -41,12 +40,9 @@ class RecommendsScreen(private val args: Args) : Screen() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val viewModel = viewModel<RecommendsViewModel>(
-            factory = RecommendsViewModel.Factory,
-            extras = CreationExtras {
-                set(RecommendsViewModel.ARGS_KEY, args)
-            },
-        )
+        val viewModel = assistedMetroViewModel<RecommendsViewModel, RecommendsViewModel.Factory> {
+            create(args = args)
+        }
         val state by viewModel.state.collectAsState()
 
         val onClickItem = { manga: Manga ->

@@ -4,6 +4,7 @@ import android.app.Application
 import eu.kanade.tachiyomi.network.AndroidCookieJar
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
+import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.newCachelessCallWithProgress
@@ -39,7 +40,7 @@ abstract class HttpSource : CatalogueSource {
     // SY -->
     protected val network: NetworkHelper by lazy {
         val network = Injekt.get<NetworkHelper>()
-        object : NetworkHelper(Injekt.get<Application>(), Injekt.get(), network.isDebugBuild) {
+        object : NetworkHelper(Injekt.get<Application>(), Injekt.get<NetworkPreferences>(), network.isDebugBuild) {
             override val client: OkHttpClient
                 get() = delegate?.networkHttpClient ?: network.client
                     .newBuilder()

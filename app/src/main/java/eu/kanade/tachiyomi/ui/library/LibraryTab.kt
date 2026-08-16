@@ -22,12 +22,12 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.library.DeleteLibraryMangaDialog
 import eu.kanade.presentation.library.LibrarySettingsDialog
@@ -49,6 +49,7 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.util.system.workManager
 import exh.favorites.FavoritesSyncStatus
 import exh.recs.RecommendsScreen
 import exh.recs.batch.RecommendationSearchBottomSheetDialog
@@ -100,8 +101,8 @@ data object LibraryTab : Tab {
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
 
-        val viewModel = viewModel<LibraryViewModel>()
-        val settingsViewModel = viewModel<LibrarySettingsViewModel>()
+        val viewModel = metroViewModel<LibraryViewModel>()
+        val settingsViewModel = metroViewModel<LibrarySettingsViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
 
         val snackbarHostState = remember { SnackbarHostState() }
@@ -109,7 +110,7 @@ data object LibraryTab : Tab {
         val onClickRefresh: (Category?) -> Boolean = { category ->
             // SY -->
             val started = LibraryUpdateJob.startNow(
-                context = context,
+                workManager = context.workManager,
                 category = if (state.groupType == LibraryGroup.BY_DEFAULT) category else null,
                 group = state.groupType,
                 groupExtra = when (state.groupType) {

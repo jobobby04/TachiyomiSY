@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -48,6 +49,7 @@ import exh.util.trimOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.model.Manga
@@ -57,8 +59,6 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 @Composable
 fun EditMangaDialog(
@@ -79,8 +79,9 @@ fun EditMangaDialog(
         mutableStateOf<EditMangaDialogBinding?>(null)
     }
     val showTrackerSelectionDialogue = remember { mutableStateOf(false) }
-    val getTracks = remember { Injekt.get<GetTracks>() }
-    val trackerManager = remember { Injekt.get<TrackerManager>() }
+    val context = LocalContext.current
+    val getTracks = remember { context.appGraph.getTracks }
+    val trackerManager = remember { context.appGraph.trackerManager }
     val tracks = remember { mutableStateOf(emptyList<Pair<Track, Tracker>>()) }
     AlertDialog(
         onDismissRequest = onDismissRequest,

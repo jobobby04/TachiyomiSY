@@ -1,5 +1,6 @@
 package exh.favorites
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.source.online.all.EHentai
 import exh.metadata.metadata.EHentaiSearchMetadata
 import exh.source.EXH_SOURCE_ID
@@ -19,15 +20,14 @@ import tachiyomi.domain.manga.interactor.GetFavorites
 import tachiyomi.domain.manga.interactor.InsertFavoriteEntries
 import tachiyomi.domain.manga.model.FavoriteEntry
 import tachiyomi.domain.manga.model.Manga
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
 class LocalFavoritesStorage(
-    private val getFavorites: GetFavorites = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val deleteFavoriteEntries: DeleteFavoriteEntries = Injekt.get(),
-    private val getFavoriteEntries: GetFavoriteEntries = Injekt.get(),
-    private val insertFavoriteEntries: InsertFavoriteEntries = Injekt.get(),
+    private val getFavorites: GetFavorites,
+    private val getCategories: GetCategories,
+    private val deleteFavoriteEntries: DeleteFavoriteEntries,
+    private val getFavoriteEntries: GetFavoriteEntries,
+    private val insertFavoriteEntries: InsertFavoriteEntries,
 ) {
 
     suspend fun getChangedDbEntries() = getFavorites.await()

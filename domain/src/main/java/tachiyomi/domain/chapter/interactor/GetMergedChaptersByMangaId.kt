@@ -1,5 +1,6 @@
 package tachiyomi.domain.chapter.interactor
 
+import dev.zacsweers.metro.Inject
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -11,6 +12,7 @@ import tachiyomi.domain.chapter.repository.ChapterRepository
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.model.MergedMangaReference
 
+@Inject
 class GetMergedChaptersByMangaId(
     private val chapterRepository: ChapterRepository,
     private val getMergedReferencesById: GetMergedReferencesById,

@@ -86,9 +86,11 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         .add("User-Agent", "TachiyomiSY v${BuildConfig.VERSION_NAME} (${BuildConfig.APPLICATION_ID})")
         .build()
 
-    override val baseHttpClient: OkHttpClient = delegate.client.newBuilder()
-        .addInterceptor(mdList.interceptor)
-        .build()
+    override val baseHttpClient: OkHttpClient by lazy {
+        delegate.client.newBuilder()
+            .addInterceptor(mdList.interceptor)
+            .build()
+    }
 
     private fun dataSaver() = sourcePreferences.getBoolean(getDataSaverPreferenceKey(mdLang.lang), false)
     private fun usePort443Only() = sourcePreferences.getBoolean(getStandardHttpsPreferenceKey(mdLang.lang), false)

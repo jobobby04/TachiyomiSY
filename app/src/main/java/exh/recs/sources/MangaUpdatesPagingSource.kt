@@ -1,11 +1,13 @@
 package exh.recs.sources
 
 import dev.icerock.moko.resources.StringResource
+import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.model.SManga
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -17,14 +19,24 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.source.NoResultsException
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.sy.SYMR
 
-abstract class MangaUpdatesPagingSource(manga: Manga) : TrackerRecommendationPagingSource(
-    "https://api.mangaupdates.com/v1/", manga,
+abstract class MangaUpdatesPagingSource(
+    manga: Manga,
+    networkToLocalManga: NetworkToLocalManga,
+    getTracks: GetTracks,
+    trackerManager: TrackerManager,
+    client: OkHttpClient,
+    json: Json,
+) : TrackerRecommendationPagingSource(
+    "https://api.mangaupdates.com/v1/", manga, networkToLocalManga, getTracks, trackerManager, client, json,
 ) {
     override val name: String
         get() = "MangaUpdates"
@@ -98,14 +110,28 @@ abstract class MangaUpdatesPagingSource(manga: Manga) : TrackerRecommendationPag
     }
 }
 
-class MangaUpdatesCommunityPagingSource(manga: Manga) : MangaUpdatesPagingSource(manga) {
+class MangaUpdatesCommunityPagingSource(
+    manga: Manga,
+    networkToLocalManga: NetworkToLocalManga,
+    getTracks: GetTracks,
+    trackerManager: TrackerManager,
+    client: OkHttpClient,
+    json: Json,
+) : MangaUpdatesPagingSource(manga, networkToLocalManga, getTracks, trackerManager, client, json) {
     override val category: StringResource
         get() = SYMR.strings.community_recommendations
     override val recommendationJsonObjectName: String
         get() = "recommendations"
 }
 
-class MangaUpdatesSimilarPagingSource(manga: Manga) : MangaUpdatesPagingSource(manga) {
+class MangaUpdatesSimilarPagingSource(
+    manga: Manga,
+    networkToLocalManga: NetworkToLocalManga,
+    getTracks: GetTracks,
+    trackerManager: TrackerManager,
+    client: OkHttpClient,
+    json: Json,
+) : MangaUpdatesPagingSource(manga, networkToLocalManga, getTracks, trackerManager, client, json) {
     override val category: StringResource
         get() = SYMR.strings.similar_titles
     override val recommendationJsonObjectName: String

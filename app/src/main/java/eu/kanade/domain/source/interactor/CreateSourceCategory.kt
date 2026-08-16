@@ -1,8 +1,10 @@
 package eu.kanade.domain.source.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.source.service.SourcePreferences
 import tachiyomi.core.common.preference.plusAssign
 
+@Inject
 class CreateSourceCategory(private val preferences: SourcePreferences) {
 
     fun await(category: String): Result {

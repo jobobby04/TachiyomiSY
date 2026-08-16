@@ -1,7 +1,9 @@
 package exh.search
 
+import dev.zacsweers.metro.Inject
 import java.util.Locale
 
+@Inject
 class SearchEngine {
     private val queryCache = mutableMapOf<String, List<QueryComponent>>()
 

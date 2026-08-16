@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.track.kitsu
 
+import android.content.Context
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -14,7 +15,7 @@ import uy.kohesive.injekt.injectLazy
 import java.text.DecimalFormat
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Kitsu(id: Long) : BaseTracker(id, "Kitsu"), DeletableTracker {
+class Kitsu(context: Context, id: Long) : BaseTracker(context, id, "Kitsu"), DeletableTracker {
 
     companion object {
         const val READING = 1L

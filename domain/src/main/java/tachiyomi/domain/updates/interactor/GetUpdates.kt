@@ -1,5 +1,6 @@
 package tachiyomi.domain.updates.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -10,6 +11,7 @@ import tachiyomi.domain.updates.repository.UpdatesRepository
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+@Inject
 class GetUpdates(
     private val repository: UpdatesRepository,
 ) {

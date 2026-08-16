@@ -1,10 +1,12 @@
 package tachiyomi.domain.history.interactor
 
+import dev.zacsweers.metro.Inject
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.history.repository.HistoryRepository
 
+@Inject
 class UpsertHistory(
     private val historyRepository: HistoryRepository,
 ) {

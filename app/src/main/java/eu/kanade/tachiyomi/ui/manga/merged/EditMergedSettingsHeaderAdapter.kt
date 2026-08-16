@@ -12,11 +12,12 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.injectLazy
 
-class EditMergedSettingsHeaderAdapter(private val state: EditMergedSettingsState, adapter: EditMergedMangaAdapter) : RecyclerView.Adapter<EditMergedSettingsHeaderAdapter.HeaderViewHolder>() {
-
-    private val sourceManager: SourceManager by injectLazy()
+class EditMergedSettingsHeaderAdapter(
+    private val state: EditMergedSettingsState,
+    adapter: EditMergedMangaAdapter,
+    private val sourceManager: SourceManager,
+) : RecyclerView.Adapter<EditMergedSettingsHeaderAdapter.HeaderViewHolder>() {
 
     private lateinit var binding: EditMergedSettingsHeaderBinding
 

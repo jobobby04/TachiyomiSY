@@ -2,6 +2,9 @@ package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.util.lang.Hash.md5
 import eu.kanade.tachiyomi.util.storage.DiskUtil
@@ -15,8 +18,6 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.IOException
 
 /**
@@ -25,11 +26,13 @@ import java.io.IOException
  *
  * @param context the application context.
  */
+@Inject
+@SingleIn(AppScope::class)
 class DownloadProvider(
     private val context: Context,
-    private val storageManager: StorageManager = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
+    private val storageManager: StorageManager,
+    private val libraryPreferences: LibraryPreferences,
+    private val downloadPreferences: DownloadPreferences,
 ) {
 
     private val downloadsDir: UniFile?

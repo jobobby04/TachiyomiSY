@@ -11,10 +11,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.TabbedScreen
@@ -31,10 +31,9 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 data object BrowseTab : Tab {
 
@@ -65,12 +64,12 @@ data object BrowseTab : Tab {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         // SY -->
-        val hideFeedTab by remember { Injekt.get<UiPreferences>().hideFeedTab.asState(scope) }
-        val feedTabInFront by remember { Injekt.get<UiPreferences>().feedTabInFront.asState(scope) }
+        val hideFeedTab by remember { context.appGraph.uiPreferences.hideFeedTab.asState(scope) }
+        val feedTabInFront by remember { context.appGraph.uiPreferences.feedTabInFront.asState(scope) }
         // SY <--
 
         // Hoisted for extensions tab's search bar
-        val extensionsViewModel = viewModel<ExtensionsViewModel>()
+        val extensionsViewModel = metroViewModel<ExtensionsViewModel>()
         val extensionsSearchQuery by extensionsViewModel.searchQuery.collectAsStateWithLifecycle()
 
         // SY -->

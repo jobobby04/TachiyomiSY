@@ -39,11 +39,9 @@ import eu.kanade.tachiyomi.source.sourcePreferences
 import eu.kanade.tachiyomi.widget.TachiyomiTextInputEditText.Companion.setIncognito
 import exh.source.EnhancedHttpSource
 import exh.ui.ifSourcesLoaded
-import tachiyomi.domain.source.service.SourceManager
+import mihon.app.di.appGraph
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.screens.LoadingScreen
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 class SourcePreferencesScreen(val sourceId: Long) : Screen() {
 
@@ -60,7 +58,7 @@ class SourcePreferencesScreen(val sourceId: Long) : Screen() {
         Scaffold(
             topBar = {
                 AppBar(
-                    title = Injekt.get<SourceManager>().getOrStub(sourceId).toString(),
+                    title = context.appGraph.sourceManager.getOrStub(sourceId).toString(),
                     navigateUp = navigator::pop,
                     scrollBehavior = it,
                 )
@@ -133,8 +131,9 @@ class SourcePreferencesFragment : PreferenceFragmentCompat() {
 
     private fun populateScreen(): PreferenceScreen {
         val sourceId = requireArguments().getLong(SOURCE_ID)
+        val appGraph = requireContext().appGraph
         // SY -->
-        val source = Injekt.get<SourceManager>()
+        val source = appGraph.sourceManager
             .getOrStub(sourceId)
             .let { source ->
                 if (source is EnhancedHttpSource) {
@@ -148,6 +147,7 @@ class SourcePreferencesFragment : PreferenceFragmentCompat() {
                 }
             }
         // SY <--
+        val basePreferences = appGraph.basePreferences
         val sourceScreen = preferenceManager.createPreferenceScreen(requireContext())
 
         if (source is ConfigurableSource) {
@@ -167,7 +167,7 @@ class SourcePreferencesFragment : PreferenceFragmentCompat() {
                     val setListener = pref.getOnBindEditTextListener()
                     pref.setOnBindEditTextListener {
                         setListener?.onBindEditText(it)
-                        it.setIncognito(lifecycleScope)
+                        it.setIncognito(basePreferences, lifecycleScope)
                     }
                 }
             }

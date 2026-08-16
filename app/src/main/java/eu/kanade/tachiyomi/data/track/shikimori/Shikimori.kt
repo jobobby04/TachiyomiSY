@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.track.shikimori
 
+import android.content.Context
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -13,7 +14,7 @@ import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
+class Shikimori(context: Context, id: Long) : BaseTracker(context, id, "Shikimori"), DeletableTracker {
 
     companion object {
         const val READING = 1L

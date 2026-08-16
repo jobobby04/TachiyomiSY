@@ -1,9 +1,11 @@
 package eu.kanade.domain.source.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.source.service.SourcePreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+@Inject
 class GetSourceCategories(
     private val preferences: SourcePreferences,
 ) {

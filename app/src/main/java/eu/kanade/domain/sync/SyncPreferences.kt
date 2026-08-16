@@ -1,11 +1,13 @@
 package eu.kanade.domain.sync
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.sync.models.SyncSettings
 import eu.kanade.tachiyomi.data.sync.models.SyncTriggerOptions
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import java.util.UUID
 
+@Inject
 class SyncPreferences(
     private val preferenceStore: PreferenceStore,
 ) {

@@ -1,6 +1,10 @@
 package eu.kanade.tachiyomi.source
 
 import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.extension.ExtensionManager
@@ -44,22 +48,26 @@ import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.repository.StubSourceRepository
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.LocalSource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class AndroidSourceManager(
-    private val context: Context,
     private val extensionManager: ExtensionManager,
     private val sourceRepository: StubSourceRepository,
+    private val localSource: LocalSource,
+    private val downloadManager: Lazy<DownloadManager>,
+    // SY -->
+    private val context: Context,
+    private val exhPreferences: ExhPreferences,
+    private val sourcePreferences: SourcePreferences,
+    // SY <--
 ) : SourceManager {
 
     private val _isInitialized = MutableStateFlow(false)
     override val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
-
-    private val downloadManager: DownloadManager by injectLazy()
 
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
@@ -68,11 +76,6 @@ class AndroidSourceManager(
     private val stubSourcesMap = ConcurrentHashMap<Long, StubSource>()
 
     override val sources: Flow<List<Source>> = sourcesMapFlow.map { it.values.toList() }
-
-    // SY -->
-    private val exhPreferences: ExhPreferences by injectLazy()
-    private val sourcePreferences: SourcePreferences by injectLazy()
-    // SY <--
 
     init {
         scope.launch {
@@ -85,17 +88,8 @@ class AndroidSourceManager(
                 }
                 // SY <--
                 .collectLatest { (extensions, enableExhentai) ->
-                    val mutableMap: ConcurrentHashMap<Long, Source> = ConcurrentHashMap<Long, Source>(
-                        mapOf(
-                            LocalSource.ID to LocalSource(
-                                context,
-                                Injekt.get(),
-                                Injekt.get(),
-                                // SY -->
-                                sourcePreferences.allowLocalSourceHiddenFolders::get,
-                                // SY <--
-                            ),
-                        ),
+                    val mutableMap = ConcurrentHashMap<Long, Source>(
+                        mapOf(LocalSource.ID to localSource),
                     )
 
                     mutableMap.apply {
@@ -223,7 +217,7 @@ class AndroidSourceManager(
             if (dbSource == source) return@launch
             sourceRepository.upsertStubSource(source.id, source.lang, source.name)
             if (dbSource != null) {
-                downloadManager.renameSource(dbSource, source)
+                downloadManager.value.renameSource(dbSource, source)
             }
         }
     }

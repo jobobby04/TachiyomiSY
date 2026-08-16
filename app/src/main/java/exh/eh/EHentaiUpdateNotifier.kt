@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.app.NotificationCompat
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
@@ -16,13 +17,14 @@ import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.injectLazy
 import java.math.RoundingMode
 import java.text.NumberFormat
 
-class EHentaiUpdateNotifier(private val context: Context) {
-
-    private val securityPreferences: SecurityPreferences by injectLazy()
+@Inject
+class EHentaiUpdateNotifier(
+    private val context: Context,
+    private val securityPreferences: SecurityPreferences,
+) {
 
     private val percentFormatter = NumberFormat.getPercentInstance().apply {
         roundingMode = RoundingMode.DOWN

@@ -11,6 +11,11 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.core.preference.PreferenceMutableState
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.fastFilterNot
@@ -112,42 +117,47 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class LibraryViewModel(
-    private val getLibraryManga: GetLibraryManga = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getTracksPerManga: GetTracksPerManga = Injekt.get(),
-    private val getNextChapters: GetNextChapters = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
-    private val getBookmarkedChaptersByMangaId: GetBookmarkedChaptersByMangaId = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
-    private val setMangaCategories: SetMangaCategories = Injekt.get(),
-    private val preferences: BasePreferences = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val coverCache: CoverCache = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadCache: DownloadCache = Injekt.get(),
-    private val trackerManager: TrackerManager = Injekt.get(),
+    private val getLibraryManga: GetLibraryManga,
+    private val getCategories: GetCategories,
+    private val getTracksPerManga: GetTracksPerManga,
+    private val getNextChapters: GetNextChapters,
+    private val getChaptersByMangaId: GetChaptersByMangaId,
+    private val getBookmarkedChaptersByMangaId: GetBookmarkedChaptersByMangaId,
+    private val setReadStatus: SetReadStatus,
+    private val updateManga: UpdateManga,
+    private val setMangaCategories: SetMangaCategories,
+    private val preferences: BasePreferences,
+    private val libraryPreferences: LibraryPreferences,
+    private val coverCache: CoverCache,
+    private val sourceManager: SourceManager,
+    private val downloadManager: DownloadManager,
+    private val downloadCache: DownloadCache,
+    private val trackerManager: TrackerManager,
 
     // SY -->
-    private val exhPreferences: ExhPreferences = Injekt.get(),
-    private val sourcePreferences: SourcePreferences = Injekt.get(),
-    private val getMergedMangaById: GetMergedMangaById = Injekt.get(),
-    private val getTracks: GetTracks = Injekt.get(),
-    private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata = Injekt.get(),
-    private val getSearchTags: GetSearchTags = Injekt.get(),
-    private val getSearchTitles: GetSearchTitles = Injekt.get(),
-    private val searchEngine: SearchEngine = Injekt.get(),
-    private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
-    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
+    private val exhPreferences: ExhPreferences,
+    private val sourcePreferences: SourcePreferences,
+    private val getMergedMangaById: GetMergedMangaById,
+    private val getTracks: GetTracks,
+    private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata,
+    private val getSearchTags: GetSearchTags,
+    private val getSearchTitles: GetSearchTitles,
+    private val searchEngine: SearchEngine,
+    private val setCustomMangaInfo: SetCustomMangaInfo,
+    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId,
 
-    syncPreferences: SyncPreferences = Injekt.get(),
+    syncPreferences: SyncPreferences,
+    val favoritesSync: FavoritesSyncHelper,
+    val recommendationSearch: RecommendationSearchHelper,
+    private val application: Application,
+    // SY <--
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow<String?>(null)
@@ -262,8 +272,6 @@ class LibraryViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), null)
 
     // SY -->
-    val favoritesSync = FavoritesSyncHelper(preferences.context)
-    val recommendationSearch = RecommendationSearchHelper(preferences.context)
     private var recommendationSearchJob: Job? = null
 
     val isHentaiEnabled = combine(
@@ -1071,7 +1079,7 @@ class LibraryViewModel(
         val manga = libraryManga.manga
         val sourceIdString = manga.source.takeUnless { it == LocalSource.ID }?.toString()
         val genre = if (checkGenre) manga.genre.orEmpty() else emptyList()
-        val context = Injekt.get<Application>()
+        val context = application
         return queries.all { queryComponent ->
             when (queryComponent.excluded) {
                 false -> when (queryComponent) {

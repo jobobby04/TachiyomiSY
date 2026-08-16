@@ -949,20 +949,22 @@ class EHentai(
         .appendQueryParameter(param, value)
         .toString()
 
-    override val client = network.client.newBuilder()
-        .cookieJar(CookieJar.NO_COOKIES)
-        .addInterceptor { chain ->
-            val newReq = chain
-                .request()
-                .newBuilder()
-                .removeHeader("Cookie")
-                .addHeader("Cookie", cookiesHeader())
-                .build()
+    override val client by lazy {
+        network.client.newBuilder()
+            .cookieJar(CookieJar.NO_COOKIES)
+            .addInterceptor { chain ->
+                val newReq = chain
+                    .request()
+                    .newBuilder()
+                    .removeHeader("Cookie")
+                    .addHeader("Cookie", cookiesHeader())
+                    .build()
 
-            chain.proceed(newReq)
-        }
-        .addInterceptor(ThumbnailPreviewInterceptor())
-        .build()
+                chain.proceed(newReq)
+            }
+            .addInterceptor(ThumbnailPreviewInterceptor())
+            .build()
+    }
 
     // Filters
     override fun getFilterList(): FilterList {

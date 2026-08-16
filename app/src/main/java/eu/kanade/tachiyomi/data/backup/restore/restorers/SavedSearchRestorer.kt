@@ -1,14 +1,14 @@
 package eu.kanade.tachiyomi.data.backup.restore.restorers
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.data.backup.models.BackupSavedSearch
 import exh.util.nullIfBlank
 import tachiyomi.data.Database
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
 class SavedSearchRestorer(
-    private val database: Database = Injekt.get(),
+    private val database: Database,
 ) {
     suspend fun restoreSavedSearches(backupSavedSearches: List<BackupSavedSearch>) {
         if (backupSavedSearches.isEmpty()) return

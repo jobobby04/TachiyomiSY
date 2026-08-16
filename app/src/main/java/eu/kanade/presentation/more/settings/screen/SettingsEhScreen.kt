@@ -56,6 +56,7 @@ import exh.ui.login.EhLoginActivity
 import exh.util.nullIfBlank
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchNonCancellable
@@ -122,10 +123,11 @@ object SettingsEhScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val exhPreferences: ExhPreferences = remember { Injekt.get() }
-        val getFlatMetadataById: GetFlatMetadataById = remember { Injekt.get() }
-        val deleteFavoriteEntries: DeleteFavoriteEntries = remember { Injekt.get() }
-        val getExhFavoriteMangaWithMetadata: GetExhFavoriteMangaWithMetadata = remember { Injekt.get() }
+        val context = LocalContext.current
+        val exhPreferences: ExhPreferences = remember { context.appGraph.exhPreferences }
+        val getFlatMetadataById: GetFlatMetadataById = remember { context.appGraph.getFlatMetadataById }
+        val deleteFavoriteEntries: DeleteFavoriteEntries = remember { context.appGraph.deleteFavoriteEntries }
+        val getExhFavoriteMangaWithMetadata: GetExhFavoriteMangaWithMetadata = remember { context.appGraph.getExhFavoriteMangaWithMetadata }
         val exhentaiEnabled by exhPreferences.enableExhentai.collectAsState()
         var runConfigureDialog by remember { mutableStateOf(false) }
         val openWarnConfigureDialogController = { runConfigureDialog = true }

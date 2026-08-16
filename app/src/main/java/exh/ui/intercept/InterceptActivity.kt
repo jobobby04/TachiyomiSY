@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.zacsweers.metro.Inject
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.online.UrlImportableSource
@@ -33,6 +34,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import mihon.app.di.AppGraph
+import mihon.core.metro.metroGraph
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
@@ -43,15 +46,20 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.Scaffold
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 class InterceptActivity : BaseActivity() {
+    private val graph: AppGraph by lazy { metroGraph() }
+
+    @Inject private lateinit var sourceManager: SourceManager
+
+    @Inject private lateinit var galleryAdder: GalleryAdder
+
     private var statusJob: Job? = null
 
     private val status: MutableStateFlow<InterceptResult> = MutableStateFlow(InterceptResult.Idle)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        graph.inject(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(
                 Activity.OVERRIDE_TRANSITION_OPEN,
@@ -114,7 +122,7 @@ class InterceptActivity : BaseActivity() {
         if (Intent.ACTION_VIEW == intent.action) {
             lifecycleScope.launchIO {
                 // wait for sources to load
-                Injekt.get<SourceManager>().isInitialized.first { it }
+                sourceManager.isInitialized.first { it }
                 loadGallery(intent.dataString!!)
             }
         }
@@ -172,8 +180,6 @@ class InterceptActivity : BaseActivity() {
             overridePendingTransition(R.anim.shared_axis_x_pop_enter, R.anim.shared_axis_x_pop_exit)
         }
     }
-
-    private val galleryAdder = GalleryAdder()
 
     suspend fun loadGallery(gallery: String) {
         // Do not load gallery if already loading

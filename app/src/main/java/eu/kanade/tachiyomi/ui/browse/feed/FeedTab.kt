@@ -7,11 +7,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.stack.StackEvent
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.browse.FeedAddDialog
 import eu.kanade.presentation.browse.FeedAddSearchDialog
 import eu.kanade.presentation.browse.FeedDeleteConfirmDialog
@@ -30,7 +30,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 @Composable
 fun Screen.feedTab(): TabContent {
     val navigator = LocalNavigator.currentOrThrow
-    val viewModel = viewModel<FeedViewModel>()
+    val viewModel = metroViewModel<FeedViewModel>()
     val state by viewModel.state.collectAsState()
 
     DisposableEffect(navigator.lastEvent) {

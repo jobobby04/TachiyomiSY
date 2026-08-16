@@ -5,11 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.browse.SourceFeedScreen
 import eu.kanade.presentation.browse.components.SourceFeedAddDialog
 import eu.kanade.presentation.browse.components.SourceFeedDeleteDialog
@@ -36,12 +35,9 @@ class SourceFeedScreen(val sourceId: Long) : Screen() {
             return
         }
 
-        val viewModel = viewModel<SourceFeedViewModel>(
-            factory = SourceFeedViewModel.Factory,
-            extras = CreationExtras {
-                set(SourceFeedViewModel.SOURCE_ID_KEY, sourceId)
-            },
-        )
+        val viewModel = assistedMetroViewModel<SourceFeedViewModel, SourceFeedViewModel.Factory> {
+            create(sourceId = sourceId)
+        }
         val state by viewModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current

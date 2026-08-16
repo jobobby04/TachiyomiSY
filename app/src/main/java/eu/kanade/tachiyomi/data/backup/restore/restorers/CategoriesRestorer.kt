@@ -1,21 +1,29 @@
 package eu.kanade.tachiyomi.data.backup.restore.restorers
 
 import app.cash.sqldelight.async.coroutines.awaitAsOne
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
 import tachiyomi.data.Database
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.library.service.LibraryPreferences
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@AssistedInject
 class CategoriesRestorer(
     // SY -->
-    private val isSync: Boolean = false,
+    @Assisted private val isSync: Boolean,
     // SY <--
-    private val database: Database = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
+    private val database: Database,
+    private val getCategories: GetCategories,
+    private val libraryPreferences: LibraryPreferences,
 ) {
+    // SY -->
+    @AssistedFactory
+    fun interface Factory {
+        fun create(isSync: Boolean): CategoriesRestorer
+    }
+    // SY <--
 
     suspend operator fun invoke(backupCategories: List<BackupCategory>) {
         if (backupCategories.isNotEmpty()) {

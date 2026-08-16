@@ -3,10 +3,13 @@ package eu.kanade.tachiyomi.ui.browse.source
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import eu.kanade.core.preference.asState
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.domain.source.interactor.GetEnabledSources
 import eu.kanade.domain.source.interactor.GetShowLatest
 import eu.kanade.domain.source.interactor.GetSourceCategories
@@ -35,23 +38,22 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.model.Pin
 import tachiyomi.domain.source.model.Source
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.util.TreeMap
 import kotlin.time.Duration.Companion.seconds
 
+@AssistedInject
 class SourcesViewModel(
-    private val getEnabledSources: GetEnabledSources = Injekt.get(),
-    private val toggleSource: ToggleSource = Injekt.get(),
-    private val toggleSourcePin: ToggleSourcePin = Injekt.get(),
+    private val getEnabledSources: GetEnabledSources,
+    private val toggleSource: ToggleSource,
+    private val toggleSourcePin: ToggleSourcePin,
     // SY -->
-    private val uiPreferences: UiPreferences = Injekt.get(),
-    private val getSourceCategories: GetSourceCategories = Injekt.get(),
-    private val getShowLatest: GetShowLatest = Injekt.get(),
-    private val toggleExcludeFromDataSaver: ToggleExcludeFromDataSaver = Injekt.get(),
-    private val setSourceCategories: SetSourceCategories = Injekt.get(),
-    private val sourcePreferences: SourcePreferences = Injekt.get(),
-    val smartSearchConfig: SourcesScreen.SmartSearchConfig?,
+    private val uiPreferences: UiPreferences,
+    private val getSourceCategories: GetSourceCategories,
+    private val getShowLatest: GetShowLatest,
+    private val toggleExcludeFromDataSaver: ToggleExcludeFromDataSaver,
+    private val setSourceCategories: SetSourceCategories,
+    private val sourcePreferences: SourcePreferences,
+    @Assisted val smartSearchConfig: SourcesScreen.SmartSearchConfig?,
     // SY <--
 ) : ViewModel() {
 
@@ -209,16 +211,15 @@ class SourcesViewModel(
 
         // SY -->
         const val CATEGORY_KEY_PREFIX = "category-"
-
-        val SMART_SEARCH_CONFIG_KEY = CreationExtras.Key<SourcesScreen.SmartSearchConfig?>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                SourcesViewModel(
-                    smartSearchConfig = get(SMART_SEARCH_CONFIG_KEY),
-                )
-            }
-        }
         // SY <--
     }
+
+    // SY -->
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(smartSearchConfig: SourcesScreen.SmartSearchConfig? = null): SourcesViewModel
+    }
+    // SY <--
 }

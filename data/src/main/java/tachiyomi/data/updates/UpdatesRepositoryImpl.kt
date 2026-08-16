@@ -1,6 +1,10 @@
 package tachiyomi.data.updates
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import tachiyomi.core.common.util.lang.toLong
@@ -12,6 +16,9 @@ import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.domain.updates.repository.UpdatesRepository
 import tachiyomi.view.UpdatesView
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class UpdatesRepositoryImpl(
     private val database: Database,
 ) : UpdatesRepository {

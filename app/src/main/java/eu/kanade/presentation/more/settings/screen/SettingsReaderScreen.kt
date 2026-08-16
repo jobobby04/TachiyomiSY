@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
@@ -12,13 +13,12 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
 import eu.kanade.tachiyomi.util.system.hasDisplayCutout
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.text.NumberFormat
 
 object SettingsReaderScreen : SearchableSettings {
@@ -29,7 +29,8 @@ object SettingsReaderScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val readerPref = remember { Injekt.get<ReaderPreferences>() }
+        val context = LocalContext.current
+        val readerPref = remember { context.appGraph.readerPreferences }
 
         return listOf(
             Preference.PreferenceItem.ListPreference(

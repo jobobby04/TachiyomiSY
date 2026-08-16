@@ -6,10 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.source.interactor.GetExhSavedSearch
@@ -50,41 +54,35 @@ import tachiyomi.domain.source.model.FeedSavedSearch
 import tachiyomi.domain.source.model.SavedSearch
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 import java.util.concurrent.Executors
 import androidx.compose.runtime.State as ComposeState
 import tachiyomi.domain.manga.model.Manga as DomainManga
 
+@AssistedInject
 open class SourceFeedViewModel(
-    val sourceId: Long,
-    uiPreferences: UiPreferences = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
-    private val getFeedSavedSearchBySourceId: GetFeedSavedSearchBySourceId = Injekt.get(),
-    private val getSavedSearchBySourceIdFeed: GetSavedSearchBySourceIdFeed = Injekt.get(),
-    private val countFeedSavedSearchBySourceId: CountFeedSavedSearchBySourceId = Injekt.get(),
-    private val insertFeedSavedSearch: InsertFeedSavedSearch = Injekt.get(),
-    private val deleteFeedSavedSearchById: DeleteFeedSavedSearchById = Injekt.get(),
-    private val getExhSavedSearch: GetExhSavedSearch = Injekt.get(),
+    @Assisted val sourceId: Long,
+    uiPreferences: UiPreferences,
+    private val sourceManager: SourceManager,
+    private val getManga: GetManga,
+    private val networkToLocalManga: NetworkToLocalManga,
+    private val updateManga: UpdateManga,
+    private val getFeedSavedSearchBySourceId: GetFeedSavedSearchBySourceId,
+    private val getSavedSearchBySourceIdFeed: GetSavedSearchBySourceIdFeed,
+    private val countFeedSavedSearchBySourceId: CountFeedSavedSearchBySourceId,
+    private val insertFeedSavedSearch: InsertFeedSavedSearch,
+    private val deleteFeedSavedSearchById: DeleteFeedSavedSearchById,
+    private val getExhSavedSearch: GetExhSavedSearch,
 ) : ViewModel() {
 
     val state: StateFlow<State>
         field = MutableStateFlow(State())
 
-    companion object {
-        val SOURCE_ID_KEY = CreationExtras.Key<Long>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                SourceFeedViewModel(
-                    sourceId = get(SOURCE_ID_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(sourceId: Long): SourceFeedViewModel
     }
 
     val source = sourceManager.getOrStub(sourceId)

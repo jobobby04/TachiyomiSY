@@ -53,8 +53,11 @@ import cafe.adriel.voyager.navigator.NavigatorDisposeBehavior
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
+import dev.zacsweers.metro.Inject
+import eu.kanade.core.preference.asState
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.source.interactor.GetIncognitoState
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.components.AppStateBanners
 import eu.kanade.presentation.components.DownloadedOnlyBannerBackgroundColor
 import eu.kanade.presentation.components.IncognitoModeBannerBackgroundColor
@@ -69,7 +72,6 @@ import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
-import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
 import eu.kanade.tachiyomi.extension.api.ExtensionApi
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
@@ -102,6 +104,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
+import mihon.core.metro.metroGraph
 import mihon.core.migration.Migrator
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.util.lang.launchIO
@@ -110,22 +115,31 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.injectLazy
 import java.util.LinkedList
 
 class MainActivity : BaseActivity() {
 
-    private val libraryPreferences: LibraryPreferences by injectLazy()
-    private val preferences: BasePreferences by injectLazy()
+    private val graph: AppGraph by lazy { metroGraph() }
 
     // SY -->
-    private val exhPreferences: ExhPreferences by injectLazy()
+    @Inject private lateinit var exhPreferences: ExhPreferences
     // SY <--
 
-    private val downloadCache: DownloadCache by injectLazy()
-    private val chapterCache: ChapterCache by injectLazy()
+    @Inject private lateinit var libraryPreferences: LibraryPreferences
 
-    private val getIncognitoState: GetIncognitoState by injectLazy()
+    @Inject private lateinit var preferences: BasePreferences
+
+    @Inject private lateinit var downloadCache: DownloadCache
+
+    @Inject private lateinit var chapterCache: ChapterCache
+
+    @Inject private lateinit var getIncognitoState: GetIncognitoState
+
+    @Inject private lateinit var extensionApi: ExtensionApi
+
+    // SY -->
+    @Inject private lateinit var sourcePreferences: SourcePreferences
+    // SY <--
 
     // To be checked by splash screen. If true then splash screen will be removed.
     var ready = false
@@ -158,6 +172,7 @@ class MainActivity : BaseActivity() {
     // SY <--
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        graph.inject(this)
         val isLaunch = savedInstanceState == null
 
         // Prevent splash screen showing up on configuration changes
@@ -181,6 +196,7 @@ class MainActivity : BaseActivity() {
         // SY -->
         @Suppress("KotlinConstantConditions", "SimplifyBooleanWithConstants")
         val hasDebugOverlay = (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "releaseTest") && !isBenchmarkBuildType
+
         // SY <--
 
         setComposeContent {
@@ -307,8 +323,11 @@ class MainActivity : BaseActivity() {
                 val isDebugOverlayEnabled by remember {
                     DebugToggles.ENABLE_DEBUG_OVERLAY.asPref(lifecycleScope)
                 }
+                val enableSourceBlacklist by remember {
+                    sourcePreferences.enableSourceBlacklist.asState(lifecycleScope)
+                }
                 if (isDebugOverlayEnabled) {
-                    DebugModeOverlay()
+                    DebugModeOverlay(enableSourceBlacklist)
                 }
             }
             // SY <--
@@ -377,7 +396,7 @@ class MainActivity : BaseActivity() {
         LaunchedEffect(Unit) {
             if (BuildConfig.INCLUDE_UPDATER) {
                 try {
-                    val result = AppUpdateChecker().checkForUpdate()
+                    val result = context.appGraph.updateChecker.checkForUpdate()
                     if (result is GetApplicationRelease.Result.NewUpdate) {
                         val updateScreen = NewUpdateScreen(
                             versionName = result.release.version,
@@ -396,7 +415,7 @@ class MainActivity : BaseActivity() {
         // Extensions updates
         LaunchedEffect(Unit) {
             try {
-                ExtensionApi().checkForUpdates(context)
+                extensionApi.checkForUpdates(context)
             } catch (e: Exception) {
                 logcat(LogPriority.ERROR, e)
             }

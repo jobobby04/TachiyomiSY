@@ -1,5 +1,6 @@
 package tachiyomi.domain.manga.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.metadata.metadata.base.FlatMetadata
@@ -7,6 +8,7 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.repository.MangaMetadataRepository
 
+@Inject
 class InsertFlatMetadata(
     private val mangaMetadataRepository: MangaMetadataRepository,
 ) : MetadataSource.InsertFlatMetadata {

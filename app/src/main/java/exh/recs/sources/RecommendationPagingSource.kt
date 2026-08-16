@@ -13,15 +13,14 @@ import exh.source.getMainSource
 import exh.source.isMdBasedSource
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import okhttp3.OkHttpClient
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.source.BaseSourcePagingSource
 import tachiyomi.data.source.NoResultsException
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 
 /**
  * General class for recommendation sources.
@@ -29,7 +28,8 @@ import uy.kohesive.injekt.injectLazy
 abstract class RecommendationPagingSource(
     protected val manga: Manga,
     source: Source? = null,
-) : BaseSourcePagingSource(source) {
+    networkToLocalManga: NetworkToLocalManga,
+) : BaseSourcePagingSource(source, networkToLocalManga) {
     // Display name
     abstract val name: String
 
@@ -45,21 +45,30 @@ abstract class RecommendationPagingSource(
     open val associatedSourceId: Long? = null
 
     companion object {
-        fun createSources(manga: Manga, source: Source): List<RecommendationPagingSource> {
+        fun createSources(
+            manga: Manga,
+            source: Source,
+            networkToLocalManga: NetworkToLocalManga,
+            getTracks: GetTracks,
+            trackerManager: TrackerManager,
+            client: OkHttpClient,
+            json: Json,
+            delegateSourcePreferences: DelegateSourcePreferences,
+        ): List<RecommendationPagingSource> {
             return buildList {
-                add(AniListPagingSource(manga))
-                add(MangaUpdatesCommunityPagingSource(manga))
-                add(MangaUpdatesSimilarPagingSource(manga))
-                add(MyAnimeListPagingSource(manga))
+                add(AniListPagingSource(manga, networkToLocalManga, getTracks, trackerManager, client, json))
+                add(MangaUpdatesCommunityPagingSource(manga, networkToLocalManga, getTracks, trackerManager, client, json))
+                add(MangaUpdatesSimilarPagingSource(manga, networkToLocalManga, getTracks, trackerManager, client, json))
+                add(MyAnimeListPagingSource(manga, networkToLocalManga, getTracks, trackerManager, client, json))
 
                 // Only include MangaDex if the delegate sources are enabled and the source is MD-based
-                if (source.isMdBasedSource() && Injekt.get<DelegateSourcePreferences>().delegateSources.get()) {
-                    add(MangaDexSimilarPagingSource(manga, source.getMainSource() as MangaDex))
+                if (source.isMdBasedSource() && delegateSourcePreferences.delegateSources.get()) {
+                    add(MangaDexSimilarPagingSource(manga, source.getMainSource() as MangaDex, networkToLocalManga))
                 }
 
                 // Only include Comick if the source manga is from there
                 if (source.isComickSource()) {
-                    add(ComickPagingSource(manga, source))
+                    add(ComickPagingSource(manga, source, networkToLocalManga, client, json))
                 }
             }.sortedWith(compareBy({ it.name }, { it.category.resourceId }))
         }
@@ -72,12 +81,12 @@ abstract class RecommendationPagingSource(
 abstract class TrackerRecommendationPagingSource(
     protected val endpoint: String,
     manga: Manga,
-) : RecommendationPagingSource(manga) {
-    private val getTracks: GetTracks by injectLazy()
-
-    protected val trackerManager: TrackerManager by injectLazy()
-    protected val client by lazy { Injekt.get<NetworkHelper>().client }
-    protected val json by injectLazy<Json>()
+    networkToLocalManga: NetworkToLocalManga,
+    private val getTracks: GetTracks,
+    protected val trackerManager: TrackerManager,
+    protected val client: OkHttpClient,
+    protected val json: Json,
+) : RecommendationPagingSource(manga, null, networkToLocalManga) {
 
     /**
      * Tracker id associated with the recommendation source.

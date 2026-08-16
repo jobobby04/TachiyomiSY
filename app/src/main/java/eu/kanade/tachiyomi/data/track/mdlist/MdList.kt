@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.track.mdlist
 
+import android.content.Context
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.tachiyomi.R
@@ -19,7 +20,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class MdList(id: Long) : BaseTracker(id, "MDList") {
+class MdList(context: Context, id: Long) : BaseTracker(context, id, "MDList") {
 
     companion object {
         private val SCORE_LIST = IntRange(0, 10)
@@ -28,7 +29,9 @@ class MdList(id: Long) : BaseTracker(id, "MDList") {
 
     private val mdex by lazy { MdUtil.getEnabledMangaDex() }
 
-    val interceptor = MangaDexAuthInterceptor(trackPreferences, this)
+    val interceptor by lazy {
+        MangaDexAuthInterceptor(trackPreferences, this)
+    }
 
     override fun getLogo(): Int {
         return R.drawable.brand_mangadex

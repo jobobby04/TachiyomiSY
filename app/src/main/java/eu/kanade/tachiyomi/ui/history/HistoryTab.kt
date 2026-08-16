@@ -12,12 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
@@ -34,13 +34,12 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import mihon.app.di.appGraph
 import mihon.feature.migration.dialog.MigrateMangaDialog
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 data object HistoryTab : Tab {
 
@@ -68,8 +67,9 @@ data object HistoryTab : Tab {
     @Composable
     override fun isEnabled(): Boolean {
         val scope = rememberCoroutineScope()
+        val context = LocalContext.current
         return remember {
-            Injekt.get<UiPreferences>().showNavHistory.asState(scope)
+            context.appGraph.uiPreferences.showNavHistory.asState(scope)
         }.value
     }
     // SY <--
@@ -78,7 +78,7 @@ data object HistoryTab : Tab {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
-        val viewModel = viewModel<HistoryViewModel>()
+        val viewModel = metroViewModel<HistoryViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
 
         HistoryScreen(

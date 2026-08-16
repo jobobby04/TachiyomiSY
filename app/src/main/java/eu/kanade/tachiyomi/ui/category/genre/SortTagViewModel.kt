@@ -4,6 +4,11 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.domain.manga.interactor.CreateSortTag
 import eu.kanade.domain.manga.interactor.DeleteSortTag
 import eu.kanade.domain.manga.interactor.GetSortTag
@@ -17,14 +22,15 @@ import kotlinx.coroutines.flow.update
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class SortTagViewModel(
-    private val getSortTag: GetSortTag = Injekt.get(),
-    private val createSortTag: CreateSortTag = Injekt.get(),
-    private val deleteSortTag: DeleteSortTag = Injekt.get(),
-    private val reorderSortTag: ReorderSortTag = Injekt.get(),
+    private val getSortTag: GetSortTag,
+    private val createSortTag: CreateSortTag,
+    private val deleteSortTag: DeleteSortTag,
+    private val reorderSortTag: ReorderSortTag,
 ) : ViewModel() {
 
     val state: StateFlow<SortTagScreenState>

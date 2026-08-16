@@ -5,9 +5,16 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.produceState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
+import eu.kanade.tachiyomi.data.track.TrackerManager
+import eu.kanade.tachiyomi.network.NetworkHelper
+import exh.pref.DelegateSourcePreferences
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.StaticResultPagingSource
 import kotlinx.coroutines.Dispatchers
@@ -20,35 +27,37 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import mihon.domain.manga.model.toDomainManga
+import okhttp3.OkHttpClient
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import tachiyomi.domain.track.interactor.GetTracks
 
+@AssistedInject
 open class RecommendsViewModel(
-    private val args: RecommendsScreen.Args,
-    sourceManager: SourceManager = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
+    @Assisted private val args: RecommendsScreen.Args,
+    sourceManager: SourceManager,
+    private val getManga: GetManga,
+    private val networkToLocalManga: NetworkToLocalManga,
+    private val getTracks: GetTracks,
+    private val trackerManager: TrackerManager,
+    private val networkHelper: NetworkHelper,
+    private val json: Json,
+    private val delegateSourcePreferences: DelegateSourcePreferences,
 ) : ViewModel() {
 
     val state: StateFlow<State>
         field = MutableStateFlow(State())
 
-    companion object {
-        val ARGS_KEY = CreationExtras.Key<RecommendsScreen.Args>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                RecommendsViewModel(
-                    args = get(ARGS_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(args: RecommendsScreen.Args): RecommendsViewModel
     }
 
     private val coroutineDispatcher = Dispatchers.IO.limitedParallelism(5)
@@ -71,10 +80,16 @@ open class RecommendsViewModel(
                     RecommendationPagingSource.createSources(
                         manga,
                         sourceManager.getOrStub(args.sourceId),
+                        networkToLocalManga,
+                        getTracks,
+                        trackerManager,
+                        networkHelper.client,
+                        json,
+                        delegateSourcePreferences,
                     )
                 }
                 is RecommendsScreen.Args.MergedSourceMangas -> {
-                    args.mergedResults.map(::StaticResultPagingSource)
+                    args.mergedResults.map { StaticResultPagingSource(it, networkToLocalManga) }
                 }
             }
 

@@ -1,6 +1,6 @@
 package eu.kanade.tachiyomi.ui.reader.loader
 
-import android.app.Application
+import android.content.Context
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
@@ -15,17 +15,20 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mihon.core.common.archive.ArchiveReader
 import tachiyomi.core.common.util.system.ImageUtil
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 
 /**
  * Loader used to load a chapter from an archive file.
  */
-internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader() {
+internal class ArchivePageLoader(
+    private val reader: ArchiveReader,
+    // SY -->
+    private val context: Context,
+    private val readerPreferences: ReaderPreferences,
+    // SY <--
+) : PageLoader() {
     // SY -->
     private val mutex = Mutex()
-    private val context: Application by injectLazy()
-    private val readerPreferences: ReaderPreferences by injectLazy()
     private val tmpDir = File(context.externalCacheDir, "reader_${reader.archiveHashCode}").also {
         it.deleteRecursively()
     }

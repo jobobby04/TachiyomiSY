@@ -5,18 +5,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.tachiyomi.databinding.RecommendationSearchBottomSheetBinding
-import uy.kohesive.injekt.injectLazy
+import mihon.app.di.appGraph
 
 @Composable
 fun RecommendationSearchBottomSheetDialog(
     onDismissRequest: () -> Unit,
     onSearchRequest: () -> Unit,
 ) {
-    val state = remember { RecommendationSearchBottomSheetDialogState(onSearchRequest) }
+    val context = LocalContext.current
+    val state = remember { RecommendationSearchBottomSheetDialogState(onSearchRequest, context.appGraph.sourcePreferences) }
     AdaptiveSheet(onDismissRequest = onDismissRequest) {
         AndroidView(
             factory = { factoryContext ->
@@ -29,8 +31,10 @@ fun RecommendationSearchBottomSheetDialog(
     }
 }
 
-class RecommendationSearchBottomSheetDialogState(private val onSearchRequest: () -> Unit) {
-    private val preferences: SourcePreferences by injectLazy()
+class RecommendationSearchBottomSheetDialogState(
+    private val onSearchRequest: () -> Unit,
+    private val preferences: SourcePreferences,
+) {
 
     fun initPreferences(binding: RecommendationSearchBottomSheetBinding) {
         val flags = preferences.recommendationSearchFlags.get()

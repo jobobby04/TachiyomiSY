@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.track.suwayomi
 
+import android.content.Context
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -11,9 +12,9 @@ import tachiyomi.i18n.MR
 import tachiyomi.domain.manga.model.Manga as DomainManga
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Suwayomi(id: Long) : BaseTracker(id, "Suwayomi"), EnhancedTracker {
+class Suwayomi(context: Context, id: Long) : BaseTracker(context, id, "Suwayomi"), EnhancedTracker {
 
-    val api by lazy { SuwayomiApi(id) }
+    val api by lazy { SuwayomiApi(id, appGraph.sourceManager) }
 
     override fun getLogo() = R.drawable.brand_suwayomi
 

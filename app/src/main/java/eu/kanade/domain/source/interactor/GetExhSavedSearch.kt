@@ -1,5 +1,6 @@
 package eu.kanade.domain.source.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.source.model.FilterList
 import exh.log.xLogE
 import exh.util.nullIfBlank
@@ -16,6 +17,7 @@ import tachiyomi.domain.source.model.EXHSavedSearch
 import tachiyomi.domain.source.model.SavedSearch
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 
+@Inject
 class GetExhSavedSearch(
     private val getSavedSearchById: GetSavedSearchById,
     private val getSavedSearchBySourceId: GetSavedSearchBySourceId,

@@ -1,6 +1,8 @@
 package eu.kanade.domain.ui
 
-import android.os.Build
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.ui.model.AppTheme
 import eu.kanade.domain.ui.model.TabletUiMode
 import eu.kanade.domain.ui.model.ThemeMode
@@ -13,18 +15,13 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
+@Inject
+@SingleIn(AppScope::class)
 class UiPreferences(
     preferenceStore: PreferenceStore,
 ) {
 
-    val themeMode = preferenceStore.getEnum(
-        "pref_theme_mode_key",
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ThemeMode.SYSTEM
-        } else {
-            ThemeMode.LIGHT
-        },
-    )
+    val themeMode: Preference<ThemeMode> = preferenceStore.getEnum("pref_theme_mode_key", ThemeMode.SYSTEM)
 
     val appTheme: Preference<AppTheme> = preferenceStore.getEnum(
         "pref_app_theme",

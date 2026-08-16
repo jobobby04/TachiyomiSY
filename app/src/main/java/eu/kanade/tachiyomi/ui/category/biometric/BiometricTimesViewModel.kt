@@ -5,6 +5,11 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,11 +21,13 @@ import tachiyomi.core.common.preference.plusAssign
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class BiometricTimesViewModel(
-    private val preferences: SecurityPreferences = Injekt.get(),
+    private val preferences: SecurityPreferences,
+    private val application: Application,
 ) : ViewModel() {
 
     val state: StateFlow<BiometricTimesScreenState>
@@ -34,7 +41,7 @@ class BiometricTimesViewModel(
             // todo usecase
             preferences.authenticatorTimeRanges.changes()
                 .collectLatest { times ->
-                    val context = Injekt.get<Application>()
+                    val context = application
                     state.update {
                         BiometricTimesScreenState.Success(
                             timeRanges = times.toList()

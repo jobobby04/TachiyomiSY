@@ -17,6 +17,7 @@ import eu.kanade.tachiyomi.data.sync.service.GoogleDriveSyncService
 import eu.kanade.tachiyomi.data.sync.service.SyncData
 import eu.kanade.tachiyomi.data.sync.service.SyncResult
 import eu.kanade.tachiyomi.data.sync.service.SyncYomiSyncService
+import eu.kanade.tachiyomi.util.system.workManager
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
@@ -29,8 +30,6 @@ import tachiyomi.data.Database
 import tachiyomi.data.manga.MangaMapper.mapManga
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.manga.model.Manga
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 import java.io.IOException
 import java.util.Date
@@ -45,17 +44,17 @@ import kotlin.time.Clock
  */
 class SyncManager(
     private val context: Context,
-    private val database: Database = Injekt.get(),
-    private val syncPreferences: SyncPreferences = Injekt.get(),
-    private var json: Json = Json {
-        encodeDefaults = true
-        ignoreUnknownKeys = true
-    },
-    private val getCategories: GetCategories = Injekt.get(),
+    private val database: Database,
+    private val syncPreferences: SyncPreferences,
+    private var json: Json,
+    private val protoBuf: ProtoBuf,
+    private val getCategories: GetCategories,
+    private val backupCreatorFactory: BackupCreator.Factory,
+    private val notifier: SyncNotifier,
+    private val mangaRestorerFactory: MangaRestorer.Factory,
 ) {
-    private val backupCreator: BackupCreator = BackupCreator(context, false)
-    private val notifier: SyncNotifier = SyncNotifier(context)
-    private val mangaRestorer: MangaRestorer = MangaRestorer(isSync = true)
+    private val backupCreator: BackupCreator = backupCreatorFactory.create(false)
+    private val mangaRestorer: MangaRestorer = mangaRestorerFactory.create(true)
 
     enum class SyncService(val value: Int) {
         NONE(0),
@@ -113,11 +112,12 @@ class SyncManager(
                     json,
                     syncPreferences,
                     notifier,
+                    protoBuf,
                 )
             }
 
             SyncService.GOOGLE_DRIVE -> {
-                GoogleDriveSyncService(context, json, syncPreferences)
+                GoogleDriveSyncService(context, json, syncPreferences, protoBuf)
             }
 
             else -> {
@@ -268,7 +268,7 @@ class SyncManager(
             // Await the apply so a failed restore fails the sync instead of
             // silently reporting success with nothing written.
             val applied = BackupRestoreJob.startAndAwaitSuccess(
-                context,
+                context.workManager,
                 backupUri,
                 sync = true,
                 options = RestoreOptions(
@@ -316,7 +316,7 @@ class SyncManager(
     private fun writeSyncDataToCache(context: Context, backup: Backup): Uri? {
         val cacheFile = File(context.cacheDir, "tachiyomi_sync_data.proto.gz")
         return try {
-            cacheFile.sink().buffer().use { BackupRequestBody(backup, ProtoBuf).writeTo(it) }
+            cacheFile.sink().buffer().use { BackupRequestBody(backup, protoBuf).writeTo(it) }
             Uri.fromFile(cacheFile)
         } catch (e: IOException) {
             logcat(LogPriority.ERROR, throwable = e) { "Failed to write sync data to cache" }

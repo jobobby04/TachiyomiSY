@@ -1,9 +1,13 @@
 package eu.kanade.tachiyomi.network
 
 import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UncaughtExceptionInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
+import mihon.core.metro.IsDebugBuild
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -11,11 +15,14 @@ import java.io.File
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
+@Inject
+@SingleIn(AppScope::class)
 /* SY --> */
 open /* SY <-- */ class NetworkHelper(
     private val context: Context,
     private val preferences: NetworkPreferences,
     // SY -->
+    @IsDebugBuild
     val isDebugBuild: Boolean,
     // SY <--
 ) {

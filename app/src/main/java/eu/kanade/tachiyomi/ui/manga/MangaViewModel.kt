@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.ui.manga
 
-import android.app.Application
 import android.content.Context
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -10,9 +9,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
@@ -27,7 +30,6 @@ import eu.kanade.domain.manga.model.chaptersFiltered
 import eu.kanade.domain.manga.model.copyFrom
 import eu.kanade.domain.manga.model.downloadedFilter
 import eu.kanade.domain.manga.model.toSManga
-import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.interactor.TrackChapter
@@ -38,6 +40,7 @@ import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.manga.DownloadAction
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.util.formattedMessage
+import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -135,86 +138,80 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import kotlin.math.floor
 
+@AssistedInject
 class MangaViewModel(
+    @Assisted private val mangaId: Long,
+    @Assisted private val isFromSource: Boolean,
     private val context: Context,
-    private val mangaId: Long,
-    private val isFromSource: Boolean,
-    val smartSearched: Boolean,
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    trackPreferences: TrackPreferences = Injekt.get(),
-    readerPreferences: ReaderPreferences = Injekt.get(),
-    uiPreferences: UiPreferences = Injekt.get(),
-    private val trackerManager: TrackerManager = Injekt.get(),
-    private val trackChapter: TrackChapter = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadCache: DownloadCache = Injekt.get(),
-    private val getMangaAndChapters: GetMangaWithChapters = Injekt.get(),
     // SY -->
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
-    private val getMergedMangaById: GetMergedMangaById = Injekt.get(),
-    private val getMergedReferencesById: GetMergedReferencesById = Injekt.get(),
-    private val insertMergedReference: InsertMergedReference = Injekt.get(),
-    private val updateMergedSettings: UpdateMergedSettings = Injekt.get(),
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
-    private val deleteMangaById: DeleteMangaById = Injekt.get(),
-    private val deleteByMergeId: DeleteByMergeId = Injekt.get(),
-    private val deleteMergeById: DeleteMergeById = Injekt.get(),
-    private val getFlatMetadata: GetFlatMetadataById = Injekt.get(),
-    private val getPagePreviews: GetPagePreviews = Injekt.get(),
-    private val insertTrack: InsertTrack = Injekt.get(),
-    private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
+    @Assisted val smartSearched: Boolean,
     // SY <--
-    private val getDuplicateLibraryManga: GetDuplicateLibraryManga = Injekt.get(),
-    private val getAvailableScanlators: GetAvailableScanlators = Injekt.get(),
-    private val getExcludedScanlators: GetExcludedScanlators = Injekt.get(),
-    private val setExcludedScanlators: SetExcludedScanlators = Injekt.get(),
-    private val setMangaChapterFlags: SetMangaChapterFlags = Injekt.get(),
-    private val setMangaDefaultChapterFlags: SetMangaDefaultChapterFlags = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
-    private val updateChapter: UpdateChapter = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getTracks: GetTracks = Injekt.get(),
-    private val addTracks: AddTracks = Injekt.get(),
-    private val setMangaCategories: SetMangaCategories = Injekt.get(),
-    private val mangaRepository: MangaRepository = Injekt.get(),
-    private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get(),
-    private val updateMangaFromRemote: UpdateMangaFromRemote = Injekt.get(),
-    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
+    private val libraryPreferences: LibraryPreferences,
+    trackPreferences: TrackPreferences,
+    readerPreferences: ReaderPreferences,
+    private val uiPreferences: UiPreferences,
+    private val trackerManager: TrackerManager,
+    private val trackChapter: TrackChapter,
+    private val downloadManager: DownloadManager,
+    private val downloadCache: DownloadCache,
+    private val getMangaAndChapters: GetMangaWithChapters,
+    // SY -->
+    private val sourceManager: SourceManager,
+    private val getManga: GetManga,
+    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId,
+    private val getMergedMangaById: GetMergedMangaById,
+    private val getMergedReferencesById: GetMergedReferencesById,
+    private val insertMergedReference: InsertMergedReference,
+    private val updateMergedSettings: UpdateMergedSettings,
+    private val networkToLocalManga: NetworkToLocalManga,
+    private val deleteMangaById: DeleteMangaById,
+    private val deleteByMergeId: DeleteByMergeId,
+    private val deleteMergeById: DeleteMergeById,
+    private val getFlatMetadata: GetFlatMetadataById,
+    private val getPagePreviews: GetPagePreviews,
+    private val insertTrack: InsertTrack,
+    private val setCustomMangaInfo: SetCustomMangaInfo,
+    private val updateHelper: EHentaiUpdateHelper,
+    // SY <--
+    private val getDuplicateLibraryManga: GetDuplicateLibraryManga,
+    private val getAvailableScanlators: GetAvailableScanlators,
+    private val getExcludedScanlators: GetExcludedScanlators,
+    private val setExcludedScanlators: SetExcludedScanlators,
+    private val setMangaChapterFlags: SetMangaChapterFlags,
+    private val setMangaDefaultChapterFlags: SetMangaDefaultChapterFlags,
+    private val setReadStatus: SetReadStatus,
+    private val updateChapter: UpdateChapter,
+    private val updateManga: UpdateManga,
+    private val getCategories: GetCategories,
+    private val getTracks: GetTracks,
+    private val addTracks: AddTracks,
+    private val setMangaCategories: SetMangaCategories,
+    private val mangaRepository: MangaRepository,
+    private val filterChaptersForDownload: FilterChaptersForDownload,
+    private val updateMangaFromRemote: UpdateMangaFromRemote,
+    private val refreshTracks: RefreshTracks,
+    private val coverCache: CoverCache,
 ) : ViewModel() {
 
-    val state: StateFlow<State>
-        field = MutableStateFlow<State>(State.Loading)
+    val state: StateFlow<MangaViewModel.State>
+        field = MutableStateFlow<MangaViewModel.State>(State.Loading)
 
-    companion object {
-        val MANGA_ID_KEY = CreationExtras.Key<Long>()
-
-        val IS_FROM_SOURCE_KEY = CreationExtras.Key<Boolean>()
-
-        // SY -->
-        val SMART_SEARCHED_KEY = CreationExtras.Key<Boolean>()
-        // SY <--
-
-        val Factory = viewModelFactory {
-            initializer {
-                MangaViewModel(
-                    context = Injekt.get<Application>(),
-                    mangaId = get(MANGA_ID_KEY)!!,
-                    isFromSource = get(IS_FROM_SOURCE_KEY)!!,
-                    // SY -->
-                    smartSearched = get(SMART_SEARCHED_KEY)!!,
-                    // SY <--
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(
+            mangaId: Long,
+            isFromSource: Boolean,
+            // SY -->
+            smartSearched: Boolean,
+            // SY <--
+        ): MangaViewModel
     }
+
+    val snackbarHostState: SnackbarHostState = SnackbarHostState()
 
     private val successState: State.Success?
         get() = state.value as? State.Success
@@ -247,8 +244,6 @@ class MangaViewModel(
     private val selectedChapterIds: HashSet<Long> = HashSet()
 
     // EXH -->
-    private val updateHelper: EHentaiUpdateHelper by injectLazy()
-
     val redirectFlow: MutableSharedFlow<EXHRedirect> = MutableSharedFlow()
 
     data class EXHRedirect(val mangaId: Long)
@@ -808,7 +803,7 @@ class MangaViewModel(
                 // Remove from library
                 if (updateManga.awaitUpdateFavorite(manga.id, false)) {
                     // Remove covers and update last modified in db
-                    if (manga.removeCovers() != manga) {
+                    if (manga.removeCovers(coverCache) != manga) {
                         updateManga.awaitUpdateCoverLastModified(manga.id)
                     }
                     withUIContext { onRemoved() }
@@ -1036,8 +1031,6 @@ class MangaViewModel(
         val isLocal = manga.isLocal()
         // SY -->
         val isExhManga = manga.isEhBasedManga()
-        val enabledLanguages = Injekt.get<SourcePreferences>().enabledLanguages.get()
-            .filterNot { it in listOf("all", "other") }
         // SY <--
         return map { chapter ->
             val activeDownload = if (isLocal) {
@@ -1074,7 +1067,7 @@ class MangaViewModel(
                 downloadProgress = activeDownload?.progress ?: 0,
                 selected = chapter.id in selectedChapterIds,
                 // SY -->
-                sourceName = source?.getNameForMangaInfo(enabledLanguages = enabledLanguages),
+                sourceName = source?.getNameForMangaInfo(),
                 showScanlator = !isExhManga,
                 // SY <--
             )
@@ -1304,9 +1297,7 @@ class MangaViewModel(
         }
     }
 
-    private suspend fun refreshTrackers(
-        refreshTracks: RefreshTracks = Injekt.get(),
-    ) {
+    private suspend fun refreshTrackers() {
         refreshTracks.await(mangaId)
             .filter { it.first != null }
             .forEach { (track, e) ->

@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.track.hikka
 
+import android.content.Context
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -14,7 +15,7 @@ import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Hikka(id: Long) : BaseTracker(id, "Hikka"), DeletableTracker {
+class Hikka(context: Context, id: Long) : BaseTracker(context, id, "Hikka"), DeletableTracker {
 
     companion object {
         const val READING = 0L

@@ -37,9 +37,11 @@ import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.source.online.all.MangaDex
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.util.system.workManager
 import exh.md.utils.MdConstants
 import exh.md.utils.MdUtil
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
@@ -62,8 +64,9 @@ object SettingsMangadexScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val sourcePreferences: SourcePreferences = remember { Injekt.get() }
-        val trackPreferences: TrackPreferences = remember { Injekt.get() }
+        val context = LocalContext.current
+        val sourcePreferences: SourcePreferences = remember { context.appGraph.sourcePreferences }
+        val trackPreferences: TrackPreferences = remember { context.appGraph.trackPreferences }
         val mdex = remember { MdUtil.getEnabledMangaDex(sourcePreferences) } ?: return emptyList()
 
         return listOf(
@@ -257,7 +260,7 @@ object SettingsMangadexScreen : SearchableSettings {
                         List(items.size) { index -> (index + 1).toString() }.toSet(),
                     )
                     LibraryUpdateJob.startNow(
-                        context,
+                        context.workManager,
                         target = LibraryUpdateJob.Target.SYNC_FOLLOWS,
                     )
                 },
@@ -278,7 +281,7 @@ object SettingsMangadexScreen : SearchableSettings {
             subtitle = stringResource(SYMR.strings.mangadex_push_favorites_to_mangadex_summary),
             onClick = {
                 LibraryUpdateJob.startNow(
-                    context,
+                    context.workManager,
                     target = LibraryUpdateJob.Target.PUSH_FAVORITES,
                 )
             },

@@ -10,12 +10,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.ui.UiPreferences
@@ -38,8 +42,6 @@ import kotlinx.coroutines.flow.combine
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 data object MoreTab : Tab {
 
@@ -63,7 +65,7 @@ data object MoreTab : Tab {
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val viewModel = viewModel<MoreViewModel>()
+        val viewModel = metroViewModel<MoreViewModel>()
         val downloadQueueState by viewModel.downloadQueueState.collectAsState()
         MoreScreen(
             downloadQueueStateProvider = { downloadQueueState },
@@ -90,11 +92,14 @@ data object MoreTab : Tab {
     }
 }
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 class MoreViewModel(
-    private val downloadManager: DownloadManager = Injekt.get(),
-    preferences: BasePreferences = Injekt.get(),
+    private val downloadManager: DownloadManager,
+    preferences: BasePreferences,
     // SY -->
-    uiPreferences: UiPreferences = Injekt.get(),
+    uiPreferences: UiPreferences,
     // SY <--
 ) : ViewModel() {
 

@@ -6,10 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.components.BrowseSourceSimpleToolbar
 import eu.kanade.presentation.util.Screen
@@ -48,12 +47,9 @@ class BrowseRecommendsScreen(
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val viewModel = viewModel<BrowseRecommendsViewModel>(
-            factory = BrowseRecommendsViewModel.Factory,
-            extras = CreationExtras {
-                set(BrowseRecommendsViewModel.ARGS_KEY, args)
-            },
-        )
+        val viewModel = assistedMetroViewModel<BrowseRecommendsViewModel, BrowseRecommendsViewModel.Factory> {
+            create(args = args)
+        }
         val snackbarHostState = remember { SnackbarHostState() }
 
         val onClickItem = { manga: Manga ->

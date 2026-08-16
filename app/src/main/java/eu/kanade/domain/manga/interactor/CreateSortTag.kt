@@ -1,8 +1,10 @@
 package eu.kanade.domain.manga.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.core.common.preference.plusAssign
 import tachiyomi.domain.library.service.LibraryPreferences
 
+@Inject
 class CreateSortTag(
     private val preferences: LibraryPreferences,
     private val getSortTag: GetSortTag,

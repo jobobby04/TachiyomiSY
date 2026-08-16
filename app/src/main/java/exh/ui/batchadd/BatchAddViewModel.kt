@@ -3,6 +3,11 @@ package exh.ui.batchadd
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import exh.GalleryAddEvent
 import exh.GalleryAdder
 import exh.log.xLogE
@@ -18,17 +23,17 @@ import kotlinx.coroutines.launch
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class BatchAddViewModel(
-    private val exhPreferences: ExhPreferences = Injekt.get(),
+    private val exhPreferences: ExhPreferences,
+    private val galleryAdder: GalleryAdder,
 ) : ViewModel() {
 
     val state: StateFlow<State>
         field = MutableStateFlow(State())
-
-    private val galleryAdder by lazy { GalleryAdder() }
 
     fun addGalleries(context: Context) {
         val galleries = state.value.galleries

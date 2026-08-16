@@ -1,8 +1,10 @@
 package exh.pref
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 
+@Inject
 class DelegateSourcePreferences(
     private val preferenceStore: PreferenceStore,
 ) {

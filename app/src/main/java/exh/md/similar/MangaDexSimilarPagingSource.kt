@@ -11,6 +11,7 @@ import exh.source.getMainSource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import tachiyomi.data.source.NoResultsException
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
@@ -20,7 +21,8 @@ import tachiyomi.i18n.sy.SYMR
 class MangaDexSimilarPagingSource(
     manga: Manga,
     private val mangaDex: MangaDex,
-) : RecommendationPagingSource(manga, mangaDex) {
+    networkToLocalManga: NetworkToLocalManga,
+) : RecommendationPagingSource(manga, mangaDex, networkToLocalManga) {
 
     override val name: String
         get() = "MangaDex"

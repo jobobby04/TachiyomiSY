@@ -26,9 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import tachiyomi.i18n.MR
@@ -43,7 +43,7 @@ class BatchAddScreen : Screen() {
 
     @Composable
     override fun Content() {
-        val viewModel = viewModel<BatchAddViewModel>()
+        val viewModel = metroViewModel<BatchAddViewModel>()
         val state by viewModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current

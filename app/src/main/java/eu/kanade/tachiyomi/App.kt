@@ -30,8 +30,8 @@ import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
-import eu.kanade.domain.DomainModule
-import eu.kanade.domain.SYDomainModule
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.createGraphFactory
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.domain.ui.UiPreferences
@@ -39,6 +39,7 @@ import eu.kanade.domain.ui.model.setAppCompatDelegateThemeMode
 import eu.kanade.tachiyomi.core.security.PrivacyPreferences
 import eu.kanade.tachiyomi.crash.CrashActivity
 import eu.kanade.tachiyomi.crash.GlobalExceptionHandler
+import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.coil.BufferedSourceFetcher
 import eu.kanade.tachiyomi.data.coil.ImageDecoder
 import eu.kanade.tachiyomi.data.coil.MangaCoverFetcher
@@ -48,12 +49,8 @@ import eu.kanade.tachiyomi.data.coil.PagePreviewFetcher
 import eu.kanade.tachiyomi.data.coil.PagePreviewKeyer
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.sync.SyncDataJob
-import eu.kanade.tachiyomi.di.AppModule
 import eu.kanade.tachiyomi.di.InjektKoinBridge
-import eu.kanade.tachiyomi.di.PreferenceModule
-import eu.kanade.tachiyomi.di.SYPreferenceModule
 import eu.kanade.tachiyomi.di.importModule
-import eu.kanade.tachiyomi.di.initExpensiveComponents
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
@@ -61,6 +58,7 @@ import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.system.cancelNotification
+import eu.kanade.tachiyomi.util.system.isDebugBuildType
 import eu.kanade.tachiyomi.util.system.notify
 import exh.log.CrashlyticsPrinter
 import exh.log.EHLogLevel
@@ -73,29 +71,60 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import logcat.LogPriority
 import logcat.LogcatLogger
+import mihon.app.di.AppGraph
+import mihon.app.di.injekt.MetroInteropModule
 import mihon.core.firebase.FirebaseConfig
+import mihon.core.metro.GraphProvider
+import mihon.core.migration.Migration
 import mihon.core.migration.Migrator
-import mihon.core.migration.migrations.migrations
 import org.conscrypt.Conscrypt
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.widget.WidgetManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.security.Security
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factory {
+class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factory, GraphProvider<AppGraph> {
 
-    private val basePreferences: BasePreferences by injectLazy()
-    private val privacyPreferences: PrivacyPreferences by injectLazy()
-    private val networkPreferences: NetworkPreferences by injectLazy()
+    override val graph: AppGraph by lazy {
+        createGraphFactory<AppGraph.Factory>().create(context = this, isDebugBuild = isDebugBuildType)
+    }
+
+    @Inject private lateinit var preferenceStore: PreferenceStore
+
+    @Inject private lateinit var basePreferences: BasePreferences
+
+    @Inject private lateinit var privacyPreferences: PrivacyPreferences
+
+    @Inject private lateinit var networkPreferences: NetworkPreferences
+
+    @Inject private lateinit var uiPreferences: UiPreferences
+
+    @Inject private lateinit var coverCache: CoverCache
+
+    @Inject private lateinit var networkHelper: NetworkHelper
+
+    @Inject private lateinit var sourceManager: SourceManager
+
+    @Inject private lateinit var widgetManager: WidgetManager
+
+    @Inject private lateinit var injektMetroInteropModule: MetroInteropModule
+
+    @Inject private lateinit var migrations: Set<Migration>
+
+    // SY -->
+    @Inject private lateinit var syncPreferences: SyncPreferences
+
+    @Inject private lateinit var storageManager: StorageManager
+    // SY <--
 
     private val disableIncognitoReceiver = DisableIncognitoReceiver()
 
@@ -108,28 +137,22 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             e.printStackTrace()
         }
 
+        // Must run before the graph is built, since injecting dependencies initializes WebView and the
+        // suffix can't be set once a provider exists in the process. Secondary processes die otherwise.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val process = getProcessName()
+            if (packageName != process) WebView.setDataDirectorySuffix(process)
+        }
+
+        graph.inject(this)
+        setupInjekt()
+
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
         // TLS 1.3 support for Android < 10
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             Security.insertProviderAt(Conscrypt.newProvider(), 1)
         }
-
-        // Avoid potential crashes
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val process = getProcessName()
-            if (packageName != process) WebView.setDataDirectorySuffix(process)
-        }
-
-        Injekt.importModule(PreferenceModule(this))
-        Injekt.importModule(AppModule(this))
-        Injekt.importModule(DomainModule())
-        // SY -->
-        Injekt.importModule(SYPreferenceModule(this))
-        Injekt.importModule(SYDomainModule())
-        InjektKoinBridge.startKoin(this)
-        initExpensiveComponents(this)
-        // SY <--
 
         setupExhLogging() // EXH logging
         LogcatLogger.install()
@@ -180,10 +203,10 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             .onEach(FirebaseConfig::setCrashlyticsEnabled)
             .launchIn(scope)
 
-        setAppCompatDelegateThemeMode(Injekt.get<UiPreferences>().themeMode.get())
+        setAppCompatDelegateThemeMode(uiPreferences.themeMode.get())
 
         // Updates widget update
-        WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
+        widgetManager.init(scope)
 
         /*if (!LogcatLogger.isInstalled && networkPreferences.verboseLogging().get()) {
             LogcatLogger.install(AndroidLogcatLogger(LogPriority.VERBOSE))
@@ -192,7 +215,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         if (!WorkManager.isInitialized()) {
             WorkManager.initialize(this, Configuration.Builder().build())
         }
-        val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
         if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
             SyncDataJob.startNow(this@App)
@@ -201,16 +223,24 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         initializeMigrator()
     }
 
+    private fun setupInjekt() {
+        Injekt.importModule(injektMetroInteropModule)
+        // SY -->
+        InjektKoinBridge.startKoin(this)
+        // SY <--
+    }
+
     private fun initializeMigrator() {
-        val preferenceStore = Injekt.get<PreferenceStore>()
         // SY -->
         val preference = preferenceStore.getInt(Preference.appStateKey("eh_last_version_code"), 0)
         // SY <--
-        logcat { "Migration from ${preference.get()} to ${BuildConfig.VERSION_CODE}" }
+        logcat {
+            "Migration from ${preference.get()} to ${BuildConfig.VERSION_CODE} with ${migrations.size} migration(s)"
+        }
         Migrator.initialize(
             old = preference.get(),
             new = BuildConfig.VERSION_CODE,
-            migrations = migrations,
+            migrations = migrations.toList(),
             onMigrationComplete = {
                 logcat { "Updating last version to ${BuildConfig.VERSION_CODE}" }
                 preference.set(BuildConfig.VERSION_CODE)
@@ -220,7 +250,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun newImageLoader(context: Context): ImageLoader {
         return ImageLoader.Builder(this).apply {
-            val callFactoryLazy = lazy { Injekt.get<NetworkHelper>().client }
+            val callFactoryLazy = lazy { networkHelper.client }
             components {
                 // NetworkFetcher.Factory
                 add(OkHttpNetworkFetcherFactory(callFactoryLazy::value))
@@ -228,13 +258,13 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 add(ImageDecoder.Factory())
                 // Fetcher.Factory
                 add(BufferedSourceFetcher.Factory())
-                add(MangaCoverFetcher.MangaCoverFactory(callFactoryLazy))
-                add(MangaCoverFetcher.MangaFactory(callFactoryLazy))
+                add(MangaCoverFetcher.MangaCoverFactory(callFactoryLazy, coverCache, sourceManager))
+                add(MangaCoverFetcher.MangaFactory(callFactoryLazy, coverCache, sourceManager))
                 // SY -->
                 add(PagePreviewFetcher.Factory(callFactoryLazy))
                 // SY <--
                 // Keyer
-                add(MangaCoverKeyer())
+                add(MangaCoverKeyer(coverCache))
                 add(MangaKeyer())
                 // SY -->
                 add(PagePreviewKeyer())
@@ -259,17 +289,17 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        SecureActivityDelegate.onApplicationStart()
-
-        val syncPreferences: SyncPreferences = Injekt.get()
+        SecureActivityDelegate.onApplicationStart(this)
+        // SY -->
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
         if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppResume) {
             SyncDataJob.startNow(this@App)
         }
+        // SY <--
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        SecureActivityDelegate.onApplicationStopped()
+        SecureActivityDelegate.onApplicationStopped(this)
     }
 
     override fun getPackageName(): String {
@@ -314,7 +344,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         val printers = mutableListOf<Printer>(AndroidPrinter())
 
-        val logFolder = Injekt.get<StorageManager>().getLogsDirectory()
+        val logFolder = storageManager.getLogsDirectory()
 
         if (logFolder != null) {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())

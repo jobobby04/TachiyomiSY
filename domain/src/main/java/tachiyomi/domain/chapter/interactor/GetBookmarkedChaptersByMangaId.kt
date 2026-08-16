@@ -1,5 +1,6 @@
 package tachiyomi.domain.chapter.interactor
 
+import dev.zacsweers.metro.Inject
 import exh.source.MERGED_SOURCE_ID
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
@@ -7,6 +8,7 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.repository.ChapterRepository
 import tachiyomi.domain.manga.interactor.GetManga
 
+@Inject
 class GetBookmarkedChaptersByMangaId(
     private val chapterRepository: ChapterRepository,
     // SY -->

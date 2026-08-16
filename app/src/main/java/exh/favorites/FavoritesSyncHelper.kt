@@ -3,6 +3,7 @@ package exh.favorites
 import android.content.Context
 import android.net.wifi.WifiManager
 import android.os.PowerManager
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.await
@@ -42,32 +43,29 @@ import tachiyomi.domain.manga.model.FavoriteEntry
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import kotlin.time.Duration.Companion.seconds
 
 // TODO only apply database changes after sync
-class FavoritesSyncHelper(val context: Context) {
-    private val getLibraryManga: GetLibraryManga by injectLazy()
-    private val getCategories: GetCategories by injectLazy()
-    private val getManga: GetManga by injectLazy()
-    private val updateManga: UpdateManga by injectLazy()
-    private val setMangaCategories: SetMangaCategories by injectLazy()
-    private val createCategoryWithName: CreateCategoryWithName by injectLazy()
-    private val reorderCategory: ReorderCategory by injectLazy()
-    private val renameCategory: RenameCategory by injectLazy()
-
-    private val exhPreferences: ExhPreferences by injectLazy()
-
+@Inject
+class FavoritesSyncHelper(
+    val context: Context,
+    private val getLibraryManga: GetLibraryManga,
+    private val getCategories: GetCategories,
+    private val getManga: GetManga,
+    private val updateManga: UpdateManga,
+    private val setMangaCategories: SetMangaCategories,
+    private val createCategoryWithName: CreateCategoryWithName,
+    private val reorderCategory: ReorderCategory,
+    private val renameCategory: RenameCategory,
+    private val exhPreferences: ExhPreferences,
+    private val sourceManager: SourceManager,
+    private val galleryAdder: GalleryAdder,
+    private val storage: LocalFavoritesStorage,
+) {
     private val exh by lazy {
-        Injekt.get<SourceManager>().get(EXH_SOURCE_ID) as? EHentai
+        sourceManager.get(EXH_SOURCE_ID) as? EHentai
             ?: EHentai(0, true, context)
     }
-
-    private val storage by lazy { LocalFavoritesStorage() }
-
-    private val galleryAdder by lazy { GalleryAdder() }
 
     private val throttleManager by lazy { ThrottleManager() }
 

@@ -4,6 +4,11 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.domain.source.interactor.CreateSourceCategory
 import eu.kanade.domain.source.interactor.DeleteSourceCategory
 import eu.kanade.domain.source.interactor.GetSourceCategories
@@ -17,14 +22,15 @@ import kotlinx.coroutines.flow.update
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class SourceCategoryViewModel(
-    private val getSourceCategories: GetSourceCategories = Injekt.get(),
-    private val createSourceCategory: CreateSourceCategory = Injekt.get(),
-    private val renameSourceCategory: RenameSourceCategory = Injekt.get(),
-    private val deleteSourceCategory: DeleteSourceCategory = Injekt.get(),
+    private val getSourceCategories: GetSourceCategories,
+    private val createSourceCategory: CreateSourceCategory,
+    private val renameSourceCategory: RenameSourceCategory,
+    private val deleteSourceCategory: DeleteSourceCategory,
 ) : ViewModel() {
 
     val state: StateFlow<SourceCategoryScreenState>

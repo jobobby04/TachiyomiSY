@@ -4,6 +4,9 @@ import android.app.Application
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import tachiyomi.core.common.util.lang.withIOContext
@@ -11,14 +14,17 @@ import tachiyomi.data.Database
 import tachiyomi.data.category.CategoryMapper
 import tachiyomi.domain.library.service.LibraryPreferences
 
-class MoveSortingModeSettingsMigration : Migration {
+@Inject
+@ContributesIntoSet(AppScope::class)
+class MoveSortingModeSettingsMigration(
+    private val context: Application,
+    private val libraryPreferences: LibraryPreferences,
+    private val database: Database,
+) : Migration {
     override val version: Float = 38f
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
-        val context = migrationContext.get<Application>() ?: return@withIOContext false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
-        val database = migrationContext.get<Database>() ?: return@withIOContext false
         // Handle renamed enum values
         val newSortingMode = when (
             val oldSortingMode = prefs.getString(libraryPreferences.sortingMode.key(), "ALPHABETICAL")

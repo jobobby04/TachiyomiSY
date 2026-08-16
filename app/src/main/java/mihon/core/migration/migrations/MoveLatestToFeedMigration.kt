@@ -3,6 +3,9 @@ package mihon.core.migration.migrations
 import android.app.Application
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import exh.util.nullIfBlank
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -17,14 +20,17 @@ import tachiyomi.domain.source.interactor.InsertSavedSearch
 import tachiyomi.domain.source.model.FeedSavedSearch
 import tachiyomi.domain.source.model.SavedSearch
 
-class MoveLatestToFeedMigration : Migration {
+@Inject
+@ContributesIntoSet(AppScope::class)
+class MoveLatestToFeedMigration(
+    private val context: Application,
+    private val insertSavedSearch: InsertSavedSearch,
+    private val insertFeedSavedSearch: InsertFeedSavedSearch,
+) : Migration {
     override val version: Float = 31f
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
-        val context = migrationContext.get<Application>() ?: return@withIOContext false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val insertSavedSearch = migrationContext.get<InsertSavedSearch>() ?: return@withIOContext false
-        val insertFeedSavedSearch = migrationContext.get<InsertFeedSavedSearch>() ?: return@withIOContext false
         val savedSearch = prefs.getStringSet("eh_saved_searches", emptySet())?.mapNotNull {
             runCatching {
                 val content = Json.decodeFromString<JsonObject>(it.substringAfter(':'))

@@ -2,9 +2,13 @@ package exh.ui.metadata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.source.getMainSource
@@ -16,32 +20,24 @@ import tachiyomi.domain.manga.interactor.GetFlatMetadataById
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@AssistedInject
 class MetadataViewViewModel(
-    val mangaId: Long,
-    val sourceId: Long,
-    private val getFlatMetadataById: GetFlatMetadataById = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
+    @Assisted val mangaId: Long,
+    @Assisted val sourceId: Long,
+    private val getFlatMetadataById: GetFlatMetadataById,
+    private val sourceManager: SourceManager,
+    private val getManga: GetManga,
 ) : ViewModel() {
 
     val state: StateFlow<MetadataViewState>
         field = MutableStateFlow<MetadataViewState>(MetadataViewState.Loading)
 
-    companion object {
-        val MANGA_ID_KEY = CreationExtras.Key<Long>()
-        val SOURCE_ID_KEY = CreationExtras.Key<Long>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                MetadataViewViewModel(
-                    mangaId = get(MANGA_ID_KEY)!!,
-                    sourceId = get(SOURCE_ID_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(mangaId: Long, sourceId: Long): MetadataViewViewModel
     }
 
     private val _manga = MutableStateFlow<Manga?>(null)

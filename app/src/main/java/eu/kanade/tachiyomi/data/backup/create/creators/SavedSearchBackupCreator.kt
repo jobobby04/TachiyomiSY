@@ -1,14 +1,14 @@
 package eu.kanade.tachiyomi.data.backup.create.creators
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.data.backup.models.BackupSavedSearch
 import eu.kanade.tachiyomi.data.backup.models.backupSavedSearchMapper
 import tachiyomi.data.Database
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
 class SavedSearchBackupCreator(
-    private val database: Database = Injekt.get(),
+    private val database: Database,
 ) {
 
     suspend operator fun invoke(): List<BackupSavedSearch> {

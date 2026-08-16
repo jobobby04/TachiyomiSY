@@ -7,11 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.browse.SourceCategoriesDialog
 import eu.kanade.presentation.browse.SourceOptionsDialog
 import eu.kanade.presentation.browse.SourcesScreen
@@ -35,12 +34,10 @@ fun Screen.sourcesTab(
 ): TabContent {
     val navigator = LocalNavigator.currentOrThrow
     // SY -->
-    val viewModel = viewModel<SourcesViewModel>(
-        factory = SourcesViewModel.Factory,
-        extras = CreationExtras {
-            set(SourcesViewModel.SMART_SEARCH_CONFIG_KEY, smartSearchConfig)
-        },
-    )
+    val viewModel =
+        assistedMetroViewModel<SourcesViewModel, SourcesViewModel.Factory> {
+            create(smartSearchConfig = smartSearchConfig)
+        }
     // SY <--
     val state by viewModel.state.collectAsStateWithLifecycle()
 

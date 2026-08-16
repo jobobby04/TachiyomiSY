@@ -17,11 +17,11 @@ import exh.util.ThrottleManager
 import exh.util.jobScheduler
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator
+import mihon.app.di.appGraph
 import mihon.core.migration.MigrationContext
 import mihon.core.migration.MigrationJobFactory
 import mihon.core.migration.MigrationStrategyFactory
 import mihon.core.migration.Migrator
-import mihon.core.migration.migrations.migrations
 import mihon.domain.source.interactor.UpdateMangaFromRemote
 import tachiyomi.data.Database
 import tachiyomi.domain.manga.interactor.GetAllManga
@@ -54,7 +54,7 @@ object DebugFunctions {
         val migrationJobFactory = MigrationJobFactory(migrationContext, Migrator.scope)
         val migrationStrategyFactory = MigrationStrategyFactory(migrationJobFactory, {})
         val strategy = migrationStrategyFactory.create(1, BuildConfig.VERSION_CODE)
-        return runBlocking { strategy(migrations).await() }
+        return runBlocking { strategy(app.appGraph.migrations.toList()).await() }
     }
 
     fun forceSetupJobs(): Boolean {
@@ -62,7 +62,7 @@ object DebugFunctions {
         val migrationJobFactory = MigrationJobFactory(migrationContext, Migrator.scope)
         val migrationStrategyFactory = MigrationStrategyFactory(migrationJobFactory, {})
         val strategy = migrationStrategyFactory.create(0, BuildConfig.VERSION_CODE)
-        return runBlocking { strategy(migrations).await() }
+        return runBlocking { strategy(app.appGraph.migrations.toList()).await() }
     }
 
     fun resetAgedFlagInEXHManga() {

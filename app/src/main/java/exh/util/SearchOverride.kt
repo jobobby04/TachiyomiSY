@@ -8,9 +8,11 @@ import exh.GalleryAddEvent
 import exh.GalleryAdder
 import rx.Observable
 import tachiyomi.core.common.util.lang.runAsObservable
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 private val galleryAdder by lazy {
-    GalleryAdder()
+    Injekt.get<GalleryAdder>()
 }
 
 /**

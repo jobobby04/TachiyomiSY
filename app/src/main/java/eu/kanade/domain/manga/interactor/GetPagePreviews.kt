@@ -1,5 +1,6 @@
 package eu.kanade.domain.manga.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.model.PagePreview
 import eu.kanade.domain.manga.model.toSManga
@@ -10,6 +11,7 @@ import exh.source.getMainSource
 import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 import tachiyomi.domain.manga.model.Manga
 
+@Inject
 class GetPagePreviews(
     private val pagePreviewCache: PagePreviewCache,
     private val getChaptersByMangaId: GetChaptersByMangaId,

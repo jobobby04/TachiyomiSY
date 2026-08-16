@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.track.komga
 
+import android.content.Context
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -13,7 +14,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Komga(id: Long) : BaseTracker(id, "Komga"), EnhancedTracker {
+class Komga(context: Context, id: Long) : BaseTracker(context, id, "Komga"), EnhancedTracker {
 
     companion object {
         const val UNREAD = 1L
@@ -21,10 +22,11 @@ class Komga(id: Long) : BaseTracker(id, "Komga"), EnhancedTracker {
         const val COMPLETED = 3L
     }
 
-    override val client: OkHttpClient =
+    override val client: OkHttpClient by lazy {
         networkService.client.newBuilder()
             .dns(Dns.SYSTEM) // don't use DNS over HTTPS as it breaks IP addressing
             .build()
+    }
 
     val api by lazy { KomgaApi(id, client) }
 

@@ -26,6 +26,7 @@ import eu.kanade.tachiyomi.databinding.EditMergedSettingsDialogBinding
 import eu.kanade.tachiyomi.ui.manga.MergedMangaData
 import eu.kanade.tachiyomi.util.system.toast
 import exh.source.MERGED_SOURCE_ID
+import mihon.app.di.appGraph
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.i18n.MR
@@ -63,7 +64,7 @@ class EditMergedSettingsState(
             mergeReference?.let { it.chapterSortMode == MergedMangaReference.CHAPTER_SORT_PRIORITY } ?: false
 
         mergedMangaAdapter = EditMergedMangaAdapter(this, isPriorityOrder)
-        mergedMangaHeaderAdapter = EditMergedSettingsHeaderAdapter(this, mergedMangaAdapter!!)
+        mergedMangaHeaderAdapter = EditMergedSettingsHeaderAdapter(this, mergedMangaAdapter!!, context.appGraph.sourceManager)
 
         binding.recycler.adapter = ConcatAdapter(mergedMangaHeaderAdapter, mergedMangaAdapter)
         binding.recycler.layoutManager = LinearLayoutManager(context)
