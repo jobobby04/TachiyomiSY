@@ -173,6 +173,8 @@ dependencies {
     // SY -->
     implementation(projects.i18nSy)
     // SY <--
+    implementation(projects.icons.materialSymbols)
+    implementation(projects.icons.simpleIcons)
     implementation(projects.core.common)
     implementation(projects.core.metro)
     implementation(projects.coreMetadata)

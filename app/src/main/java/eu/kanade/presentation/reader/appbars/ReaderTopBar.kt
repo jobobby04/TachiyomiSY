@@ -37,9 +37,9 @@ fun ReaderTopBar(
                                 },
                             ),
                             icon = if (bookmarked) {
-                                Icons.Outlined.Bookmark
+                                MaterialSymbols.RoundedFilled.Bookmark
                             } else {
-                                Icons.Outlined.BookmarkBorder
+                                MaterialSymbols.Rounded.Bookmark
                             },
                             onClick = onToggleBookmarked,
                         ),

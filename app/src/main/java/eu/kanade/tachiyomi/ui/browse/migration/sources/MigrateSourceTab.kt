@@ -1,7 +1,5 @@
 package eu.kanade.tachiyomi.ui.browse.migration.sources
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -19,6 +17,8 @@ import eu.kanade.tachiyomi.ui.browse.migration.manga.MigrateMangaScreen
 import kotlinx.coroutines.DelicateCoroutinesApi
 import mihon.app.di.appGraph
 import mihon.feature.migration.config.MigrationConfigScreen
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.Help
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.domain.manga.interactor.GetFavorites
@@ -38,7 +38,7 @@ fun Screen.migrateSourceTab(): TabContent {
         actions = listOf(
             AppBar.Action(
                 title = stringResource(MR.strings.migration_help_guide),
-                icon = Icons.AutoMirrored.Outlined.HelpOutline,
+                icon = MaterialSymbols.AutoMirroredRounded.Help,
                 onClick = {
                     uriHandler.openUri("https://mihon.app/docs/guides/source-migration")
                 },

@@ -29,13 +29,13 @@ dependencies {
     // SY -->
     api(projects.i18nSy)
     // SY <--
+    implementation(projects.icons.materialSymbols)
 
     // Compose
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     api(libs.androidx.compose.material3NavSuite)
-    implementation(libs.androidx.compose.materialIcons)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.animationGraphics)
     debugImplementation(libs.androidx.compose.uiTooling)

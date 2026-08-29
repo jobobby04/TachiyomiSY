@@ -2,11 +2,6 @@ package eu.kanade.presentation.reader.appbars
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FormatListNumbered
-import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -18,6 +13,11 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.FormatListNumbered
+import mihon.icons.materialsymbols.rounded.Public
+import mihon.icons.materialsymbols.rounded.Settings
+import mihon.icons.materialsymbols.rounded.Share
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -57,7 +57,7 @@ fun ReaderBottomBar(
         if (ReaderBottomButton.ViewChapters.isIn(enabledButtons)) {
             IconButton(onClick = onClickChapterList) {
                 Icon(
-                    imageVector = Icons.Outlined.FormatListNumbered,
+                    imageVector = MaterialSymbols.Rounded.FormatListNumbered,
                     contentDescription = stringResource(MR.strings.chapters),
                 )
             }
@@ -66,7 +66,7 @@ fun ReaderBottomBar(
         if (ReaderBottomButton.WebView.isIn(enabledButtons) && onClickWebView != null) {
             IconButton(onClick = onClickWebView) {
                 Icon(
-                    imageVector = Icons.Outlined.Public,
+                    imageVector = MaterialSymbols.Rounded.Public,
                     contentDescription = stringResource(MR.strings.action_open_in_web_view),
                 )
             }
@@ -75,7 +75,7 @@ fun ReaderBottomBar(
         if (ReaderBottomButton.Browser.isIn(enabledButtons) && onClickBrowser != null) {
             IconButton(onClick = onClickBrowser) {
                 Icon(
-                    imageVector = Icons.Outlined.Public,
+                    imageVector = MaterialSymbols.Rounded.Public,
                     contentDescription = stringResource(MR.strings.action_open_in_browser),
                 )
             }
@@ -84,7 +84,7 @@ fun ReaderBottomBar(
         if (ReaderBottomButton.Share.isIn(enabledButtons) && onClickShare != null) {
             IconButton(onClick = onClickShare) {
                 Icon(
-                    imageVector = Icons.Outlined.Share,
+                    imageVector = MaterialSymbols.Rounded.Share,
                     contentDescription = stringResource(MR.strings.action_share),
                 )
             }
@@ -148,7 +148,7 @@ fun ReaderBottomBar(
 
         IconButton(onClick = onClickSettings) {
             Icon(
-                imageVector = Icons.Outlined.Settings,
+                imageVector = MaterialSymbols.Rounded.Settings,
                 contentDescription = stringResource(MR.strings.action_settings),
             )
         }
