@@ -1,25 +1,25 @@
-import mihon.buildlogic.generatedBuildDir
-import mihon.buildlogic.tasks.getLocalesConfigTask
+import mihon.gradle.tasks.GenerateLocalesConfigTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    id("mihon.library")
-    kotlin("multiplatform")
-    alias(libs.plugins.moko)
+    alias(mihonx.plugins.kotlin.multiplatform)
+    alias(mihonx.plugins.spotless)
+
+    alias(libs.plugins.moko.resources)
     id("com.github.ben-manes.versions")
 }
 
 kotlin {
-    androidTarget()
+    android {
+        namespace = "tachiyomi.i18n"
 
-    applyDefaultHierarchyTemplate()
+        // TODO(antsy): Remove when https://youtrack.jetbrains.com/issue/KT-83319 is resolved
+        withHostTest { }
+    }
 
-    sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.moko.core)
-            }
-        }
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    dependencies {
+        api(libs.moko.resources)
     }
 
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -28,31 +28,16 @@ kotlin {
     }
 }
 
-val generatedAndroidResourceDir = generatedBuildDir.resolve("android/res")
+androidComponents {
+    onVariants { variant ->
+        val resSource = variant.sources.res ?: return@onVariants
 
-android {
-    namespace = "tachiyomi.i18n"
-
-    sourceSets {
-        val main by getting
-        main.res.srcDirs(
-            "src/commonMain/resources",
-            generatedAndroidResourceDir,
-        )
-    }
-
-    lint {
-        disable.addAll(listOf("MissingTranslation", "ExtraTranslation"))
+        val variantName = variant.name.replaceFirstChar { it.uppercase() }
+        val task = tasks.register<GenerateLocalesConfigTask>("generate${variantName}LocalesConfig")
+        resSource.addGeneratedSourceDirectory(task) { it.outputDir }
     }
 }
 
 multiplatformResources {
     resourcesPackage.set("tachiyomi.i18n")
-}
-
-tasks {
-    val localesConfigTask = project.getLocalesConfigTask(generatedAndroidResourceDir)
-    preBuild {
-        dependsOn(localesConfigTask)
-    }
 }

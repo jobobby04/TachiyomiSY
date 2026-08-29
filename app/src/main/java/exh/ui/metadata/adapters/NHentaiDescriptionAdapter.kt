@@ -60,8 +60,8 @@ fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
 
             binding.pages.text = context.pluralStringResource(
                 SYMR.plurals.num_pages,
-                meta.pageImageTypes.size,
-                meta.pageImageTypes.size,
+                meta.pageImagePreviewUrls.size,
+                meta.pageImagePreviewUrls.size,
             )
             binding.pages.bindDrawable(context, R.drawable.ic_baseline_menu_book_24)
 

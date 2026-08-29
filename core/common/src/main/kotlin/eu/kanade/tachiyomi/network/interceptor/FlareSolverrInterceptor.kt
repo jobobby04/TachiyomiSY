@@ -38,7 +38,7 @@ class FlareSolverrInterceptor(private val preferences: NetworkPreferences) : Int
         }
 
         // FlareSolverr is disabled, so just proceed with the request.
-        if (!preferences.enableFlareSolverr().get()) {
+        if (!preferences.enableFlareSolverr.get()) {
             return chain.proceed(originalRequest)
         }
 
@@ -65,7 +65,7 @@ class FlareSolverrInterceptor(private val preferences: NetworkPreferences) : Int
         private val json: Json by injectLazy()
         private val jsonMediaType = "application/json".toMediaType()
         private val networkPreferences: NetworkPreferences by injectLazy()
-        private val flareSolverrUrl = networkPreferences.flareSolverrUrl().get()
+        private val flareSolverrUrl = networkPreferences.flareSolverrUrl.get()
         private val mutex = Mutex()
 
         @InternalSerializationApi @Serializable

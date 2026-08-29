@@ -20,6 +20,7 @@ import eu.kanade.tachiyomi.source.model.MetadataMangasPage
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.source.model.copy
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.MetadataSource
@@ -56,6 +57,8 @@ import exh.util.trimAll
 import exh.util.trimOrNull
 import exh.util.urlImportFetchSearchManga
 import exh.util.urlImportFetchSearchMangaSuspend
+import kotlinx.coroutines.async
+import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
@@ -330,7 +333,27 @@ class EHentai(
         )
     }
 
-    override suspend fun getChapterList(manga: SManga): List<SChapter> = getChapterList(manga) {}
+    override suspend fun getMangaUpdate(
+        manga: SManga,
+        chapters: List<SChapter>,
+        fetchDetails: Boolean,
+        fetchChapters: Boolean,
+    ): SMangaUpdate = getMangaUpdate(manga, chapters, fetchDetails, fetchChapters) {}
+
+    suspend fun getMangaUpdate(
+        manga: SManga,
+        chapters: List<SChapter>,
+        fetchDetails: Boolean,
+        fetchChapters: Boolean,
+        throttleFunc: suspend () -> Unit,
+    ): SMangaUpdate = supervisorScope {
+        val mangaDetails = if (fetchDetails) async { getMangaDetails(manga) } else null
+        val chapterDetails = if (fetchChapters) async { getChapterList(manga, throttleFunc) } else null
+
+        SMangaUpdate(mangaDetails?.await() ?: manga, chapterDetails?.await() ?: chapters)
+    }
+
+    suspend fun getChapterList(manga: SManga): List<SChapter> = getChapterList(manga) {}
 
     suspend fun getChapterList(manga: SManga, throttleFunc: suspend () -> Unit): List<SChapter> {
         // Pull all the way to the root gallery
@@ -476,7 +499,7 @@ class EHentai(
     }
 
     private fun <T : MangasPage> T.checkValid(): MangasPage =
-        if (exh && mangas.isEmpty() && exhPreferences.igneousVal().get().equals("mystery", true)) {
+        if (exh && mangas.isEmpty() && exhPreferences.igneousVal.get().equals("mystery", true)) {
             throw Exception(
                 "Invalid igneous cookie, try re-logging or finding a correct one to input in the login menu",
             )
@@ -651,7 +674,7 @@ class EHentai(
             }
     }
 
-    override suspend fun getMangaDetails(manga: SManga): SManga {
+    suspend fun getMangaDetails(manga: SManga): SManga {
         val exception = Exception("Async stacktrace")
         val response = client.newCall(mangaDetailsRequest(manga)).await()
         if (response.isSuccessful) {
@@ -668,7 +691,9 @@ class EHentai(
             } else {
                 doc
             }
-            return parseToManga(manga, pre)
+            return parseToManga(manga, pre).apply {
+                initialized = true
+            }
         } else {
             response.close()
 
@@ -804,9 +829,6 @@ class EHentai(
 
     override fun chapterListParse(response: Response) =
         throw UnsupportedOperationException("Unused method was called somehow!")
-    override fun chapterPageParse(
-        response: Response,
-    ) = throw UnsupportedOperationException("Unused method was called somehow!")
 
     override fun pageListParse(response: Response) =
         throw UnsupportedOperationException("Unused method was called somehow!")
@@ -879,30 +901,30 @@ class EHentai(
     }
 
     fun spPref() = if (exh) {
-        exhPreferences.exhSettingsProfile()
+        exhPreferences.exhSettingsProfile
     } else {
-        exhPreferences.ehSettingsProfile()
+        exhPreferences.ehSettingsProfile
     }
 
     private fun rawCookies(sp: Int): Map<String, String> {
         val cookies: MutableMap<String, String> = mutableMapOf()
-        if (exhPreferences.enableExhentai().get()) {
-            cookies[EhLoginActivity.MEMBER_ID_COOKIE] = exhPreferences.memberIdVal().get()
-            cookies[EhLoginActivity.PASS_HASH_COOKIE] = exhPreferences.passHashVal().get()
-            cookies[EhLoginActivity.IGNEOUS_COOKIE] = exhPreferences.igneousVal().get()
+        if (exhPreferences.enableExhentai.get()) {
+            cookies[EhLoginActivity.MEMBER_ID_COOKIE] = exhPreferences.memberIdVal.get()
+            cookies[EhLoginActivity.PASS_HASH_COOKIE] = exhPreferences.passHashVal.get()
+            cookies[EhLoginActivity.IGNEOUS_COOKIE] = exhPreferences.igneousVal.get()
             cookies["sp"] = sp.toString()
 
-            val sessionKey = exhPreferences.exhSettingsKey().get()
+            val sessionKey = exhPreferences.exhSettingsKey.get()
             if (sessionKey.isNotBlank()) {
                 cookies["sk"] = sessionKey
             }
 
-            val sessionCookie = exhPreferences.exhSessionCookie().get()
+            val sessionCookie = exhPreferences.exhSessionCookie.get()
             if (sessionCookie.isNotBlank()) {
                 cookies["s"] = sessionCookie
             }
 
-            val hathPerksCookie = exhPreferences.exhHathPerksCookies().get()
+            val hathPerksCookie = exhPreferences.exhHathPerksCookies.get()
             if (hathPerksCookie.isNotBlank()) {
                 cookies["hath_perks"] = hathPerksCookie
             }
@@ -949,7 +971,7 @@ class EHentai(
             ToplistOptions(),
             Filter.Separator(),
             AutoCompleteTags(),
-            Watched(isEnabled = exhPreferences.exhWatchedListDefaultState().get()),
+            Watched(isEnabled = exhPreferences.exhWatchedListDefaultState.get()),
             GenreGroup(),
             AdvancedGroup(),
             ReverseFilter(),

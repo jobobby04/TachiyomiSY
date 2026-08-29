@@ -16,7 +16,7 @@ class MoveSecureScreenSettingMigration : Migration {
         val securityPreferences = migrationContext.get<SecurityPreferences>() ?: return@withIOContext false
         val oldSecureScreen = prefs.getBoolean("secure_screen", false)
         if (oldSecureScreen) {
-            securityPreferences.secureScreen().set(SecurityPreferences.SecureScreenMode.ALWAYS)
+            securityPreferences.secureScreen.set(SecurityPreferences.SecureScreenMode.ALWAYS)
         }
 
         return@withIOContext true

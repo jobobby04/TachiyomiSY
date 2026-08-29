@@ -23,7 +23,7 @@ val Manga.readerOrientation: Long
 
 val Manga.downloadedFilter: TriState
     get() {
-        if (Injekt.get<BasePreferences>().downloadedOnly().get()) return TriState.ENABLED_IS
+        if (Injekt.get<BasePreferences>().downloadedOnly.get()) return TriState.ENABLED_IS
         return when (downloadedFilterRaw) {
             Manga.CHAPTER_SHOW_DOWNLOADED -> TriState.ENABLED_IS
             Manga.CHAPTER_SHOW_NOT_DOWNLOADED -> TriState.ENABLED_NOT
@@ -48,6 +48,7 @@ fun Manga.toSManga(): SManga = SManga.create().also {
     // SY <--
     it.thumbnail_url = thumbnailUrl
     it.initialized = initialized
+    it.memo = memo
 }
 
 fun Manga.copyFrom(other: SManga): Manga {
@@ -75,6 +76,7 @@ fun Manga.copyFrom(other: SManga): Manga {
         // SY <--
         updateStrategy = other.update_strategy,
         initialized = other.initialized && initialized,
+        memo = other.memo,
     )
 }
 

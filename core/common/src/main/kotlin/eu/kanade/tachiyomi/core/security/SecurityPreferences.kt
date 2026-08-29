@@ -8,41 +8,44 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 
 class SecurityPreferences(
-    private val preferenceStore: PreferenceStore,
+    preferenceStore: PreferenceStore,
 ) {
 
-    fun useAuthenticator() = preferenceStore.getBoolean("use_biometric_lock", false)
+    val useAuthenticator: Preference<Boolean> = preferenceStore.getBoolean("use_biometric_lock", false)
 
-    fun lockAppAfter() = preferenceStore.getInt("lock_app_after", 0)
+    val lockAppAfter: Preference<Int> = preferenceStore.getInt("lock_app_after", 0)
 
-    fun secureScreen() = preferenceStore.getEnum("secure_screen_v2", SecureScreenMode.INCOGNITO)
+    val secureScreen: Preference<SecureScreenMode> = preferenceStore.getEnum(
+        "secure_screen_v2",
+        SecureScreenMode.INCOGNITO,
+    )
 
-    fun hideNotificationContent() = preferenceStore.getBoolean("hide_notification_content", false)
+    val hideNotificationContent: Preference<Boolean> = preferenceStore.getBoolean("hide_notification_content", false)
 
     // SY -->
-    fun authenticatorTimeRanges() = this.preferenceStore.getStringSet("biometric_time_ranges", mutableSetOf())
+    val authenticatorTimeRanges: Preference<Set<String>> = preferenceStore.getStringSet("biometric_time_ranges", mutableSetOf())
 
-    fun authenticatorDays() = this.preferenceStore.getInt("biometric_days", 0x7F)
+    val authenticatorDays: Preference<Int> = preferenceStore.getInt("biometric_days", 0x7F)
 
-    fun encryptDatabase() = this.preferenceStore.getBoolean(Preference.appStateKey("encrypt_database"), false)
+    val encryptDatabase: Preference<Boolean> = preferenceStore.getBoolean(Preference.appStateKey("encrypt_database"), false)
 
-    fun sqlPassword() = this.preferenceStore.getString(Preference.appStateKey("sql_password"), "")
+    val sqlPassword: Preference<String> = preferenceStore.getString(Preference.appStateKey("sql_password"), "")
 
-    fun passwordProtectDownloads() = preferenceStore.getBoolean(
+    val passwordProtectDownloads: Preference<Boolean> = preferenceStore.getBoolean(
         Preference.privateKey("password_protect_downloads"),
         false,
     )
 
-    fun encryptionType() = this.preferenceStore.getEnum("encryption_type", EncryptionType.AES_256)
+    val encryptionType: Preference<EncryptionType> = preferenceStore.getEnum("encryption_type", EncryptionType.AES_256)
 
-    fun cbzPassword() = this.preferenceStore.getString(Preference.appStateKey("cbz_password"), "")
+    val cbzPassword: Preference<String> = preferenceStore.getString(Preference.appStateKey("cbz_password"), "")
     // SY <--
 
     /**
      * For app lock. Will be set when there is a pending timed lock.
-     * Otherwise this pref should be deleted.
+     * Otherwise, this pref should be deleted.
      */
-    fun lastAppClosed() = preferenceStore.getLong(
+    val lastAppClosed: Preference<Long> = preferenceStore.getLong(
         Preference.appStateKey("last_app_closed"),
         0,
     )

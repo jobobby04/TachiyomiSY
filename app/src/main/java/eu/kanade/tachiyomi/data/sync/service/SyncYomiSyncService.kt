@@ -99,12 +99,12 @@ class SyncYomiSyncService(
     }
 
     private suspend fun pullSyncData(): Pair<SyncData?, String> {
-        val host = syncPreferences.clientHost().get()
-        val apiKey = syncPreferences.clientAPIKey().get()
+        val host = syncPreferences.clientHost.get()
+        val apiKey = syncPreferences.clientAPIKey.get()
         val downloadUrl = "$host/api/sync/content"
 
         val headersBuilder = Headers.Builder().add("X-API-Token", apiKey)
-        val lastETag = syncPreferences.lastSyncEtag().get()
+        val lastETag = syncPreferences.lastSyncEtag.get()
         if (lastETag != "") {
             headersBuilder.add("If-None-Match", lastETag)
         }
@@ -163,8 +163,8 @@ class SyncYomiSyncService(
     private suspend fun pushSyncData(syncData: SyncData, eTag: String): Boolean {
         val backup = syncData.backup ?: return true
 
-        val host = syncPreferences.clientHost().get()
-        val apiKey = syncPreferences.clientAPIKey().get()
+        val host = syncPreferences.clientHost.get()
+        val apiKey = syncPreferences.clientAPIKey.get()
         val uploadUrl = "$host/api/sync/content"
         val timeout = 30L
 
@@ -198,7 +198,7 @@ class SyncYomiSyncService(
         if (response.isSuccessful) {
             val newETag = response.headers["ETag"]
                 .takeIf { it?.isNotEmpty() == true } ?: throw SyncYomiException("Missing ETag")
-            syncPreferences.lastSyncEtag().set(newETag)
+            syncPreferences.lastSyncEtag.set(newETag)
             logcat(LogPriority.DEBUG) { "SyncYomi sync completed" }
             return true
         } else if (response.code == HttpStatus.SC_PRECONDITION_FAILED) {
@@ -216,8 +216,8 @@ class SyncYomiSyncService(
     private suspend fun reportSyncEvent(event: SyncEventStatus, message: String? = null) {
         withContext(NonCancellable) {
             try {
-                val host = syncPreferences.clientHost().get()
-                val apiKey = syncPreferences.clientAPIKey().get()
+                val host = syncPreferences.clientHost.get()
+                val apiKey = syncPreferences.clientAPIKey.get()
                 val url = "$host/api/sync/event"
 
                 val headersBuilder = Headers.Builder().add("X-API-Token", apiKey)

@@ -32,13 +32,13 @@ class FilterChaptersForDownload(
     suspend fun await(manga: Manga, newChapters: List<Chapter>): List<Chapter> {
         if (
             newChapters.isEmpty() ||
-            !downloadPreferences.downloadNewChapters().get() ||
+            !downloadPreferences.downloadNewChapters.get() ||
             !manga.shouldDownloadNewChapters()
         ) {
             return emptyList()
         }
 
-        if (!downloadPreferences.downloadNewUnreadChaptersOnly().get()) return newChapters
+        if (!downloadPreferences.downloadNewUnreadChaptersOnly.get()) return newChapters
 
         // SY -->
         val existingChapters = if (manga.source == MERGED_SOURCE_ID) {
@@ -67,8 +67,8 @@ class FilterChaptersForDownload(
         if (!favorite) return false
 
         val categories = getCategories.await(id).map { it.id }.ifEmpty { listOf(DEFAULT_CATEGORY_ID) }
-        val includedCategories = downloadPreferences.downloadNewChapterCategories().get().map { it.toLong() }
-        val excludedCategories = downloadPreferences.downloadNewChapterCategoriesExclude().get().map { it.toLong() }
+        val includedCategories = downloadPreferences.downloadNewChapterCategories.get().map { it.toLong() }
+        val excludedCategories = downloadPreferences.downloadNewChapterCategoriesExclude.get().map { it.toLong() }
 
         return when {
             // Default Download from all categories

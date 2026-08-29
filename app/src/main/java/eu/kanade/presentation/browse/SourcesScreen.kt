@@ -28,7 +28,6 @@ import eu.kanade.presentation.browse.components.BaseSourceItem
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel.Listing
 import eu.kanade.tachiyomi.util.system.LocaleHelper
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.source.model.Pin
 import tachiyomi.domain.source.model.Source
 import tachiyomi.i18n.MR
@@ -266,7 +265,7 @@ sealed interface SourceUiModel {
 @Composable
 fun SourceCategoriesDialog(
     source: Source,
-    categories: ImmutableList<String>,
+    categories: List<String>,
     onClickCategories: (List<String>) -> Unit,
     onDismissRequest: () -> Unit,
 ) {

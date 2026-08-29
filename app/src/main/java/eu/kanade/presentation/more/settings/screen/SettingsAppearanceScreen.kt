@@ -19,8 +19,6 @@ import eu.kanade.presentation.more.settings.screen.appearance.AppLanguageScreen
 import eu.kanade.presentation.more.settings.widget.AppThemeModePreferenceWidget
 import eu.kanade.presentation.more.settings.widget.AppThemePreferenceWidget
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableMap
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
@@ -56,18 +54,18 @@ object SettingsAppearanceScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
 
-        val themeModePref = uiPreferences.themeMode()
+        val themeModePref = uiPreferences.themeMode
         val themeMode by themeModePref.collectAsState()
 
-        val appThemePref = uiPreferences.appTheme()
+        val appThemePref = uiPreferences.appTheme
         val appTheme by appThemePref.collectAsState()
 
-        val amoledPref = uiPreferences.themeDarkAmoled()
+        val amoledPref = uiPreferences.themeDarkAmoled
         val amoled by amoledPref.collectAsState()
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_theme),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.CustomPreference(
                     title = stringResource(MR.strings.pref_app_theme),
                 ) {
@@ -109,23 +107,22 @@ object SettingsAppearanceScreen : SearchableSettings {
 
         val now = remember { LocalDate.now() }
 
-        val dateFormat by uiPreferences.dateFormat().collectAsState()
+        val dateFormat by uiPreferences.dateFormat.collectAsState()
         val formattedNow = remember(dateFormat) {
             UiPreferences.dateFormat(dateFormat).format(now)
         }
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_display),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_app_language),
                     onClick = { navigator.push(AppLanguageScreen()) },
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = uiPreferences.tabletUiMode(),
+                    preference = uiPreferences.tabletUiMode,
                     entries = TabletUiMode.entries
-                        .associateWith { stringResource(it.titleRes) }
-                        .toImmutableMap(),
+                        .associateWith { stringResource(it.titleRes) },
                     title = stringResource(MR.strings.pref_tablet_ui_mode),
                     onValueChanged = {
                         context.toast(MR.strings.requires_app_restart)
@@ -133,17 +130,16 @@ object SettingsAppearanceScreen : SearchableSettings {
                     },
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = uiPreferences.dateFormat(),
+                    preference = uiPreferences.dateFormat,
                     entries = DateFormats
                         .associateWith {
                             val formattedDate = UiPreferences.dateFormat(it).format(now)
                             "${it.ifEmpty { stringResource(MR.strings.label_default) }} ($formattedDate)"
-                        }
-                        .toImmutableMap(),
+                        },
                     title = stringResource(MR.strings.pref_date_format),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.relativeTime(),
+                    preference = uiPreferences.relativeTime,
                     title = stringResource(MR.strings.pref_relative_format),
                     subtitle = stringResource(
                         MR.strings.pref_relative_format_summary,
@@ -152,7 +148,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                     ),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.imagesInDescription(),
+                    preference = uiPreferences.imagesInDescription,
                     title = stringResource(MR.strings.pref_display_images_description),
                 ),
             ),
@@ -162,22 +158,22 @@ object SettingsAppearanceScreen : SearchableSettings {
     // SY -->
     @Composable
     fun getForkGroup(uiPreferences: UiPreferences): Preference.PreferenceGroup {
-        val previewsRowCount by uiPreferences.previewsRowCount().collectAsState()
+        val previewsRowCount by uiPreferences.previewsRowCount.collectAsState()
 
         return Preference.PreferenceGroup(
             stringResource(SYMR.strings.pref_category_fork),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.expandFilters(),
+                    preference = uiPreferences.expandFilters,
                     title = stringResource(SYMR.strings.toggle_expand_search_filters),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.recommendsInOverflow(),
+                    preference = uiPreferences.recommendsInOverflow,
                     title = stringResource(SYMR.strings.put_recommends_in_overflow),
                     subtitle = stringResource(SYMR.strings.put_recommends_in_overflow_summary),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.mergeInOverflow(),
+                    preference = uiPreferences.mergeInOverflow,
                     title = stringResource(SYMR.strings.put_merge_in_overflow),
                     subtitle = stringResource(SYMR.strings.put_merge_in_overflow_summary),
                 ),
@@ -195,7 +191,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                     },
                     valueRange = 0..10,
                     onValueChanged = {
-                        uiPreferences.previewsRowCount().set(it)
+                        uiPreferences.previewsRowCount.set(it)
                         true
                     },
                 ),
@@ -207,17 +203,17 @@ object SettingsAppearanceScreen : SearchableSettings {
     fun getNavbarGroup(uiPreferences: UiPreferences): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
             stringResource(SYMR.strings.pref_category_navbar),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.showNavUpdates(),
+                    preference = uiPreferences.showNavUpdates,
                     title = stringResource(SYMR.strings.pref_hide_updates_button),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.showNavHistory(),
+                    preference = uiPreferences.showNavHistory,
                     title = stringResource(SYMR.strings.pref_hide_history_button),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.bottomBarLabels(),
+                    preference = uiPreferences.bottomBarLabels,
                     title = stringResource(SYMR.strings.pref_show_bottom_bar_labels),
                 ),
             ),

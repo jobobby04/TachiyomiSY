@@ -10,9 +10,9 @@ class RemoveOldReaderThemeMigration : Migration {
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
         val readerPreferences = migrationContext.get<ReaderPreferences>() ?: return@withIOContext false
-        val readerTheme = readerPreferences.readerTheme().get()
+        val readerTheme = readerPreferences.readerTheme.get()
         if (readerTheme == 4) {
-            readerPreferences.readerTheme().set(3)
+            readerPreferences.readerTheme.set(3)
         }
 
         return@withIOContext true

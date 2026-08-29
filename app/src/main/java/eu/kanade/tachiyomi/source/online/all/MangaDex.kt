@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import eu.kanade.domain.track.service.TrackPreferences
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.mdlist.MdList
@@ -44,6 +45,7 @@ import exh.md.utils.MdLang
 import exh.md.utils.MdUtil
 import exh.metadata.metadata.MangaDexSearchMetadata
 import exh.source.DelegatedHttpSource
+import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import rx.Observable
@@ -79,6 +81,11 @@ class MangaDex(delegate: HttpSource, val context: Context) :
 
     private val loginHelper = MangaDexLoginHelper(network.client, trackPreferences, mdList, mdList.interceptor)
 
+    override val headers: Headers = delegate.headers.newBuilder()
+        .removeAll("User-Agent")
+        .add("User-Agent", "TachiyomiSY v${BuildConfig.VERSION_NAME} (${BuildConfig.APPLICATION_ID})")
+        .build()
+
     override val baseHttpClient: OkHttpClient = delegate.client.newBuilder()
         .addInterceptor(mdList.interceptor)
         .build()
@@ -94,7 +101,7 @@ class MangaDex(delegate: HttpSource, val context: Context) :
     private fun preferExtensionLangTitle() = sourcePreferences.getBoolean(getPreferExtensionLangTitlePrefKey(mdLang.extLang), true)
 
     private val mangadexService by lazy {
-        MangaDexService(client)
+        MangaDexService(client, headers)
     }
     private val mangadexAuthService by lazy {
         MangaDexAuthService(baseHttpClient, headers)
@@ -134,7 +141,6 @@ class MangaDex(delegate: HttpSource, val context: Context) :
     }
     private val pageHandler by lazy {
         PageHandler(
-            headers,
             mangadexService,
             mangaPlusHandler,
             comikeyHandler,
@@ -205,25 +211,9 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         )
     }
 
-    override suspend fun getMangaDetails(manga: SManga): SManga {
-        return mangaHandler.getMangaDetails(
-            manga,
-            id,
-            coverQuality(),
-            tryUsingFirstVolumeCover(),
-            altTitlesInDesc(),
-            finalChapterInDesc(),
-            preferExtensionLangTitle(),
-        )
-    }
-
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getChapterList"))
     override fun fetchChapterList(manga: SManga): Observable<List<SChapter>> {
         return mangaHandler.fetchChapterListObservable(manga, blockedGroups(), blockedUploaders())
-    }
-
-    override suspend fun getChapterList(manga: SManga): List<SChapter> {
-        return mangaHandler.getChapterList(manga, blockedGroups(), blockedUploaders())
     }
 
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getPageList"))
@@ -235,9 +225,9 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         return pageHandler.fetchPageList(chapter, usePort443Only(), dataSaver(), delegate)
     }
 
-    override suspend fun getImage(page: Page): Response {
-        val call = pageHandler.getImageCall(page)
-        return call?.awaitSuccess() ?: super.getImage(page)
+    override suspend fun getImage(page: Page, existingSize: Long): Response {
+        val call = pageHandler.getImageCall(page, existingSize)
+        return call?.awaitSuccess() ?: super.getImage(page, existingSize)
     }
 
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getImageUrl"))

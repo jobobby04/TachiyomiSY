@@ -10,9 +10,9 @@ class RemoveShortLibraryUpdatesMigration : Migration {
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
-        val updateInterval = libraryPreferences.autoUpdateInterval().get()
+        val updateInterval = libraryPreferences.autoUpdateInterval.get()
         if (updateInterval in listOf(3, 4, 6, 8)) {
-            libraryPreferences.autoUpdateInterval().set(12)
+            libraryPreferences.autoUpdateInterval.set(12)
         }
 
         return@withIOContext true

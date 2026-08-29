@@ -16,12 +16,12 @@ class ResetFilterAndSortSettingsMigration : Migration {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
         val preferences = listOf(
-            libraryPreferences.filterChapterByRead(),
-            libraryPreferences.filterChapterByDownloaded(),
-            libraryPreferences.filterChapterByBookmarked(),
-            libraryPreferences.sortChapterBySourceOrNumber(),
-            libraryPreferences.displayChapterByNameOrNumber(),
-            libraryPreferences.sortChapterByAscendingOrDescending(),
+            libraryPreferences.filterChapterByRead,
+            libraryPreferences.filterChapterByDownloaded,
+            libraryPreferences.filterChapterByBookmarked,
+            libraryPreferences.sortChapterBySourceOrNumber,
+            libraryPreferences.displayChapterByNameOrNumber,
+            libraryPreferences.sortChapterByAscendingOrDescending,
         )
 
         prefs.edit {

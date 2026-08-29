@@ -259,8 +259,8 @@ class GoogleDriveService(private val context: Context) {
      * and setting up the service using the obtained tokens.
      */
     private fun initGoogleDriveService() {
-        val accessToken = syncPreferences.googleDriveAccessToken().get()
-        val refreshToken = syncPreferences.googleDriveRefreshToken().get()
+        val accessToken = syncPreferences.googleDriveAccessToken.get()
+        val refreshToken = syncPreferences.googleDriveRefreshToken.get()
 
         if (accessToken == "" || refreshToken == "") {
             driveService = null
@@ -312,7 +312,7 @@ class GoogleDriveService(private val context: Context) {
             .build()
     }
     internal suspend fun refreshToken() = withIOContext {
-        val refreshToken = syncPreferences.googleDriveRefreshToken().get()
+        val refreshToken = syncPreferences.googleDriveRefreshToken.get()
 
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
         val secrets = GoogleClientSecrets.load(
@@ -336,7 +336,7 @@ class GoogleDriveService(private val context: Context) {
             credential.refreshToken()
             val newAccessToken = credential.accessToken
             // Save the new access token
-            syncPreferences.googleDriveAccessToken().set(newAccessToken)
+            syncPreferences.googleDriveAccessToken.set(newAccessToken)
             setupGoogleDriveService(newAccessToken, credential.refreshToken)
         } catch (e: TokenResponseException) {
             if (e.details.error == "invalid_grant") {
@@ -425,8 +425,8 @@ class GoogleDriveService(private val context: Context) {
             val refreshToken = tokenResponse.refreshToken
 
             // Save the tokens to SyncPreferences
-            syncPreferences.googleDriveAccessToken().set(accessToken)
-            syncPreferences.googleDriveRefreshToken().set(refreshToken)
+            syncPreferences.googleDriveAccessToken.set(accessToken)
+            syncPreferences.googleDriveRefreshToken.set(refreshToken)
 
             setupGoogleDriveService(accessToken, refreshToken)
             initGoogleDriveService()

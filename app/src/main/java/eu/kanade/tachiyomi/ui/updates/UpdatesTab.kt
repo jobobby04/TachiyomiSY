@@ -61,7 +61,7 @@ data object UpdatesTab : Tab {
     override fun isEnabled(): Boolean {
         val scope = rememberCoroutineScope()
         return remember {
-            Injekt.get<UiPreferences>().showNavUpdates().asState(scope)
+            Injekt.get<UiPreferences>().showNavUpdates.asState(scope)
         }.value
     }
     // SY <--

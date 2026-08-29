@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.data.sync.models
 
 import dev.icerock.moko.resources.StringResource
-import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.sy.SYMR
 
 data class SyncTriggerOptions(
@@ -23,7 +22,7 @@ data class SyncTriggerOptions(
         syncOnAppResume
 
     companion object {
-        val mainOptions = persistentListOf(
+        val mainOptions = listOf(
             Entry(
                 label = SYMR.strings.sync_on_chapter_read,
                 getter = SyncTriggerOptions::syncOnChapterRead,

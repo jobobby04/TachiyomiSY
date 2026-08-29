@@ -30,7 +30,6 @@ import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewScreen
 import exh.ui.ifSourcesLoaded
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 import mihon.feature.migration.dialog.MigrateMangaDialog
 import mihon.feature.migration.list.MigrationListScreen
@@ -114,7 +113,7 @@ data class MigrateSourceSearchScreen(
                     val source = screenModel.source as? HttpSource ?: return@BrowseSourceContent
                     navigator.push(
                         WebViewScreen(
-                            url = source.baseUrl,
+                            url = source.getHomeUrl(),
                             initialTitle = source.name,
                             sourceId = source.id,
                         ),
@@ -139,7 +138,7 @@ data class MigrateSourceSearchScreen(
                     // SY -->
                     startExpanded = screenModel.startExpanded,
                     onSave = {},
-                    savedSearches = persistentListOf(),
+                    savedSearches = emptyList(),
                     onSavedSearch = {},
                     onSavedSearchPress = {},
                     openMangaDexRandom = null,

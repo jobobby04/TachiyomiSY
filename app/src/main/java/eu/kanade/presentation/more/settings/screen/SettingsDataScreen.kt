@@ -71,8 +71,6 @@ import eu.kanade.tachiyomi.data.sync.service.GoogleDriveService
 import eu.kanade.tachiyomi.data.sync.service.GoogleDriveSyncService
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import logcat.LogPriority
@@ -119,9 +117,9 @@ object SettingsDataScreen : SearchableSettings {
         val storagePreferences = Injekt.get<StoragePreferences>()
 
         val syncPreferences = remember { Injekt.get<SyncPreferences>() }
-        val syncService by syncPreferences.syncService().collectAsState()
+        val syncService by syncPreferences.syncService.collectAsState()
 
-        return persistentListOf(
+        return listOf(
             getStorageLocationPref(storagePreferences = storagePreferences),
             Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.pref_storage_location_info)),
 
@@ -185,11 +183,11 @@ object SettingsDataScreen : SearchableSettings {
         storagePreferences: StoragePreferences,
     ): Preference.PreferenceItem.TextPreference {
         val context = LocalContext.current
-        val pickStorageLocation = storageLocationPicker(storagePreferences.baseStorageDirectory())
+        val pickStorageLocation = storageLocationPicker(storagePreferences.baseStorageDirectory)
 
         return Preference.PreferenceItem.TextPreference(
             title = stringResource(MR.strings.pref_storage_location),
-            subtitle = storageLocationText(storagePreferences.baseStorageDirectory()),
+            subtitle = storageLocationText(storagePreferences.baseStorageDirectory),
             onClick = {
                 try {
                     pickStorageLocation.launch(null)
@@ -205,7 +203,7 @@ object SettingsDataScreen : SearchableSettings {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val lastAutoBackup by backupPreferences.lastAutoBackupTimestamp().collectAsState()
+        val lastAutoBackup by backupPreferences.lastAutoBackupTimestamp.collectAsState()
 
         val chooseBackup = rememberLauncherForActivityResult(
             object : ActivityResultContracts.GetContent() {
@@ -225,7 +223,7 @@ object SettingsDataScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_backup),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 // Manual actions
                 Preference.PreferenceItem.CustomPreference(
                     title = stringResource(restorePreferenceKeyString),
@@ -272,8 +270,8 @@ object SettingsDataScreen : SearchableSettings {
 
                 // Automatic backups
                 Preference.PreferenceItem.ListPreference(
-                    preference = backupPreferences.backupInterval(),
-                    entries = persistentMapOf(
+                    preference = backupPreferences.backupInterval,
+                    entries = mapOf(
                         0 to stringResource(MR.strings.off),
                         6 to stringResource(MR.strings.update_6hour),
                         12 to stringResource(MR.strings.update_12hour),
@@ -313,7 +311,7 @@ object SettingsDataScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_storage_usage),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.CustomPreference(
                     title = stringResource(MR.strings.pref_storage_usage),
                 ) {
@@ -365,7 +363,7 @@ object SettingsDataScreen : SearchableSettings {
                 ),
                 // SY <--
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = libraryPreferences.autoClearChapterCache(),
+                    preference = libraryPreferences.autoClearChapterCache,
                     title = stringResource(MR.strings.pref_auto_clear_chapter_cache),
                 ),
             ),
@@ -426,7 +424,7 @@ object SettingsDataScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.export),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.library_list),
                     onClick = { showDialog = true },
@@ -515,11 +513,11 @@ object SettingsDataScreen : SearchableSettings {
         return listOf(
             Preference.PreferenceGroup(
                 title = stringResource(SYMR.strings.pref_sync_service_category),
-                preferenceItems = persistentListOf(
+                preferenceItems = listOf(
                     Preference.PreferenceItem.ListPreference(
-                        preference = syncPreferences.syncService(),
+                        preference = syncPreferences.syncService,
                         title = stringResource(SYMR.strings.pref_sync_service),
-                        entries = persistentMapOf(
+                        entries = mapOf(
                             SyncManager.SyncService.NONE.value to stringResource(MR.strings.off),
                             SyncManager.SyncService.SYNCYOMI.value to stringResource(SYMR.strings.syncyomi),
                             SyncManager.SyncService.GOOGLE_DRIVE.value to stringResource(SYMR.strings.google_drive),
@@ -660,7 +658,7 @@ object SettingsDataScreen : SearchableSettings {
 
         val qrScanLauncher = rememberLauncherForActivityResult(ScanContract()) {
             if (it.contents != null && it.contents.isNotEmpty()) {
-                syncPreferences.clientAPIKey().set(it.contents)
+                syncPreferences.clientAPIKey.set(it.contents)
             }
         }
         val context = LocalContext.current
@@ -677,13 +675,13 @@ object SettingsDataScreen : SearchableSettings {
             Preference.PreferenceItem.EditTextPreference(
                 title = stringResource(SYMR.strings.pref_sync_host),
                 subtitle = stringResource(SYMR.strings.pref_sync_host_summ),
-                preference = syncPreferences.clientHost(),
+                preference = syncPreferences.clientHost,
                 onValueChanged = { newValue ->
                     scope.launch {
                         // Trim spaces at the beginning and end, then remove trailing slash if present
                         val trimmedValue = newValue.trim()
                         val modifiedValue = trimmedValue.trimEnd { it == '/' }
-                        syncPreferences.clientHost().set(modifiedValue)
+                        syncPreferences.clientHost.set(modifiedValue)
                     }
                     true
                 },
@@ -691,12 +689,12 @@ object SettingsDataScreen : SearchableSettings {
             Preference.PreferenceItem.CustomPreference(
                 title = stringResource(SYMR.strings.pref_sync_api_key),
             ) {
-                val values by syncPreferences.clientAPIKey().collectAsState()
+                val values by syncPreferences.clientAPIKey.collectAsState()
                 EditTextPreferenceWidget(
                     title = stringResource(SYMR.strings.pref_sync_api_key),
                     subtitle = stringResource(SYMR.strings.pref_sync_api_key_summ),
                     onConfirm = {
-                        syncPreferences.clientAPIKey().set(it)
+                        syncPreferences.clientAPIKey.set(it)
                         true
                     },
                     icon = null,
@@ -722,7 +720,7 @@ object SettingsDataScreen : SearchableSettings {
         val context = LocalContext.current
         return Preference.PreferenceGroup(
             title = stringResource(SYMR.strings.pref_sync_now_group_title),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 getSyncOptionsPref(),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(SYMR.strings.pref_sync_now),
@@ -752,16 +750,16 @@ object SettingsDataScreen : SearchableSettings {
     @Composable
     private fun getAutomaticSyncGroup(syncPreferences: SyncPreferences): Preference.PreferenceGroup {
         val context = LocalContext.current
-        val syncIntervalPref = syncPreferences.syncInterval()
-        val lastSync by syncPreferences.lastSyncTimestamp().collectAsState()
+        val syncIntervalPref = syncPreferences.syncInterval
+        val lastSync by syncPreferences.lastSyncTimestamp.collectAsState()
 
         return Preference.PreferenceGroup(
             title = stringResource(SYMR.strings.pref_sync_automatic_category),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.ListPreference(
                     preference = syncIntervalPref,
                     title = stringResource(SYMR.strings.pref_sync_interval),
-                    entries = persistentMapOf(
+                    entries = mapOf(
                         0 to stringResource(MR.strings.off),
                         30 to stringResource(SYMR.strings.update_30min),
                         60 to stringResource(SYMR.strings.update_1hour),

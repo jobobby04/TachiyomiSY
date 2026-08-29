@@ -106,9 +106,9 @@ class StatsScreenModel(
     }
 
     private fun getGlobalUpdateItemCount(libraryManga: List<LibraryManga>): Int {
-        val includedCategories = preferences.updateCategories().get().map { it.toLong() }.toSet()
-        val excludedCategories = preferences.updateCategoriesExclude().get().map { it.toLong() }.toSet()
-        val updateRestrictions = preferences.autoUpdateMangaRestrictions().get()
+        val includedCategories = preferences.updateCategories.get().map { it.toLong() }.toSet()
+        val excludedCategories = preferences.updateCategoriesExclude.get().map { it.toLong() }.toSet()
+        val updateRestrictions = preferences.autoUpdateMangaRestrictions.get()
 
         return libraryManga.filter {
             val included = includedCategories.isEmpty() || it.categories.intersect(includedCategories).isNotEmpty()

@@ -13,6 +13,7 @@ fun Chapter.toSChapter(): SChapter {
         it.date_upload = dateUpload
         it.chapter_number = chapterNumber.toFloat()
         it.scanlator = scanlator
+        it.memo = memo
     }
 }
 
@@ -23,6 +24,7 @@ fun Chapter.copyFromSChapter(sChapter: SChapter): Chapter {
         dateUpload = sChapter.date_upload,
         chapterNumber = sChapter.chapter_number.toDouble(),
         scanlator = sChapter.scanlator?.ifBlank { null }?.trim(),
+        memo = sChapter.memo,
     )
 }
 
@@ -40,4 +42,5 @@ fun Chapter.toDbChapter(): DbChapter = ChapterImpl().also {
     it.chapter_number = chapterNumber.toFloat()
     it.source_order = sourceOrder.toInt()
     it.last_modified = lastModifiedAt
+    it.memo = memo
 }

@@ -26,51 +26,49 @@ fun ReaderTopBar(
         /* SY ->
         actions = {
             AppBarActions(
-                actions = persistentListOf<AppBar.AppBarAction>().builder()
-                    .apply {
-                        add(
-                            AppBar.Action(
-                                title = stringResource(
-                                    if (bookmarked) {
-                                        MR.strings.action_remove_bookmark
-                                    } else {
-                                        MR.strings.action_bookmark
-                                    },
-                                ),
-                                icon = if (bookmarked) {
-                                    Icons.Outlined.Bookmark
+                actions = buildList {
+                    add(
+                        AppBar.Action(
+                            title = stringResource(
+                                if (bookmarked) {
+                                    MR.strings.action_remove_bookmark
                                 } else {
-                                    Icons.Outlined.BookmarkBorder
+                                    MR.strings.action_bookmark
                                 },
-                                onClick = onToggleBookmarked,
+                            ),
+                            icon = if (bookmarked) {
+                                Icons.Outlined.Bookmark
+                            } else {
+                                Icons.Outlined.BookmarkBorder
+                            },
+                            onClick = onToggleBookmarked,
+                        ),
+                    )
+                    onOpenInWebView?.let {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(MR.strings.action_open_in_web_view),
+                                onClick = it,
                             ),
                         )
-                        onOpenInWebView?.let {
-                            add(
-                                AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_open_in_web_view),
-                                    onClick = it,
-                                ),
-                            )
-                        }
-                        onOpenInBrowser?.let {
-                            add(
-                                AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_open_in_browser),
-                                    onClick = it,
-                                ),
-                            )
-                        }
-                        onShare?.let {
-                            add(
-                                AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_share),
-                                    onClick = it,
-                                ),
-                            )
-                        }
                     }
-                    .build(),
+                    onOpenInBrowser?.let {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(MR.strings.action_open_in_browser),
+                                onClick = it,
+                            ),
+                        )
+                    }
+                    onShare?.let {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(MR.strings.action_share),
+                                onClick = it,
+                            ),
+                        )
+                    }
+                },
             )
         },
         <- SY */

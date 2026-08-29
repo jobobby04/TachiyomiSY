@@ -105,7 +105,11 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     @SuppressLint("LaunchActivityFromNotification")
     override fun onCreate() {
         super<Application>.onCreate()
-        FirebaseConfig.init(applicationContext)
+        try {
+            FirebaseConfig.init(applicationContext)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
@@ -141,7 +145,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         val scope = ProcessLifecycleOwner.get().lifecycleScope
 
         // Show notification to disable Incognito Mode when it's enabled
-        basePreferences.incognitoMode().changes()
+        basePreferences.incognitoMode.changes()
             .onEach { enabled ->
                 if (enabled) {
                     disableIncognitoReceiver.register()
@@ -169,25 +173,25 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             }
             .launchIn(scope)
 
-        privacyPreferences.analytics()
+        privacyPreferences.analytics
             .changes()
             .onEach(FirebaseConfig::setAnalyticsEnabled)
             .launchIn(scope)
 
-        privacyPreferences.crashlytics()
+        privacyPreferences.crashlytics
             .changes()
             .onEach(FirebaseConfig::setCrashlyticsEnabled)
             .launchIn(scope)
 
-        basePreferences.hardwareBitmapThreshold().let { preference ->
+        basePreferences.hardwareBitmapThreshold.let { preference ->
             if (!preference.isSet()) preference.set(GLUtil.DEVICE_TEXTURE_LIMIT)
         }
 
-        basePreferences.hardwareBitmapThreshold().changes()
+        basePreferences.hardwareBitmapThreshold.changes()
             .onEach { ImageUtil.hardwareBitmapThreshold = it }
             .launchIn(scope)
 
-        setAppCompatDelegateThemeMode(Injekt.get<UiPreferences>().themeMode().get())
+        setAppCompatDelegateThemeMode(Injekt.get<UiPreferences>().themeMode.get())
 
         // Updates widget update
         WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
@@ -256,7 +260,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
             crossfade((300 * this@App.animatorDurationScale).toInt())
             allowRgb565(DeviceUtil.isLowRamDevice(this@App))
-            if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
+            if (networkPreferences.verboseLogging.get()) logger(DebugLogger())
 
             // Coil spawns a new thread for every image load by default
             fetcherCoroutineContext(Dispatchers.IO.limitedParallelism(8))
@@ -359,7 +363,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         xLogD("Application booting...")
         xLogD(
             """
-                App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
+                App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.BUILD_TYPE}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
                 Preview build: $syDebugVersion
                 Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})
                 Android build ID: ${Build.DISPLAY}
@@ -376,7 +380,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         private var registered = false
 
         override fun onReceive(context: Context, intent: Intent) {
-            basePreferences.incognitoMode().set(false)
+            basePreferences.incognitoMode.set(false)
         }
 
         fun register() {

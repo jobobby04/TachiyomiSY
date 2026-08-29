@@ -69,7 +69,7 @@ data object HistoryTab : Tab {
     override fun isEnabled(): Boolean {
         val scope = rememberCoroutineScope()
         return remember {
-            Injekt.get<UiPreferences>().showNavHistory().asState(scope)
+            Injekt.get<UiPreferences>().showNavHistory.asState(scope)
         }.value
     }
     // SY <--

@@ -6,8 +6,6 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -29,15 +27,14 @@ class BiometricTimesScreenModel(
     init {
         screenModelScope.launchIO {
             // todo usecase
-            preferences.authenticatorTimeRanges().changes()
+            preferences.authenticatorTimeRanges.changes()
                 .collectLatest { times ->
                     val context = Injekt.get<Application>()
                     mutableState.update {
                         BiometricTimesScreenState.Success(
                             timeRanges = times.toList()
                                 .mapNotNull(TimeRange::fromPreferenceString)
-                                .map { TimeRangeItem(it, it.getFormattedString(context)) }
-                                .toImmutableList(),
+                                .map { TimeRangeItem(it, it.getFormattedString(context)) },
                         )
                     }
                 }
@@ -58,7 +55,7 @@ class BiometricTimesScreenModel(
                 return@launchIO
             }
 
-            preferences.authenticatorTimeRanges() += timeRange.toPreferenceString()
+            preferences.authenticatorTimeRanges += timeRange.toPreferenceString()
         }
     }
 
@@ -71,7 +68,7 @@ class BiometricTimesScreenModel(
         // todo usecase
         screenModelScope.launchIO {
             val state = state.value as? BiometricTimesScreenState.Success ?: return@launchIO
-            preferences.authenticatorTimeRanges().set(
+            preferences.authenticatorTimeRanges.set(
                 state.timeRanges.filterNot { it == timeRange }.map { it.timeRange.toPreferenceString() }.toSet(),
             )
         }
@@ -122,7 +119,7 @@ sealed class BiometricTimesScreenState {
 
     @Immutable
     data class Success(
-        val timeRanges: ImmutableList<TimeRangeItem>,
+        val timeRanges: List<TimeRangeItem>,
         val dialog: BiometricTimesDialog? = null,
     ) : BiometricTimesScreenState() {
 

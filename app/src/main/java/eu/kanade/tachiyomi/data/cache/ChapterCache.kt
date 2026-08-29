@@ -43,10 +43,10 @@ class ChapterCache(
     private val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     /** Cache class used for cache management.  */
-    private var diskCache = setupDiskCache(readerPreferences.cacheSize().get().toLong())
+    private var diskCache = setupDiskCache(readerPreferences.cacheSize.get().toLong())
 
     init {
-        readerPreferences.cacheSize().changes()
+        readerPreferences.cacheSize.changes()
             .drop(1)
             .onEach {
                 // Save old cache for destruction later
@@ -146,7 +146,13 @@ class ChapterCache(
      */
     fun isImageInCache(imageUrl: String): Boolean {
         return try {
-            diskCache.get(DiskUtil.hashKeyForDisk(imageUrl)).use { it != null }
+            val key = DiskUtil.hashKeyForDisk(imageUrl)
+            val inJournal = diskCache.get(key).use { it != null }
+            val fileExists = getImageFile(imageUrl).exists()
+            if (inJournal && !fileExists) {
+                logcat(LogPriority.WARN) { "Image is in journal but file is missing: $imageUrl" }
+            }
+            inJournal && fileExists
         } catch (_: IOException) {
             false
         }

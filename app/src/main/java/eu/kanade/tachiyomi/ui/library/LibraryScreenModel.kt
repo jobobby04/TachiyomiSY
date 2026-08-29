@@ -19,7 +19,6 @@ import eu.kanade.domain.chapter.interactor.SetReadStatus
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.sync.SyncPreferences
-import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.presentation.library.components.LibraryToolbarTitle
 import eu.kanade.presentation.manga.DownloadAction
 import eu.kanade.tachiyomi.data.cache.CoverCache
@@ -53,8 +52,6 @@ import exh.source.nHentaiSourceIds
 import exh.util.cancellable
 import exh.util.isLewd
 import exh.util.nullIfBlank
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -116,6 +113,7 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
 class LibraryScreenModel(
     private val getLibraryManga: GetLibraryManga = Injekt.get(),
@@ -159,12 +157,12 @@ class LibraryScreenModel(
 
     init {
         mutableState.update { state ->
-            state.copy(activeCategoryIndex = libraryPreferences.lastUsedCategory().get())
+            state.copy(activeCategoryIndex = libraryPreferences.lastUsedCategory.get())
         }
         screenModelScope.launchIO {
             combine(
                 combine(
-                    state.map { it.searchQuery }.distinctUntilChanged().debounce(SEARCH_DEBOUNCE_MILLIS),
+                    state.map { it.searchQuery }.distinctUntilChanged().debounce(0.25.seconds),
                     getCategories.subscribe(),
                     getFavoritesFlow(),
                     ::Triple,
@@ -177,7 +175,7 @@ class LibraryScreenModel(
                 // SY -->
                 combine(
                     state.map { it.groupType }.distinctUntilChanged(),
-                    libraryPreferences.sortingMode().changes(),
+                    libraryPreferences.sortingMode.changes(),
                     ::Pair,
                 ),
                 // SY <--
@@ -240,7 +238,7 @@ class LibraryScreenModel(
                             data.tracksMap,
                             data.loggedInTrackerIds,
                             // SY -->
-                            libraryPreferences.sortingMode().get().takeIf { groupType != LibraryGroup.BY_DEFAULT },
+                            libraryPreferences.sortingMode.get().takeIf { groupType != LibraryGroup.BY_DEFAULT },
                             // SY <--
                         )
                         .let {
@@ -267,9 +265,9 @@ class LibraryScreenModel(
         }
 
         combine(
-            libraryPreferences.categoryTabs().changes(),
-            libraryPreferences.categoryNumberOfItems().changes(),
-            libraryPreferences.showContinueReadingButton().changes(),
+            libraryPreferences.categoryTabs.changes(),
+            libraryPreferences.categoryNumberOfItems.changes(),
+            libraryPreferences.showContinueReadingButton.changes(),
         ) { a, b, c -> arrayOf(a, b, c) }
             .onEach { (showCategoryTabs, showMangaCount, showMangaContinueButton) ->
                 mutableState.update { state ->
@@ -310,9 +308,9 @@ class LibraryScreenModel(
 
         // SY -->
         combine(
-            exhPreferences.isHentaiEnabled().changes(),
-            sourcePreferences.disabledSources().changes(),
-            exhPreferences.enableExhentai().changes(),
+            exhPreferences.isHentaiEnabled.changes(),
+            sourcePreferences.disabledSources.changes(),
+            exhPreferences.enableExhentai.changes(),
         ) { isHentaiEnabled, disabledSources, enableExhentai ->
             isHentaiEnabled && (EH_SOURCE_ID.toString() !in disabledSources || enableExhentai)
         }
@@ -324,14 +322,14 @@ class LibraryScreenModel(
             }
             .launchIn(screenModelScope)
 
-        libraryPreferences.groupLibraryBy().changes()
+        libraryPreferences.groupLibraryBy.changes()
             .onEach {
                 mutableState.update { state ->
                     state.copy(groupType = it)
                 }
             }
             .launchIn(screenModelScope)
-        syncPreferences.syncService()
+        syncPreferences.syncService
             .changes()
             .distinctUntilChanged()
             .onEach { syncService ->
@@ -366,11 +364,7 @@ class LibraryScreenModel(
         // SY <--
 
         val filterFnDownloaded: (LibraryItem) -> Boolean = {
-            applyFilter(filterDownloaded) {
-                it.libraryManga.manga.isLocal() ||
-                    it.downloadCount > 0 ||
-                    downloadManager.getDownloadCount(it.libraryManga.manga) > 0
-            }
+            applyFilter(filterDownloaded) { it.isLocal || it.downloadCount > 0 }
         }
 
         val filterFnUnread: (LibraryItem) -> Boolean = {
@@ -481,7 +475,7 @@ class LibraryScreenModel(
     ): Map<Category, List</* LibraryItem */ Long>> {
         // SY -->
         val listOfTags by lazy {
-            libraryPreferences.sortTagsForLibrary().get()
+            libraryPreferences.sortTagsForLibrary.get()
                 .asSequence()
                 .mapNotNull {
                     val list = it.split("|")
@@ -583,7 +577,7 @@ class LibraryScreenModel(
             val sort = groupSort ?: key.sort
             if (sort.type == LibrarySort.Type.Random) {
                 // SY <--
-                return@mapValues value.shuffled(Random(libraryPreferences.randomSortSeed().get()))
+                return@mapValues value.shuffled(Random(libraryPreferences.randomSortSeed.get()))
             }
 
             val manga = value.mapNotNull { favoritesById[it] }
@@ -600,21 +594,21 @@ class LibraryScreenModel(
 
     private fun getLibraryItemPreferencesFlow(): Flow<ItemPreferences> {
         return combine(
-            libraryPreferences.downloadBadge().changes(),
-            libraryPreferences.unreadBadge().changes(),
-            libraryPreferences.localBadge().changes(),
-            libraryPreferences.languageBadge().changes(),
-            libraryPreferences.autoUpdateMangaRestrictions().changes(),
+            libraryPreferences.downloadBadge.changes(),
+            libraryPreferences.unreadBadge.changes(),
+            libraryPreferences.localBadge.changes(),
+            libraryPreferences.languageBadge.changes(),
+            libraryPreferences.autoUpdateMangaRestrictions.changes(),
 
-            preferences.downloadedOnly().changes(),
-            libraryPreferences.filterDownloaded().changes(),
-            libraryPreferences.filterUnread().changes(),
-            libraryPreferences.filterStarted().changes(),
-            libraryPreferences.filterBookmarked().changes(),
-            libraryPreferences.filterCompleted().changes(),
-            libraryPreferences.filterIntervalCustom().changes(),
+            preferences.downloadedOnly.changes(),
+            libraryPreferences.filterDownloaded.changes(),
+            libraryPreferences.filterUnread.changes(),
+            libraryPreferences.filterStarted.changes(),
+            libraryPreferences.filterBookmarked.changes(),
+            libraryPreferences.filterCompleted.changes(),
+            libraryPreferences.filterIntervalCustom.changes(),
             // SY -->
-            libraryPreferences.filterLewd().changes(),
+            libraryPreferences.filterLewd.changes(),
             // SY <--
         ) {
             ItemPreferences(
@@ -644,36 +638,44 @@ class LibraryScreenModel(
             downloadCache.changes,
         ) { libraryManga, preferences, _ ->
             libraryManga.map { manga ->
+                // SY -->
+                val downloadCount = if (manga.manga.source == MERGED_SOURCE_ID) {
+                    getMergedMangaById.await(manga.manga.id).sumOf { downloadManager.getDownloadCount(it) }
+                } else {
+                    downloadManager.getDownloadCount(manga.manga)
+                }
+                // SY <--
                 LibraryItem(
                     libraryManga = manga,
-                    downloadCount = if (preferences.downloadBadge) {
-                        // SY -->
-                        if (manga.manga.source == MERGED_SOURCE_ID) {
-                            runBlocking {
-                                getMergedMangaById.await(manga.manga.id)
-                            }.sumOf { downloadManager.getDownloadCount(it) }.toLong()
+                    // SY -->
+                    downloadCount = downloadCount,
+                    // SY <--
+                    unreadCount = manga.unreadCount,
+                    isLocal = manga.manga.isLocal(),
+                    badges = LibraryItem.Badges(
+                        downloadCount = if (preferences.downloadBadge) {
+                            // SY -->
+                            downloadCount
+                            // SY <--
                         } else {
-                            downloadManager.getDownloadCount(manga.manga).toLong()
-                        }
-                        // SY <--
-                    } else {
-                        0
-                    },
-                    unreadCount = if (preferences.unreadBadge) {
-                        manga.unreadCount
-                    } else {
-                        0
-                    },
-                    isLocal = if (preferences.localBadge) {
-                        manga.manga.isLocal()
-                    } else {
-                        false
-                    },
-                    sourceLanguage = if (preferences.languageBadge) {
-                        sourceManager.getOrStub(manga.manga.source).lang
-                    } else {
-                        ""
-                    },
+                            0
+                        },
+                        unreadCount = if (preferences.unreadBadge) {
+                            manga.unreadCount
+                        } else {
+                            0
+                        },
+                        isLocal = if (preferences.localBadge) {
+                            manga.manga.isLocal()
+                        } else {
+                            false
+                        },
+                        sourceLanguage = if (preferences.languageBadge) {
+                            sourceManager.getOrStub(manga.manga.source).lang
+                        } else {
+                            ""
+                        },
+                    ),
                 )
             }
         }
@@ -990,11 +992,11 @@ class LibraryScreenModel(
     }
 
     fun getDisplayMode(): PreferenceMutableState<LibraryDisplayMode> {
-        return libraryPreferences.displayMode().asState(screenModelScope)
+        return libraryPreferences.displayMode.asState(screenModelScope)
     }
 
     fun getColumnsForOrientation(isLandscape: Boolean): PreferenceMutableState<Int> {
-        return (if (isLandscape) libraryPreferences.landscapeColumns() else libraryPreferences.portraitColumns())
+        return (if (isLandscape) libraryPreferences.landscapeColumns else libraryPreferences.portraitColumns)
             .asState(screenModelScope)
     }
 
@@ -1270,7 +1272,7 @@ class LibraryScreenModel(
         }
             .coercedActiveCategoryIndex
 
-        libraryPreferences.lastUsedCategory().set(newIndex)
+        libraryPreferences.lastUsedCategory.set(newIndex)
     }
 
     fun openChangeCategoryDialog() {
@@ -1295,7 +1297,7 @@ class LibraryScreenModel(
                         else -> CheckboxState.State.None(it)
                     }
                 }
-                .toImmutableList()
+
             mutableState.update { it.copy(dialog = Dialog.ChangeCategory(mangaList, preselected)) }
         }
     }
@@ -1312,7 +1314,7 @@ class LibraryScreenModel(
         data object SettingsSheet : Dialog
         data class ChangeCategory(
             val manga: List<Manga>,
-            val initialSelection: ImmutableList<CheckboxState<Category>>,
+            val initialSelection: List<CheckboxState<Category>>,
         ) : Dialog
 
         data class DeleteManga(val manga: List<Manga>) : Dialog
@@ -1434,13 +1436,13 @@ class LibraryScreenModel(
     }
 
     fun onAcceptSyncWarning() {
-        exhPreferences.exhShowSyncIntro().set(false)
+        exhPreferences.exhShowSyncIntro.set(false)
     }
 
     fun openFavoritesSyncDialog() {
         mutableState.update {
             it.copy(
-                dialog = if (exhPreferences.exhShowSyncIntro().get()) {
+                dialog = if (exhPreferences.exhShowSyncIntro.get()) {
                     Dialog.SyncFavoritesWarning
                 } else {
                     Dialog.SyncFavoritesConfirm

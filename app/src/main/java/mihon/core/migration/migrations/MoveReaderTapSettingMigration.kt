@@ -16,8 +16,8 @@ class MoveReaderTapSettingMigration : Migration {
         val readerPreferences = migrationContext.get<ReaderPreferences>() ?: return@withIOContext false
         val oldReaderTap = prefs.getBoolean("reader_tap", false)
         if (!oldReaderTap) {
-            readerPreferences.navigationModePager().set(5)
-            readerPreferences.navigationModeWebtoon().set(5)
+            readerPreferences.navigationModePager.set(5)
+            readerPreferences.navigationModeWebtoon.set(5)
         }
 
         return@withIOContext true

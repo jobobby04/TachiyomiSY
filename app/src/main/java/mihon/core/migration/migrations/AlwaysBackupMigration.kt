@@ -10,8 +10,8 @@ class AlwaysBackupMigration : Migration {
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
         val backupPreferences = migrationContext.get<BackupPreferences>() ?: return@withIOContext false
-        if (backupPreferences.backupInterval().get() == 0) {
-            backupPreferences.backupInterval().set(12)
+        if (backupPreferences.backupInterval.get() == 0) {
+            backupPreferences.backupInterval.set(12)
         }
 
         return@withIOContext true

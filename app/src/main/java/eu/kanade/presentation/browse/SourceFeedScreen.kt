@@ -16,7 +16,6 @@ import eu.kanade.presentation.browse.components.GlobalSearchResultItem
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.util.animateItemFastScroll
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.FeedSavedSearch
 import tachiyomi.domain.source.model.SavedSearch
@@ -85,7 +84,7 @@ sealed class SourceFeedUI {
 fun SourceFeedScreen(
     name: String,
     isLoading: Boolean,
-    items: ImmutableList<SourceFeedUI>,
+    items: List<SourceFeedUI>,
     hasFilters: Boolean,
     onFabClick: () -> Unit,
     onClickBrowse: () -> Unit,
@@ -137,7 +136,7 @@ fun SourceFeedScreen(
 
 @Composable
 fun SourceFeedList(
-    items: ImmutableList<SourceFeedUI>,
+    items: List<SourceFeedUI>,
     paddingValues: PaddingValues,
     getMangaState: @Composable ((Manga) -> State<Manga>),
     onClickBrowse: () -> Unit,

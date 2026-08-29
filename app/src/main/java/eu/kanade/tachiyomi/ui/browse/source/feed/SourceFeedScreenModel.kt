@@ -13,15 +13,12 @@ import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.source.interactor.GetExhSavedSearch
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.browse.SourceFeedUI
-import eu.kanade.tachiyomi.source.CatalogueSource
+import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.online.all.MangaDex
 import exh.source.getMainSource
 import exh.source.mangaDexSourceIds
 import exh.util.nullIfBlank
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -76,29 +73,27 @@ open class SourceFeedScreenModel(
 
     private val coroutineDispatcher = Executors.newFixedThreadPool(5).asCoroutineDispatcher()
 
-    val startExpanded by uiPreferences.expandFilters().asState(screenModelScope)
+    val startExpanded by uiPreferences.expandFilters.asState(screenModelScope)
 
     init {
-        if (source is CatalogueSource) {
-            setFilters(source.getFilterList())
+        setFilters(source.getFilterList())
 
-            screenModelScope.launchIO {
-                val searches = loadSearches()
-                mutableState.update { it.copy(savedSearches = searches) }
-            }
-
-            getFeedSavedSearchBySourceId.subscribe(source.id)
-                .onEach {
-                    val items = getSourcesToGetFeed(it)
-                    mutableState.update { state ->
-                        state.copy(
-                            items = items,
-                        )
-                    }
-                    getFeed(items)
-                }
-                .launchIn(screenModelScope)
+        screenModelScope.launchIO {
+            val searches = loadSearches()
+            mutableState.update { it.copy(savedSearches = searches) }
         }
+
+        getFeedSavedSearchBySourceId.subscribe(source.id)
+            .onEach {
+                val items = getSourcesToGetFeed(it)
+                mutableState.update { state ->
+                    state.copy(
+                        items = items,
+                    )
+                }
+                getFeed(items)
+            }
+            .launchIn(screenModelScope)
     }
 
     fun setFilters(filters: FilterList) {
@@ -128,8 +123,7 @@ open class SourceFeedScreenModel(
         }
     }
 
-    private suspend fun getSourcesToGetFeed(feedSavedSearch: List<FeedSavedSearch>): ImmutableList<SourceFeedUI> {
-        if (source !is CatalogueSource) return persistentListOf()
+    private suspend fun getSourcesToGetFeed(feedSavedSearch: List<FeedSavedSearch>): List<SourceFeedUI> {
         val savedSearches = getSavedSearchBySourceIdFeed.await(source.id)
             .associateBy { it.id }
 
@@ -144,14 +138,12 @@ open class SourceFeedScreenModel(
             ) + feedSavedSearch
                 .map { SourceFeedUI.SourceSavedSearch(it, savedSearches[it.savedSearch]!!, null) }
             )
-            .toImmutableList()
     }
 
     /**
      * Initiates get manga per feed.
      */
     private fun getFeed(feedSavedSearch: List<SourceFeedUI>) {
-        if (source !is CatalogueSource) return
         screenModelScope.launch {
             feedSavedSearch.map { sourceFeed ->
                 async {
@@ -167,7 +159,7 @@ open class SourceFeedScreenModel(
                                 )
                             }
                         }.mangas
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         emptyList()
                     }
 
@@ -179,7 +171,7 @@ open class SourceFeedScreenModel(
                         state.copy(
                             items = state.items.map { item ->
                                 if (item.id == sourceFeed.id) sourceFeed.withResults(titles) else item
-                            }.toImmutableList(),
+                            },
                         )
                     }
                 }
@@ -189,7 +181,7 @@ open class SourceFeedScreenModel(
 
     private val filterSerializer = FilterSerializer()
 
-    private fun getFilterList(savedSearch: SavedSearch, source: CatalogueSource): FilterList {
+    private fun getFilterList(savedSearch: SavedSearch, source: Source): FilterList {
         val filters = savedSearch.filtersJson ?: return FilterList()
         return runCatching {
             val originalFilters = source.getFilterList()
@@ -212,12 +204,10 @@ open class SourceFeedScreenModel(
         }
     }
     private suspend fun loadSearches() =
-        getExhSavedSearch.await(source.id, (source as CatalogueSource)::getFilterList)
+        getExhSavedSearch.await(source.id, source::getFilterList)
             .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, EXHSavedSearch::name))
-            .toImmutableList()
 
     fun onFilter(onBrowseClick: (query: String?, filters: String?) -> Unit) {
-        if (source !is CatalogueSource) return
         screenModelScope.launchIO {
             val allDefault = state.value.filters == source.getFilterList()
             dismissDialog()
@@ -240,7 +230,6 @@ open class SourceFeedScreenModel(
         onBrowseClick: (query: String?, searchId: Long) -> Unit,
         onToast: (StringResource) -> Unit,
     ) {
-        if (source !is CatalogueSource) return
         screenModelScope.launchIO {
             if (search.filterList == null && state.value.filters.isNotEmpty()) {
                 withUIContext {
@@ -319,9 +308,9 @@ open class SourceFeedScreenModel(
 @Immutable
 data class SourceFeedState(
     val searchQuery: String? = null,
-    val items: ImmutableList<SourceFeedUI> = persistentListOf(),
+    val items: List<SourceFeedUI> = emptyList(),
     val filters: FilterList = FilterList(),
-    val savedSearches: ImmutableList<EXHSavedSearch> = persistentListOf(),
+    val savedSearches: List<EXHSavedSearch> = emptyList(),
     val dialog: SourceFeedScreenModel.Dialog? = null,
 ) {
     val isLoading

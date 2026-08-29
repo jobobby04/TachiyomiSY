@@ -2,13 +2,13 @@ package mihon.core.migration
 
 import kotlinx.coroutines.runBlocking
 import tachiyomi.core.common.preference.PreferenceStore
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
 
 object MigrateUtils {
     fun updateSourceId(migrationContext: MigrationContext, newId: Long, oldId: Long) {
-        val handler = migrationContext.get<DatabaseHandler>() ?: return
+        val database = migrationContext.get<Database>() ?: return
         runBlocking {
-            handler.await { ehQueries.migrateSource(newId, oldId) }
+            database.ehQueries.migrateSource(newId, oldId)
         }
     }
 

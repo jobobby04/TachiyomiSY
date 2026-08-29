@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Clone repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -36,4 +36,4 @@ jobs:
           --data '{"event_type": "ping", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest testDevDebugUnitTest
+        run: ./gradlew testDebugUnitTest

@@ -6,6 +6,7 @@ import eu.kanade.domain.ui.model.TabletUiMode
 import eu.kanade.domain.ui.model.ThemeMode
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.isDynamicColorAvailable
+import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 import java.time.format.DateTimeFormatter
@@ -13,10 +14,10 @@ import java.time.format.FormatStyle
 import java.util.Locale
 
 class UiPreferences(
-    private val preferenceStore: PreferenceStore,
+    preferenceStore: PreferenceStore,
 ) {
 
-    fun themeMode() = preferenceStore.getEnum(
+    val themeMode = preferenceStore.getEnum(
         "pref_theme_mode_key",
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ThemeMode.SYSTEM
@@ -25,7 +26,7 @@ class UiPreferences(
         },
     )
 
-    fun appTheme() = preferenceStore.getEnum(
+    val appTheme: Preference<AppTheme> = preferenceStore.getEnum(
         "pref_app_theme",
         if (DeviceUtil.isDynamicColorAvailable) {
             AppTheme.MONET
@@ -34,37 +35,37 @@ class UiPreferences(
         },
     )
 
-    fun themeDarkAmoled() = preferenceStore.getBoolean("pref_theme_dark_amoled_key", false)
+    val themeDarkAmoled: Preference<Boolean> = preferenceStore.getBoolean("pref_theme_dark_amoled_key", false)
 
-    fun relativeTime() = preferenceStore.getBoolean("relative_time_v2", true)
+    val relativeTime: Preference<Boolean> = preferenceStore.getBoolean("relative_time_v2", true)
 
-    fun dateFormat() = preferenceStore.getString("app_date_format", "")
+    val dateFormat: Preference<String> = preferenceStore.getString("app_date_format", "")
 
-    fun tabletUiMode() = preferenceStore.getEnum("tablet_ui_mode", TabletUiMode.AUTOMATIC)
+    val tabletUiMode: Preference<TabletUiMode> = preferenceStore.getEnum("tablet_ui_mode", TabletUiMode.AUTOMATIC)
 
-    fun imagesInDescription() = preferenceStore.getBoolean("pref_render_images_description", true)
+    val imagesInDescription: Preference<Boolean> = preferenceStore.getBoolean("pref_render_images_description", true)
 
     // SY -->
 
-    fun expandFilters() = preferenceStore.getBoolean("eh_expand_filters", false)
+    val expandFilters: Preference<Boolean> = preferenceStore.getBoolean("eh_expand_filters", false)
 
-    fun hideFeedTab() = preferenceStore.getBoolean("hide_latest_tab", false)
+    val hideFeedTab: Preference<Boolean> = preferenceStore.getBoolean("hide_latest_tab", false)
 
-    fun feedTabInFront() = preferenceStore.getBoolean("latest_tab_position", false)
+    val feedTabInFront: Preference<Boolean> = preferenceStore.getBoolean("latest_tab_position", false)
 
-    fun recommendsInOverflow() = preferenceStore.getBoolean("recommends_in_overflow", false)
+    val recommendsInOverflow: Preference<Boolean> = preferenceStore.getBoolean("recommends_in_overflow", false)
 
-    fun mergeInOverflow() = preferenceStore.getBoolean("merge_in_overflow", true)
+    val mergeInOverflow: Preference<Boolean> = preferenceStore.getBoolean("merge_in_overflow", true)
 
-    fun previewsRowCount() = preferenceStore.getInt("pref_previews_row_count", 4)
+    val previewsRowCount: Preference<Int> = preferenceStore.getInt("pref_previews_row_count", 4)
 
-    fun useNewSourceNavigation() = preferenceStore.getBoolean("use_new_source_navigation", true)
+    val useNewSourceNavigation: Preference<Boolean> = preferenceStore.getBoolean("use_new_source_navigation", true)
 
-    fun bottomBarLabels() = preferenceStore.getBoolean("pref_show_bottom_bar_labels", true)
+    val bottomBarLabels: Preference<Boolean> = preferenceStore.getBoolean("pref_show_bottom_bar_labels", true)
 
-    fun showNavUpdates() = preferenceStore.getBoolean("pref_show_updates_button", true)
+    val showNavUpdates: Preference<Boolean> = preferenceStore.getBoolean("pref_show_updates_button", true)
 
-    fun showNavHistory() = preferenceStore.getBoolean("pref_show_history_button", true)
+    val showNavHistory: Preference<Boolean> = preferenceStore.getBoolean("pref_show_history_button", true)
 
     // SY <--
 

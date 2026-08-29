@@ -58,7 +58,7 @@ class EHentaiSearchMetadata : RaisedSearchMetadata() {
 
         // No title bug?
         val title = altTitle
-            ?.takeIf { Injekt.get<DelegateSourcePreferences>().useJapaneseTitle().get() } // todo
+            ?.takeIf { Injekt.get<DelegateSourcePreferences>().useJapaneseTitle.get() } // todo
             ?: title
 
         // Set artist (if we can find one)

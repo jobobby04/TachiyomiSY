@@ -32,10 +32,8 @@ import eu.kanade.presentation.browse.components.GlobalSearchCardRow
 import eu.kanade.presentation.browse.components.GlobalSearchErrorResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchLoadingResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchResultItem
-import eu.kanade.tachiyomi.source.CatalogueSource
+import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.ui.browse.feed.FeedScreenState
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.Manga
@@ -55,7 +53,7 @@ import kotlin.time.Duration.Companion.seconds
 data class FeedItemUI(
     val feed: FeedSavedSearch,
     val savedSearch: SavedSearch?,
-    val source: CatalogueSource?,
+    val source: Source?,
     val title: String,
     val subtitle: String,
     val results: List<Manga>?,
@@ -65,8 +63,8 @@ data class FeedItemUI(
 fun FeedScreen(
     state: FeedScreenState,
     contentPadding: PaddingValues,
-    onClickSavedSearch: (SavedSearch, CatalogueSource) -> Unit,
-    onClickSource: (CatalogueSource) -> Unit,
+    onClickSavedSearch: (SavedSearch, Source) -> Unit,
+    onClickSource: (Source) -> Unit,
     onClickDelete: (FeedSavedSearch) -> Unit,
     onClickManga: (Manga) -> Unit,
     onRefresh: () -> Unit,
@@ -156,9 +154,9 @@ fun FeedItem(
 
 @Composable
 fun FeedAddDialog(
-    sources: ImmutableList<CatalogueSource>,
+    sources: List<Source>,
     onDismiss: () -> Unit,
-    onClickAdd: (CatalogueSource?) -> Unit,
+    onClickAdd: (Source?) -> Unit,
 ) {
     var selected by remember { mutableStateOf<Int?>(null) }
     AlertDialog(
@@ -181,10 +179,10 @@ fun FeedAddDialog(
 
 @Composable
 fun FeedAddSearchDialog(
-    source: CatalogueSource,
-    savedSearches: ImmutableList<SavedSearch?>,
+    source: Source,
+    savedSearches: List<SavedSearch?>,
     onDismiss: () -> Unit,
-    onClickAdd: (CatalogueSource, SavedSearch?) -> Unit,
+    onClickAdd: (Source, SavedSearch?) -> Unit,
 ) {
     var selected by remember { mutableStateOf<Int?>(null) }
     AlertDialog(
@@ -196,7 +194,7 @@ fun FeedAddSearchDialog(
             val savedSearchStrings = remember {
                 savedSearches.map {
                     it?.name ?: context.stringResource(MR.strings.latest)
-                }.toImmutableList()
+                }
             }
             RadioSelector(
                 options = savedSearches,
@@ -217,8 +215,8 @@ fun FeedAddSearchDialog(
 
 @Composable
 fun <T> RadioSelector(
-    options: ImmutableList<T>,
-    optionStrings: ImmutableList<String> = remember { options.map { it.toString() }.toImmutableList() },
+    options: List<T>,
+    optionStrings: List<String> = remember { options.map { it.toString() } },
     selected: Int?,
     onSelectOption: (Int) -> Unit,
 ) {

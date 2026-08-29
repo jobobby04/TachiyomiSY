@@ -90,7 +90,7 @@ class FavoritesSyncHelper(val context: Context) {
 
     private suspend fun beginSync() {
         // Check if logged in
-        if (!exhPreferences.enableExhentai().get()) {
+        if (!exhPreferences.enableExhentai.get()) {
             status.value = FavoritesSyncStatus.SyncError.NotLoggedInSyncError
             return
         }
@@ -138,7 +138,7 @@ class FavoritesSyncHelper(val context: Context) {
 
             status.value = FavoritesSyncStatus.Processing.CalculatingRemoteChanges
             val remoteChanges = storage.getChangedRemoteEntries(favorites.first)
-            val localChanges = if (exhPreferences.exhReadOnlySync().get()) {
+            val localChanges = if (exhPreferences.exhReadOnlySync.get()) {
                 null // Do not build local changes if they are not going to be applied
             } else {
                 status.value = FavoritesSyncStatus.Processing.CalculatingLocalChanges
@@ -238,7 +238,7 @@ class FavoritesSyncHelper(val context: Context) {
                 gallery.gid,
             )
 
-            if (exhPreferences.exhLenientSync().get()) {
+            if (exhPreferences.exhLenientSync.get()) {
                 errorList += error
             } else {
                 status.value = error
@@ -289,7 +289,7 @@ class FavoritesSyncHelper(val context: Context) {
             )
 
             if (!explicitlyRetryExhRequest(10, request)) {
-                if (exhPreferences.exhLenientSync().get()) {
+                if (exhPreferences.exhLenientSync.get()) {
                     errorList += FavoritesSyncStatus.SyncError.GallerySyncError.UnableToDeleteFromRemote
                 } else {
                     status.value = FavoritesSyncStatus.SyncError.GallerySyncError.UnableToDeleteFromRemote
@@ -392,7 +392,7 @@ class FavoritesSyncHelper(val context: Context) {
                     )
                 }
 
-                if (exhPreferences.exhLenientSync().get()) {
+                if (exhPreferences.exhLenientSync.get()) {
                     errorList += error
                 } else {
                     status.value = error

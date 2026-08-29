@@ -17,7 +17,7 @@ class MoveLibraryNonCompleteSettingMigration : Migration {
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
         val oldUpdateOngoingOnly = prefs.getBoolean("pref_update_only_non_completed_key", true)
         if (!oldUpdateOngoingOnly) {
-            libraryPreferences.autoUpdateMangaRestrictions() -= LibraryPreferences.MANGA_NON_COMPLETED
+            libraryPreferences.autoUpdateMangaRestrictions -= LibraryPreferences.MANGA_NON_COMPLETED
         }
 
         return@withIOContext true

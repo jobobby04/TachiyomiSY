@@ -12,7 +12,7 @@ import eu.kanade.tachiyomi.source.model.SManga
 import exh.md.network.MangaDexAuthInterceptor
 import exh.md.utils.FollowStatus
 import exh.md.utils.MdUtil
-import kotlinx.collections.immutable.toImmutableList
+import tachiyomi.core.common.util.lang.awaitSingle
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
@@ -24,7 +24,6 @@ class MdList(id: Long) : BaseTracker(id, "MDList") {
     companion object {
         private val SCORE_LIST = IntRange(0, 10)
             .map(Int::toString)
-            .toImmutableList()
     }
 
     private val mdex by lazy { MdUtil.getEnabledMangaDex() }
@@ -143,7 +142,7 @@ class MdList(id: Long) : BaseTracker(id, "MDList") {
             mdex.getSearchManga(1, query, FilterList())
                 .mangas
                 .map {
-                    toTrackSearch(mdex.getMangaDetails(it))
+                    toTrackSearch(mdex.fetchMangaDetails(it).awaitSingle())
                 }
                 .distinct()
         }

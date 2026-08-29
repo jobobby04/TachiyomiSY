@@ -23,7 +23,7 @@ class ReorderSortTag(
         val reorderedTag = reorderedTags.removeAt(currentIndex)
         reorderedTags.add(newPosition, reorderedTag)
 
-        preferences.sortTagsForLibrary().set(
+        preferences.sortTagsForLibrary.set(
             reorderedTags.mapIndexed { index, s ->
                 CreateSortTag.encodeTag(index, s)
             }.toSet(),

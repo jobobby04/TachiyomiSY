@@ -52,8 +52,6 @@ import eu.kanade.tachiyomi.ui.category.biometric.BiometricTimesScreen
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.isAuthenticationSupported
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableMap
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
@@ -85,16 +83,16 @@ object SettingsSecurityScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
         val authSupported = remember { context.isAuthenticationSupported() }
-        val useAuthPref = securityPreferences.useAuthenticator()
+        val useAuthPref = securityPreferences.useAuthenticator
         val useAuth by useAuthPref.collectAsState()
 
         val scope = rememberCoroutineScope()
         val isCbzPasswordSet by remember { CbzCrypto.isPasswordSetState(scope) }.collectAsState()
-        val passwordProtectDownloads by securityPreferences.passwordProtectDownloads().collectAsState()
+        val passwordProtectDownloads by securityPreferences.passwordProtectDownloads.collectAsState()
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_security),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = useAuthPref,
                     title = stringResource(MR.strings.lock_with_biometrics),
@@ -106,7 +104,7 @@ object SettingsSecurityScreen : SearchableSettings {
                     },
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = securityPreferences.lockAppAfter(),
+                    preference = securityPreferences.lockAppAfter,
                     entries = LockAfterValues
                         .associateWith {
                             when (it) {
@@ -114,8 +112,7 @@ object SettingsSecurityScreen : SearchableSettings {
                                 0 -> stringResource(MR.strings.lock_always)
                                 else -> pluralStringResource(MR.plurals.lock_after_mins, count = it, it)
                             }
-                        }
-                        .toImmutableMap(),
+                        },
                     title = stringResource(MR.strings.lock_when_idle),
                     enabled = authSupported && useAuth,
                     onValueChanged = {
@@ -125,29 +122,27 @@ object SettingsSecurityScreen : SearchableSettings {
                     },
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = securityPreferences.hideNotificationContent(),
+                    preference = securityPreferences.hideNotificationContent,
                     title = stringResource(MR.strings.hide_notification_content),
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = securityPreferences.secureScreen(),
+                    preference = securityPreferences.secureScreen,
                     entries = SecurityPreferences.SecureScreenMode.entries
-                        .associateWith { stringResource(it.titleRes) }
-                        .toImmutableMap(),
+                        .associateWith { stringResource(it.titleRes) },
                     title = stringResource(MR.strings.secure_screen),
                 ),
                 // SY -->
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = securityPreferences.passwordProtectDownloads(),
+                    preference = securityPreferences.passwordProtectDownloads,
                     title = stringResource(SYMR.strings.password_protect_downloads),
                     subtitle = stringResource(SYMR.strings.password_protect_downloads_summary),
                     enabled = isCbzPasswordSet,
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = securityPreferences.encryptionType(),
+                    preference = securityPreferences.encryptionType,
                     title = stringResource(SYMR.strings.encryption_type),
                     entries = SecurityPreferences.EncryptionType.entries
-                        .associateWith { stringResource(it.titleRes) }
-                        .toImmutableMap(),
+                        .associateWith { stringResource(it.titleRes) },
                     enabled = passwordProtectDownloads,
 
                 ),
@@ -160,7 +155,7 @@ object SettingsSecurityScreen : SearchableSettings {
                                 dialogOpen = false
 
                                 CbzCrypto.deleteKeyCbz()
-                                securityPreferences.cbzPassword().set(CbzCrypto.encryptCbz(password.replace("\n", "")))
+                                securityPreferences.cbzPassword.set(CbzCrypto.encryptCbz(password.replace("\n", "")))
                             },
                         )
                     }
@@ -175,13 +170,13 @@ object SettingsSecurityScreen : SearchableSettings {
                     title = stringResource(SYMR.strings.delete_cbz_archive_password),
                     onClick = {
                         CbzCrypto.deleteKeyCbz()
-                        securityPreferences.cbzPassword().set("")
+                        securityPreferences.cbzPassword.set("")
                     },
                     enabled = isCbzPasswordSet,
                 ),
                 kotlin.run {
                     val navigator = LocalNavigator.currentOrThrow
-                    val count by securityPreferences.authenticatorTimeRanges().collectAsState()
+                    val count by securityPreferences.authenticatorTimeRanges.collectAsState()
                     Preference.PreferenceItem.TextPreference(
                         title = stringResource(SYMR.strings.action_edit_biometric_lock_times),
                         subtitle = pluralStringResource(
@@ -196,7 +191,7 @@ object SettingsSecurityScreen : SearchableSettings {
                     )
                 },
                 kotlin.run {
-                    val selection by securityPreferences.authenticatorDays().collectAsState()
+                    val selection by securityPreferences.authenticatorDays.collectAsState()
                     var dialogOpen by remember { mutableStateOf(false) }
                     if (dialogOpen) {
                         SetLockedDaysDialog(
@@ -204,7 +199,7 @@ object SettingsSecurityScreen : SearchableSettings {
                             initialSelection = selection,
                             onDaysSelected = {
                                 dialogOpen = false
-                                securityPreferences.authenticatorDays().set(it)
+                                securityPreferences.authenticatorDays.set(it)
                             },
                         )
                     }
@@ -382,14 +377,14 @@ object SettingsSecurityScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_firebase),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = privacyPreferences.crashlytics(),
+                    preference = privacyPreferences.crashlytics,
                     title = stringResource(MR.strings.onboarding_permission_crashlytics),
                     subtitle = stringResource(MR.strings.onboarding_permission_crashlytics_description),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = privacyPreferences.analytics(),
+                    preference = privacyPreferences.analytics,
                     title = stringResource(MR.strings.onboarding_permission_analytics),
                     subtitle = stringResource(MR.strings.onboarding_permission_analytics_description),
                 ),
@@ -399,7 +394,7 @@ object SettingsSecurityScreen : SearchableSettings {
     }
 }
 
-private val LockAfterValues = persistentListOf(
+private val LockAfterValues = listOf(
     0, // Always
     1,
     2,

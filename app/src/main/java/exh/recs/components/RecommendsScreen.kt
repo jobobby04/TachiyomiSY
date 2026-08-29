@@ -14,7 +14,6 @@ import eu.kanade.presentation.util.formattedMessage
 import exh.recs.RecommendationItemResult
 import exh.recs.RecommendsScreenModel
 import exh.recs.sources.RecommendationPagingSource
-import kotlinx.collections.immutable.ImmutableMap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -52,7 +51,7 @@ fun RecommendsScreen(
 
 @Composable
 internal fun RecommendsContent(
-    items: ImmutableMap<RecommendationPagingSource, RecommendationItemResult>,
+    items: Map<RecommendationPagingSource, RecommendationItemResult>,
     contentPadding: PaddingValues,
     getManga: @Composable (Manga) -> State<Manga>,
     onClickSource: (RecommendationPagingSource) -> Unit,

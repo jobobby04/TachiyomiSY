@@ -90,6 +90,7 @@ class SyncChaptersWithSource(
             // Update metadata from source if necessary.
             if (source is HttpSource) {
                 val sChapter = chapter.toSChapter()
+                @Suppress("DEPRECATION")
                 source.prepareNewChapter(sChapter, manga.toSManga())
                 chapter = chapter.copyFromSChapter(sChapter)
             }
@@ -133,6 +134,7 @@ class SyncChaptersWithSource(
                         chapterNumber = chapter.chapterNumber,
                         scanlator = chapter.scanlator,
                         sourceOrder = chapter.sourceOrder,
+                        memo = chapter.memo,
                     )
 
                     if (chapter.dateUpload != 0L) {
@@ -176,7 +178,7 @@ class SyncChaptersWithSource(
         val deletedChapterNumberDateFetchMap = removedChapters.sortedByDescending { it.dateFetch }
             .associate { it.chapterNumber to it.dateFetch }
 
-        val markDuplicateAsRead = libraryPreferences.markDuplicateReadChapterAsRead().get()
+        val markDuplicateAsRead = libraryPreferences.markDuplicateReadChapterAsRead.get()
             .contains(LibraryPreferences.MARK_DUPLICATE_CHAPTER_READ_NEW)
 
         // Date fetch is set in such a way that the upper ones will have bigger value than the lower ones

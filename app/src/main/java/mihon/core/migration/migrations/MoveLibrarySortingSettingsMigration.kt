@@ -17,7 +17,7 @@ class MoveLibrarySortingSettingsMigration : Migration {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
         try {
-            val oldSortingMode = prefs.getInt(libraryPreferences.sortingMode().key(), 0 /* ALPHABETICAL */)
+            val oldSortingMode = prefs.getInt(libraryPreferences.sortingMode.key(), 0 /* ALPHABETICAL */)
             val oldSortingDirection = prefs.getBoolean("library_sorting_ascending", true)
 
             val newSortingMode = when (oldSortingMode) {
@@ -40,12 +40,12 @@ class MoveLibrarySortingSettingsMigration : Migration {
             }
 
             prefs.edit(commit = true) {
-                remove(libraryPreferences.sortingMode().key())
+                remove(libraryPreferences.sortingMode.key())
                 remove("library_sorting_ascending")
             }
 
             prefs.edit {
-                putString(libraryPreferences.sortingMode().key(), newSortingMode)
+                putString(libraryPreferences.sortingMode.key(), newSortingMode)
                 putString("library_sorting_ascending", newSortingDirection)
             }
         } catch (e: Exception) {

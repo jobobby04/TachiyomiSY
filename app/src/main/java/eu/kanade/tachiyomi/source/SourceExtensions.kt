@@ -9,7 +9,7 @@ import uy.kohesive.injekt.api.get
 fun Source.getNameForMangaInfo(
     // SY -->
     mergeSources: List<Source>? = null,
-    enabledLanguages: List<String> = Injekt.get<SourcePreferences>().enabledLanguages().get()
+    enabledLanguages: List<String> = Injekt.get<SourcePreferences>().enabledLanguages.get()
         .filterNot { it in listOf("all", "other") },
     // SY <--
 ): String {

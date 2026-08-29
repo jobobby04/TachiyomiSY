@@ -15,9 +15,9 @@ class CreateSortTag(
             return Result.TagExists
         }
 
-        val size = preferences.sortTagsForLibrary().get().size
+        val size = preferences.sortTagsForLibrary.get().size
 
-        preferences.sortTagsForLibrary() += encodeTag(size, tag)
+        preferences.sortTagsForLibrary += encodeTag(size, tag)
 
         return Result.Success
     }

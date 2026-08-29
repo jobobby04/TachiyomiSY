@@ -33,7 +33,6 @@ import eu.kanade.presentation.components.AroundLayout
 import eu.kanade.presentation.manga.components.PagePreview
 import exh.pagepreview.PagePreviewState
 import exh.util.floor
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
@@ -189,7 +188,7 @@ fun PagePreviewTopAppBar(
         actions = {
             AppBarActions(
                 if (showOpenPageDialog) {
-                    persistentListOf(
+                    listOf(
                         AppBar.Action(
                             title = stringResource(SYMR.strings.page_preview_page_go_to),
                             icon = Icons.Outlined.UTurnRight,
@@ -197,7 +196,7 @@ fun PagePreviewTopAppBar(
                         ),
                     )
                 } else {
-                    persistentListOf()
+                    emptyList()
                 },
             )
         },

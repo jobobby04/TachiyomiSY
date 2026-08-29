@@ -18,7 +18,7 @@ class MigrationSourceHolder(view: View, val adapter: MigrationSourceAdapter) :
     }
 
     fun bind(source: HttpSource, sourceEnabled: Boolean) {
-        val isMultiLanguage = adapter.sourcePreferences.enabledLanguages().get().size > 1
+        val isMultiLanguage = adapter.sourcePreferences.enabledLanguages.get().size > 1
         // Set capitalized title.
         val sourceName = if (isMultiLanguage) source.toString() else source.name.capitalize()
         binding.title.text = sourceName

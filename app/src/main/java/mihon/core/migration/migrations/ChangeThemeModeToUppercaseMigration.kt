@@ -15,10 +15,10 @@ class ChangeThemeModeToUppercaseMigration : Migration {
         val context = migrationContext.get<Application>() ?: return@withIOContext false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val uiPreferences = migrationContext.get<UiPreferences>() ?: return@withIOContext false
-        if (uiPreferences.themeMode().isSet()) {
+        if (uiPreferences.themeMode.isSet()) {
             prefs.edit {
-                val themeMode = prefs.getString(uiPreferences.themeMode().key(), null) ?: return@edit
-                putString(uiPreferences.themeMode().key(), themeMode.uppercase())
+                val themeMode = prefs.getString(uiPreferences.themeMode.key(), null) ?: return@edit
+                putString(uiPreferences.themeMode.key(), themeMode.uppercase())
             }
         }
 

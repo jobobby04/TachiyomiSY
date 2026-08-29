@@ -20,7 +20,6 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.TabContent
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tachiyomi.domain.source.interactor.GetRemoteManga
@@ -50,7 +49,7 @@ fun Screen.feedTab(): TabContent {
 
     return TabContent(
         titleRes = SYMR.strings.feed,
-        actions = persistentListOf(
+        actions = listOf(
             AppBar.Action(
                 title = stringResource(MR.strings.action_add),
                 icon = Icons.Outlined.Add,
@@ -64,7 +63,7 @@ fun Screen.feedTab(): TabContent {
                 state = state,
                 contentPadding = contentPadding,
                 onClickSavedSearch = { savedSearch, source ->
-                    screenModel.sourcePreferences.lastUsedSource().set(savedSearch.source)
+                    screenModel.sourcePreferences.lastUsedSource.set(savedSearch.source)
                     navigator.push(
                         BrowseSourceScreen(
                             source.id,
@@ -74,7 +73,7 @@ fun Screen.feedTab(): TabContent {
                     )
                 },
                 onClickSource = { source ->
-                    screenModel.sourcePreferences.lastUsedSource().set(source.id)
+                    screenModel.sourcePreferences.lastUsedSource.set(source.id)
                     navigator.push(
                         BrowseSourceScreen(
                             source.id,

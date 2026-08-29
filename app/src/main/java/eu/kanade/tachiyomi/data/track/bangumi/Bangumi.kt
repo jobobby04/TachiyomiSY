@@ -7,8 +7,6 @@ import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMOAuth
 import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
@@ -24,7 +22,7 @@ class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
 
     override val supportsPrivateTracking: Boolean = true
 
-    override fun getScoreList(): ImmutableList<String> = SCORE_LIST
+    override fun getScoreList(): List<String> = SCORE_LIST
 
     override fun displayScore(track: DomainTrack): String {
         return track.score.toInt().toString()
@@ -113,8 +111,9 @@ class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
             // Users can set a 'username' (not nickname) once which effectively
             // replaces the stringified ID in certain queries.
             // If no username is set, the API returns the user ID as a strings
-            val username = api.getUsername()
-            saveCredentials(username, oauth.accessToken)
+            val currentUser = api.getCurrentUser()
+            saveDisplayUsername(currentUser.nickname?.takeIf { it.isNotBlank() } ?: currentUser.username)
+            saveCredentials(currentUser.username, oauth.accessToken)
         } catch (_: Throwable) {
             logout()
         }
@@ -147,6 +146,5 @@ class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
 
         private val SCORE_LIST = IntRange(0, 10)
             .map(Int::toString)
-            .toImmutableList()
     }
 }

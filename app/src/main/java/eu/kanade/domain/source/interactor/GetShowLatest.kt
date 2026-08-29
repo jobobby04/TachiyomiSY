@@ -9,7 +9,7 @@ class GetShowLatest(
 ) {
 
     fun subscribe(hasSmartSearchConfig: Boolean): Flow<Boolean> {
-        return preferences.useNewSourceNavigation().changes()
+        return preferences.useNewSourceNavigation.changes()
             .map {
                 !hasSmartSearchConfig && !it
             }
