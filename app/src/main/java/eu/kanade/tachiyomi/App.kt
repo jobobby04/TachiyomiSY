@@ -31,6 +31,8 @@ import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
+import com.hippo.unifile.DriveFile
+import com.hippo.unifile.UniFile
 import eu.kanade.domain.DomainModule
 import eu.kanade.domain.SYDomainModule
 import eu.kanade.domain.base.BasePreferences
@@ -132,6 +134,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         Injekt.importModule(SYDomainModule())
         InjektKoinBridge.startKoin(this)
         initExpensiveComponents(this)
+        // Teaches UniFile to resolve gdrive:// so Drive can back the storage location.
+        UniFile.addUriHandler { _, uri -> DriveFile.fromUri(uri) }
         // SY <--
 
         setupExhLogging() // EXH logging

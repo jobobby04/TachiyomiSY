@@ -286,6 +286,7 @@ class LibraryScreenModel(
         ) { prefs, trackFilters ->
             listOf(
                 prefs.filterDownloaded,
+                prefs.filterCloud,
                 prefs.filterUnread,
                 prefs.filterStarted,
                 prefs.filterBookmarked,
@@ -344,9 +345,13 @@ class LibraryScreenModel(
         trackingFilter: Map<Long, TriState>,
         preferences: ItemPreferences,
     ): List<LibraryItem> {
+        val storagePreferences = uy.kohesive.injekt.Injekt.get<tachiyomi.domain.storage.service.StoragePreferences>()
+        val isDrive = storagePreferences.baseStorageDirectory.get().startsWith(eu.kanade.tachiyomi.data.storage.gdrive.GoogleDriveService.URI_SCHEME)
+
         val downloadedOnly = preferences.globalFilterDownloaded
         val skipOutsideReleasePeriod = preferences.skipOutsideReleasePeriod
         val filterDownloaded = if (downloadedOnly) TriState.ENABLED_IS else preferences.filterDownloaded
+        val filterCloud = preferences.filterCloud
         val filterUnread = preferences.filterUnread
         val filterStarted = preferences.filterStarted
         val filterBookmarked = preferences.filterBookmarked
@@ -364,7 +369,11 @@ class LibraryScreenModel(
         // SY <--
 
         val filterFnDownloaded: (LibraryItem) -> Boolean = {
-            applyFilter(filterDownloaded) { it.isLocal || it.downloadCount > 0 }
+            applyFilter(filterDownloaded) { it.isLocal || (!isDrive && it.downloadCount > 0) }
+        }
+
+        val filterFnCloud: (LibraryItem) -> Boolean = {
+            applyFilter(filterCloud) { isDrive && it.downloadCount > 0 }
         }
 
         val filterFnUnread: (LibraryItem) -> Boolean = {
@@ -410,6 +419,7 @@ class LibraryScreenModel(
 
         return fastFilter {
             filterFnDownloaded(it) &&
+                filterFnCloud(it) &&
                 filterFnUnread(it) &&
                 filterFnStarted(it) &&
                 filterFnBookmarked(it) &&
@@ -602,6 +612,7 @@ class LibraryScreenModel(
 
             preferences.downloadedOnly.changes(),
             libraryPreferences.filterDownloaded.changes(),
+            libraryPreferences.filterCloud.changes(),
             libraryPreferences.filterUnread.changes(),
             libraryPreferences.filterStarted.changes(),
             libraryPreferences.filterBookmarked.changes(),
@@ -619,13 +630,14 @@ class LibraryScreenModel(
                 skipOutsideReleasePeriod = LibraryPreferences.MANGA_OUTSIDE_RELEASE_PERIOD in (it[4] as Set<*>),
                 globalFilterDownloaded = it[5] as Boolean,
                 filterDownloaded = it[6] as TriState,
-                filterUnread = it[7] as TriState,
-                filterStarted = it[8] as TriState,
-                filterBookmarked = it[9] as TriState,
-                filterCompleted = it[10] as TriState,
-                filterIntervalCustom = it[11] as TriState,
+                filterCloud = it[7] as TriState,
+                filterUnread = it[8] as TriState,
+                filterStarted = it[9] as TriState,
+                filterBookmarked = it[10] as TriState,
+                filterCompleted = it[11] as TriState,
+                filterIntervalCustom = it[12] as TriState,
                 // SY -->
-                filterLewd = it[12] as TriState,
+                filterLewd = it[13] as TriState,
                 // SY <--
             )
         }
@@ -1462,6 +1474,7 @@ class LibraryScreenModel(
 
         val globalFilterDownloaded: Boolean,
         val filterDownloaded: TriState,
+        val filterCloud: TriState,
         val filterUnread: TriState,
         val filterStarted: TriState,
         val filterBookmarked: TriState,

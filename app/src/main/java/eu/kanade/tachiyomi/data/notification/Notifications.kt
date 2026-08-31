@@ -68,6 +68,11 @@ object Notifications {
     const val ID_INCOGNITO_MODE = -701
 
     /**
+     * Notification id used while a Google Drive account is being linked.
+     */
+    const val ID_GDRIVE_AUTH = -601
+
+    /**
      * Notification channel and ids used for app and extension updates.
      */
     private const val GROUP_APK_UPDATES = "group_apk_updates"

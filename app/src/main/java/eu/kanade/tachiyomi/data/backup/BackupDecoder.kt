@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.data.backup
 
 import android.content.Context
 import android.net.Uri
+import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.backup.models.Backup
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -22,7 +23,10 @@ class BackupDecoder(
      * Decode a potentially-gzipped backup.
      */
     fun decode(uri: Uri): Backup {
-        return context.contentResolver.openInputStream(uri)!!.use { inputStream ->
+        val stream = UniFile.fromUri(context, uri)?.openInputStream()
+            ?: context.contentResolver.openInputStream(uri)
+            ?: throw IOException("Cannot open backup file: $uri")
+        return stream.use { inputStream ->
             val source = inputStream.source().buffer()
 
             val peeked = source.peek().apply {

@@ -75,6 +75,11 @@ class LibraryPreferences(
         TriState.DISABLED,
     )
 
+    val filterCloud: Preference<TriState> = preferenceStore.getEnum(
+        "pref_filter_library_cloud_v2",
+        TriState.DISABLED,
+    )
+
     val filterUnread: Preference<TriState> = preferenceStore.getEnum("pref_filter_library_unread_v2", TriState.DISABLED)
 
     val filterStarted: Preference<TriState> = preferenceStore.getEnum(

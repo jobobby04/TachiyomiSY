@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -15,9 +16,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -123,6 +127,10 @@ object SettingsDataScreen : SearchableSettings {
             getStorageLocationPref(storagePreferences = storagePreferences),
             Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.pref_storage_location_info)),
 
+            // SY -->
+            googleDriveGroup(storagePreferences = storagePreferences),
+            // SY <--
+
             getBackupAndRestoreGroup(backupPreferences = backupPreferences),
             getDataGroup(),
             getExportGroup(),
@@ -202,8 +210,15 @@ object SettingsDataScreen : SearchableSettings {
     private fun getBackupAndRestoreGroup(backupPreferences: BackupPreferences): Preference.PreferenceGroup {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
+        val scope = rememberCoroutineScope()
 
         val lastAutoBackup by backupPreferences.lastAutoBackupTimestamp.collectAsState()
+        val storagePreferences = remember { Injekt.get<tachiyomi.domain.storage.service.StoragePreferences>() }
+        val baseDir by storagePreferences.baseStorageDirectory.collectAsState()
+        val isDrive = baseDir.startsWith(eu.kanade.tachiyomi.data.storage.gdrive.GoogleDriveService.URI_SCHEME)
+
+        var showCloudRestoreDialog by remember { mutableStateOf(false) }
+        var cloudBackups by remember { mutableStateOf<List<UniFile>>(emptyList()) }
 
         val chooseBackup = rememberLauncherForActivityResult(
             object : ActivityResultContracts.GetContent() {
@@ -219,6 +234,89 @@ object SettingsDataScreen : SearchableSettings {
             }
 
             navigator.push(RestoreBackupScreen(it.toString()))
+        }
+
+        val cloudItems = if (isDrive) {
+            listOf(
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(SYMR.strings.gdrive_backup_now),
+                    subtitle = stringResource(SYMR.strings.gdrive_backup_now_summary),
+                    onClick = {
+                        if (!BackupCreateJob.isManualJobRunning(context)) {
+                            BackupCreateJob.startNow(context, null, eu.kanade.tachiyomi.data.backup.create.BackupOptions())
+                            context.toast(SYMR.strings.gdrive_backup_started)
+                        } else {
+                            context.toast(MR.strings.backup_in_progress)
+                        }
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(SYMR.strings.gdrive_restore_from_cloud),
+                    subtitle = stringResource(SYMR.strings.gdrive_restore_from_cloud_summary),
+                    onClick = {
+                        if (!BackupRestoreJob.isRunning(context)) {
+                            scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                val storageManager = Injekt.get<tachiyomi.domain.storage.service.StorageManager>()
+                                val backupDir = storageManager.getAutomaticBackupsDirectory()
+                                val files = backupDir?.listFiles()
+                                    ?.filter { it.name?.endsWith(".proto.gz") == true || it.name?.endsWith(".tachibk") == true }
+                                    ?.sortedByDescending { it.lastModified() }
+                                    .orEmpty()
+                                cloudBackups = files
+                                showCloudRestoreDialog = true
+                            }
+                        } else {
+                            context.toast(MR.strings.restore_in_progress)
+                        }
+                    },
+                ),
+            )
+        } else {
+            emptyList()
+        }
+
+        if (showCloudRestoreDialog) {
+            AlertDialog(
+                onDismissRequest = { showCloudRestoreDialog = false },
+                title = { Text(stringResource(SYMR.strings.gdrive_restore_dialog_title)) },
+                text = {
+                    if (cloudBackups.isEmpty()) {
+                        Text(stringResource(SYMR.strings.gdrive_restore_dialog_empty))
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            items(cloudBackups) { file ->
+                                val dateStr = remember(file) {
+                                    val sdf = java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault())
+                                    sdf.format(java.util.Date(file.lastModified()))
+                                }
+                                val sizeStr = remember(file) {
+                                    android.text.format.Formatter.formatFileSize(context, file.length())
+                                }
+                                androidx.compose.material3.ListItem(
+                                    modifier = Modifier.clickable {
+                                        showCloudRestoreDialog = false
+                                        navigator.push(RestoreBackupScreen(file.uri.toString()))
+                                    },
+                                    headlineContent = {
+                                        Text(file.name ?: stringResource(SYMR.strings.gdrive_backup_file))
+                                    },
+                                    supportingContent = { Text("$dateStr • $sizeStr") },
+                                    leadingContent = {
+                                        Icon(Icons.Outlined.CloudDownload, contentDescription = null)
+                                    },
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showCloudRestoreDialog = false }) {
+                        Text(stringResource(MR.strings.action_cancel))
+                    }
+                },
+            )
         }
 
         return Preference.PreferenceGroup(
@@ -267,7 +365,7 @@ object SettingsDataScreen : SearchableSettings {
                         },
                     )
                 },
-
+            ) + cloudItems + listOf(
                 // Automatic backups
                 Preference.PreferenceItem.ListPreference(
                     preference = backupPreferences.backupInterval,

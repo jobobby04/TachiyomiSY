@@ -134,6 +134,7 @@ class UpdatesScreenModel(
                 listOf(
                     prefs.filterUnread,
                     prefs.filterDownloaded,
+                    prefs.filterCloud,
                     prefs.filterStarted,
                     prefs.filterBookmarked,
                 )
@@ -151,16 +152,26 @@ class UpdatesScreenModel(
     private fun List<UpdatesItem>.applyFilters(
         preferences: ItemPreferences,
     ): List<UpdatesItem> {
+        val storagePreferences = uy.kohesive.injekt.Injekt.get<tachiyomi.domain.storage.service.StoragePreferences>()
+        val isDrive = storagePreferences.baseStorageDirectory.get().startsWith(eu.kanade.tachiyomi.data.storage.gdrive.GoogleDriveService.URI_SCHEME)
+
         val filterDownloaded = preferences.filterDownloaded
+        val filterCloud = preferences.filterCloud
 
         val filterFnDownloaded: (UpdatesItem) -> Boolean = {
             applyFilter(filterDownloaded) {
-                it.downloadStateProvider() == Download.State.DOWNLOADED
+                !isDrive && it.downloadStateProvider() == Download.State.DOWNLOADED
+            }
+        }
+
+        val filterFnCloud: (UpdatesItem) -> Boolean = {
+            applyFilter(filterCloud) {
+                isDrive && it.downloadStateProvider() == Download.State.DOWNLOADED
             }
         }
 
         return fastFilter {
-            filterFnDownloaded(it)
+            filterFnDownloaded(it) && filterFnCloud(it)
         }
     }
 
@@ -428,17 +439,19 @@ class UpdatesScreenModel(
     private fun getUpdatesItemPreferenceFlow(): Flow<ItemPreferences> {
         return combine(
             updatesPreferences.filterDownloaded.changes(),
+            updatesPreferences.filterCloud.changes(),
             updatesPreferences.filterUnread.changes(),
             updatesPreferences.filterStarted.changes(),
             updatesPreferences.filterBookmarked.changes(),
             updatesPreferences.filterExcludedScanlators.changes(),
-        ) { downloaded, unread, started, bookmarked, excludedScanlators ->
+        ) { it: Array<Any?> ->
             ItemPreferences(
-                filterDownloaded = downloaded,
-                filterUnread = unread,
-                filterStarted = started,
-                filterBookmarked = bookmarked,
-                filterExcludedScanlators = excludedScanlators,
+                filterDownloaded = it[0] as TriState,
+                filterCloud = it[1] as TriState,
+                filterUnread = it[2] as TriState,
+                filterStarted = it[3] as TriState,
+                filterBookmarked = it[4] as TriState,
+                filterExcludedScanlators = it[5] as Boolean,
             )
         }
     }
@@ -450,6 +463,7 @@ class UpdatesScreenModel(
     @Immutable
     private data class ItemPreferences(
         val filterDownloaded: TriState,
+        val filterCloud: TriState,
         val filterUnread: TriState,
         val filterStarted: TriState,
         val filterBookmarked: TriState,

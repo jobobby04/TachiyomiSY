@@ -678,4 +678,35 @@
     <string name="final_chapter">終章</string>
     <string name="pref_include_chapter_url_hash">包含章節網址雜湊值</string>
     <string name="pref_include_chapter_url_hash_desc">將章節網址的 MD5 雜湊值前六個字元附加至章節檔案或資料夾名。</string>
+    <!-- Google Drive -->
+    <string name="pref_category_google_drive">Google 雲端硬碟</string>
+    <string name="pref_gdrive_client_id">OAuth Client ID</string>
+    <string name="pref_gdrive_client_secret">OAuth Client Secret</string>
+    <string name="pref_gdrive_sign_in">登入 Google 雲端硬碟</string>
+    <string name="pref_gdrive_sign_out">登出 Google 雲端硬碟</string>
+    <string name="gdrive_sign_in_started">請在剛開啟的瀏覽器中完成登入</string>
+    <string name="gdrive_sign_in_success">已成功連線至 Google 雲端硬碟</string>
+    <string name="gdrive_filter_downloaded_local">已下載至本地</string>
+    <string name="gdrive_filter_stored_in_cloud">存放於雲端 (Google Drive)</string>
+    <string name="gdrive_cbz_unavailable">使用 Google 雲端硬碟時不可用（已強制使用資料夾以支援 0 秒即時串流閱讀）</string>
+    <string name="gdrive_storage_label">Google 雲端硬碟</string>
+    <string name="gdrive_storage_label_account">Google 雲端硬碟 (%1$s)</string>
+    <string name="gdrive_onboarding_linked">已連結 Google 雲端硬碟 - 點擊以切換帳號</string>
+    <string name="gdrive_onboarding_use">使用 Google 雲端硬碟 - 不佔用本機儲存空間</string>
+    <string name="gdrive_signed_in_summary">已連結%1$s - 儲存位置已切換至 Google 雲端硬碟</string>
+    <string name="gdrive_sign_in_summary">登入後將漫畫資料夾存放在 Google 雲端硬碟，並隨時即時串流閱讀</string>
+    <string name="gdrive_signed_out">已登出 Google 雲端硬碟；儲存位置已還原至本機</string>
+    <string name="gdrive_advanced_hide">隱藏 API 憑證設定</string>
+    <string name="gdrive_advanced_show">API 憑證設定</string>
+    <string name="gdrive_advanced_summary">自訂您自己的 Google Cloud 專案 OAuth 憑證</string>
+    <string name="gdrive_backup_now">☁️ 立即備份至 Google 雲端</string>
+    <string name="gdrive_backup_now_summary">將書櫃、設定與閱讀進度備份至 Google 雲端硬碟 (TachiyomiSY/autobackup)</string>
+    <string name="gdrive_backup_started">正在背景建立 Google 雲端備份...</string>
+    <string name="gdrive_restore_from_cloud">☁️ 從 Google 雲端備份還原</string>
+    <string name="gdrive_restore_from_cloud_summary">瀏覽並選取 Google 雲端硬碟上的備份檔案進行還原</string>
+    <string name="gdrive_restore_dialog_title">選取 Google 雲端備份</string>
+    <string name="gdrive_restore_dialog_empty">Google 雲端硬碟尚未找到備份檔案。\n你可以先點擊「立即備份至 Google 雲端」建立第一份備份！</string>
+    <string name="gdrive_backup_file">備份檔案</string>
+    <string name="gdrive_storage_used">已使用：%1$s</string>
+    <string name="gdrive_credentials_missing">請先展開「API 憑證設定」填寫您的 Google OAuth Client ID</string>
 </resources>

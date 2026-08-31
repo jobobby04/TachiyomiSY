@@ -15,19 +15,24 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.ui.updates.UpdatesSettingsScreenModel
 import tachiyomi.core.common.preference.getAndSet
+import tachiyomi.domain.storage.service.StoragePreferences
 import tachiyomi.domain.updates.service.UpdatesPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.components.TriStateItem
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 @Composable
 fun UpdatesFilterDialog(
@@ -56,9 +61,16 @@ private fun ColumnScope.FilterSheet(
 ) {
     val filterDownloaded by screenModel.updatesPreferences.filterDownloaded.collectAsState()
     TriStateItem(
-        label = stringResource(MR.strings.label_downloaded),
+        label = stringResource(SYMR.strings.gdrive_filter_downloaded_local),
         state = filterDownloaded,
         onClick = { screenModel.toggleFilter(UpdatesPreferences::filterDownloaded) },
+    )
+
+    val filterCloud by screenModel.updatesPreferences.filterCloud.collectAsState()
+    TriStateItem(
+        label = stringResource(SYMR.strings.gdrive_filter_stored_in_cloud),
+        state = filterCloud,
+        onClick = { screenModel.toggleFilter(UpdatesPreferences::filterCloud) },
     )
 
     val filterUnread by screenModel.updatesPreferences.filterUnread.collectAsState()

@@ -4,6 +4,9 @@ import android.app.Application
 import android.content.Context
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
+import eu.kanade.tachiyomi.data.storage.gdrive.DriveDownloadIndex
+import eu.kanade.tachiyomi.data.storage.gdrive.GoogleDriveIndexManager
+import eu.kanade.tachiyomi.data.storage.gdrive.GoogleDriveService
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.Source
 import kotlinx.coroutines.CancellationException
@@ -95,6 +98,8 @@ class DownloadCache(
 
     private val diskCacheFile: File
         get() = File(context.cacheDir, "dl_index_cache_v3")
+
+    private val gdriveIndexManager: GoogleDriveIndexManager by lazy { Injekt.get() }
 
     private val rootDownloadsDirMutex = Mutex()
     private var rootDownloadsDir = RootDirectory(storageManager.getDownloadsDirectory())
@@ -203,18 +208,21 @@ class DownloadCache(
      * @param manga the manga of the chapter.
      */
     suspend fun addChapter(chapterDirName: String, mangaUniFile: UniFile, manga: Manga) {
+        val source = sourceManager.get(manga.source)
+        val sourceDirName = source?.let { provider.getSourceDirName(it) }
+        val mangaDirName = provider.getMangaDirName(manga.ogTitle)
+
         rootDownloadsDirMutex.withLock {
             // Retrieve the cached source directory or cache a new one
             var sourceDir = rootDownloadsDir.sourceDirs[manga.source]
             if (sourceDir == null) {
-                val source = sourceManager.get(manga.source) ?: return
+                if (source == null) return
                 val sourceUniFile = provider.findSourceDir(source) ?: return
                 sourceDir = SourceDirectory(sourceUniFile)
                 rootDownloadsDir.sourceDirs += manga.source to sourceDir
             }
 
             // Retrieve the cached manga directory or cache a new one
-            val mangaDirName = provider.getMangaDirName(/* SY --> */ manga.ogTitle /* SY <-- */)
             var mangaDir = sourceDir.mangaDirs[mangaDirName]
             if (mangaDir == null) {
                 mangaDir = MangaDirectory(mangaUniFile)
@@ -223,6 +231,10 @@ class DownloadCache(
 
             // Save the chapter directory
             mangaDir.chapterDirs += chapterDirName
+        }
+
+        if (sourceDirName != null) {
+            gdriveIndexManager.addChapter(sourceDirName, mangaDirName, chapterDirName)
         }
 
         notifyChanges()
@@ -235,18 +247,24 @@ class DownloadCache(
      * @param manga the manga of the chapter.
      */
     suspend fun removeChapter(chapter: Chapter, manga: Manga) {
+        val source = sourceManager.get(manga.source)
+        val sourceDirName = source?.let { provider.getSourceDirName(it) }
+        val mangaDirName = provider.getMangaDirName(manga.ogTitle)
+        val removed = mutableListOf<String>()
+
         rootDownloadsDirMutex.withLock {
             val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val mangaDir = sourceDir.mangaDirs[
-                provider.getMangaDirName(
-                    /* SY --> */ manga.ogTitle, /* SY <-- */
-                ),
-            ] ?: return
+            val mangaDir = sourceDir.mangaDirs[mangaDirName] ?: return
             provider.getValidChapterDirNames(chapter.name, chapter.scanlator, chapter.url).forEach {
                 if (it in mangaDir.chapterDirs) {
                     mangaDir.chapterDirs -= it
+                    removed += it
                 }
             }
+        }
+
+        if (sourceDirName != null && removed.isNotEmpty()) {
+            gdriveIndexManager.removeChapters(sourceDirName, mangaDirName, removed)
         }
 
         notifyChanges()
@@ -254,14 +272,22 @@ class DownloadCache(
 
     // SY -->
     suspend fun removeFolders(folders: List<String>, manga: Manga) {
+        val source = sourceManager.get(manga.source)
+        val sourceDirName = source?.let { provider.getSourceDirName(it) }
+        val mangaDirName = provider.getMangaDirName(manga.ogTitle)
+
         rootDownloadsDirMutex.withLock {
             val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val mangaDir = sourceDir.mangaDirs[provider.getMangaDirName(manga.ogTitle)] ?: return
+            val mangaDir = sourceDir.mangaDirs[mangaDirName] ?: return
             folders.forEach { chapter ->
                 if (chapter in mangaDir.chapterDirs) {
                     mangaDir.chapterDirs -= chapter
                 }
             }
+        }
+
+        if (sourceDirName != null && folders.isNotEmpty()) {
+            gdriveIndexManager.removeChapters(sourceDirName, mangaDirName, folders)
         }
     }
 
@@ -274,20 +300,26 @@ class DownloadCache(
      * @param manga the manga of the chapter.
      */
     suspend fun removeChapters(chapters: List<Chapter>, manga: Manga) {
+        val source = sourceManager.get(manga.source)
+        val sourceDirName = source?.let { provider.getSourceDirName(it) }
+        val mangaDirName = provider.getMangaDirName(manga.ogTitle)
+        val removed = mutableListOf<String>()
+
         rootDownloadsDirMutex.withLock {
             val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val mangaDir = sourceDir.mangaDirs[
-                provider.getMangaDirName(
-                    /* SY --> */ manga.ogTitle, /* SY <-- */
-                ),
-            ] ?: return
+            val mangaDir = sourceDir.mangaDirs[mangaDirName] ?: return
             chapters.forEach { chapter ->
                 provider.getValidChapterDirNames(chapter.name, chapter.scanlator, chapter.url).forEach {
                     if (it in mangaDir.chapterDirs) {
                         mangaDir.chapterDirs -= it
+                        removed += it
                     }
                 }
             }
+        }
+
+        if (sourceDirName != null && removed.isNotEmpty()) {
+            gdriveIndexManager.removeChapters(sourceDirName, mangaDirName, removed)
         }
 
         notifyChanges()
@@ -299,12 +331,19 @@ class DownloadCache(
      * @param manga the manga to remove.
      */
     suspend fun removeManga(manga: Manga) {
+        val source = sourceManager.get(manga.source)
+        val sourceDirName = source?.let { provider.getSourceDirName(it) }
+        val mangaDirName = provider.getMangaDirName(manga.ogTitle)
+
         rootDownloadsDirMutex.withLock {
             val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val mangaDirName = provider.getMangaDirName(/* SY --> */ manga.ogTitle /* SY <-- */)
             if (sourceDir.mangaDirs.containsKey(mangaDirName)) {
                 sourceDir.mangaDirs -= mangaDirName
             }
+        }
+
+        if (sourceDirName != null) {
+            gdriveIndexManager.removeManga(sourceDirName, mangaDirName)
         }
 
         notifyChanges()
@@ -387,8 +426,44 @@ class DownloadCache(
 
             val sourceMap = sources.associate { provider.getSourceDirName(it).lowercase() to it.id }
 
+            val downloadsDir = storageManager.getDownloadsDirectory()
+            val isDriveStorage = downloadsDir?.uri?.scheme == GoogleDriveService.URI_SCHEME
+
+            if (isDriveStorage) {
+                val remoteIndex = gdriveIndexManager.loadRemoteIndex()
+                if (remoteIndex != null && remoteIndex.sources.isNotEmpty()) {
+                    rootDownloadsDirMutex.withLock {
+                        val updatedRootDir = RootDirectory(downloadsDir)
+                        val sourceDirsMap = mutableMapOf<Long, SourceDirectory>()
+
+                        for ((sourceDirNameLower, mangaMap) in remoteIndex.sources) {
+                            val sourceId = sourceMap[sourceDirNameLower] ?: continue
+                            val source = sourceManager.getOrStub(sourceId)
+                            val sourceUniFile = provider.findSourceDir(source) ?: continue
+                            val sourceDir = SourceDirectory(sourceUniFile)
+                            val mangaDirsMap = mutableMapOf<String, MangaDirectory>()
+
+                            for ((mangaDirName, chapterList) in mangaMap) {
+                                val mangaUniFile = sourceUniFile.findFile(mangaDirName) ?: continue
+                                val mangaDir = MangaDirectory(mangaUniFile)
+                                mangaDir.chapterDirs = chapterList.toMutableSet()
+                                mangaDirsMap[mangaDirName] = mangaDir
+                            }
+                            sourceDir.mangaDirs = mangaDirsMap
+                            sourceDirsMap[sourceId] = sourceDir
+                        }
+                        updatedRootDir.sourceDirs = sourceDirsMap
+                        rootDownloadsDir = updatedRootDir
+                    }
+                    _isInitializing.emit(false)
+                    lastRenew = System.currentTimeMillis()
+                    notifyChanges()
+                    return@launchIO
+                }
+            }
+
             rootDownloadsDirMutex.withLock {
-                val updatedRootDir = RootDirectory(storageManager.getDownloadsDirectory())
+                val updatedRootDir = RootDirectory(downloadsDir)
 
                 updatedRootDir.sourceDirs = updatedRootDir.dir?.listFiles().orEmpty()
                     .filter { it.isDirectory && !it.name.isNullOrBlank() }
@@ -427,6 +502,20 @@ class DownloadCache(
                     .awaitAll()
 
                 rootDownloadsDir = updatedRootDir
+
+                if (isDriveStorage) {
+                    val sourcesMap = mutableMapOf<String, Map<String, List<String>>>()
+                    rootDownloadsDir.sourceDirs.forEach { (sourceId, sourceDir) ->
+                        val source = sourceManager.getOrStub(sourceId)
+                        val sourceDirName = provider.getSourceDirName(source).lowercase()
+                        val mangaMap = mutableMapOf<String, List<String>>()
+                        sourceDir.mangaDirs.forEach { (mangaDirName, mangaDir) ->
+                            mangaMap[mangaDirName] = mangaDir.chapterDirs.toList()
+                        }
+                        sourcesMap[sourceDirName] = mangaMap
+                    }
+                    gdriveIndexManager.setIndex(DriveDownloadIndex(sources = sourcesMap))
+                }
             }
 
             _isInitializing.emit(false)

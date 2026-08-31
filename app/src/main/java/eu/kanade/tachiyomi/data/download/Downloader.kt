@@ -289,6 +289,16 @@ class Downloader(
         val chaptersToQueue = chapters.asSequence()
             // Filter out those already downloaded.
             .filter {
+                !cache.isChapterDownloaded(
+                    it.name,
+                    it.scanlator,
+                    it.url,
+                    /* SY --> */ manga.ogTitle, /* SY <-- */
+                    source.id,
+                    skipCache = false,
+                )
+            }
+            .filter {
                 provider.findChapterDir(
                     it.name,
                     it.scanlator,
@@ -364,6 +374,29 @@ class Downloader(
             download.chapter.scanlator,
             download.chapter.url,
         )
+
+        // Check if chapter was already downloaded previously on Drive or local disk
+        val isAlreadyDownloaded = cache.isChapterDownloaded(
+            download.chapter.name,
+            download.chapter.scanlator,
+            download.chapter.url,
+            download.manga.ogTitle,
+            download.source.id,
+            skipCache = false,
+        ) || provider.findChapterDir(
+            download.chapter.name,
+            download.chapter.scanlator,
+            download.chapter.url,
+            download.manga.ogTitle,
+            download.source,
+        ) != null
+
+        if (isAlreadyDownloaded) {
+            cache.addChapter(chapterDirname, mangaDir, download.manga)
+            download.status = Download.State.DOWNLOADED
+            return
+        }
+
         val tmpDir = mangaDir.createDirectory(chapterDirname + TMP_DIR_SUFFIX)!!
 
         try {
@@ -427,14 +460,21 @@ class Downloader(
             )
 
             // Only rename the directory if it's downloaded
-            if (downloadPreferences.saveChaptersAsCBZ.get()) {
+            val isDrive = mangaDir.uri.scheme == eu.kanade.tachiyomi.data.storage.gdrive.GoogleDriveService.URI_SCHEME
+            if (downloadPreferences.saveChaptersAsCBZ.get() && !isDrive) {
                 archiveChapter(mangaDir, chapterDirname, tmpDir)
             } else {
+                val existing = mangaDir.findFile(chapterDirname)
+                if (existing != null && existing.uri != tmpDir.uri) {
+                    existing.delete()
+                }
                 tmpDir.renameTo(chapterDirname)
             }
             cache.addChapter(chapterDirname, mangaDir, download.manga)
 
-            DiskUtil.createNoMediaFile(tmpDir, context)
+            if (!isDrive) {
+                DiskUtil.createNoMediaFile(tmpDir, context)
+            }
 
             download.status = Download.State.DOWNLOADED
         } catch (error: Throwable) {

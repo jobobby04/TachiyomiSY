@@ -40,6 +40,8 @@ android {
         buildConfigField("String", "COMMIT_SHA", "\"${getLatestCommitSha()}\"")
         buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLatestCommitTime = false)}\"")
         buildConfigField("boolean", "INCLUDE_UPDATER", "false")
+        buildConfigField("String", "GDRIVE_CLIENT_ID", "\"${project.findProperty("gdrive_client_id") ?: ""}\"")
+        buildConfigField("String", "GDRIVE_CLIENT_SECRET", "\"${project.findProperty("gdrive_client_secret") ?: ""}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

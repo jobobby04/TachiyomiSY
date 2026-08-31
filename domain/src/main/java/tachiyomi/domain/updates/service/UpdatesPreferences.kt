@@ -14,6 +14,11 @@ class UpdatesPreferences(
         TriState.DISABLED,
     )
 
+    val filterCloud: Preference<TriState> = preferenceStore.getEnum(
+        "pref_filter_updates_cloud",
+        TriState.DISABLED,
+    )
+
     val filterUnread: Preference<TriState> = preferenceStore.getEnum(
         "pref_filter_updates_unread",
         TriState.DISABLED,

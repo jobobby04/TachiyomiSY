@@ -16,6 +16,7 @@ import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -34,6 +35,9 @@ object SettingsDownloadScreen : SearchableSettings {
         val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
 
         val downloadPreferences = remember { Injekt.get<DownloadPreferences>() }
+        val storagePreferences = remember { Injekt.get<tachiyomi.domain.storage.service.StoragePreferences>() }
+        val baseDir by storagePreferences.baseStorageDirectory.collectAsState()
+        val isDrive = baseDir.startsWith(eu.kanade.tachiyomi.data.storage.gdrive.GoogleDriveService.URI_SCHEME)
         val parallelSourceLimit by downloadPreferences.parallelSourceLimit.collectAsState()
         val parallelPageLimit by downloadPreferences.parallelPageLimit.collectAsState()
         return listOf(
@@ -44,6 +48,8 @@ object SettingsDownloadScreen : SearchableSettings {
             Preference.PreferenceItem.SwitchPreference(
                 preference = downloadPreferences.saveChaptersAsCBZ,
                 title = stringResource(MR.strings.save_chapter_as_cbz),
+                enabled = !isDrive,
+                subtitle = if (isDrive) stringResource(SYMR.strings.gdrive_cbz_unavailable) else null,
             ),
             Preference.PreferenceItem.SwitchPreference(
                 preference = downloadPreferences.splitTallImages,

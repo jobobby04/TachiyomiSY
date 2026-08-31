@@ -113,10 +113,10 @@ class BackupCreateJob(private val context: Context, workerParams: WorkerParamete
             }
         }
 
-        fun startNow(context: Context, uri: Uri, options: BackupOptions) {
+        fun startNow(context: Context, uri: Uri? = null, options: BackupOptions = BackupOptions()) {
             val inputData = workDataOf(
-                IS_AUTO_BACKUP_KEY to false,
-                LOCATION_URI_KEY to uri.toString(),
+                IS_AUTO_BACKUP_KEY to (uri == null),
+                LOCATION_URI_KEY to uri?.toString(),
                 OPTIONS_KEY to options.asBooleanArray(),
             )
             val request = OneTimeWorkRequestBuilder<BackupCreateJob>()

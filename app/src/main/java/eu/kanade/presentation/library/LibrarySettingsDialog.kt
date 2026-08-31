@@ -34,6 +34,7 @@ import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.domain.library.model.LibrarySort
 import tachiyomi.domain.library.model.sort
 import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.domain.storage.service.StoragePreferences
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.BaseSortItem
@@ -46,6 +47,8 @@ import tachiyomi.presentation.core.components.SortItem
 import tachiyomi.presentation.core.components.TriStateItem
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 @Composable
 fun LibrarySettingsDialog(
@@ -99,11 +102,12 @@ private fun ColumnScope.FilterPage(
     screenModel: LibrarySettingsScreenModel,
 ) {
     val filterDownloaded by screenModel.libraryPreferences.filterDownloaded.collectAsState()
+    val filterCloud by screenModel.libraryPreferences.filterCloud.collectAsState()
     val downloadedOnly by screenModel.preferences.downloadedOnly.collectAsState()
     val autoUpdateMangaRestrictions by screenModel.libraryPreferences.autoUpdateMangaRestrictions.collectAsState()
 
     TriStateItem(
-        label = stringResource(MR.strings.label_downloaded),
+        label = stringResource(SYMR.strings.gdrive_filter_downloaded_local),
         state = if (downloadedOnly) {
             TriState.ENABLED_IS
         } else {
@@ -111,6 +115,11 @@ private fun ColumnScope.FilterPage(
         },
         enabled = !downloadedOnly,
         onClick = { screenModel.toggleFilter(LibraryPreferences::filterDownloaded) },
+    )
+    TriStateItem(
+        label = stringResource(SYMR.strings.gdrive_filter_stored_in_cloud),
+        state = filterCloud,
+        onClick = { screenModel.toggleFilter(LibraryPreferences::filterCloud) },
     )
     val filterUnread by screenModel.libraryPreferences.filterUnread.collectAsState()
     TriStateItem(

@@ -61,7 +61,9 @@ internal class DownloadPageLoader(
         val pages = downloadManager.buildPageList(source, manga, chapter.chapter.toDomainChapter()!!)
         return pages.map { page ->
             ReaderPage(page.index, page.url, page.imageUrl) {
-                context.contentResolver.openInputStream(page.uri ?: Uri.EMPTY)!!
+                val uri = page.uri ?: Uri.EMPTY
+                UniFile.fromUri(context, uri)?.openInputStream()
+                    ?: context.contentResolver.openInputStream(uri)!!
             }.apply {
                 status = Page.State.Ready
             }

@@ -738,4 +738,36 @@
 
     <!-- Humanize time -->
     <string name="humanize_fallback">moments ago</string>
+
+    <!-- Google Drive storage -->
+    <string name="pref_category_google_drive">Google Drive</string>
+    <string name="pref_gdrive_client_id">OAuth client ID</string>
+    <string name="pref_gdrive_client_secret">OAuth client secret</string>
+    <string name="pref_gdrive_sign_in">Sign in to Google Drive</string>
+    <string name="pref_gdrive_sign_out">Sign out of Google Drive</string>
+    <string name="gdrive_sign_in_started">Finish signing in with the browser that just opened</string>
+    <string name="gdrive_sign_in_success">Google Drive connected</string>
+    <string name="gdrive_filter_downloaded_local">Downloaded locally</string>
+    <string name="gdrive_filter_stored_in_cloud">Stored in the cloud (Google Drive)</string>
+    <string name="gdrive_cbz_unavailable">Not available with Google Drive. Chapters stay as folders so pages can stream instantly.</string>
+    <string name="gdrive_storage_label">Google Drive</string>
+    <string name="gdrive_storage_label_account">Google Drive (%1$s)</string>
+    <string name="gdrive_onboarding_linked">Google Drive linked - tap to switch account</string>
+    <string name="gdrive_onboarding_use">Use Google Drive - no space used on this device</string>
+    <string name="gdrive_signed_in_summary">Linked%1$s - storage location switched to Google Drive</string>
+    <string name="gdrive_sign_in_summary">Sign in to keep chapters in Google Drive and stream them from the cloud</string>
+    <string name="gdrive_signed_out">Signed out of Google Drive; storage is back on this device</string>
+    <string name="gdrive_advanced_hide">Hide API credentials</string>
+    <string name="gdrive_advanced_show">API credentials</string>
+    <string name="gdrive_advanced_summary">Supply an OAuth client from your own Google Cloud project</string>
+    <string name="gdrive_backup_now">Back up to Google Drive now</string>
+    <string name="gdrive_backup_now_summary">Copies your library, settings and progress to TachiyomiSY/autobackup in Drive</string>
+    <string name="gdrive_backup_started">Creating a Google Drive backup in the background</string>
+    <string name="gdrive_restore_from_cloud">Restore from a Google Drive backup</string>
+    <string name="gdrive_restore_from_cloud_summary">Pick a backup stored in your Google Drive</string>
+    <string name="gdrive_restore_dialog_title">Select a Google Drive backup</string>
+    <string name="gdrive_restore_dialog_empty">No backups found in Google Drive yet. Run Back up to Google Drive now to create the first one.</string>
+    <string name="gdrive_backup_file">Backup file</string>
+    <string name="gdrive_storage_used">Used: %1$s</string>
+    <string name="gdrive_credentials_missing">Please enter your Google OAuth Client ID under API credentials first</string>
 </resources>
