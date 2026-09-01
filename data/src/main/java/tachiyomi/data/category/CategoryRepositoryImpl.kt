@@ -46,14 +46,16 @@ class CategoryRepositoryImpl(
 
     // SY -->
     override suspend fun insert(category: Category): Long? {
-        return database.categoriesQueries.insert(
-            name = category.name,
-            order = category.order,
-            flags = category.flags,
-            version = category.version,
-            uid = category.uid,
-            last_modified_at = category.lastModifiedAt,
-        ).awaitAsOneOrNull()
+        return database.transactionWithResult {
+            database.categoriesQueries.insert(
+                name = category.name,
+                order = category.order,
+                flags = category.flags,
+                version = category.version,
+                uid = category.uid,
+                last_modified_at = category.lastModifiedAt,
+            ).awaitAsOneOrNull()
+        }
     }
     // SY <--
 

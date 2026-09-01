@@ -67,11 +67,13 @@ class FeedSavedSearchRepositoryImpl(
     }
 
     override suspend fun insert(feedSavedSearch: FeedSavedSearch): Long {
-        return database.feed_saved_searchQueries.insertReturningId(
-            feedSavedSearch.source,
-            feedSavedSearch.savedSearch,
-            feedSavedSearch.global,
-        ).awaitAsOne()
+        return database.transactionWithResult {
+            database.feed_saved_searchQueries.insertReturningId(
+                feedSavedSearch.source,
+                feedSavedSearch.savedSearch,
+                feedSavedSearch.global,
+            ).awaitAsOne()
+        }
     }
 
     override suspend fun insertAll(feedSavedSearch: List<FeedSavedSearch>) {

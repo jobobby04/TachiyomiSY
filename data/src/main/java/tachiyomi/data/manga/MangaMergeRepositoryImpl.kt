@@ -88,20 +88,22 @@ class MangaMergeRepositoryImpl(
     }
 
     override suspend fun insert(reference: MergedMangaReference): Long? {
-        return database.mergedQueries
-            .insertReturningId(
-                infoManga = reference.isInfoManga,
-                getChapterUpdates = reference.getChapterUpdates,
-                chapterSortMode = reference.chapterSortMode.toLong(),
-                chapterPriority = reference.chapterPriority.toLong(),
-                downloadChapters = reference.downloadChapters,
-                mergeId = reference.mergeId!!,
-                mergeUrl = reference.mergeUrl,
-                mangaId = reference.mangaId,
-                mangaUrl = reference.mangaUrl,
-                mangaSource = reference.mangaSourceId,
-            )
-            .awaitAsOneOrNull()
+        return database.transactionWithResult {
+            database.mergedQueries
+                .insertReturningId(
+                    infoManga = reference.isInfoManga,
+                    getChapterUpdates = reference.getChapterUpdates,
+                    chapterSortMode = reference.chapterSortMode.toLong(),
+                    chapterPriority = reference.chapterPriority.toLong(),
+                    downloadChapters = reference.downloadChapters,
+                    mergeId = reference.mergeId!!,
+                    mergeUrl = reference.mergeUrl,
+                    mangaId = reference.mangaId,
+                    mangaUrl = reference.mangaUrl,
+                    mangaSource = reference.mangaSourceId,
+                )
+                .awaitAsOneOrNull()
+        }
     }
 
     override suspend fun insertAll(references: List<MergedMangaReference>) {
