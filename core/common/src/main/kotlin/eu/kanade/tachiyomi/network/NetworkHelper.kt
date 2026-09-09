@@ -80,7 +80,7 @@ open /* SY <-- */ class NetworkHelper(
     open /* SY <-- */ val client: OkHttpClient by lazy {
         clientBuilder()
             // SY -->
-            .addInterceptor(FlareSolverrInterceptor(preferences))
+            .addInterceptor(FlareSolverrInterceptor(context, preferences))
             // SY <--
             .addInterceptor(
                 CloudflareInterceptor(
