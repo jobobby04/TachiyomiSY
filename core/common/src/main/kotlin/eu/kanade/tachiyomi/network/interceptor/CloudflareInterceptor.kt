@@ -151,12 +151,9 @@ class CloudflareInterceptor(
 }
 
 // SY -->
-val ERROR_CODES = listOf(403, 503)
-val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
+internal val ERROR_CODES = listOf(403, 503)
+internal val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
+internal val COOKIE_NAMES = listOf("cf_clearance")
 
-// SY <--
-private val COOKIE_NAMES = listOf("cf_clearance")
-
-// SY -->
 class CloudflareBypassException(message: String, cause: Throwable? = null) : Exception(message, cause)
 // SY <--

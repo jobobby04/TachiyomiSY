@@ -44,7 +44,6 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
-import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.PREF_DOH_360
 import eu.kanade.tachiyomi.network.PREF_DOH_ADGUARD
 import eu.kanade.tachiyomi.network.PREF_DOH_ALIDNS
@@ -57,9 +56,7 @@ import eu.kanade.tachiyomi.network.PREF_DOH_NJALLA
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD101
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.network.PREF_DOH_SHECAN
-import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.interceptor.FlareSolverrInterceptor
-import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.CrashLogUtil
@@ -83,12 +80,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import okhttp3.Headers
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchNonCancellable
@@ -108,7 +102,6 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import tachiyomi.core.common.preference.Preference as BasePreference
 
@@ -360,6 +353,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                     title = stringResource(SYMR.strings.pref_flare_solverr_url),
                     enabled = enableFlareSolverr,
                     subtitle = stringResource(SYMR.strings.pref_flare_solverr_url_summary),
+                    onValueChanged = { it.trim().toHttpUrlOrNull() != null },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(SYMR.strings.pref_test_flare_solverr_and_update_user_agent),
@@ -367,7 +361,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                     subtitle = stringResource(SYMR.strings.pref_test_flare_solverr_and_update_user_agent_summary),
                     onClick = {
                         scope.launch {
-                            testFlareSolverrAndUpdateUserAgent(flareSolverrUrlPref, userAgentPref, context)
+                            testFlareSolverrAndUpdateUserAgent(userAgentPref, context)
                         }
                     },
                 ),
@@ -888,57 +882,26 @@ object SettingsAdvancedScreen : SearchableSettings {
     }
 
     // SY -->
-    @OptIn(InternalSerializationApi::class)
     private suspend fun testFlareSolverrAndUpdateUserAgent(
-        flareSolverrUrlPref: BasePreference<String>,
         userAgentPref: BasePreference<String>,
         context: android.content.Context,
     ) {
-        val networkHelper: NetworkHelper by injectLazy()
-        val json: Json by injectLazy()
-        val jsonMediaType = "application/json".toMediaType()
-
         try {
-            withContext(Dispatchers.IO) {
-                val flareSolverUrl = flareSolverrUrlPref.get().trim()
-                val flareSolverResponse = with(json) {
-                    networkHelper.client.newCall(
-                        POST(
-                            url = flareSolverUrl,
-                            body =
-                            Json.encodeToString(
-                                FlareSolverrInterceptor.CFClearance.FlareSolverRequest(
-                                    "request.get",
-                                    "https://www.google.com/",
-                                    returnOnlyCookies = true,
-                                    maxTimeout = 60000,
-                                ),
-                            ).toRequestBody(jsonMediaType),
-                        ),
-                    ).awaitSuccess().parseAs<FlareSolverrInterceptor.CFClearance.FlareSolverResponse>()
-                }
+            val response = withContext(Dispatchers.IO) {
+                FlareSolverrInterceptor.CFClearance.request(url = "https://www.google.com/")
+            }
 
-                if (flareSolverResponse.solution.status in 200..299) {
-                    // Set the user agent to the one provided by FlareSolverr
-                    userAgentPref.set(flareSolverResponse.solution.userAgent)
-
-                    val message = SYMR.strings.flare_solver_user_agent_update_success
-                    withContext(Dispatchers.Main) {
-                        context.toast(message)
-                    }
-                } else {
-                    val message = SYMR.strings.flare_solver_update_user_agent_failed
-                    withContext(Dispatchers.Main) {
-                        context.toast(message)
-                    }
-                }
+            val solution = response.solution
+            if (response.status == "ok" && solution != null) {
+                userAgentPref.set(solution.userAgent)
+                context.toast(SYMR.strings.flare_solver_user_agent_update_success)
+            } else {
+                logcat(LogPriority.ERROR, tag = "FlareSolverr") { "FlareSolverr test failed: ${response.message}" }
+                context.toast(SYMR.strings.flare_solver_update_user_agent_failed)
             }
         } catch (e: Exception) {
-            logcat(LogPriority.ERROR, tag = "FlareSolverr")
-            { "Failed to resolve with FlareSolverr: ${e.message}" }
-            withContext(Dispatchers.Main) {
-                context.toast(SYMR.strings.flare_solver_error)
-            }
+            logcat(LogPriority.ERROR, e, tag = "FlareSolverr") { "Failed to contact FlareSolverr" }
+            context.toast(SYMR.strings.flare_solver_error)
         }
     }
 
