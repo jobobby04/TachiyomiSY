@@ -156,6 +156,8 @@
     <string name="flare_solver_user_agent_update_success">FlareSolverr is working. User agent updated. Please restart the app</string>
     <string name="flare_solver_update_user_agent_failed">FlareSolverr is not working. User agent not updated. Please check your settings</string>
     <string name="flare_solver_error">Error contacting FlareSolverr</string>
+    <string name="flare_solver_user_agent_updated">FlareSolverr updated the user agent. Restart the app to apply it to every source</string>
+    <string name="flare_solver_user_agent_reset">FlareSolverr is unavailable, user agent reset for the WebView bypass. Restart the app to apply it to every source</string>
     <string name="pref_enable_flare_solverr">Enable FlareSolverr</string>
     <string name="pref_enable_flare_solverr_summary">Use FlareSolverr to bypass Cloudflare\'s anti-bot protection</string>
     <string name="pref_flare_solverr_url">FlareSolverr URL</string>
