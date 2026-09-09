@@ -5,7 +5,6 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
-import eu.kanade.tachiyomi.network.interceptor.FlareSolverrInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UncaughtExceptionInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
 import exh.pref.DelegateSourcePreferences
@@ -79,9 +78,6 @@ open /* SY <-- */ class NetworkHelper(
     /* SY --> */
     open /* SY <-- */ val client: OkHttpClient by lazy {
         clientBuilder()
-            // SY -->
-            .addInterceptor(FlareSolverrInterceptor(context, preferences))
-            // SY <--
             .addInterceptor(
                 CloudflareInterceptor(
                     context,
