@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.util.system.isOutdated
 import eu.kanade.tachiyomi.util.system.toWebViewHeaders
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
@@ -27,6 +28,7 @@ import okhttp3.Response
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
@@ -59,13 +61,6 @@ class CloudflareInterceptor(
     """.trimIndent()
 
     override fun shouldIntercept(response: Response): Boolean {
-        // SY -->
-        // Check if FlareSolverr is enabled if it's enabled we don't need to bypass Cloudflare through WebView
-        if (preferences.enableFlareSolverr.get()) {
-            return false
-        }
-        // SY <--
-
         // Check if Cloudflare anti-bot is on
         // Checking the cf-mitigated header is the official way to detect a Cloudflare challenge:
         // https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/detect-response/
@@ -84,22 +79,26 @@ class CloudflareInterceptor(
 
         // write releases the read hold of a request made from within another to the same host, like an extension
         // refreshing a token, which would otherwise wait on itself
-        lock.write {
+        /* SY --> */ val retryRequest = /* SY <-- */ lock.write {
             // Another request may have solved the challenge while this one waited
             if (isCleared(request.url, clearance)) {
                 response.close()
+                // SY -->
+                withCurrentUserAgent(request)
+                // SY <--
             } else {
-                if (!prepareWebView()) return response
+                if (/* SY --> */ !canSolve() /* SY <-- */) return response
                 solve(request, response, clearance)
             }
         }
 
-        return chain.proceed(request)
+        return chain.proceed(/* SY --> */ retryRequest /* SY <-- */)
     }
 
     override fun intercept(chain: Interceptor.Chain, request: Request, response: Response): Response {
-        solve(request, response, clearance(request.url))
-        return chain.proceed(request)
+        // SY -->
+        return chain.proceed(solve(request, response, clearance(request.url)))
+        // SY <--
     }
 
     private fun clearance(url: HttpUrl): String? {
@@ -111,11 +110,19 @@ class CloudflareInterceptor(
         return !clearance.isNullOrBlank() && clearance != previousClearance
     }
 
-    private fun solve(request: Request, response: Response, clearance: String?) {
+    private fun solve(request: Request, response: Response, clearance: String?) /* SY --> */: Request /* SY <-- */ {
         try {
             response.close()
+            // SY -->
+            if (preferences.enableFlareSolverr.get()) {
+                return resolveWithFlareSolverr(request) ?: resolveWithStockUserAgent(request, clearance)
+            }
+            // SY <--
             cookieManager.remove(request.url, COOKIE_NAMES, 0)
             resolveWithWebView(request, clearance)
+            // SY -->
+            return request
+            // SY <--
         }
         // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
         // we don't crash the entire app
@@ -125,6 +132,46 @@ class CloudflareInterceptor(
             throw IOException(e)
         }
     }
+
+    // SY -->
+
+    private fun canSolve(): Boolean = preferences.enableFlareSolverr.get() || prepareWebView()
+
+    /** Waiters retry under the user agent the solve left, as Cloudflare binds the clearance to it. */
+    private fun withCurrentUserAgent(request: Request): Request {
+        if (!preferences.enableFlareSolverr.get()) return request
+        return request.newBuilder().header("User-Agent", preferences.defaultUserAgent.get().trim()).build()
+    }
+
+    /** Returns the request to retry with, or null to fall back to the WebView. */
+    private fun resolveWithFlareSolverr(request: Request): Request? {
+        val previousUserAgent = preferences.defaultUserAgent.get()
+        return try {
+            runBlocking { FlareSolverr.resolve(request) }
+        } catch (e: Exception) {
+            logcat(LogPriority.WARN, e) { "FlareSolverr failed, falling back to WebView" }
+            null
+        }.also { solved ->
+            if (solved != null && preferences.defaultUserAgent.get() != previousUserAgent) {
+                executor.execute { context.toast(SYMR.strings.flare_solver_user_agent_updated, Toast.LENGTH_LONG) }
+            }
+        }
+    }
+
+    /** WebView fallback under the stock user agent, since the solver's desktop one makes the challenge fail. */
+    private fun resolveWithStockUserAgent(request: Request, clearance: String?): Request {
+        if (!prepareWebView()) throw CloudflareBypassException("FlareSolverr failed and no WebView is available")
+        val userAgent = preferences.defaultUserAgent.defaultValue()
+        if (preferences.defaultUserAgent.get() != userAgent) {
+            preferences.defaultUserAgent.delete()
+            executor.execute { context.toast(SYMR.strings.flare_solver_user_agent_reset, Toast.LENGTH_LONG) }
+        }
+        val fallbackRequest = request.newBuilder().header("User-Agent", userAgent).build()
+        cookieManager.remove(fallbackRequest.url, COOKIE_NAMES, 0)
+        resolveWithWebView(fallbackRequest, clearance)
+        return fallbackRequest
+    }
+    // SY <--
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun resolveWithWebView(originalRequest: Request, originalClearance: String?) {
@@ -285,10 +332,10 @@ private fun HttpUrl.origin(): String {
     return if (port == HttpUrl.defaultPort(scheme)) "$scheme://$host" else "$scheme://$host:$port"
 }
 
-// SY -->
-internal val ERROR_CODES = listOf(403, 503)
-internal val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
-internal val COOKIE_NAMES = listOf("cf_clearance")
+private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
 
+/* SY --> */ internal /* SY <-- */ val COOKIE_NAMES = listOf("cf_clearance")
+
+// SY -->
 class CloudflareBypassException(message: String, cause: Throwable? = null) : Exception(message, cause)
 // SY <--

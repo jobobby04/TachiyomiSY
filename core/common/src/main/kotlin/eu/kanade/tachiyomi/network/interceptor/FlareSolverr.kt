@@ -12,8 +12,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -101,10 +99,6 @@ object FlareSolverr {
         val version: String? = null,
     )
 
-    fun clearanceCookie(url: HttpUrl): Cookie? {
-        return network.cookieJar.get(url).firstOrNull { it.name in COOKIE_NAMES }
-    }
-
     /** Returns FlareSolverr's answer for [url], keeping its error body instead of throwing on HTTP 500. */
     suspend fun request(
         url: String,
@@ -130,14 +124,8 @@ object FlareSolverr {
         }
     }
 
-    /** Rebuilds [originalRequest] for a retry, solving only if no other request replaced [oldClearance] meanwhile. */
-    suspend fun resolve(originalRequest: Request, oldClearance: Cookie?): Request = mutex.withLock {
-        val currentClearance = clearanceCookie(originalRequest.url)
-        if (currentClearance != null && currentClearance.value != oldClearance?.value) {
-            logcat(tag = TAG) { "Reusing the clearance cookie solved by another request for ${originalRequest.url}" }
-            return@withLock withUserAgent(originalRequest, preferences.defaultUserAgent.get().trim())
-        }
-
+    /** Solves the challenge for [originalRequest] and rebuilds it for a retry under the solver's user agent. */
+    suspend fun resolve(originalRequest: Request): Request = mutex.withLock {
         logcat(tag = TAG) { "Requesting challenge solution for ${originalRequest.url}" }
         val response = request(
             url = originalRequest.url.toString(),
