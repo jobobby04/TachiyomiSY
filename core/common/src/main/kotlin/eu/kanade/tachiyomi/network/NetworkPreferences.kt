@@ -10,6 +10,12 @@ class NetworkPreferences(
 
     val verboseLogging: Preference<Boolean> = preferenceStore.getBoolean("verbose_logging", verboseLoggingDefault)
 
+    // SY -->
+    val enableFlareSolverr: Preference<Boolean> = preferenceStore.getBoolean("enable_flare_solverr", false)
+
+    val flareSolverrUrl: Preference<String> = preferenceStore.getString("flare_solverr_url", "http://localhost:8191/v1")
+    // SY <--
+
     val dohProvider: Preference<Int> = preferenceStore.getInt("doh_provider", -1)
 
     val defaultUserAgent: Preference<String> = preferenceStore.getString(
