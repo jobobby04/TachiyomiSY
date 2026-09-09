@@ -56,7 +56,7 @@ import eu.kanade.tachiyomi.network.PREF_DOH_NJALLA
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD101
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.network.PREF_DOH_SHECAN
-import eu.kanade.tachiyomi.network.interceptor.FlareSolverrInterceptor
+import eu.kanade.tachiyomi.network.interceptor.FlareSolverr
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.CrashLogUtil
@@ -888,7 +888,7 @@ object SettingsAdvancedScreen : SearchableSettings {
     ) {
         try {
             val response = withContext(Dispatchers.IO) {
-                FlareSolverrInterceptor.CFClearance.request(url = "https://www.google.com/")
+                FlareSolverr.request(url = "https://www.google.com/")
             }
 
             val solution = response.solution
