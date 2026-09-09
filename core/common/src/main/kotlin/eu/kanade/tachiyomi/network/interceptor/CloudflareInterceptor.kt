@@ -119,8 +119,12 @@ class CloudflareInterceptor(
             }
             // SY <--
             cookieManager.remove(request.url, COOKIE_NAMES, 0)
-            resolveWithWebView(request, clearance)
             // SY -->
+            CloudflareBypassStatus.track(request.url.host, CloudflareBypassStatus.Method.WEBVIEW) {
+                // SY <--
+                resolveWithWebView(request, clearance)
+                // SY -->
+            }
             return request
             // SY <--
         }
@@ -147,7 +151,9 @@ class CloudflareInterceptor(
     private fun resolveWithFlareSolverr(request: Request): Request? {
         val previousUserAgent = preferences.defaultUserAgent.get()
         return try {
-            runBlocking { FlareSolverr.resolve(request) }
+            CloudflareBypassStatus.track(request.url.host, CloudflareBypassStatus.Method.FLARESOLVERR) {
+                runBlocking { FlareSolverr.resolve(request) }
+            }
         } catch (e: Exception) {
             logcat(LogPriority.WARN, e) { "FlareSolverr failed, falling back to WebView" }
             null
@@ -168,7 +174,9 @@ class CloudflareInterceptor(
         }
         val fallbackRequest = request.newBuilder().header("User-Agent", userAgent).build()
         cookieManager.remove(fallbackRequest.url, COOKIE_NAMES, 0)
-        resolveWithWebView(fallbackRequest, clearance)
+        CloudflareBypassStatus.track(fallbackRequest.url.host, CloudflareBypassStatus.Method.WEBVIEW) {
+            resolveWithWebView(fallbackRequest, clearance)
+        }
         return fallbackRequest
     }
     // SY <--
