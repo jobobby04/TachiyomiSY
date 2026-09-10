@@ -73,7 +73,10 @@ class ChapterRepositoryImpl(
                     dateUpload = chapterUpdate.dateUpload,
                     chapterId = chapterUpdate.id,
                     version = chapterUpdate.version,
-                    isSyncing = 0,
+                    // SY -->
+                    lastModifiedAt = null,
+                    isSyncing = null,
+                    // SY <--
                     memo = chapterUpdate.memo?.let(MemoColumnAdapter::encode),
                 )
             }

@@ -1,5 +1,7 @@
 package eu.kanade.tachiyomi.data.sync
 
+import eu.kanade.tachiyomi.data.backup.models.BackupCategory
+import eu.kanade.tachiyomi.data.backup.models.BackupExtensionStore
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 
 /**
@@ -16,3 +18,15 @@ internal fun changedSince(mangas: List<BackupManga>, since: Long): List<BackupMa
     mangas
         .filter { it.lastModifiedAt >= since || it.chapters.any { chapter -> chapter.lastModifiedAt >= since } }
         .onEach { manga -> manga.chapters = manga.chapters.filter { it.lastModifiedAt >= since } }
+
+/** [BackupCategory] has identity equality, and local ids and timestamps differ between devices. */
+internal fun categoriesDiffer(local: List<BackupCategory>, remote: List<BackupCategory>): Boolean =
+    local.map { it.syncIdentity() }.toSet() != remote.map { it.syncIdentity() }.toSet()
+
+private fun BackupCategory.syncIdentity() = listOf(uid, name, order, flags, version)
+
+internal fun extensionStoresDiffer(local: List<BackupExtensionStore>, remote: List<BackupExtensionStore>): Boolean =
+    local.map { it.syncIdentity() }.toSet() != remote.map { it.syncIdentity() }.toSet()
+
+private fun BackupExtensionStore.syncIdentity() =
+    listOf(indexUrl, name, badgeLabel, signingKey, contactWebsite, contactDiscord, isLegacy, extensionListUrl)

@@ -52,7 +52,7 @@ class SyncManager(
 ) {
     private val backupCreator: BackupCreator = BackupCreator(context, false)
     private val notifier: SyncNotifier = SyncNotifier(context)
-    private val mangaRestorer: MangaRestorer = MangaRestorer()
+    private val mangaRestorer: MangaRestorer = MangaRestorer(isSync = true)
 
     enum class SyncService(val value: Int) {
         NONE(0),
@@ -192,6 +192,8 @@ class SyncManager(
 
         val (filteredFavorites, nonFavorites) = filterFavoritesAndNonFavorites(remoteBackup)
         updateNonFavorites(nonFavorites)
+        // the restore below may not run, so its reset of the sync flag cannot be relied on
+        database.transaction { database.mangasQueries.resetIsSyncing() }
 
         val newSyncData = backup.copy(
             backupManga = filteredFavorites,
@@ -208,12 +210,17 @@ class SyncManager(
         )
 
         val hasMangaChanges = filteredFavorites.isNotEmpty()
-        val hasCategoryChanges = remoteBackup.backupCategories != backup.backupCategories
-        val hasSourceChanges = remoteBackup.backupSources != backup.backupSources
-        val hasPreferenceChanges = remoteBackup.backupPreferences != backup.backupPreferences
-        val hasSourcePreferenceChanges = remoteBackup.backupSourcePreferences != backup.backupSourcePreferences
-        val hasExtensionRepoChanges = remoteBackup.backupExtensionStores != backup.backupExtensionStores
-        val hasSavedSearchChanges = remoteBackup.backupSavedSearches != backup.backupSavedSearches
+        val hasCategoryChanges = categoriesDiffer(backup.backupCategories, remoteBackup.backupCategories)
+        // a v2 delta leaves out the sections nothing changed in; an absent section is not a change
+        val hasSourceChanges = newSyncData.backupSources != backup.backupSources
+        val hasPreferenceChanges = remoteBackup.backupPreferences.isNotEmpty() &&
+            remoteBackup.backupPreferences != backup.backupPreferences
+        val hasSourcePreferenceChanges = remoteBackup.backupSourcePreferences.isNotEmpty() &&
+            remoteBackup.backupSourcePreferences != backup.backupSourcePreferences
+        val hasExtensionRepoChanges = remoteBackup.backupExtensionStores.isNotEmpty() &&
+            extensionStoresDiffer(backup.backupExtensionStores, remoteBackup.backupExtensionStores)
+        val hasSavedSearchChanges = remoteBackup.backupSavedSearches.isNotEmpty() &&
+            remoteBackup.backupSavedSearches != backup.backupSavedSearches
 
         if (!hasMangaChanges && !hasCategoryChanges && !hasSourceChanges &&
             !hasPreferenceChanges && !hasSourcePreferenceChanges &&

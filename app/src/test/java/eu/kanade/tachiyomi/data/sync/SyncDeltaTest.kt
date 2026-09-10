@@ -6,6 +6,7 @@ import eu.kanade.tachiyomi.data.backup.models.BackupChapter
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import kotlinx.serialization.protobuf.ProtoBuf
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -48,6 +49,17 @@ class SyncDeltaTest {
 
         assertEquals(2, changedSince(mangas, since = 0).size)
         assertEquals(1, changedSince(mangas, since = 0)[0].chapters.size)
+    }
+
+    @Test
+    fun `categories compare by content, not identity`() {
+        val local = listOf(BackupCategory(name = "Reading", order = 0, id = 3, uid = 7, lastModifiedAt = 10))
+        val same = listOf(BackupCategory(name = "Reading", order = 0, id = 9, uid = 7, lastModifiedAt = 99))
+
+        assertFalse(categoriesDiffer(local, same))
+        assertTrue(categoriesDiffer(local, listOf(BackupCategory(name = "Renamed", order = 0, uid = 7))))
+        assertTrue(categoriesDiffer(local, listOf(BackupCategory(name = "Reading", order = 1, uid = 7))))
+        assertTrue(categoriesDiffer(local, emptyList()))
     }
 
     // A v2 delta response can carry categories but no manga; that must decode as an empty list.
