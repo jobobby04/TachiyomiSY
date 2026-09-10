@@ -19,3 +19,27 @@ BEGIN
     SET version = version + 1
     WHERE _id = old.manga_id AND (SELECT is_syncing FROM mangas WHERE _id = old.manga_id) = 0;
 END;
+
+-- Sync restores (is_syncing = 1) and the flag reset afterwards (old.is_syncing = 1) must not stamp
+-- last_modified_at, or every restored row is uploaded straight back by the next delta.
+DROP TRIGGER IF EXISTS update_last_modified_at_mangas;
+CREATE TRIGGER update_last_modified_at_mangas
+AFTER UPDATE ON mangas
+FOR EACH ROW
+WHEN new.is_syncing = 0 AND old.is_syncing = 0
+BEGIN
+  UPDATE mangas
+  SET last_modified_at = strftime('%s', 'now')
+  WHERE _id = new._id;
+END;
+
+DROP TRIGGER IF EXISTS update_last_modified_at_chapters;
+CREATE TRIGGER update_last_modified_at_chapters
+AFTER UPDATE ON chapters
+FOR EACH ROW
+WHEN new.is_syncing = 0 AND old.is_syncing = 0
+BEGIN
+  UPDATE chapters
+  SET last_modified_at = strftime('%s', 'now')
+  WHERE _id = new._id;
+END;
