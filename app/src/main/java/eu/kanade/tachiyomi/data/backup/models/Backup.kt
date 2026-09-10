@@ -5,7 +5,9 @@ import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
 data class Backup(
-    @ProtoNumber(1) val backupManga: List<BackupManga>,
+    // SY -->
+    @ProtoNumber(1) val backupManga: List<BackupManga> = emptyList(),
+    // SY <--
     @ProtoNumber(2) var backupCategories: List<BackupCategory> = emptyList(),
     // @ProtoNumber(100) var backupBrokenSources, legacy source model with non-compliant proto number,
     @ProtoNumber(101) var backupSources: List<BackupSource> = emptyList(),

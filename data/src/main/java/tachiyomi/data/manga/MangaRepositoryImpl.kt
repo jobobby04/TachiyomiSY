@@ -203,7 +203,10 @@ class MangaRepositoryImpl(
                     mangaId = value.id,
                     updateStrategy = value.updateStrategy?.let(UpdateStrategyColumnAdapter::encode),
                     version = value.version,
-                    isSyncing = 0,
+                    // SY -->
+                    lastModifiedAt = null,
+                    isSyncing = null,
+                    // SY <--
                     notes = value.notes,
                     memo = value.memo?.let(MemoColumnAdapter::encode),
                 )

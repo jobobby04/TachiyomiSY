@@ -7,9 +7,11 @@ import tachiyomi.domain.track.model.Track
 @Serializable
 data class BackupTracking(
     // in 1.x some of these values have different types or names
-    @ProtoNumber(1) var syncId: Int,
+    // SY -->
+    @ProtoNumber(1) var syncId: Int = 0,
     // LibraryId is not null in 1.x
-    @ProtoNumber(2) var libraryId: Long,
+    @ProtoNumber(2) var libraryId: Long = 0,
+    // SY <--
     @Deprecated("Use mediaId instead", level = DeprecationLevel.WARNING)
     @ProtoNumber(3)
     var mediaIdInt: Int = 0,

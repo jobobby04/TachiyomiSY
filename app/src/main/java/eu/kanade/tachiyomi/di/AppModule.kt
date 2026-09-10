@@ -7,6 +7,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteConcurrencyModel
 import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteConfiguration
 import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteDatabaseType
 import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteDriver
@@ -108,6 +109,12 @@ class AppModule(val app: Application) : InjektModule {
                 schema = Database.Schema,
                 configuration = AndroidxSqliteConfiguration(
                     isForeignKeyConstraintsEnabled = true,
+                    // SY -->
+                    // Separate reader connections race the writer during backup/sync
+                    // restores and die with SQLITE_BUSY (#1634); serialize on one
+                    // connection until the driver handles busy retries.
+                    concurrencyModel = AndroidxSqliteConcurrencyModel.SingleReaderWriter(),
+                    // SY <--
                 ),
             ).also { sqlDriverRef = WeakReference(it) }
         }

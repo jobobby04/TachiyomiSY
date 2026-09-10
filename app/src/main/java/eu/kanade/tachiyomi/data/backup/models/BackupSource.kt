@@ -6,5 +6,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 @Serializable
 data class BackupSource(
     @ProtoNumber(1) var name: String = "",
-    @ProtoNumber(2) var sourceId: Long,
+    // SY -->
+    @ProtoNumber(2) var sourceId: Long = 0,
+    // SY <--
 )
