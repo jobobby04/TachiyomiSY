@@ -248,6 +248,12 @@ class SyncManager(
             }
         }
 
+        if (newSyncData.hasNothingToRestore()) {
+            // the category deletions above were the whole change; an empty backup cannot be decoded
+            finishWithSuccess(syncStart, "Sync completed successfully")
+            return
+        }
+
         val backupUri = writeSyncDataToCache(context, newSyncData)
         logcat(LogPriority.DEBUG) { "Got Backup Uri: $backupUri" }
         if (backupUri != null) {
@@ -290,6 +296,14 @@ class SyncManager(
         syncPreferences.lastPushedAt.set(syncStart)
         notifier.showSyncSuccess(message)
     }
+
+    private fun Backup.hasNothingToRestore() = backupManga.isEmpty() &&
+        backupCategories.isEmpty() &&
+        backupSources.isEmpty() &&
+        backupPreferences.isEmpty() &&
+        backupSourcePreferences.isEmpty() &&
+        backupExtensionStores.isEmpty() &&
+        backupSavedSearches.isEmpty()
 
     private fun writeSyncDataToCache(context: Context, backup: Backup): Uri? {
         val cacheFile = File(context.cacheDir, "tachiyomi_sync_data.proto.gz")
