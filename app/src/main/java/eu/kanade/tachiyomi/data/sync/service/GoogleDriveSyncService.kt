@@ -24,6 +24,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
 import logcat.logcat
+import okio.buffer
+import okio.gzip
+import okio.sink
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
@@ -34,8 +38,6 @@ import uy.kohesive.injekt.api.get
 import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
 
 class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: SyncPreferences) : SyncService(
     context,
@@ -121,12 +123,10 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
 
         try {
             drive.files().get(gdriveFileId).executeMediaAsInputStream().use { inputStream ->
-                GZIPInputStream(inputStream).use { gzipInputStream ->
-                    val byteArray = gzipInputStream.readBytes()
-                    val backup = protoBuf.decodeFromByteArray(Backup.serializer(), byteArray)
-                    val deviceId = fileList[0].appProperties["deviceId"] ?: ""
-                    return SyncData(deviceId = deviceId, backup = backup)
-                }
+                val byteArray = inputStream.source().gzip().buffer().use { it.readByteArray() }
+                val backup = protoBuf.decodeFromByteArray(Backup.serializer(), byteArray)
+                val deviceId = fileList[0].appProperties["deviceId"] ?: ""
+                return SyncData(deviceId = deviceId, backup = backup)
             }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, throwable = e) { "Error downloading file" }
@@ -141,8 +141,8 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
         val fileList = getAppDataFileList(drive)
         val backup = syncData.backup ?: return
 
-        val byteArray = protoBuf.encodeToByteArray(Backup.serializer(), backup)
-        if (byteArray.isEmpty()) {
+        val body = BackupRequestBody(backup, protoBuf, gzip = true)
+        if (body.metaBytes.isEmpty() && backup.backupManga.isEmpty()) {
             throw IllegalStateException(context.stringResource(MR.strings.empty_backup_error))
         }
 
@@ -150,9 +150,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
             PipedInputStream(pos).use { pis ->
                 withIOContext {
                     launch {
-                        GZIPOutputStream(pos).use { gzipOutputStream ->
-                            gzipOutputStream.write(byteArray)
-                        }
+                        pos.sink().buffer().use { body.writeTo(it) }
                     }
 
                     val mediaContent = InputStreamContent("application/octet-stream", pis)
