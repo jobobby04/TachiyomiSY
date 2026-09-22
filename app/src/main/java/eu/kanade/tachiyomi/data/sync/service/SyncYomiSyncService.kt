@@ -135,11 +135,12 @@ class SyncYomiSyncService(
         val headersBuilder = baseHeaders(apiKey)
             .add("X-Sync-Cursor", syncPreferences.syncCursor.get().toString())
             .add("X-Sync-Full", full.toString())
+            .add("Content-Encoding", "gzip")
         if (pendingDeleted.isNotEmpty()) {
             headersBuilder.add("X-Sync-Deleted-Categories", pendingDeleted.joinToString(","))
         }
 
-        val body = BackupRequestBody(backup, protoBuf)
+        val body = BackupRequestBody(backup, protoBuf, gzip = true)
         val request = POST(
             url = "$host/api/sync/v2/merge",
             headers = headersBuilder.build(),
@@ -292,7 +293,7 @@ class SyncYomiSyncService(
         val apiKey = syncPreferences.clientAPIKey.get()
         val uploadUrl = "$host/api/sync/content"
 
-        val headersBuilder = baseHeaders(apiKey)
+        val headersBuilder = baseHeaders(apiKey).add("Content-Encoding", "gzip")
         if (eTag.isNotEmpty()) {
             headersBuilder.add("If-Match", eTag)
         }
@@ -300,7 +301,7 @@ class SyncYomiSyncService(
 
         val client = syncClient()
 
-        val body = BackupRequestBody(backup, protoBuf)
+        val body = BackupRequestBody(backup, protoBuf, gzip = true)
         if (body.metaBytes.isEmpty() && backup.backupManga.isEmpty()) {
             throw IllegalStateException(context.stringResource(MR.strings.empty_backup_error))
         }
