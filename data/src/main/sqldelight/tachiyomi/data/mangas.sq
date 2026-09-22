@@ -106,6 +106,13 @@ SELECT *
 FROM mangas
 WHERE favorite_modified_at IS NOT NULL;
 
+getMangasModifiedSince:
+SELECT M.*
+FROM mangas M
+WHERE M.favorite_modified_at IS NOT NULL
+AND (M.last_modified_at >= :since
+OR EXISTS (SELECT 1 FROM chapters C WHERE C.manga_id = M._id AND C.last_modified_at >= :since));
+
 getSourceIdWithFavoriteCount:
 SELECT
 source,

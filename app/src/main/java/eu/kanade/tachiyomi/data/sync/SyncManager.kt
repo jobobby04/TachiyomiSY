@@ -86,7 +86,6 @@ class SyncManager(
         }
 
         val syncOptions = syncPreferences.getSyncSettings()
-        val databaseManga = getAllMangaThatNeedsSync()
 
         val backupOptions = BackupOptions(
             libraryEntries = syncOptions.libraryEntries,
@@ -134,6 +133,12 @@ class SyncManager(
             logcat(LogPriority.ERROR, e) { "Failed to probe sync server" }
             notifier.showSyncError(e.message)
             return
+        }
+
+        val databaseManga = if (full) {
+            getAllMangaThatNeedsSync()
+        } else {
+            getMangasModifiedSince(syncPreferences.lastPushedAt.get())
         }
 
         logcat(LogPriority.DEBUG) { "Begin create backup (full=$full)" }
@@ -333,6 +338,12 @@ class SyncManager(
     private suspend fun getAllMangaThatNeedsSync(): List<Manga> {
         return database.mangasQueries
             .getMangasWithFavoriteTimestamp(::mapManga)
+            .awaitAsList()
+    }
+
+    private suspend fun getMangasModifiedSince(since: Long): List<Manga> {
+        return database.mangasQueries
+            .getMangasModifiedSince(since, ::mapManga)
             .awaitAsList()
     }
 
