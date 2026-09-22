@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.restore.BackupRestoreJob
 import eu.kanade.tachiyomi.data.backup.restore.RestoreOptions
 import eu.kanade.tachiyomi.data.backup.restore.restorers.MangaRestorer
+import eu.kanade.tachiyomi.data.sync.service.BackupRequestBody
 import eu.kanade.tachiyomi.data.sync.service.GoogleDriveSyncService
 import eu.kanade.tachiyomi.data.sync.service.SyncData
 import eu.kanade.tachiyomi.data.sync.service.SyncResult
@@ -20,6 +21,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
 import logcat.logcat
+import okio.buffer
+import okio.sink
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.Chapters
 import tachiyomi.data.Database
@@ -308,10 +311,8 @@ class SyncManager(
     private fun writeSyncDataToCache(context: Context, backup: Backup): Uri? {
         val cacheFile = File(context.cacheDir, "tachiyomi_sync_data.proto.gz")
         return try {
-            cacheFile.outputStream().use { output ->
-                output.write(ProtoBuf.encodeToByteArray(Backup.serializer(), backup))
-                Uri.fromFile(cacheFile)
-            }
+            cacheFile.sink().buffer().use { BackupRequestBody(backup, ProtoBuf).writeTo(it) }
+            Uri.fromFile(cacheFile)
         } catch (e: IOException) {
             logcat(LogPriority.ERROR, throwable = e) { "Failed to write sync data to cache" }
             null
