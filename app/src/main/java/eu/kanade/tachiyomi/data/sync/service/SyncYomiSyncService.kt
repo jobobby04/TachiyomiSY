@@ -139,8 +139,7 @@ class SyncYomiSyncService(
             headersBuilder.add("X-Sync-Deleted-Categories", pendingDeleted.joinToString(","))
         }
 
-        val body = protoBuf.encodeToByteArray(Backup.serializer(), backup)
-            .toRequestBody("application/octet-stream".toMediaType())
+        val body = BackupRequestBody(backup, protoBuf)
         val request = POST(
             url = "$host/api/sync/v2/merge",
             headers = headersBuilder.build(),
@@ -301,11 +300,10 @@ class SyncYomiSyncService(
 
         val client = syncClient()
 
-        val byteArray = protoBuf.encodeToByteArray(Backup.serializer(), backup)
-        if (byteArray.isEmpty()) {
+        val body = BackupRequestBody(backup, protoBuf)
+        if (body.metaBytes.isEmpty() && backup.backupManga.isEmpty()) {
             throw IllegalStateException(context.stringResource(MR.strings.empty_backup_error))
         }
-        val body = byteArray.toRequestBody("application/octet-stream".toMediaType())
 
         val uploadRequest = PUT(
             url = uploadUrl,
