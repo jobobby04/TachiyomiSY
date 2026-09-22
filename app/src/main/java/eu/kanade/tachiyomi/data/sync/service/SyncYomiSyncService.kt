@@ -161,7 +161,7 @@ class SyncYomiSyncService(
             throw SyncYomiException("Failed to sync: ${response.code} $responseBody")
         }
 
-        val bytes = response.body.byteStream().use { it.readBytes() }
+        val bytes = response.body.bytes()
         val remote = protoBuf.decodeFromByteArray(Backup.serializer(), bytes)
         val cursor = response.headers["X-Sync-Cursor"]?.toLongOrNull()
             ?: throw SyncYomiException("Missing X-Sync-Cursor")
@@ -265,9 +265,7 @@ class SyncYomiSyncService(
             val newETag = response.headers["ETag"]
                 .takeIf { it?.isNotEmpty() == true } ?: throw SyncYomiException("Missing ETag")
 
-            val byteArray = response.body.byteStream().use {
-                return@use it.readBytes()
-            }
+            val byteArray = response.body.bytes()
 
             return try {
                 val backup = protoBuf.decodeFromByteArray(Backup.serializer(), byteArray)
