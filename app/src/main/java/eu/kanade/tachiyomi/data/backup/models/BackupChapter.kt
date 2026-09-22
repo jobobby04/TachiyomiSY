@@ -11,8 +11,10 @@ import tachiyomi.domain.chapter.model.Chapter
 class BackupChapter(
     // in 1.x some of these values have different names
     // url is called key in 1.x
-    @ProtoNumber(1) var url: String,
-    @ProtoNumber(2) var name: String,
+    // SY -->
+    @ProtoNumber(1) var url: String = "",
+    @ProtoNumber(2) var name: String = "",
+    // SY <--
     @ProtoNumber(3) var scanlator: String? = null,
     @ProtoNumber(4) var read: Boolean = false,
     @ProtoNumber(5) var bookmark: Boolean = false,

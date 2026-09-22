@@ -29,6 +29,7 @@ CREATE INDEX idx_chapters_url ON chapters(url);
 CREATE TRIGGER update_last_modified_at_chapters
 AFTER UPDATE ON chapters
 FOR EACH ROW
+WHEN new.is_syncing = 0 AND old.is_syncing = 0
 BEGIN
   UPDATE chapters
   SET last_modified_at = strftime('%s', 'now')
@@ -42,13 +43,8 @@ WHEN new.is_syncing = 0 AND (
     new.last_page_read != old.last_page_read
 )
 BEGIN
-    -- Update the chapter version
     UPDATE chapters SET version = version + 1
     WHERE _id = new._id;
-
-    -- Update the manga version
-    UPDATE mangas SET version = version + 1
-    WHERE _id = new.manga_id AND (SELECT is_syncing FROM mangas WHERE _id = new.manga_id) = 0;
 END;
 
 getChapterById:
@@ -125,7 +121,7 @@ WHERE is_syncing = 1;
 
 insert:
 INSERT INTO chapters(manga_id, url, name, scanlator, read, bookmark, last_page_read, chapter_number, source_order, date_fetch, date_upload, last_modified_at, version, is_syncing, memo)
-VALUES (:mangaId, :url, :name, :scanlator, :read, :bookmark, :lastPageRead, :chapterNumber, :sourceOrder, :dateFetch, :dateUpload, 0, :version, 0, :memo);
+VALUES (:mangaId, :url, :name, :scanlator, :read, :bookmark, :lastPageRead, :chapterNumber, :sourceOrder, :dateFetch, :dateUpload, :lastModifiedAt, :version, :isSyncing, :memo);
 
 insertReturningId:
 INSERT INTO chapters(manga_id, url, name, scanlator, read, bookmark, last_page_read, chapter_number, source_order, date_fetch, date_upload, last_modified_at, version, is_syncing, memo)
@@ -146,6 +142,7 @@ SET manga_id = coalesce(:mangaId, manga_id),
     date_fetch = coalesce(:dateFetch, date_fetch),
     date_upload = coalesce(:dateUpload, date_upload),
     version = coalesce(:version, version),
+    last_modified_at = coalesce(:lastModifiedAt, last_modified_at),
     is_syncing = coalesce(:isSyncing, is_syncing),
     memo = coalesce(:memo, memo)
 WHERE _id = :chapterId;

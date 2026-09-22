@@ -9,14 +9,14 @@ import tachiyomi.domain.manga.model.MergedMangaReference
  */
 @Serializable
 data class BackupMergedMangaReference(
-    @ProtoNumber(1) var isInfoManga: Boolean,
-    @ProtoNumber(2) var getChapterUpdates: Boolean,
-    @ProtoNumber(3) var chapterSortMode: Int,
-    @ProtoNumber(4) var chapterPriority: Int,
-    @ProtoNumber(5) var downloadChapters: Boolean,
-    @ProtoNumber(6) var mergeUrl: String,
-    @ProtoNumber(7) var mangaUrl: String,
-    @ProtoNumber(8) var mangaSourceId: Long,
+    @ProtoNumber(1) var isInfoManga: Boolean = false,
+    @ProtoNumber(2) var getChapterUpdates: Boolean = false,
+    @ProtoNumber(3) var chapterSortMode: Int = 0,
+    @ProtoNumber(4) var chapterPriority: Int = 0,
+    @ProtoNumber(5) var downloadChapters: Boolean = false,
+    @ProtoNumber(6) var mergeUrl: String = "",
+    @ProtoNumber(7) var mangaUrl: String = "",
+    @ProtoNumber(8) var mangaSourceId: Long = 0,
 ) {
     fun getMergedMangaReference(): MergedMangaReference {
         return MergedMangaReference(

@@ -15,6 +15,28 @@ class SyncPreferences(
 
     val lastSyncEtag: Preference<String> = preferenceStore.getString("sync_etag", "")
 
+    // SyncYomi protocol v2 state
+    val syncCursor: Preference<Long> = preferenceStore.getLong(Preference.appStateKey("sync_cursor"), 0L)
+
+    /** Epoch seconds of the start of the last successful sync; the next delta starts here. */
+    val lastPushedAt: Preference<Long> = preferenceStore.getLong(Preference.appStateKey("sync_last_pushed_at"), 0L)
+
+    /** Epoch millis of the last sync that carried the complete library. */
+    val lastFullSync: Preference<Long> = preferenceStore.getLong(Preference.appStateKey("sync_last_full_sync"), 0L)
+    val fullSyncRequested: Preference<Boolean> = preferenceStore.getBoolean(
+        Preference.appStateKey("sync_full_requested"),
+        false,
+    )
+    val serverSupportsV2: Preference<Boolean> = preferenceStore.getBoolean(
+        Preference.appStateKey("sync_server_supports_v2"),
+        false,
+    )
+    val v2ProbedHost: Preference<String> = preferenceStore.getString(Preference.appStateKey("sync_v2_probed_host"), "")
+    val pendingDeletedCategoryUids: Preference<Set<String>> = preferenceStore.getStringSet(
+        Preference.appStateKey("sync_pending_deleted_category_uids"),
+        emptySet(),
+    )
+
     val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
     val syncService: Preference<Int> = preferenceStore.getInt("sync_service", 0)
 
@@ -43,6 +65,14 @@ class SyncPreferences(
 
     fun isSyncEnabled(): Boolean {
         return syncService.get() != 0
+    }
+
+    /**
+     * Remembers a deleted category so the next SyncYomi v2 request can send it as a tombstone.
+     */
+    fun rememberDeletedCategory(uid: Long) {
+        if (uid == 0L || !isSyncEnabled()) return
+        pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() + uid.toString())
     }
 
     fun getSyncSettings(): SyncSettings {

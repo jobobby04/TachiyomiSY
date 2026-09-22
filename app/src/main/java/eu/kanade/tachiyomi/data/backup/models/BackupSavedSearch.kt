@@ -8,7 +8,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
  */
 @Serializable
 data class BackupSavedSearch(
-    @ProtoNumber(1) val name: String,
+    @ProtoNumber(1) val name: String = "",
     @ProtoNumber(2) val query: String = "",
     @ProtoNumber(3) val filterList: String = "",
     @ProtoNumber(4) val source: Long = 0,

@@ -23,12 +23,33 @@ data class SyncData(
     val backup: Backup? = null,
 )
 
+/**
+ * Outcome of [SyncService.doSync].
+ *
+ * @property backup what the caller should restore; null when the sync failed.
+ * @property changed false when the remote had nothing new for us and the restore can be skipped.
+ * @property protocolV2 true when the server merged for us (SyncYomi protocol v2).
+ */
+data class SyncResult(
+    val backup: Backup?,
+    val changed: Boolean,
+    val protocolV2: Boolean,
+)
+
 abstract class SyncService(
     val context: Context,
     val json: Json,
     val syncPreferences: SyncPreferences,
 ) {
-    abstract suspend fun doSync(syncData: SyncData): Backup?
+    /**
+     * @param full true when [syncData] carries the complete library rather than a delta.
+     */
+    abstract suspend fun doSync(syncData: SyncData, full: Boolean): SyncResult
+
+    /**
+     * Whether the next upload has to carry the complete library. Services without delta support always do.
+     */
+    open suspend fun needsFullSync(): Boolean = true
 
     /**
      * Merges the local and remote sync data into a single JSON string.
