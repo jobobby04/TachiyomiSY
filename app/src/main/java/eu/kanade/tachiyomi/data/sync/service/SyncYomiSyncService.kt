@@ -88,6 +88,11 @@ class SyncYomiSyncService(
             notifier.showSyncError(e.message)
             reportSyncEvent(SyncEventStatus.SYNC_ERROR, e.message)
             return SyncResult(null, changed = false, protocolV2 = v2)
+        } catch (e: OutOfMemoryError) {
+            logcat(LogPriority.ERROR) { "Out of memory while syncing" }
+            notifier.showSyncError("Not enough memory to sync this library")
+            reportSyncEvent(SyncEventStatus.SYNC_ERROR, "OutOfMemoryError")
+            return SyncResult(null, changed = false, protocolV2 = v2)
         }
     }
 
