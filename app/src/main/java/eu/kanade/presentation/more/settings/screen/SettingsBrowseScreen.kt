@@ -48,6 +48,9 @@ object SettingsBrowseScreen : SearchableSettings {
         val hideFeedTab by remember { Injekt.get<UiPreferences>().hideFeedTab.asState(scope) }
         val uiPreferences = remember { Injekt.get<UiPreferences>() }
         // SY <--
+
+        val volumeKeysNavigationPref = uiPreferences.volumeKeysNavigation
+        val volumeKeysNavigation by volumeKeysNavigationPref.collectAsState()
         return listOf(
             // SY -->
             Preference.PreferenceGroup(
@@ -109,6 +112,21 @@ object SettingsBrowseScreen : SearchableSettings {
                         onClick = {
                             navigator.push(ExtensionStoresScreen())
                         },
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.pref_volume_keys_navigation),
+                preferenceItems = listOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = volumeKeysNavigationPref,
+                        title = stringResource(MR.strings.pref_volume_keys_navigation),
+                        subtitle = stringResource(MR.strings.pref_volume_keys_navigation_summary),
+                    ),
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = uiPreferences.volumeKeysNavigationInverted,
+                        title = stringResource(MR.strings.pref_read_with_volume_keys_inverted),
+                        enabled = volumeKeysNavigation,
                     ),
                 ),
             ),

@@ -1,0 +1,26 @@
+// Gradle init script with dependency fallbacks for jitpack artifacts that jitpack no longer
+// serves. Used by CI (-I flag in .github/workflows/apk_build.yml); for local builds either pass
+// the same -I flag or drop a copy/symlink in ~/.gradle/init.d/ where Gradle picks it up
+// automatically.
+//
+// Applied at resolution time only -- nothing in the project's own dependency declarations moves.
+// Drop an entry once jitpack serves the pinned coordinate again, or once upstream moves off it.
+
+allprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            // com.github.arkon.FlexibleAdapter:flexible-adapter:c8013533 now 404s on jitpack
+            // (reported "private": anonymous builds are no longer triggered there, and that build
+            // is gone from their cache). 3268efe4 is the only build jitpack still serves for this
+            // repository, and GitHub compare 3268efe4...c8013533 shows the two differ only in
+            // build.gradle / flexible-adapter-livedata/build.gradle -- the sources of the
+            // `flexible-adapter` core module this app consumes are identical between them.
+            if (details.requested.group == 'com.github.arkon.FlexibleAdapter' &&
+                    details.requested.name == 'flexible-adapter' &&
+                    details.requested.version == 'c8013533') {
+                details.useVersion '3268efe4'
+                details.because 'jitpack no longer publishes c8013533; 3268efe4 is source-identical for this module'
+            }
+        }
+    }
+}
