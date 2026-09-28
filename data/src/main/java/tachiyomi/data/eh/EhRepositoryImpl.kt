@@ -20,7 +20,7 @@ class EhRepositoryImpl(
     }
 
     override suspend fun migrateSource(newId: Long, oldId: Long) {
-        database.ehQueries.migrateSource(newId, oldId)
+        database.ehQueries.migrateSource(newSourceId = newId, oldSourceId = oldId)
     }
 
     override suspend fun fixReaderViewerBackupBug() {
@@ -32,10 +32,10 @@ class EhRepositoryImpl(
     }
 
     override suspend fun migrateAllNhentaiToOtherLang(otherId: Long, sources: List<Long>) {
-        database.ehQueries.migrateAllNhentaiToOtherLang(otherId, sources)
+        database.ehQueries.migrateAllNhentaiToOtherLang(newSourceId = otherId, sourceIds = sources)
     }
 
     override suspend fun deleteByTrackerId(trackerId: Long) {
-        database.ehQueries.deleteByTrackerId(trackerId)
+        database.ehQueries.deleteByTrackerId(trackerId = trackerId)
     }
 }

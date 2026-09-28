@@ -14,49 +14,56 @@ CREATE TABLE feed_saved_search (
 CREATE INDEX feed_saved_search_saved_search_index ON feed_saved_search(saved_search);
 
 selectAllGlobal:
-SELECT * FROM feed_saved_search WHERE global = 1;
+SELECT _id, source, saved_search, global
+FROM feed_saved_search
+WHERE global = 1;
 
 countGlobal:
-SELECT count(*) FROM feed_saved_search WHERE global = 1;
+SELECT count(*)
+FROM feed_saved_search
+WHERE global = 1;
 
 selectBySource:
-SELECT * FROM feed_saved_search WHERE source = :sourceId AND global = 0;
+SELECT _id, source, saved_search, global
+FROM feed_saved_search
+WHERE source = :sourceId
+AND global = 0;
 
 insertReturningId:
-INSERT INTO feed_saved_search (source, saved_search, global)
-VALUES (:sourceId, :savedSearch, :global)
+INSERT INTO feed_saved_search(source, saved_search, global)
+VALUES (:source, :savedSearch, :global)
 RETURNING _id;
 
 insert:
-INSERT INTO feed_saved_search (source, saved_search, global)
-VALUES (:sourceId, :savedSearch, :global);
+INSERT INTO feed_saved_search(source, saved_search, global)
+VALUES (:source, :savedSearch, :global);
 
 deleteById:
-DELETE FROM feed_saved_search WHERE _id = :id;
+DELETE FROM feed_saved_search
+WHERE _id = :id;
 
 deleteAll:
 DELETE FROM feed_saved_search;
 
 selectGlobalFeedSavedSearch:
-SELECT saved_search.*
-FROM (
-    SELECT saved_search FROM feed_saved_search WHERE global = 1
-) AS M
-JOIN saved_search
-ON saved_search._id = M.saved_search;
+SELECT S._id, S.source, S.name, S.query, S.filters_json
+FROM feed_saved_search F
+JOIN saved_search S
+ON S._id = F.saved_search
+WHERE F.global = 1;
 
 selectSourceFeedSavedSearch:
-SELECT saved_search.*
-FROM (
-    SELECT saved_search FROM feed_saved_search WHERE global = 0 AND source = :sourceId
-) AS M
-JOIN saved_search
-ON saved_search._id = M.saved_search;
+SELECT S._id, S.source, S.name, S.query, S.filters_json
+FROM feed_saved_search F
+JOIN saved_search S
+ON S._id = F.saved_search
+WHERE F.global = 0
+AND F.source = :sourceId;
 
 countSourceFeedSavedSearch:
 SELECT count(*)
-FROM (
-    SELECT saved_search FROM feed_saved_search WHERE global = 0 AND source = :sourceId
-) AS M
-JOIN saved_search
-ON saved_search._id = M.saved_search;
+FROM feed_saved_search F
+JOIN saved_search S
+ON S._id = F.saved_search
+WHERE F.global = 0
+AND F.source = :sourceId;

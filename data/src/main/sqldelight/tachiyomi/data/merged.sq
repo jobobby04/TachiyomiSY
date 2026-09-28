@@ -22,43 +22,54 @@ CREATE TABLE merged(
 CREATE INDEX merged_merge_id_index ON merged(merge_id);
 
 selectByMergeId:
-SELECT * FROM merged WHERE merge_id = ?;
+SELECT
+    _id, info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
+    merge_id, merge_url, manga_id, manga_url, manga_source
+FROM merged
+WHERE merge_id = :mergeId;
 
 deleteByMergeId:
-DELETE FROM merged WHERE merge_id = ?;
+DELETE FROM merged
+WHERE merge_id = :mergeId;
 
 selectMergedMangasById:
 SELECT
-    manga.id, manga.source_id, manga.remote_url, manga.remote_artist, manga.remote_author, manga.remote_description, manga.remote_genre, manga.remote_title,
-    manga.remote_status, manga.remote_cover, manga.state_chapter_last_update, manga.state_chapter_next_update, manga.state_initialized,
-    manga.user_reader_flags, manga.user_chapter_flags, manga.state_cover_last_modified, manga.remote_update_strategy,
-    manga.state_chapter_fetch_interval, manga.user_notes, manga.remote_memo, manga.user_favorite_at,
+    manga.id, manga.source_id, manga.remote_url, manga.remote_title, manga.remote_author,
+    manga.remote_artist, manga.remote_description, manga.remote_genre, manga.remote_status,
+    manga.remote_cover, manga.remote_update_strategy, manga.remote_memo, manga.user_favorite_at,
+    manga.user_notes, manga.user_reader_flags, manga.user_chapter_flags,
+    manga.state_chapter_last_update, manga.state_chapter_next_update,
+    manga.state_chapter_fetch_interval, manga.state_cover_last_modified, manga.state_initialized,
     manga.state_last_modified_at, manga.state_version, manga.state_is_syncing
 FROM (
-    SELECT manga_id FROM merged WHERE merge_id = ?
+    SELECT manga_id FROM merged WHERE merge_id = :mergeId
 ) AS M
 JOIN manga
 ON manga.id = M.manga_id;
 
 selectMergedMangasForDownloadingById:
 SELECT
-    manga.id, manga.source_id, manga.remote_url, manga.remote_artist, manga.remote_author, manga.remote_description, manga.remote_genre, manga.remote_title,
-    manga.remote_status, manga.remote_cover, manga.state_chapter_last_update, manga.state_chapter_next_update, manga.state_initialized,
-    manga.user_reader_flags, manga.user_chapter_flags, manga.state_cover_last_modified, manga.remote_update_strategy,
-    manga.state_chapter_fetch_interval, manga.user_notes, manga.remote_memo, manga.user_favorite_at,
+    manga.id, manga.source_id, manga.remote_url, manga.remote_title, manga.remote_author,
+    manga.remote_artist, manga.remote_description, manga.remote_genre, manga.remote_status,
+    manga.remote_cover, manga.remote_update_strategy, manga.remote_memo, manga.user_favorite_at,
+    manga.user_notes, manga.user_reader_flags, manga.user_chapter_flags,
+    manga.state_chapter_last_update, manga.state_chapter_next_update,
+    manga.state_chapter_fetch_interval, manga.state_cover_last_modified, manga.state_initialized,
     manga.state_last_modified_at, manga.state_version, manga.state_is_syncing
 FROM (
-    SELECT manga_id FROM merged WHERE merge_id = ? AND download_chapters = 1
+    SELECT manga_id FROM merged WHERE merge_id = :mergeId AND download_chapters = 1
 ) AS M
 JOIN manga
 ON manga.id = M.manga_id;
 
 selectAllMergedMangas:
 SELECT
-    manga.id, manga.source_id, manga.remote_url, manga.remote_artist, manga.remote_author, manga.remote_description, manga.remote_genre, manga.remote_title,
-    manga.remote_status, manga.remote_cover, manga.state_chapter_last_update, manga.state_chapter_next_update, manga.state_initialized,
-    manga.user_reader_flags, manga.user_chapter_flags, manga.state_cover_last_modified, manga.remote_update_strategy,
-    manga.state_chapter_fetch_interval, manga.user_notes, manga.remote_memo, manga.user_favorite_at,
+    manga.id, manga.source_id, manga.remote_url, manga.remote_title, manga.remote_author,
+    manga.remote_artist, manga.remote_description, manga.remote_genre, manga.remote_status,
+    manga.remote_cover, manga.remote_update_strategy, manga.remote_memo, manga.user_favorite_at,
+    manga.user_notes, manga.user_reader_flags, manga.user_chapter_flags,
+    manga.state_chapter_last_update, manga.state_chapter_next_update,
+    manga.state_chapter_fetch_interval, manga.state_cover_last_modified, manga.state_initialized,
     manga.state_last_modified_at, manga.state_version, manga.state_is_syncing
 FROM (
     SELECT manga_id FROM merged
@@ -67,64 +78,34 @@ JOIN manga
 ON manga.id = M.manga_id;
 
 selectAll:
-SELECT * FROM merged;
+SELECT
+    _id, info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
+    merge_id, merge_url, manga_id, manga_url, manga_source
+FROM merged;
 
 insertReturningId:
 INSERT INTO merged(
-    info_manga,
-    get_chapter_updates,
-    chapter_sort_mode,
-    chapter_priority,
-    download_chapters,
-    merge_id,
-    merge_url,
-    manga_id,
-    manga_url,
-    manga_source
+    info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
+    merge_id, merge_url, manga_id, manga_url, manga_source
 )
 VALUES (
-    :infoManga,
-    :getChapterUpdates,
-    :chapterSortMode,
-    :chapterPriority,
-    :downloadChapters,
-    :mergeId,
-    :mergeUrl,
-    :mangaId,
-    :mangaUrl,
-    :mangaSource
+    :infoManga, :getChapterUpdates, :chapterSortMode, :chapterPriority, :downloadChapters,
+    :mergeId, :mergeUrl, :mangaId, :mangaUrl, :mangaSource
 )
 RETURNING _id;
 
 insert:
 INSERT INTO merged(
-    info_manga,
-    get_chapter_updates,
-    chapter_sort_mode,
-    chapter_priority,
-    download_chapters,
-    merge_id,
-    merge_url,
-    manga_id,
-    manga_url,
-    manga_source
+    info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
+    merge_id, merge_url, manga_id, manga_url, manga_source
 )
 VALUES (
-    :infoManga,
-    :getChapterUpdates,
-    :chapterSortMode,
-    :chapterPriority,
-    :downloadChapters,
-    :mergeId,
-    :mergeUrl,
-    :mangaId,
-    :mangaUrl,
-    :mangaSource
+    :infoManga, :getChapterUpdates, :chapterSortMode, :chapterPriority, :downloadChapters,
+    :mergeId, :mergeUrl, :mangaId, :mangaUrl, :mangaSource
 );
 
 updateSettingsById:
-UPDATE merged
-SET
+UPDATE merged SET
     get_chapter_updates = coalesce(:getChapterUpdates, get_chapter_updates),
     download_chapters = coalesce(:downloadChapters, download_chapters),
     info_manga = coalesce(:infoManga, info_manga),
@@ -133,7 +114,8 @@ SET
 WHERE _id = :id;
 
 deleteById:
-DELETE FROM merged WHERE _id = ?;
+DELETE FROM merged
+WHERE _id = :id;
 
 deleteAll:
 DELETE FROM merged;

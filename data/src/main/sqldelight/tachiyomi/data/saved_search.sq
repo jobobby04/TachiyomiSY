@@ -9,29 +9,35 @@ CREATE TABLE saved_search(
 );
 
 selectBySource:
-SELECT * FROM saved_search WHERE source = :sourceId;
+SELECT _id, source, name, query, filters_json
+FROM saved_search
+WHERE source = :sourceId;
 
 selectAll:
-SELECT * FROM saved_search;
+SELECT _id, source, name, query, filters_json
+FROM saved_search;
 
 selectById:
-SELECT * FROM saved_search WHERE _id = :id;
+SELECT _id, source, name, query, filters_json
+FROM saved_search
+WHERE _id = :id;
 
 selectNamesAndSources:
 SELECT source, name
 FROM saved_search;
 
 insert:
-INSERT INTO saved_search (source, name, query, filters_json)
+INSERT INTO saved_search(source, name, query, filters_json)
 VALUES (:source, :name, :query, :filtersJson);
 
 insertReturningId:
-INSERT INTO saved_search (source, name, query, filters_json)
+INSERT INTO saved_search(source, name, query, filters_json)
 VALUES (:source, :name, :query, :filtersJson)
 RETURNING _id;
 
 deleteById:
-DELETE FROM saved_search WHERE _id = :id;
+DELETE FROM saved_search
+WHERE _id = :id;
 
 deleteAll:
 DELETE FROM saved_search;

@@ -1,31 +1,33 @@
  -- SY-specific file
 
 deleteByTrackerId:
-DELETE FROM manga_track WHERE tracker_id = :trackerId;
+DELETE FROM manga_track
+WHERE tracker_id = :trackerId;
 
 migrateSource:
 UPDATE manga
-SET source_id = :newId
-WHERE source_id = :oldId;
+SET source_id = :newSourceId
+WHERE source_id = :oldSourceId;
 
 getChaptersByMangaIds:
 SELECT
-    id, manga_id, remote_url, remote_name, remote_scanlator,
-    user_read, user_bookmark, user_last_page_read, remote_chapter_number, remote_order,
-    state_date_fetch, remote_date_upload,
-    remote_memo,
+    id, manga_id, remote_url, remote_name, remote_scanlator, remote_chapter_number,
+    remote_date_upload, remote_order, remote_memo, user_read, user_bookmark,
+    user_last_page_read, state_date_fetch,
     state_last_modified_at, state_version, state_is_syncing
 FROM chapter
 WHERE manga_id IN :mangaIds;
 
 migrateAllNhentaiToOtherLang:
 UPDATE manga
-SET source_id = :nh
-WHERE user_favorite_at IS NOT NULL AND source_id IN :sources;
+SET source_id = :newSourceId
+WHERE user_favorite_at IS NOT NULL
+AND source_id IN :sourceIds;
 
 resetReaderViewerForAllManga:
 UPDATE manga
-SET user_reader_flags = 0;
+SET user_reader_flags = 0
+WHERE user_reader_flags != 0;
 
 fixReaderViewerBackupBug:
 UPDATE manga

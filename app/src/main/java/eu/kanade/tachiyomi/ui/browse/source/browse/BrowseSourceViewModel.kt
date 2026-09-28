@@ -220,8 +220,8 @@ open class BrowseSourceViewModel(
                         .map { it ?: manga }
                         // SY -->
                         .combineMetadata(metadata)
-                        // SY <--
-                        .stateIn(viewModelScope)
+                        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), manga to metadata)
+                    // SY <--
                 }
                     .filter { !hideInLibraryItems || !it.value.first.favorite }
             }

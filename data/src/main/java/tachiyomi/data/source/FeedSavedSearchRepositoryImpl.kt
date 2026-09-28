@@ -39,39 +39,39 @@ class FeedSavedSearchRepositoryImpl(
 
     override suspend fun getBySourceId(sourceId: Long): List<FeedSavedSearch> {
         return database.feed_saved_searchQueries
-            .selectBySource(sourceId, FeedSavedSearchMapper::map)
+            .selectBySource(sourceId = sourceId, mapper = FeedSavedSearchMapper::map)
             .awaitAsList()
     }
 
     override fun getBySourceIdAsFlow(sourceId: Long): Flow<List<FeedSavedSearch>> {
         return database.feed_saved_searchQueries
-            .selectBySource(sourceId, FeedSavedSearchMapper::map)
+            .selectBySource(sourceId = sourceId, mapper = FeedSavedSearchMapper::map)
             .subscribeToList()
     }
 
     override suspend fun getBySourceIdFeedSavedSearch(sourceId: Long): List<SavedSearch> {
         return database.feed_saved_searchQueries
-            .selectSourceFeedSavedSearch(sourceId, SavedSearchMapper::map)
+            .selectSourceFeedSavedSearch(sourceId = sourceId, mapper = SavedSearchMapper::map)
             .awaitAsList()
     }
 
     override suspend fun countBySourceId(sourceId: Long): Long {
         return database.feed_saved_searchQueries
-            .countSourceFeedSavedSearch(sourceId)
+            .countSourceFeedSavedSearch(sourceId = sourceId)
             .awaitAsOne()
     }
 
     override suspend fun delete(feedSavedSearchId: Long) {
         database.feed_saved_searchQueries
-            .deleteById(feedSavedSearchId)
+            .deleteById(id = feedSavedSearchId)
     }
 
     override suspend fun insert(feedSavedSearch: FeedSavedSearch): Long {
         return database.transactionWithResult {
             database.feed_saved_searchQueries.insertReturningId(
-                feedSavedSearch.source,
-                feedSavedSearch.savedSearch,
-                feedSavedSearch.global,
+                source = feedSavedSearch.source,
+                savedSearch = feedSavedSearch.savedSearch,
+                global = feedSavedSearch.global,
             ).awaitAsOne()
         }
     }
@@ -80,9 +80,9 @@ class FeedSavedSearchRepositoryImpl(
         return database.transaction {
             feedSavedSearch.forEach {
                 database.feed_saved_searchQueries.insert(
-                    it.source,
-                    it.savedSearch,
-                    it.global,
+                    source = it.source,
+                    savedSearch = it.savedSearch,
+                    global = it.global,
                 )
             }
         }

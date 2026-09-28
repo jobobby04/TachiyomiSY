@@ -9,11 +9,11 @@ object CategoryMapper {
         order: Long,
         flags: Long,
         // SY -->
-        version: Long,
-        uid: Long,
-        lastModifiedAt: Long,
+        stateVersion: Long,
+        stateUid: Long,
+        stateLastModifiedAt: Long,
         @Suppress("UNUSED_PARAMETER")
-        isSyncing: Long,
+        stateIsSyncing: Long,
         // SY <--
     ): Category {
         return Category(
@@ -22,9 +22,9 @@ object CategoryMapper {
             order = order,
             flags = flags,
             // SY -->
-            version = version,
-            uid = uid,
-            lastModifiedAt = lastModifiedAt,
+            version = stateVersion,
+            uid = stateUid,
+            lastModifiedAt = stateLastModifiedAt,
             // SY <--
         )
     }

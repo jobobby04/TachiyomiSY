@@ -51,15 +51,10 @@ SELECT id, name, `order`, flags,
 state_version, state_uid, state_last_modified_at, state_is_syncing
 -- SY <--
 FROM category
-WHERE id = :id
-LIMIT 1;
+WHERE id = :id;
 
 getCategories:
-SELECT
-id,
-name,
-`order`,
-flags,
+SELECT id, name, `order`, flags,
 -- SY -->
 state_version, state_uid, state_last_modified_at, state_is_syncing
 -- SY <--
@@ -67,11 +62,7 @@ FROM category
 ORDER BY `order`;
 
 getCategoriesByMangaId:
-SELECT
-C.id,
-C.name,
-C.`order`,
-C.flags,
+SELECT C.id, C.name, C.`order`, C.flags,
 -- SY -->
 C.state_version, C.state_uid, C.state_last_modified_at, C.state_is_syncing
 -- SY <--
@@ -82,18 +73,19 @@ WHERE MC.manga_id = :mangaId
 ORDER BY C.`order`;
 
 insert:
+-- The position is taken inside the insert, so two categories created at once cannot claim the same one
 INSERT INTO category(name, `order`, flags)
 SELECT :name, coalesce(max(`order`), -1) + 1, :flags
 FROM category;
 
 delete:
 DELETE FROM category
-WHERE id = :categoryId;
+WHERE id = :id;
 
 updateName:
 UPDATE category
 SET name = :name
-WHERE id = :categoryId;
+WHERE id = :id;
 
 getUserCategoryIds:
 SELECT id
@@ -104,34 +96,33 @@ ORDER BY `order`;
 updateOrder:
 UPDATE category
 SET `order` = :order
-WHERE id = :categoryId;
+WHERE id = :id;
 
 updateFlags:
 UPDATE category
 SET flags = :flags
-WHERE id = :categoryId;
+WHERE id = :id;
 
 updateAllFlags:
-UPDATE category SET
-flags = coalesce(:flags, flags);
+UPDATE category
+SET flags = :flags;
 
 -- SY -->
 insertWithOrder:
 INSERT INTO category(name, `order`, flags, state_version, state_uid, state_last_modified_at)
-VALUES (:name, :order, :flags, :version, :uid, :last_modified_at)
+VALUES (:name, :order, :flags, :stateVersion, :stateUid, :stateLastModifiedAt)
 RETURNING id;
 
 updateSync:
-UPDATE category
-SET
+UPDATE category SET
     name = :name,
     `order` = :order,
     flags = :flags,
-    state_version = :version,
-    state_uid = :uid,
-    state_last_modified_at = :lastModifiedAt,
+    state_version = :stateVersion,
+    state_uid = :stateUid,
+    state_last_modified_at = :stateLastModifiedAt,
     state_is_syncing = 1
-WHERE id = :categoryId;
+WHERE id = :id;
 
 resetIsSyncing:
 UPDATE category

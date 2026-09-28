@@ -22,37 +22,37 @@ class MangaMetadataRepositoryImpl(
 
     override suspend fun getMetadataById(id: Long): SearchMetadata? {
         return database.search_metadataQueries
-            .selectByMangaId(id, ::searchMetadataMapper)
+            .selectByMangaId(mangaId = id, mapper = ::searchMetadataMapper)
             .awaitAsOneOrNull()
     }
 
     override fun subscribeMetadataById(id: Long): Flow<SearchMetadata?> {
         return database.search_metadataQueries
-            .selectByMangaId(id, ::searchMetadataMapper)
+            .selectByMangaId(mangaId = id, mapper = ::searchMetadataMapper)
             .subscribeToOneOrNull()
     }
 
     override suspend fun getTagsById(id: Long): List<SearchTag> {
         return database.search_tagsQueries
-            .selectByMangaId(id, ::searchTagMapper)
+            .selectByMangaId(mangaId = id, mapper = ::searchTagMapper)
             .awaitAsList()
     }
 
     override fun subscribeTagsById(id: Long): Flow<List<SearchTag>> {
         return database.search_tagsQueries
-            .selectByMangaId(id, ::searchTagMapper)
+            .selectByMangaId(mangaId = id, mapper = ::searchTagMapper)
             .subscribeToList()
     }
 
     override suspend fun getTitlesById(id: Long): List<SearchTitle> {
         return database.search_titlesQueries
-            .selectByMangaId(id, ::searchTitleMapper)
+            .selectByMangaId(mangaId = id, mapper = ::searchTitleMapper)
             .awaitAsList()
     }
 
     override fun subscribeTitlesById(id: Long): Flow<List<SearchTitle>> {
         return database.search_titlesQueries
-            .selectByMangaId(id, ::searchTitleMapper)
+            .selectByMangaId(mangaId = id, mapper = ::searchTitleMapper)
             .subscribeToList()
     }
 
@@ -61,15 +61,26 @@ class MangaMetadataRepositoryImpl(
 
         database.transaction {
             flatMetadata.metadata.run {
-                database.search_metadataQueries.upsert(mangaId, uploader, extra, indexedExtra, extraVersion.toLong())
+                database.search_metadataQueries.upsert(
+                    mangaId = mangaId,
+                    uploader = uploader,
+                    extra = extra,
+                    indexedExtra = indexedExtra,
+                    extraVersion = extraVersion.toLong(),
+                )
             }
-            database.search_tagsQueries.deleteByManga(flatMetadata.metadata.mangaId)
+            database.search_tagsQueries.deleteByManga(mangaId = flatMetadata.metadata.mangaId)
             flatMetadata.tags.forEach {
-                database.search_tagsQueries.insert(it.mangaId, it.namespace, it.name, it.type.toLong())
+                database.search_tagsQueries.insert(
+                    mangaId = it.mangaId,
+                    namespace = it.namespace,
+                    name = it.name,
+                    type = it.type.toLong(),
+                )
             }
-            database.search_titlesQueries.deleteByManga(flatMetadata.metadata.mangaId)
+            database.search_titlesQueries.deleteByManga(mangaId = flatMetadata.metadata.mangaId)
             flatMetadata.titles.forEach {
-                database.search_titlesQueries.insert(it.mangaId, it.title, it.type.toLong())
+                database.search_titlesQueries.insert(mangaId = it.mangaId, title = it.title, type = it.type.toLong())
             }
         }
     }

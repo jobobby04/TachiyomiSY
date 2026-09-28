@@ -13,14 +13,17 @@ CREATE INDEX search_titles_manga_id_index ON search_titles(manga_id);
 CREATE INDEX search_titles_title_index ON search_titles(title);
 
 selectByMangaId:
-SELECT * FROM search_titles
-WHERE manga_id = ?;
+SELECT _id, manga_id, title, type
+FROM search_titles
+WHERE manga_id = :mangaId;
 
 deleteByManga:
-DELETE FROM search_titles WHERE manga_id = ?;
+DELETE FROM search_titles
+WHERE manga_id = :mangaId;
 
 insert:
-INSERT INTO search_titles (manga_id, title, type) VALUES (?, ?, ?);
+INSERT INTO search_titles(manga_id, title, type)
+VALUES (:mangaId, :title, :type);
 
 deleteAll:
 DELETE FROM search_titles;

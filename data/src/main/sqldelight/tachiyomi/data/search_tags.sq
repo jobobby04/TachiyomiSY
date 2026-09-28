@@ -14,15 +14,17 @@ CREATE INDEX search_tags_manga_id_index ON search_tags(manga_id);
 CREATE INDEX search_tags_namespace_name_index ON search_tags(namespace, name);
 
 selectByMangaId:
-SELECT * FROM search_tags
-WHERE manga_id = ?;
+SELECT _id, manga_id, namespace, name, type
+FROM search_tags
+WHERE manga_id = :mangaId;
 
 deleteByManga:
-DELETE FROM search_tags WHERE manga_id = ?;
+DELETE FROM search_tags
+WHERE manga_id = :mangaId;
 
 insert:
-INSERT INTO search_tags (manga_id, namespace, name, type)
-VALUES (?, ?, ?, ?);
+INSERT INTO search_tags(manga_id, namespace, name, type)
+VALUES (:mangaId, :namespace, :name, :type);
 
 deleteAll:
 DELETE FROM search_titles;
