@@ -633,6 +633,9 @@ class LibraryViewModel(
             getLibraryItemPreferencesFlow(),
             downloadCache.changes,
         ) { libraryManga, preferences, _ ->
+            val sources = libraryManga
+                .mapTo(mutableSetOf()) { it.manga.source }
+                .associateWith { sourceManager.getOrStub(it) }
             libraryManga.map { manga ->
                 // SY -->
                 val downloadCount = if (manga.manga.source == MERGED_SOURCE_ID) {
@@ -641,7 +644,7 @@ class LibraryViewModel(
                     downloadManager.getDownloadCount(manga.manga)
                 }
                 // SY <--
-                val source = sourceManager.getOrStub(manga.manga.source)
+                val source = sources.getValue(manga.manga.source)
                 LibraryItem(
                     libraryManga = manga,
                     // SY -->
