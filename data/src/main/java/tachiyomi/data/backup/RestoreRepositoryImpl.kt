@@ -113,6 +113,7 @@ class RestoreRepositoryImpl(
             initialized = dbManga.initialized || manga.initialized,
             // Merge both backup and local data with local winning
             memo = JsonObject(manga.memo + dbManga.memo),
+            nextUpdate = dbManga.nextUpdate.takeIf { it > 0 } ?: manga.nextUpdate,
         )
     }
 

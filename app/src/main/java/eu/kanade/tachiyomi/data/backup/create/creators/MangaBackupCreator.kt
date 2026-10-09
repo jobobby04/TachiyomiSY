@@ -139,6 +139,7 @@ private fun Manga.toBackupManga(/* SY --> */customMangaInfo: CustomMangaInfo?/* 
         notes = this.notes,
         initialized = this.initialized,
         memo = this.memo.toByteArray(),
+        nextUpdate = this.nextUpdate,
         // SY -->
     ).also { backupManga ->
         customMangaInfo?.let {
