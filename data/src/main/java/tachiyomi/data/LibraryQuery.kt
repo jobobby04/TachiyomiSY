@@ -21,14 +21,15 @@ private val mapper = { cursor: SqlCursor ->
         remote_cover = cursor.getString(9),
         remote_update_strategy = UpdateStrategyColumnAdapter.decode(cursor.getLong(10)!!),
         remote_memo = MemoColumnAdapter.decode(cursor.getBytes(11)!!),
-        user_favorite_at = cursor.getLong(12) ?: 0L,
+        // Entries read outside the library have no favorite time, which the view's type cannot hold
+        user_favorite_at = InstantColumnAdapter.decode(cursor.getLong(12) ?: 0L),
         user_notes = cursor.getString(13)!!,
         user_reader_flags = cursor.getLong(14)!!,
         user_chapter_flags = cursor.getLong(15)!!,
-        state_chapter_last_update = cursor.getLong(16) ?: 0L,
-        state_chapter_next_update = cursor.getLong(17) ?: 0L,
+        state_chapter_last_update = cursor.getLong(16)?.let(InstantColumnAdapter::decode),
+        state_chapter_next_update = cursor.getLong(17)?.let(InstantColumnAdapter::decode),
         state_chapter_fetch_interval = cursor.getLong(18)!!,
-        state_cover_last_modified = cursor.getLong(19)!!,
+        state_cover_last_modified = cursor.getLong(19)?.let(InstantColumnAdapter::decode),
         state_initialized = cursor.getLong(20)!! == 1L,
         // SY -->
         state_last_modified_at = cursor.getLong(21)!!,
@@ -37,9 +38,9 @@ private val mapper = { cursor: SqlCursor ->
         // SY <--
         totalCount = cursor.getLong(24)!!,
         readCount = cursor.getDouble(25)!!,
-        latestUpload = cursor.getLong(26)!!,
-        chapterFetchedAt = cursor.getLong(27)!!,
-        lastRead = cursor.getLong(28)!!,
+        latestUpload = cursor.getLong(26)?.let(InstantColumnAdapter::decode),
+        chapterFetchedAt = cursor.getLong(27)?.let(InstantColumnAdapter::decode),
+        lastRead = cursor.getLong(28)?.let(InstantColumnAdapter::decode),
         bookmarkCount = cursor.getDouble(29)!!,
         categories = cursor.getString(30)!!,
     )
@@ -65,28 +66,25 @@ class LibraryQuery(
                 M.*,
                 coalesce(C.total, 0) AS totalCount,
                 coalesce(C.readCount, 0) AS readCount,
-                coalesce(C.latestUpload, 0) AS latestUpload,
-                coalesce(C.fetchedAt, 0) AS chapterFetchedAt,
+                C.latestUpload AS latestUpload,
+                C.fetchedAt AS chapterFetchedAt,
                 -- Joining history to every chapter is the slowest part of the query, and only entries with excluded
                 -- scanlators need the chapters to leave theirs out
-                coalesce(
-                    CASE WHEN EXISTS (SELECT 0 FROM excluded_scanlator WHERE excluded_scanlator.manga_id = M.id)
-                    THEN (
-                        SELECT max(history.read_at)
-                        FROM history
-                        JOIN chapter
-                        ON chapter.id = history.chapter_id
-                        WHERE history.manga_id = M.id
-                        AND NOT EXISTS (
-                            SELECT 0 FROM excluded_scanlator
-                            WHERE excluded_scanlator.manga_id = M.id
-                            AND excluded_scanlator.scanlator = chapter.remote_scanlator
-                        )
+                CASE WHEN EXISTS (SELECT 0 FROM excluded_scanlator WHERE excluded_scanlator.manga_id = M.id)
+                THEN (
+                    SELECT max(history.read_at)
+                    FROM history
+                    JOIN chapter
+                    ON chapter.id = history.chapter_id
+                    WHERE history.manga_id = M.id
+                    AND NOT EXISTS (
+                        SELECT 0 FROM excluded_scanlator
+                        WHERE excluded_scanlator.manga_id = M.id
+                        AND excluded_scanlator.scanlator = chapter.remote_scanlator
                     )
-                    ELSE (SELECT max(history.read_at) FROM history WHERE history.manga_id = M.id)
-                    END,
-                    0
-                ) AS lastRead,
+                )
+                ELSE (SELECT max(history.read_at) FROM history WHERE history.manga_id = M.id)
+                END AS lastRead,
                 coalesce(C.bookmarkCount, 0) AS bookmarkCount,
                 coalesce(MC.categories, '0') AS categories
             FROM manga M
@@ -95,8 +93,8 @@ class LibraryQuery(
                     chapter.manga_id,
                     count(*) AS total,
                     sum(user_read) AS readCount,
-                    coalesce(max(chapter.remote_date_upload), 0) AS latestUpload,
-                    coalesce(max(chapter.state_date_fetch), 0) AS fetchedAt,
+                    max(chapter.remote_date_upload) AS latestUpload,
+                    max(chapter.state_date_fetch) AS fetchedAt,
                     sum(chapter.user_bookmark) AS bookmarkCount
                 FROM chapter
                 LEFT JOIN excluded_scanlator
@@ -118,23 +116,20 @@ class LibraryQuery(
                 M.*,
                 coalesce(C.total, 0) AS totalCount,
                 coalesce(C.readCount, 0) AS readCount,
-                coalesce(C.latestUpload, 0) AS latestUpload,
-                coalesce(C.fetchedAt, 0) AS chapterFetchedAt,
+                C.latestUpload AS latestUpload,
+                C.fetchedAt AS chapterFetchedAt,
                 -- The history of the merged entries, read by entry rather than joined to every chapter
-                coalesce(
-                    (
-                        SELECT max(history.read_at)
-                        FROM history
-                        JOIN chapter
-                        ON chapter.id = history.chapter_id
-                        WHERE history.manga_id IN (SELECT merged.manga_id FROM merged WHERE merged.merge_id = M.id)
-                        AND NOT EXISTS (
-                            SELECT 0 FROM excluded_scanlator
-                            WHERE excluded_scanlator.manga_id = chapter.manga_id
-                            AND excluded_scanlator.scanlator = chapter.remote_scanlator
-                        )
-                    ),
-                    0
+                (
+                    SELECT max(history.read_at)
+                    FROM history
+                    JOIN chapter
+                    ON chapter.id = history.chapter_id
+                    WHERE history.manga_id IN (SELECT merged.manga_id FROM merged WHERE merged.merge_id = M.id)
+                    AND NOT EXISTS (
+                        SELECT 0 FROM excluded_scanlator
+                        WHERE excluded_scanlator.manga_id = chapter.manga_id
+                        AND excluded_scanlator.scanlator = chapter.remote_scanlator
+                    )
                 ) AS lastRead,
                 coalesce(C.bookmarkCount, 0) AS bookmarkCount,
                 coalesce(MC.categories, '0') AS categories
@@ -150,8 +145,8 @@ class LibraryQuery(
                     ME.merge_id,
                     count(*) AS total,
                     sum(user_read) AS readCount,
-                    coalesce(max(chapter.remote_date_upload), 0) AS latestUpload,
-                    coalesce(max(chapter.state_date_fetch), 0) AS fetchedAt,
+                    max(chapter.remote_date_upload) AS latestUpload,
+                    max(chapter.state_date_fetch) AS fetchedAt,
                     sum(chapter.user_bookmark) AS bookmarkCount
                 FROM chapter
                 LEFT JOIN excluded_scanlator

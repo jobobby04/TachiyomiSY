@@ -99,9 +99,8 @@ class MigrateMangaUseCase(
                                 mangaChapter.read && targetHistory.find { it.chapterId == mangaChapter.id } != null
 
                             if (updatedHistory != null && !chapterHasHistory) {
-                                historyUpdates.add(
-                                    updatedHistory.copy(chapterId = mangaChapter.id).toHistoryUpdate(),
-                                )
+                                updatedHistory.copy(chapterId = mangaChapter.id).toHistoryUpdate()
+                                    ?.let(historyUpdates::add)
                             }
                         }
                         // SY <--
@@ -167,7 +166,7 @@ class MigrateMangaUseCase(
             }
                 .takeIf { replace }
             val targetMangaUpdate = MangaUpdate(target.id) {
-                favoriteAt = current.favoriteAt?.takeIf { replace } ?: Clock.System.now().toEpochMilliseconds()
+                favoriteAt = current.favoriteAt?.takeIf { replace } ?: Clock.System.now()
                 chapterFlags = current.chapterFlags
                 viewerFlags = current.viewerFlags
                 if (MigrationFlag.NOTES in flags) notes = current.notes

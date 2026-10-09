@@ -17,6 +17,7 @@ import mihon.domain.library.model.search.NamespaceQueryNode
 import mihon.domain.library.model.search.NotNode
 import mihon.domain.library.model.search.OrNode
 import mihon.domain.library.model.search.QueryNode
+import tachiyomi.domain.manga.model.Manga
 import tachiyomi.source.local.LocalSource
 import kotlin.math.abs
 import kotlin.time.Instant
@@ -124,17 +125,14 @@ private fun ComparisonQueryNode.matches(item: LibraryItem): Boolean {
         ComparisonField.ID -> value.toLongOrNull()?.let { queryComparator.apply(manga.id, it) }
 
         // SY -->
-        ComparisonField.DATE_ADDED -> manga.favoriteAt?.takeIf { it > 0 }
-            ?.let { compareDates(Instant.fromEpochMilliseconds(it), value) }
+        ComparisonField.DATE_ADDED -> manga.favoriteAt?.takeIf { it != Manga.UNKNOWN_FAVORITE_AT }
+            ?.let { compareDates(it, value) }
         // SY <--
 
         ComparisonField.FETCH_INTERVAL -> value.toIntOrNull()
             ?.let { queryComparator.apply(abs(manga.fetchInterval), it) }
 
-        // SY -->
-        ComparisonField.NEXT_UPDATE -> manga.nextUpdate.takeIf { it > 0 }
-            ?.let { compareDates(Instant.fromEpochMilliseconds(it), value) }
-        // SY <--
+        ComparisonField.NEXT_UPDATE -> manga.nextUpdate?.let { compareDates(it, value) }
 
         ComparisonField.UNREAD -> {
             value.toLongOrNull()?.let {

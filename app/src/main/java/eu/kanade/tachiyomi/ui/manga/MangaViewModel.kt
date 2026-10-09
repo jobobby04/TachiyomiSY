@@ -150,7 +150,10 @@ import tachiyomi.i18n.sy.SYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import kotlin.math.floor
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @AssistedInject
 class MangaViewModel(
@@ -344,7 +347,13 @@ class MangaViewModel(
     ) { (manga, chapters), _, _, /* SY --> */ (flatMetadata, mergedData, mangaInfoEdits) /* SY <-- */ ->
         // SY -->
         @Suppress("NAME_SHADOWING")
-        val manga = if (mangaInfoEdits > 0) manga.copy(lastUpdate = manga.lastUpdate + mangaInfoEdits) else manga
+        val manga = if (mangaInfoEdits > 0) {
+            // Changes the entry so the edited info is shown, even when it has no last update to move
+            val lastUpdate = manga.lastUpdate ?: Instant.fromEpochMilliseconds(0)
+            manga.copy(lastUpdate = lastUpdate + mangaInfoEdits.milliseconds)
+        } else {
+            manga
+        }
         val source = sourceManager.getOrStub(manga.source)
         // SY <--
         MangaAndChapters(
@@ -635,7 +644,7 @@ class MangaViewModel(
                     ogDescription = description?.trimOrNull(),
                     ogGenre = tags?.nullIfEmpty(),
                     ogStatus = status ?: 0,
-                    lastUpdate = manga.lastUpdate + 1,
+                    lastUpdate = manga.lastUpdate?.plus(1.milliseconds),
                 )
                 (sourceManager.get(LocalSource.ID) as LocalSource).updateMangaInfo(manga.toSManga())
                 appScope.launch {
@@ -739,7 +748,7 @@ class MangaViewModel(
                 )
                 .copyFrom(originalManga.toSManga())
                 .copy(
-                    favoriteAt = System.currentTimeMillis(),
+                    favoriteAt = Clock.System.now(),
                     lastUpdate = originalManga.lastUpdate,
                     viewerFlags = originalManga.viewerFlags,
                     chapterFlags = originalManga.chapterFlags,

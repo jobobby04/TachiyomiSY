@@ -446,7 +446,7 @@ class SyncManager(
                 if (localManga.favorite != nonFavorite.favorite) {
                     mangaRepository.update(
                         MangaUpdate(localManga.id) {
-                            favoriteAt = if (nonFavorite.favorite) Clock.System.now().toEpochMilliseconds() else null
+                            favoriteAt = if (nonFavorite.favorite) Clock.System.now() else null
                         },
                     )
                 }

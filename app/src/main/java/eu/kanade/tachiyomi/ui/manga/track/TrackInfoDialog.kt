@@ -619,15 +619,15 @@ data class TrackDateSelectorScreen(
             // Disallow future dates
             if (targetDate > Clock.System.now().toLocalDateTime(TimeZone.UTC)) return false
 
+            val finishDate = track.finishDate?.toLocalDateTime(TimeZone.UTC)
+            val startDate = track.startDate?.toLocalDateTime(TimeZone.UTC)
             return when {
                 // Disallow setting start date after finish date
-                start && track.finishDate > 0 -> {
-                    val finishDate = Instant.fromEpochMilliseconds(track.finishDate).toLocalDateTime(TimeZone.UTC)
+                start && finishDate != null -> {
                     targetDate <= finishDate
                 }
                 // Disallow setting finish date before start date
-                !start && track.startDate > 0 -> {
-                    val startDate = Instant.fromEpochMilliseconds(track.startDate).toLocalDateTime(TimeZone.UTC)
+                !start && startDate != null -> {
                     startDate <= targetDate
                 }
                 else -> {
@@ -640,15 +640,15 @@ data class TrackDateSelectorScreen(
             // Disallow future years
             if (year > Clock.System.now().toLocalDateTime(TimeZone.UTC).year) return false
 
+            val finishDate = track.finishDate?.toLocalDateTime(TimeZone.UTC)
+            val startDate = track.startDate?.toLocalDateTime(TimeZone.UTC)
             return when {
                 // Disallow setting start year after finish year
-                start && track.finishDate > 0 -> {
-                    val finishDate = Instant.fromEpochMilliseconds(track.finishDate).toLocalDateTime(TimeZone.UTC)
+                start && finishDate != null -> {
                     year <= finishDate.year
                 }
                 // Disallow setting finish year before start year
-                !start && track.startDate > 0 -> {
-                    val startDate = Instant.fromEpochMilliseconds(track.startDate).toLocalDateTime(TimeZone.UTC)
+                !start && startDate != null -> {
                     startDate.year <= year
                 }
                 else -> {
@@ -666,9 +666,9 @@ data class TrackDateSelectorScreen(
         }
 
         val canRemove = if (start) {
-            track.startDate > 0
+            track.startDate != null
         } else {
-            track.finishDate > 0
+            track.finishDate != null
         }
         TrackDateSelector(
             title = if (start) {
@@ -708,10 +708,8 @@ data class TrackDateSelectorScreen(
         // In UTC
         val initialSelection: Long
             get() {
-                val millis = (if (start) track.startDate else track.finishDate)
-                    .takeIf { it != 0L }
-                    ?: Clock.System.now().toEpochMilliseconds()
-                return millis.convertEpochMillisZone(TimeZone.currentSystemDefault(), TimeZone.UTC)
+                val date = (if (start) track.startDate else track.finishDate) ?: Clock.System.now()
+                return date.toEpochMilliseconds().convertEpochMillisZone(TimeZone.currentSystemDefault(), TimeZone.UTC)
             }
 
         // In UTC

@@ -24,7 +24,6 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Instant
 
 @Execution(ExecutionMode.CONCURRENT)
 class FetchIntervalTest {
@@ -32,8 +31,8 @@ class FetchIntervalTest {
     private val testTime = LocalDateTime.parse("2020-01-01T00:00:00")
     private val testTimeZone = TimeZone.UTC
     private var chapter = Chapter.create().copy(
-        dateFetch = testTime.toInstant(testTimeZone).toEpochMilliseconds(),
-        dateUpload = testTime.toInstant(testTimeZone).toEpochMilliseconds(),
+        dateFetch = testTime.toInstant(testTimeZone),
+        dateUpload = testTime.toInstant(testTimeZone),
     )
 
     @Test
@@ -44,7 +43,7 @@ class FetchIntervalTest {
         interval(chaptersWithUploadDate) shouldBe 7
 
         val chaptersWithoutUploadDate = chaptersWithUploadDate.map {
-            it.copy(dateUpload = 0L)
+            it.copy(dateUpload = null)
         }
         interval(chaptersWithoutUploadDate) shouldBe 7
     }
@@ -128,7 +127,7 @@ class FetchIntervalTest {
         interval(chaptersWithUploadDate) shouldBe 1
 
         val chaptersWithoutUploadDate = chaptersWithUploadDate.map {
-            it.copy(dateUpload = 0L)
+            it.copy(dateUpload = null)
         }
         interval(chaptersWithoutUploadDate) shouldBe 1
     }
@@ -240,7 +239,7 @@ class FetchIntervalTest {
     @Test
     fun `keeps a next update in the window while nothing new came out`() = runTest {
         val chapters = chaptersOn(weekly(from = "2019-12-04", to = "2019-12-25"))
-        val manga = Manga.create().copy(nextUpdate = LocalDate.parse("2020-01-01").atStartOfDayIn(testTimeZone).toEpochMilliseconds())
+        val manga = Manga.create().copy(nextUpdate = LocalDate.parse("2020-01-01").atStartOfDayIn(testTimeZone))
 
         nextUpdate(today = "2020-01-02", chapters, manga) shouldBe LocalDate.parse("2020-01-01")
     }
@@ -248,7 +247,7 @@ class FetchIntervalTest {
     @Test
     fun `counts from a release on the expected day`() = runTest {
         val chapters = chaptersOn(weekly(from = "2019-12-04", to = "2020-01-01"))
-        val manga = Manga.create().copy(nextUpdate = LocalDate.parse("2020-01-01").atStartOfDayIn(testTimeZone).toEpochMilliseconds())
+        val manga = Manga.create().copy(nextUpdate = LocalDate.parse("2020-01-01").atStartOfDayIn(testTimeZone))
 
         nextUpdate(today = "2020-01-01", chapters, manga) shouldBe LocalDate.parse("2020-01-08")
     }
@@ -349,11 +348,11 @@ class FetchIntervalTest {
             window = fetchInterval.getWindow(date, testTimeZone),
             foundRelease = foundRelease,
         )
-        return Instant.fromEpochMilliseconds(update.nextUpdate!!).toLocalDateTime(testTimeZone).date
+        return update.nextUpdate!!.toLocalDateTime(testTimeZone).date
     }
 
     private fun expecting(day: String): Manga {
-        return Manga.create().copy(nextUpdate = LocalDate.parse(day).atStartOfDayIn(testTimeZone).toEpochMilliseconds())
+        return Manga.create().copy(nextUpdate = LocalDate.parse(day).atStartOfDayIn(testTimeZone))
     }
 
     private fun interval(chapters: List<Chapter>): Int {
@@ -379,17 +378,15 @@ class FetchIntervalTest {
     private fun chaptersOn(days: List<LocalDate>, perDay: Int = 1): List<Chapter> {
         return days.flatMap { day ->
             val time = day.atStartOfDayIn(testTimeZone) + 12.hours
-            List(perDay) {
-                chapter.copy(dateFetch = time.toEpochMilliseconds(), dateUpload = time.toEpochMilliseconds())
-            }
+            List(perDay) { chapter.copy(dateFetch = time, dateUpload = time) }
         }
     }
 
     private fun chapterWithTime(chapter: Chapter, duration: Duration): Chapter {
         val newTime = testTime.toInstant(testTimeZone) + duration
-        return chapter.copy(dateFetch = newTime.toEpochMilliseconds(), dateUpload = newTime.toEpochMilliseconds())
+        return chapter.copy(dateFetch = newTime, dateUpload = newTime)
     }
 
     private fun List<Chapter>.lastUploadDate() =
-        Instant.fromEpochMilliseconds(last().dateUpload) - testTime.toInstant(testTimeZone)
+        last().dateUpload!! - testTime.toInstant(testTimeZone)
 }

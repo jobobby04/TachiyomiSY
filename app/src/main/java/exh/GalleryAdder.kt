@@ -160,7 +160,7 @@ class GalleryAdder(
 
             if (fav) {
                 updateManga.awaitUpdateFavorite(manga.id, true)
-                manga = manga.copy(favoriteAt = Clock.System.now().toEpochMilliseconds())
+                manga = manga.copy(favoriteAt = Clock.System.now())
             }
 
             return if (cleanedChapterUrl != null) {

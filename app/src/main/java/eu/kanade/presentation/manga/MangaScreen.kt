@@ -971,14 +971,13 @@ private fun LazyListScope.sharedChapterItems(
                         item.chapter.name
                     },
                     date = item.chapter.dateUpload
-                        .takeIf { it > 0L }
                         ?.let {
                             // SY -->
                             if (manga.isEhBasedManga()) {
                                 MetadataUtil.EX_DATE_FORMAT
-                                    .format(ZonedDateTime.ofInstant(Instant.fromEpochMilliseconds(it).toJavaInstant(), ZoneId.systemDefault()))
+                                    .format(ZonedDateTime.ofInstant(it.toJavaInstant(), ZoneId.systemDefault()))
                             } else {
-                                relativeDateText(item.chapter.dateUpload)
+                                relativeDateText(it)
                             }
                             // SY <--
                         },

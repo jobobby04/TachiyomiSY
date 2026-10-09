@@ -4,6 +4,7 @@ import eu.kanade.tachiyomi.source.model.UpdateStrategy
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import mihon.core.common.extensions.JsonObjectEmptyBytes
+import mihon.core.common.extensions.toInstantOrNull
 import mihon.core.common.extensions.toJsonObject
 import tachiyomi.domain.manga.model.Manga
 
@@ -81,8 +82,8 @@ class BackupManga(
             // For libraries older than dateAdded, the favorite timestamp is the only record of when
             // an entry was added. It was written by a trigger in seconds, unlike dateAdded.
             favoriteAt = if (this@BackupManga.favorite) {
-                this@BackupManga.dateAdded.takeIf { it != 0L }
-                    ?: 0L
+                this@BackupManga.dateAdded.toInstantOrNull()
+                    ?: Manga.UNKNOWN_FAVORITE_AT
             } else {
                 null
             },
@@ -96,7 +97,7 @@ class BackupManga(
             notes = this@BackupManga.notes,
             initialized = this@BackupManga.initialized,
             memo = this@BackupManga.memo.toJsonObject(),
-            nextUpdate = this@BackupManga.nextUpdate,
+            nextUpdate = this@BackupManga.nextUpdate.toInstantOrNull(),
         )
     }
 }

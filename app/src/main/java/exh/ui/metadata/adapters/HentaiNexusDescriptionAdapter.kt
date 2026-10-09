@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel.State
 import exh.metadata.metadata.HentaiNexusSearchMetadata
+import mihon.core.common.extensions.toInstantOrNull
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.CalendarMonth
 import mihon.icons.materialsymbols.rounded.Favorite
@@ -45,7 +46,7 @@ fun HentaiNexusDescription(state: State.Success, openMetadataViewer: () -> Unit)
             }
             meta.publishedDate?.let { date ->
                 fact {
-                    MetadataText(text = relativeDateText(date), icon = MaterialSymbols.Rounded.CalendarMonth)
+                    MetadataText(text = relativeDateText(date.toInstantOrNull()), icon = MaterialSymbols.Rounded.CalendarMonth)
                 }
             }
         }

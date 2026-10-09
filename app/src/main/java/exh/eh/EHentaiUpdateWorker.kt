@@ -140,7 +140,7 @@ class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerPara
             }
 
             val chapter = getChaptersByMangaId.await(manga.id).minByOrNull {
-                it.dateUpload
+                it.dateUpload?.toEpochMilliseconds() ?: 0L
             }
 
             UpdateEntry(manga, raisedMeta, chapter)

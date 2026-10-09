@@ -102,12 +102,8 @@ internal data class ReleaseSchedule(
                     .toList()
             }
 
-            // SY -->
-            val uploadDays = releaseDays(
-                chapters.asSequence().filter { it.dateUpload > 0 }.map { Instant.fromEpochMilliseconds(it.dateUpload) },
-            )
-            val fetchDays = releaseDays(chapters.asSequence().map { Instant.fromEpochMilliseconds(it.dateFetch) })
-            // SY <--
+            val uploadDays = releaseDays(chapters.asSequence().mapNotNull { it.dateUpload })
+            val fetchDays = releaseDays(chapters.asSequence().map { it.dateFetch })
             val history = uploadDays.takeIf { it.size >= MIN_RELEASES }
                 ?: fetchDays.takeIf { it.size >= MIN_RELEASES }
                 ?: run {

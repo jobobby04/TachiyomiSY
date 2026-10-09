@@ -29,8 +29,6 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.source.local.isLocal
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
 @Composable
@@ -86,15 +84,13 @@ fun ChapterListDialog(
                 MangaChapterListItem(
                     title = chapterItem.chapter.name,
                     date = chapterItem.chapter.dateUpload
-                        .takeIf { it > 0L }
                         ?.let {
                             // SY -->
                             if (manga?.isEhBasedManga() == true) {
                                 MetadataUtil.EX_DATE_FORMAT
-                                    .format(ZonedDateTime.ofInstant(Instant.fromEpochMilliseconds(it).toJavaInstant(), ZoneId.systemDefault()))
+                                    .format(ZonedDateTime.ofInstant(it.toJavaInstant(), ZoneId.systemDefault()))
                             } else {
-                                Clock.System.now()
-                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                it.toLocalDateTime(TimeZone.currentSystemDefault())
                                     .date
                                     .toRelativeString(context, dateRelativeTime, chapterItem.dateFormat)
                             }

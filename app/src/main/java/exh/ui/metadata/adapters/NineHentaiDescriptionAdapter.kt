@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel.State
 import exh.metadata.metadata.NineHentaiSearchMetadata
+import mihon.core.common.extensions.toInstantOrNull
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Favorite
 import mihon.icons.materialsymbols.rounded.Schedule
@@ -72,7 +73,7 @@ fun NineHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) 
             }
             meta.uploadDate?.let { date ->
                 fact {
-                    MetadataText(text = relativeDateText(date), icon = MaterialSymbols.Rounded.Schedule)
+                    MetadataText(text = relativeDateText(date.toInstantOrNull()), icon = MaterialSymbols.Rounded.Schedule)
                 }
             }
         }

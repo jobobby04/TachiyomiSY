@@ -10,6 +10,7 @@ import tachiyomi.domain.manga.model.MangaRemoteUpdate
 import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.repository.MangaRepository
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Inject
 class UpdateManga(
@@ -35,7 +36,7 @@ class UpdateManga(
         manga: Manga,
         timeZone: TimeZone = TimeZone.currentSystemDefault(),
         dateTime: LocalDateTime = Clock.System.now().toLocalDateTime(timeZone),
-        window: Pair<Long, Long> = fetchInterval.getWindow(dateTime.date, timeZone),
+        window: ClosedRange<Instant>? = fetchInterval.getWindow(dateTime.date, timeZone),
         foundRelease: Boolean = false,
     ): Boolean {
         return mangaRepository.update(
@@ -50,12 +51,12 @@ class UpdateManga(
         manga: Manga,
         timeZone: TimeZone,
         dateTime: LocalDateTime,
-        window: Pair<Long, Long>,
+        window: ClosedRange<Instant>?,
         foundRelease: Boolean,
     ): Boolean {
         return mangaRepository.update(
             fetchInterval.withFetchInterval(manga, dateTime, timeZone, window, foundRelease).apply {
-                lastUpdate = Clock.System.now().toEpochMilliseconds()
+                lastUpdate = Clock.System.now()
             },
         )
     }
@@ -63,14 +64,14 @@ class UpdateManga(
     suspend fun awaitUpdateCoverLastModified(mangaId: Long): Boolean {
         return mangaRepository.update(
             MangaUpdate(mangaId) {
-                coverLastModified = Clock.System.now().toEpochMilliseconds()
+                coverLastModified = Clock.System.now()
             },
         )
     }
 
     suspend fun awaitUpdateFavorite(mangaId: Long, favorite: Boolean): Boolean {
         val update = when (favorite) {
-            true -> MangaUpdate(mangaId) { favoriteAt = Clock.System.now().toEpochMilliseconds() }
+            true -> MangaUpdate(mangaId) { favoriteAt = Clock.System.now() }
             false -> MangaUpdate(mangaId) { favoriteAt = null }
         }
         return mangaRepository.update(update)

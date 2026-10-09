@@ -1,5 +1,7 @@
 package tachiyomi.domain.manga.model
 
+import kotlin.time.Instant
+
 /**
  * Contains the required data for MangaCoverFetcher
  */
@@ -11,7 +13,7 @@ data class MangaCover(
     val ogUrl: String?,
     val customThumbnailUrl: String? = null,
     // SY <--
-    val lastModified: Long,
+    val lastModified: Instant?,
 ) {
     // SY -->
     val url: String? = customThumbnailUrl ?: ogUrl

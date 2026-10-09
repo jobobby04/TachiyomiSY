@@ -20,6 +20,7 @@ import tachiyomi.domain.chapter.model.ChapterRemoteUpdate
 import tachiyomi.domain.chapter.model.ChapterSummary
 import tachiyomi.domain.chapter.model.ChapterUpdate
 import tachiyomi.domain.chapter.repository.ChapterRepository
+import kotlin.time.Instant
 
 @Inject
 @SingleIn(AppScope::class)

@@ -20,13 +20,13 @@ import java.io.Serializable as JavaSerializable
 data class Manga(
     val id: Long,
     val source: Long,
-    val lastUpdate: Long,
-    val nextUpdate: Long,
+    val lastUpdate: Instant?,
+    val nextUpdate: Instant?,
     val fetchInterval: Int,
-    val favoriteAt: Long?,
+    val favoriteAt: Instant?,
     val viewerFlags: Long,
     val chapterFlags: Long,
-    val coverLastModified: Long,
+    val coverLastModified: Instant?,
     val url: String,
     // SY -->
     val ogTitle: String,
@@ -78,9 +78,7 @@ data class Manga(
     // SY <--
 
     val expectedNextUpdate: Instant?
-        get() = nextUpdate
-            .takeIf { status != SManga.COMPLETED.toLong() }
-            ?.let { Instant.fromEpochMilliseconds(it) }
+        get() = nextUpdate?.takeIf { status != SManga.COMPLETED.toLong() }
 
     val sorting: Long
         get() = chapterFlags and CHAPTER_SORTING_MASK
@@ -145,6 +143,11 @@ data class Manga(
         const val CHAPTER_DISPLAY_NUMBER = 0x00100000L
         const val CHAPTER_DISPLAY_MASK = 0x00100000L
 
+        /**
+         * [favoriteAt] of an entry added to the library before the time it was added was recorded.
+         */
+        val UNKNOWN_FAVORITE_AT = Instant.fromEpochMilliseconds(0)
+
         fun create() = Manga(
             id = -1L,
             url = "",
@@ -152,13 +155,13 @@ data class Manga(
             ogTitle = "",
             // SY <--
             source = -1L,
-            lastUpdate = 0L,
-            nextUpdate = 0L,
+            lastUpdate = null,
+            nextUpdate = null,
             fetchInterval = 0,
             favoriteAt = null,
             viewerFlags = 0L,
             chapterFlags = 0L,
-            coverLastModified = 0L,
+            coverLastModified = null,
             // SY -->
             ogArtist = null,
             ogAuthor = null,

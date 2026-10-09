@@ -6,6 +6,7 @@ import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import exh.source.MERGED_SOURCE_ID
 import tachiyomi.view.UpdatesView
+import kotlin.time.Instant
 
 private val mapper = { cursor: SqlCursor ->
     UpdatesView(
@@ -21,16 +22,16 @@ private val mapper = { cursor: SqlCursor ->
         cursor.getLong(9)!!,
         cursor.getLong(10)!! == 1L,
         cursor.getString(11),
-        cursor.getLong(12)!!,
-        cursor.getLong(13)!!,
-        cursor.getLong(14)!!,
+        cursor.getLong(12)?.let(InstantColumnAdapter::decode),
+        cursor.getLong(13)?.let(InstantColumnAdapter::decode),
+        InstantColumnAdapter.decode(cursor.getLong(14)!!),
         cursor.getString(15),
     )
 }
 
 fun getUpdatesQuery(
     driver: SqlDriver,
-    after: Long,
+    after: Instant,
     limit: Long,
     read: Boolean?,
     started: Long?,
@@ -58,7 +59,7 @@ fun getUpdatesQuery(
 
 class UpdatesQuery(
     val driver: SqlDriver,
-    val after: Long,
+    val after: Instant,
     val limit: Long,
     val read: Boolean?,
     val started: Long?,
@@ -199,7 +200,7 @@ class UpdatesQuery(
             8 + includedCategories.size + includedCategories.size + excludedCategories.size + excludedCategories.size,
             binders = {
                 var parameterIndex = 0
-                bindLong(parameterIndex++, after)
+                bindLong(parameterIndex++, InstantColumnAdapter.encode(after))
                 bindBoolean(parameterIndex++, read)
                 bindLong(parameterIndex++, started)
                 bindBoolean(parameterIndex++, bookmarked)

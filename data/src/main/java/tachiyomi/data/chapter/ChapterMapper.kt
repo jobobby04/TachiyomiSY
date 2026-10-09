@@ -2,6 +2,7 @@ package tachiyomi.data.chapter
 
 import kotlinx.serialization.json.JsonObject
 import tachiyomi.domain.chapter.model.Chapter
+import kotlin.time.Instant
 
 object ChapterMapper {
     fun mapChapter(
@@ -11,13 +12,13 @@ object ChapterMapper {
         remoteName: String,
         remoteScanlator: String?,
         remoteChapterNumber: Double,
-        remoteDateUpload: Long,
+        remoteDateUpload: Instant?,
         remoteOrder: Long,
         remoteMemo: JsonObject,
         userRead: Boolean,
         userBookmark: Boolean,
         userLastPageRead: Long,
-        stateDateFetch: Long,
+        stateDateFetch: Instant,
         // SY -->
         stateLastModifiedAt: Long,
         stateVersion: Long,

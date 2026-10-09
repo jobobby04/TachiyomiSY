@@ -11,6 +11,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 @Inject
@@ -27,34 +28,26 @@ class FetchInterval(
         manga: Manga,
         dateTime: LocalDateTime,
         timeZone: TimeZone,
-        window: Pair<Long, Long>,
+        window: ClosedRange<Instant>?,
         foundRelease: Boolean = false,
     ): MangaUpdate {
         val today = dateTime.date
-        // SY -->
-        val currentWindow = if (window.first == 0L && window.second == 0L) {
-            getWindow(Clock.System.now().toLocalDateTime(timeZone).date, timeZone)
-        } else {
-            window
-        }
-        val mangaLastUpdate = manga.lastUpdate.takeIf { it > 0 }?.let(Instant::fromEpochMilliseconds)
-        val mangaNextUpdate = manga.nextUpdate.takeIf { it > 0 }?.let(Instant::fromEpochMilliseconds)
-        // SY <--
+        val currentWindow = window ?: getWindow(Clock.System.now().toLocalDateTime(timeZone).date, timeZone)
         val schedule = if (manga.fetchInterval < 0) {
             // The check that found a release is the entry's last update
-            val lastUpdate = if (foundRelease) today else mangaLastUpdate?.toLocalDateTime(timeZone)?.date
+            val lastUpdate = if (foundRelease) today else manga.lastUpdate?.toLocalDateTime(timeZone)?.date
             ReleaseSchedule.fixed(-manga.fetchInterval, lastUpdate ?: today)
         } else {
             val chapters = getChaptersByMangaId.await(manga.id, applyScanlatorFilter = true)
             ReleaseSchedule.estimate(chapters, timeZone, today)
         }
 
-        val expected = mangaNextUpdate
+        val expected = manga.nextUpdate
         val expectedDay = expected?.toLocalDateTime(timeZone)?.date
         // A release on or after the expected day means the next one is counted from it instead
         val isAwaitingRelease = expected != null &&
             expectedDay != null &&
-            expected.toEpochMilliseconds() in currentWindow.first..currentWindow.second + 1 &&
+            expected in currentWindow.start..currentWindow.endInclusive + 1.milliseconds &&
             (schedule.lastRelease == null || schedule.lastRelease < expectedDay)
         val nextUpdate = when {
             foundRelease -> schedule.nextCheckAfterRelease(today).atStartOfDayIn(timeZone)
@@ -63,16 +56,14 @@ class FetchInterval(
         }
 
         return MangaUpdate(manga.id) {
-            this.nextUpdate = nextUpdate.toEpochMilliseconds()
+            this.nextUpdate = nextUpdate
             fetchInterval = if (manga.fetchInterval < 0) manga.fetchInterval else schedule.interval
         }
     }
 
-    fun getWindow(localDateTime: LocalDate, timeZone: TimeZone): Pair<Long, Long> {
+    fun getWindow(localDateTime: LocalDate, timeZone: TimeZone): ClosedRange<Instant> {
         val today = localDateTime.atStartOfDayIn(timeZone)
-        val lowerBound = today - GRACE_PERIOD.days
-        val upperBound = today + GRACE_PERIOD.days
-        return Pair(lowerBound.toEpochMilliseconds(), upperBound.toEpochMilliseconds())
+        return (today - GRACE_PERIOD.days)..(today + GRACE_PERIOD.days)
     }
 
     companion object {

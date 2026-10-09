@@ -48,7 +48,7 @@ class WidgetManager(
                     combine(
                         getUpdates.subscribe(
                             read = false,
-                            after = BaseUpdatesGridGlanceWidget.DateLimit.toEpochMilliseconds(),
+                            after = BaseUpdatesGridGlanceWidget.DateLimit,
                         ),
                         securityPreferences.useAuthenticator.changes(),
                         transform = { a, b -> a to b },

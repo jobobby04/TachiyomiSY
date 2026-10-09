@@ -5,7 +5,7 @@ import tachiyomi.domain.history.model.History
 import tachiyomi.domain.history.model.HistoryWithRelations
 import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
 import tachiyomi.domain.manga.model.MangaCover
-import java.util.Date
+import kotlin.time.Instant
 
 @Inject
 class HistoryMapper(
@@ -14,7 +14,7 @@ class HistoryMapper(
     fun mapHistory(
         id: Long,
         chapterId: Long,
-        readAt: Date?,
+        readAt: Instant?,
         readDuration: Long,
     ): History = History(
         id = id,
@@ -31,9 +31,9 @@ class HistoryMapper(
         thumbnailUrl: String?,
         sourceId: Long,
         isFavorite: Boolean,
-        coverLastModified: Long,
+        coverLastModified: Instant?,
         chapterNumber: Double,
-        readAt: Date?,
+        readAt: Instant?,
         readDuration: Long,
     ): HistoryWithRelations {
         val customMangaInfo = getCustomMangaInfo.get(mangaId)

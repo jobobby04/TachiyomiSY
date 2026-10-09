@@ -124,10 +124,10 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.isLocal
-import java.util.Date
 import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 /**
  * Presenter used by the activity to perform background operations.
@@ -239,7 +239,7 @@ class ReaderViewModel(
     /**
      * The time the chapter was started reading
      */
-    private var chapterReadStartTime: Long? = null
+    private var chapterReadStartTime: Instant? = null
 
     // Serializes the progress writes, which outlive the reader, so they are applied in order
     private val progressWrites = Mutex()
@@ -940,7 +940,7 @@ class ReaderViewModel(
     }
 
     fun restartReadTimer() {
-        chapterReadStartTime = Clock.System.now().toEpochMilliseconds()
+        chapterReadStartTime = Clock.System.now()
     }
 
     /**
@@ -960,8 +960,8 @@ class ReaderViewModel(
             if (incognitoMode) return@let
 
             val chapterId = readerChapter.chapter.id!!
-            val endTime = Date()
-            val sessionReadDuration = chapterReadStartTime?.let { endTime.time - it } ?: 0
+            val endTime = Clock.System.now()
+            val sessionReadDuration = chapterReadStartTime?.let { (endTime - it).inWholeMilliseconds } ?: 0
             chapterReadStartTime = null
 
             upsertHistory.await(HistoryUpdate(chapterId, endTime, sessionReadDuration))

@@ -12,9 +12,7 @@ import kotlinx.datetime.toLocalDateTime
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Date
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -24,8 +22,8 @@ fun LocalDateTime.toDateTimestampString(dateTimeFormatter: DateTimeFormatter): S
     return dateTimeFormatter.format(javaLocalDateTime)
 }
 
-fun Date.toTimestampString(timeFormatter: DateTimeFormatter): String {
-    return timeFormatter.format(toInstant().atZone(ZoneId.systemDefault()))
+fun Instant.toTimestampString(timeFormatter: DateTimeFormatter): String {
+    return timeFormatter.format(toLocalDateTime(TimeZone.currentSystemDefault()).toJavaLocalDateTime())
 }
 
 fun Long.convertEpochMillisZone(
@@ -39,10 +37,14 @@ fun Long.convertEpochMillisZone(
 }
 
 fun Long.toLocalDate(): LocalDate {
-    return Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault()).date
+    return Instant.fromEpochMilliseconds(this).toLocalDate()
 }
 
-fun Long.toJavaLocalDate(): java.time.LocalDate {
+fun Instant.toLocalDate(): LocalDate {
+    return toLocalDateTime(TimeZone.currentSystemDefault()).date
+}
+
+fun Instant.toJavaLocalDate(): java.time.LocalDate {
     return this.toLocalDate().toJavaLocalDate()
 }
 

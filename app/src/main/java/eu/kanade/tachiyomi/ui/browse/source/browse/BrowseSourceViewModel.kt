@@ -351,7 +351,7 @@ open class BrowseSourceViewModel(
             } else {
                 setMangaDefaultChapterFlags.await(manga)
                 addTracks.bindEnhancedTrackers(manga, sourceManager.getOrStub(manga.source))
-                MangaUpdate(manga.id) { favoriteAt = Clock.System.now().toEpochMilliseconds() }
+                MangaUpdate(manga.id) { favoriteAt = Clock.System.now() }
             }
 
             updateManga.await(update)
