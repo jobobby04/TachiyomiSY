@@ -43,6 +43,7 @@ include(":i18n")
 // SY -->
 include(":i18n-sy")
 // SY <--
+include(":icons:custom-material-symbols")
 include(":icons:material-symbols")
 include(":icons:simple-icons")
 include(":presentation-core")

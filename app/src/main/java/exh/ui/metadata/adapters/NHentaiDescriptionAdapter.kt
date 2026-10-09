@@ -22,6 +22,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
+import mihon.icons.materialsymbols.R as MaterialSymbolsR
 
 @Composable
 fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -50,7 +51,7 @@ fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
             meta.favoritesCount?.let {
                 if (it == 0L) return@let
                 binding.favorites.text = it.toString()
-                binding.favorites.bindDrawable(context, R.drawable.ic_book_24dp)
+                binding.favorites.bindDrawable(context, MaterialSymbolsR.drawable.rounded_book)
             }
 
             binding.whenPosted.text = MetadataUtil.EX_DATE_FORMAT

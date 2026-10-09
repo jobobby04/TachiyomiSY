@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
+import mihon.icons.materialsymbols.R as MaterialSymbolsR
 
 @Inject
 class SyncNotifier(
@@ -53,7 +54,7 @@ class SyncNotifier(
 
             clearActions()
             addAction(
-                R.drawable.ic_close_24dp,
+                MaterialSymbolsR.drawable.rounded_close,
                 context.getString(R.string.action_cancel),
                 NotificationReceiver.cancelSyncPendingBroadcast(context, Notifications.ID_RESTORE_PROGRESS),
             )

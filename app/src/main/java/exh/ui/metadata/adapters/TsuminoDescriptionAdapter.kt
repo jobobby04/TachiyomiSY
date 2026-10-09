@@ -19,6 +19,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import java.util.Date
 import kotlin.math.round
+import mihon.icons.materialsymbols.R as MaterialSymbolsR
 
 @Composable
 fun TsuminoDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -39,7 +40,7 @@ fun TsuminoDescription(state: State.Success, openMetadataViewer: () -> Unit) {
             } ?: meta.category ?: context.stringResource(MR.strings.unknown)
 
             binding.favorites.text = (meta.favorites ?: 0).toString()
-            binding.favorites.bindDrawable(context, R.drawable.ic_book_24dp)
+            binding.favorites.bindDrawable(context, MaterialSymbolsR.drawable.rounded_book)
 
             binding.whenPosted.text = TsuminoSearchMetadata.TSUMINO_DATE_FORMAT.format(Date(meta.uploadDate ?: 0))
 

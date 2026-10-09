@@ -18,6 +18,7 @@ import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
+import mihon.icons.materialsymbols.R as MaterialSymbolsR
 
 @Composable
 fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, search: (String) -> Unit) {
@@ -48,7 +49,7 @@ fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, sea
                 )
 
             binding.favorites.text = (meta.favorites ?: 0).toString()
-            binding.favorites.bindDrawable(context, R.drawable.ic_book_24dp)
+            binding.favorites.bindDrawable(context, MaterialSymbolsR.drawable.rounded_book)
 
             binding.uploader.text = meta.uploader ?: context.stringResource(MR.strings.unknown)
 

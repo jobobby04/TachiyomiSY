@@ -13,7 +13,10 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
+import mihon.icons.custommaterialsymbols.CustomMaterialSymbols
+import mihon.icons.custommaterialsymbols.rounded.CropOff
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Crop
 import mihon.icons.materialsymbols.rounded.FormatListNumbered
 import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.rounded.Settings
@@ -93,7 +96,7 @@ fun ReaderBottomBar(
         if (ReaderBottomButton.ReadingMode.isIn(enabledButtons)) {
             IconButton(onClick = onClickReadingMode) {
                 Icon(
-                    painter = painterResource(readingMode.iconRes),
+                    imageVector = readingMode.icon,
                     contentDescription = stringResource(MR.strings.viewer),
                 )
             }
@@ -116,9 +119,11 @@ fun ReaderBottomBar(
         if (cropBorders.isIn(enabledButtons)) {
             IconButton(onClick = onClickCropBorder) {
                 Icon(
-                    painter = painterResource(
-                        if (cropEnabled) R.drawable.ic_crop_24dp else R.drawable.ic_crop_off_24dp,
-                    ),
+                    imageVector = if (cropEnabled) {
+                        MaterialSymbols.Rounded.Crop
+                    } else {
+                        CustomMaterialSymbols.Rounded.CropOff
+                    },
                     contentDescription = stringResource(MR.strings.pref_crop_borders),
                 )
             }
