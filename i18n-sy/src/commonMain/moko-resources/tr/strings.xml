@@ -54,7 +54,7 @@
     <string name="watched_list_state_summary">ExHentai/E-Hentai üzerinde gezinirken izlenenler listesi filtrelerinin varsayılan olarak aktif edileceğini kontrol eder</string>
     <string name="eh_image_quality_summary">İndirilen görsellerin kalitesi</string>
     <string name="eh_image_quality">Görsel kalitesi</string>
-    <string name="eh_image_quality_auto">Otomatik</string>
+    <string name="eh_image_quality_auto">Oto</string>
     <string name="eh_image_quality_2400">2400x</string>
     <string name="eh_image_quality_1600">1600x</string>
     <string name="eh_image_quality_980">980x</string>
@@ -116,7 +116,7 @@
     <string name="starting_cleanup">Temizleme başlatılıyor</string>
     <string name="delete_unused_chapters">Var olmayan, yarım yüklenmiş veya okunmuş bölümleri silin</string>
     <string name="no_folders_to_cleanup">Temizlenecek klasör yok</string>
-    <string name="clean_orphaned_downloads">Boş olanları temizle</string>
+    <string name="clean_orphaned_downloads">Kullanılamayanları temizle</string>
     <string name="clean_read_entries_not_in_library">Kitaplıkta olmayan girdileri temizle</string>
     <string name="data_saver">Veri Tasarrufu</string>
     <string name="data_saver_summary">İndirmeden veya okuyucuda görüntülemeden önce görselleri sıkıştırın</string>
