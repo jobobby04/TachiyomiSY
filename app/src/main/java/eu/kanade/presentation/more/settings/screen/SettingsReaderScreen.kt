@@ -64,6 +64,11 @@ object SettingsReaderScreen : SearchableSettings {
                 title = stringResource(MR.strings.pref_page_transitions),
             ),
             SY <-- */
+            Preference.PreferenceItem.SwitchPreference(
+                preference = readerPref.loadAheadOnlyOverWifi,
+                title = stringResource(MR.strings.pref_load_ahead_only_over_wifi),
+                subtitle = stringResource(MR.strings.pref_load_ahead_only_over_wifi_summary),
+            ),
             getDisplayGroup(readerPreferences = readerPref),
             getEInkGroup(readerPreferences = readerPref),
             getReadingGroup(readerPreferences = readerPref),
@@ -478,27 +483,6 @@ object SettingsReaderScreen : SearchableSettings {
             title = stringResource(SYMR.strings.page_downloading),
             preferenceItems = listOf(
                 Preference.PreferenceItem.ListPreference(
-                    preference = readerPreferences.preloadSize,
-                    title = stringResource(SYMR.strings.reader_preload_amount),
-                    subtitle = stringResource(SYMR.strings.reader_preload_amount_summary),
-                    entries = mapOf(
-                        4 to stringResource(SYMR.strings.reader_preload_amount_4_pages),
-                        6 to stringResource(SYMR.strings.reader_preload_amount_6_pages),
-                        8 to stringResource(SYMR.strings.reader_preload_amount_8_pages),
-                        10 to stringResource(SYMR.strings.reader_preload_amount_10_pages),
-                        12 to stringResource(SYMR.strings.reader_preload_amount_12_pages),
-                        14 to stringResource(SYMR.strings.reader_preload_amount_14_pages),
-                        16 to stringResource(SYMR.strings.reader_preload_amount_16_pages),
-                        20 to stringResource(SYMR.strings.reader_preload_amount_20_pages),
-                    ),
-                ),
-                Preference.PreferenceItem.ListPreference(
-                    preference = readerPreferences.readerThreads,
-                    title = stringResource(SYMR.strings.download_threads),
-                    subtitle = stringResource(SYMR.strings.download_threads_summary),
-                    entries = List(5) { it }.associateWith { it.toString() },
-                ),
-                Preference.PreferenceItem.ListPreference(
                     preference = readerPreferences.cacheSize,
                     title = stringResource(SYMR.strings.reader_cache_size),
                     subtitle = stringResource(SYMR.strings.reader_cache_size_summary),
@@ -521,11 +505,6 @@ object SettingsReaderScreen : SearchableSettings {
                         "5000" to "5 GB",
                     ),
                 ),
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = readerPreferences.aggressivePageLoading,
-                    title = stringResource(SYMR.strings.aggressively_load_pages),
-                    subtitle = stringResource(SYMR.strings.aggressively_load_pages_summary),
-                ),
             ),
         )
     }
@@ -536,11 +515,6 @@ object SettingsReaderScreen : SearchableSettings {
         return Preference.PreferenceGroup(
             title = stringResource(SYMR.strings.pref_category_fork),
             preferenceItems = listOf(
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = readerPreferences.readerInstantRetry,
-                    title = stringResource(SYMR.strings.skip_queue_on_retry),
-                    subtitle = stringResource(SYMR.strings.skip_queue_on_retry_summary),
-                ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.preserveReadingPosition,
                     title = stringResource(SYMR.strings.preserve_reading_position),

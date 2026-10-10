@@ -35,6 +35,7 @@ class ChapterLoader(
     private val downloadProvider: DownloadProvider,
     private val chapterCache: ChapterCache,
     private val appScope: CoroutineScope,
+    private val canLoadAhead: () -> Boolean,
     private val manga: Manga,
     private val source: Source,
     // SY -->
@@ -135,7 +136,14 @@ class ChapterLoader(
                         readerPreferences = readerPrefs,
                         cbzCrypto = cbzCrypto,
                     )
-                    source is HttpSource -> HttpPageLoader(chapter, source, chapterCache, appScope, readerPrefs, sourcePreferences)
+                    source is HttpSource -> HttpPageLoader(
+                        chapter,
+                        source,
+                        chapterCache,
+                        appScope,
+                        canLoadAhead,
+                        sourcePreferences,
+                    )
                     source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
                         when (format) {
                             is Format.Directory -> DirectoryPageLoader(format.file)
@@ -166,7 +174,16 @@ class ChapterLoader(
                     is Format.Epub -> EpubPageLoader(format.file.epubReader(context, cbzCrypto::getDecryptedPasswordCbz))
                 }
             }
-            source is HttpSource -> HttpPageLoader(chapter, source, chapterCache, appScope, readerPrefs, sourcePreferences)
+            source is HttpSource -> HttpPageLoader(
+                chapter,
+                source,
+                chapterCache,
+                appScope,
+                canLoadAhead,
+                // SY -->
+                sourcePreferences,
+                // SY <--
+            )
             source is StubSource -> error(context.stringResource(MR.strings.source_not_installed, source.toString()))
             else -> error(context.stringResource(MR.strings.loader_not_implemented_error))
         }

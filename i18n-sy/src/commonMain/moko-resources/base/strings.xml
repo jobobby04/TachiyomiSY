@@ -274,22 +274,6 @@
 
     <!-- Reader Settings -->
     <string name="page_downloading">Page Downloading</string>
-    <string name="download_threads">Download threads</string>
-    <string name="download_threads_summary">Higher values can speed up image downloading significantly, but can also trigger bans. Recommended value is 2 or 3. Current value is: %s</string>
-    <string name="aggressively_load_pages">Aggressively load pages</string>
-    <string name="aggressively_load_pages_summary">Slowly download the entire chapter while reading instead of just loading the pages you are viewing.</string>
-    <string name="skip_queue_on_retry">Skip queue on retry</string>
-    <string name="skip_queue_on_retry_summary">Normally, pressing the retry button on a failed download will wait until the downloader has finished downloading the last page before beginning to re-download the failed page. Enabling this will force the downloader to begin re-downloading the failed page as soon as you press the retry button.</string>
-    <string name="reader_preload_amount">Page Preload amount</string>
-    <string name="reader_preload_amount_4_pages">4 Pages</string>
-    <string name="reader_preload_amount_6_pages">6 Pages</string>
-    <string name="reader_preload_amount_8_pages">8 Pages</string>
-    <string name="reader_preload_amount_10_pages">10 Pages</string>
-    <string name="reader_preload_amount_12_pages">12 Pages</string>
-    <string name="reader_preload_amount_14_pages">14 Pages</string>
-    <string name="reader_preload_amount_16_pages">16 Pages</string>
-    <string name="reader_preload_amount_20_pages">20 Pages</string>
-    <string name="reader_preload_amount_summary">The amount of pages to preload when reading. Higher values will result in a smoother reading experience, at the cost of higher cache usage, it is recommended to increase the amount of cache you allocate when using larger values</string>
     <string name="reader_cache_size">Reader cache size</string>
     <string name="reader_cache_size_summary">The amount of images to save on device while reading. Higher values will result in a smoother reading experience, at the cost of higher disk space usage</string>
     <string name="preserve_reading_position">Preserve reading position on read entries</string>

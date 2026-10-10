@@ -30,6 +30,11 @@ class ReaderPreferences(
     val pageTransitionsWebtoon: Preference<Boolean> = preferenceStore.getBoolean("pref_enable_transitions_webtoon_key", true)
     // SY <--
 
+    val loadAheadOnlyOverWifi: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_reader_load_ahead_only_over_wifi",
+        true,
+    )
+
     val flashOnPageChange: Preference<Boolean> = preferenceStore.getBoolean("pref_reader_flash", false)
 
     val flashDurationMillis: Preference<Int> = preferenceStore.getInt("pref_reader_flash_duration", MILLI_CONVERSION)
@@ -246,12 +251,6 @@ class ReaderPreferences(
 
     // SY -->
 
-    val readerThreads: Preference<Int> = preferenceStore.getInt("eh_reader_threads", 2)
-
-    val readerInstantRetry: Preference<Boolean> = preferenceStore.getBoolean("eh_reader_instant_retry", true)
-
-    val aggressivePageLoading: Preference<Boolean> = preferenceStore.getBoolean("eh_aggressive_page_loading", false)
-
     val cacheSize: Preference<String> = preferenceStore.getString("eh_cache_size", "75")
 
     val autoscrollInterval: Preference<Float> = preferenceStore.getFloat("eh_util_autoscroll_interval", 3f)
@@ -259,8 +258,6 @@ class ReaderPreferences(
     val smoothAutoScroll: Preference<Boolean> = preferenceStore.getBoolean("smooth_auto_scroll", true)
 
     val preserveReadingPosition: Preference<Boolean> = preferenceStore.getBoolean("eh_preserve_reading_position", false)
-
-    val preloadSize: Preference<Int> = preferenceStore.getInt("eh_preload_size", 10)
 
     val useAutoWebtoon: Preference<Boolean> = preferenceStore.getBoolean("eh_use_auto_webtoon", true)
 
