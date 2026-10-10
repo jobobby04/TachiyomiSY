@@ -18,7 +18,7 @@ private val mapper = { cursor: SqlCursor ->
         cursor.getString(5)!!,
         cursor.getLong(6)!! == 1L,
         cursor.getLong(7)!! == 1L,
-        cursor.getLong(8)!!,
+        IntColumnAdapter.decode(cursor.getLong(8)!!),
         cursor.getLong(9)!!,
         cursor.getLong(10)!! == 1L,
         cursor.getString(11),

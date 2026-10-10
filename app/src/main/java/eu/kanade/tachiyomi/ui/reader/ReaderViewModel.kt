@@ -20,7 +20,7 @@ import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactoryKey
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.chapter.interactor.SetReadStatus
-import eu.kanade.domain.chapter.model.toDbChapter
+import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.interactor.SetMangaViewerFlags
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.manga.model.readerOrientation
@@ -33,7 +33,6 @@ import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
-import eu.kanade.tachiyomi.data.database.models.toDomainChapter
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
@@ -354,7 +353,6 @@ class ReaderViewModel(
                     this
                 }
             }
-            .map { it.toDbChapter() }
             .map(::ReaderChapter)
     }
 
@@ -374,9 +372,9 @@ class ReaderViewModel(
                     // Restore from SavedState
                     currentChapter.requestedPage = chapterPageIndex
                 } else if (!currentChapter.chapter.read) {
-                    currentChapter.requestedPage = currentChapter.chapter.last_page_read
+                    currentChapter.requestedPage = currentChapter.chapter.lastPageRead
                 }
-                chapterId = currentChapter.chapter.id!!
+                chapterId = currentChapter.chapter.id
             }
             .launchIn(viewModelScope)
 
@@ -513,7 +511,7 @@ class ReaderViewModel(
 
         return chapterList.map {
             ReaderChapterItem(
-                chapter = it.chapter.toDomainChapter()!!,
+                chapter = it.chapter,
                 manga = manga!!,
                 isCurrent = it.chapter.id == currentChapter?.chapter?.id,
                 dateFormat = UiPreferences.dateFormat(uiPreferences.dateFormat.get(), Locale.getDefault()),
@@ -748,9 +746,9 @@ class ReaderViewModel(
             )
             if (!isNextChapterDownloaded) return@launch
 
-            val chaptersToDownload = getNextChapters.await(manga.id, nextChapter.id!!).run {
+            val chaptersToDownload = getNextChapters.await(manga.id, nextChapter.id).run {
                 if (readerPreferences.skipDupe.get()) {
-                    removeDuplicates(nextChapter.toDomainChapter()!!)
+                    removeDuplicates(nextChapter)
                 } else {
                     this
                 }
@@ -768,7 +766,7 @@ class ReaderViewModel(
      * if setting is enabled and [currentChapter] is queued for download
      */
     private suspend fun cancelQueuedDownloads(currentChapter: ReaderChapter): Download? {
-        return downloadManager.getQueuedDownloadOrNull(currentChapter.chapter.id!!)?.also {
+        return downloadManager.getQueuedDownloadOrNull(currentChapter.chapter.id)?.also {
             downloadManager.cancelQueuedDownloads(listOf(it))
         }
     }
@@ -798,14 +796,14 @@ class ReaderViewModel(
                 .filter {
                     it.id != chapterToDelete.chapter.id &&
                         it.isRecognizedNumber &&
-                        it.chapterNumber.toFloat() == chapterToDelete.chapter.chapter_number
+                        it.chapterNumber == chapterToDelete.chapter.chapterNumber
                 }
                 // The list is loaded once, before these were marked read along with chapterToDelete
                 .map { it.copy(read = true) }
         } else {
             emptyList()
         }
-        enqueueDeleteChapters(listOf(chapterToDelete.chapter.toDomainChapter()!!) + duplicateChapters)
+        enqueueDeleteChapters(listOf(chapterToDelete.chapter) + duplicateChapters)
     }
 
     /**
@@ -830,15 +828,16 @@ class ReaderViewModel(
 
         if (incognitoMode || page.status is Page.State.Error) return
 
-        // A page change in another chapter would replace that chapter's pending save
-        if (pendingProgressChapter != readerChapter) saveChapterProgress()
-        readerChapter.chapter.last_page_read = pageIndex
-        pendingProgressSave?.cancel()
-
         // SY -->
         val isLastPage = readerChapter.pages?.lastIndex == pageIndex ||
             (hasExtraPage && readerChapter.pages?.lastIndex?.minus(1) == page.index)
         // SY <--
+        val read = readerChapter.chapter.read || isLastPage
+        // A page change in another chapter would replace that chapter's pending save
+        if (pendingProgressChapter != readerChapter) saveChapterProgress()
+        readerChapter.update { it.copy(lastPageRead = pageIndex, read = read) }
+        pendingProgressSave?.cancel()
+
         if (isLastPage) {
             pendingProgressChapter = null
             writeChapterProgress(readerChapter, onComplete = true)
@@ -887,9 +886,9 @@ class ReaderViewModel(
 
                 val chapter = readerChapter.chapter
                 updateChapter.await(
-                    ChapterUpdate(chapter.id!!) {
+                    ChapterUpdate(chapter.id) {
                         read = chapter.read
-                        lastPageRead = chapter.last_page_read.toLong()
+                        lastPageRead = chapter.lastPageRead
                     },
                 )
             }
@@ -897,12 +896,11 @@ class ReaderViewModel(
     }
 
     private suspend fun updateChapterProgressOnComplete(readerChapter: ReaderChapter) {
-        readerChapter.chapter.read = true
         // SY -->
         if (manga?.isEhBasedManga() == true) {
             appScope.launch {
                 val chapterUpdates = getUnfilteredChapterList()
-                    .filter { it.sourceOrder > readerChapter.chapter.source_order }
+                    .filter { it.sourceOrder > readerChapter.chapter.sourceOrder }
                     .map { chapter ->
                         ChapterUpdate(chapter.id) { read = true }
                     }
@@ -923,7 +921,7 @@ class ReaderViewModel(
                 if (
                     !chapter.read &&
                     chapter.isRecognizedNumber &&
-                    chapter.chapterNumber.toFloat() == readerChapter.chapter.chapter_number
+                    chapter.chapterNumber == readerChapter.chapter.chapterNumber
                 ) {
                     ChapterUpdate(chapter.id) { read = true }
                 } else {
@@ -959,7 +957,7 @@ class ReaderViewModel(
         getCurrentChapter()?.let { readerChapter ->
             if (incognitoMode) return@let
 
-            val chapterId = readerChapter.chapter.id!!
+            val chapterId = readerChapter.chapter.id
             val endTime = Clock.System.now()
             val sessionReadDuration = chapterReadStartTime?.let { (endTime - it).inWholeMilliseconds } ?: 0
             chapterReadStartTime = null
@@ -994,7 +992,7 @@ class ReaderViewModel(
     fun getSource() = state.value.source as? HttpSource
 
     fun getChapterUrl(): String? {
-        val sChapter = getCurrentChapter()?.chapter ?: return null
+        val sChapter = getCurrentChapter()?.chapter?.toSChapter() ?: return null
         val source = getSource() ?: return null
 
         return try {
@@ -1009,14 +1007,14 @@ class ReaderViewModel(
      * Bookmarks the currently active chapter.
      */
     fun toggleChapterBookmark() {
-        val chapter = getCurrentChapter()?.chapter ?: return
-        val bookmarked = !chapter.bookmark
-        chapter.bookmark = bookmarked
+        val readerChapter = getCurrentChapter() ?: return
+        val bookmarked = !readerChapter.chapter.bookmark
+        readerChapter.update { it.copy(bookmark = bookmarked) }
 
         // On Main so quick toggles are saved in order
         viewModelScope.launch {
             updateChapter.await(
-                ChapterUpdate(chapter.id!!) {
+                ChapterUpdate(readerChapter.chapter.id) {
                     bookmark = bookmarked
                 },
             )
@@ -1031,8 +1029,8 @@ class ReaderViewModel(
 
     // SY -->
     fun toggleBookmark(chapterId: Long, bookmarked: Boolean) {
-        val chapter = chapterList.find { it.chapter.id == chapterId }?.chapter ?: return
-        chapter.bookmark = bookmarked
+        val readerChapter = chapterList.find { it.chapter.id == chapterId } ?: return
+        readerChapter.update { it.copy(bookmark = bookmarked) }
         // On Main so quick toggles are saved in order
         viewModelScope.launch {
             updateChapter.await(
@@ -1077,7 +1075,7 @@ class ReaderViewModel(
             if (currChapters != null) {
                 // Save current page
                 val currChapter = currChapters.currChapter
-                currChapter.requestedPage = currChapter.chapter.last_page_read
+                currChapter.requestedPage = currChapter.chapter.lastPageRead
 
                 mutableState.update { it.copy(manga = updatedManga) }
                 eventChannel.send(Event.ReloadViewerChapters)
@@ -1113,7 +1111,7 @@ class ReaderViewModel(
             if (currChapters != null) {
                 // Save current page
                 val currChapter = currChapters.currChapter
-                currChapter.requestedPage = currChapter.chapter.last_page_read
+                currChapter.requestedPage = currChapter.chapter.lastPageRead
 
                 mutableState.update { it.copy(manga = updatedManga) }
                 eventChannel.send(Event.SetOrientation(getMangaOrientation()))
@@ -1485,7 +1483,7 @@ class ReaderViewModel(
 
         // Reading the last page and leaving right away is common, so it outlives the reader
         appScope.launch {
-            trackChapter.await(context, manga.id, readerChapter.chapter.chapter_number.toDouble())
+            trackChapter.await(context, manga.id, readerChapter.chapter.chapterNumber)
         }
     }
 

@@ -115,7 +115,7 @@ class UpdatesRepositoryImpl(
         chapterUrl: String,
         read: Boolean,
         bookmark: Boolean,
-        lastPageRead: Long,
+        lastPageRead: Int,
         sourceId: Long,
         favorite: Boolean,
         thumbnailUrl: String?,

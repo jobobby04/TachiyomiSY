@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.loader
 
 import android.content.Context
+import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -79,7 +80,7 @@ class ChapterLoader(
                         .get() ||
                     page != null // <-- EH
                 ) {
-                    chapter.requestedPage = /* SY --> */ page ?: /* SY <-- */ chapter.chapter.last_page_read
+                    chapter.requestedPage = /* SY --> */ page ?: /* SY <-- */ chapter.chapter.lastPageRead
                 }
 
                 chapter.state = ReaderChapter.State.Loaded(pages)
@@ -113,11 +114,11 @@ class ChapterLoader(
             // SY -->
             source is MergedSource -> {
                 val mangaReference = mergedReferences.firstOrNull {
-                    it.mangaId == chapter.chapter.manga_id
+                    it.mangaId == chapter.chapter.mangaId
                 } ?: error("Merge reference null")
                 val source = sourceManager.get(mangaReference.mangaSourceId)
                     ?: error("Source ${mangaReference.mangaSourceId} was null")
-                val manga = mergedManga[chapter.chapter.manga_id] ?: error("Manga for merged chapter was null")
+                val manga = mergedManga[chapter.chapter.mangaId] ?: error("Manga for merged chapter was null")
                 val isMergedMangaDownloaded = downloadManager.isChapterDownloaded(
                     chapterName = chapter.chapter.name,
                     chapterScanlator = chapter.chapter.scanlator,
@@ -144,7 +145,7 @@ class ChapterLoader(
                         canLoadAhead,
                         sourcePreferences,
                     )
-                    source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
+                    source is LocalSource -> source.getFormat(chapter.chapter.toSChapter()).let { format ->
                         when (format) {
                             is Format.Directory -> DirectoryPageLoader(format.file)
                             is Format.Archive -> ArchivePageLoader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz), context, readerPrefs)
@@ -167,7 +168,7 @@ class ChapterLoader(
                 cbzCrypto,
                 // SY <--
             )
-            source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
+            source is LocalSource -> source.getFormat(chapter.chapter.toSChapter()).let { format ->
                 when (format) {
                     is Format.Directory -> DirectoryPageLoader(format.file)
                     is Format.Archive -> ArchivePageLoader(format.file.archiveReader(context, cbzCrypto::getDecryptedPasswordCbz), context, readerPrefs)

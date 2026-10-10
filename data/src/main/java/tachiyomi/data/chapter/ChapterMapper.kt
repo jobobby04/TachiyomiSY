@@ -17,7 +17,7 @@ object ChapterMapper {
         remoteMemo: JsonObject,
         userRead: Boolean,
         userBookmark: Boolean,
-        userLastPageRead: Long,
+        userLastPageRead: Int,
         stateDateFetch: Instant,
         // SY -->
         stateLastModifiedAt: Long,

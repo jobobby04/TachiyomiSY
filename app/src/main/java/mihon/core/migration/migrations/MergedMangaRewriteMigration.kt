@@ -107,7 +107,7 @@ class MergedMangaRewriteMigration(
                     }?.let { it to chapter }
                 }
                 val parsedChapters = chapters.filter {
-                    it.read || it.lastPageRead != 0L
+                    it.read || it.lastPageRead != 0
                 }.mapNotNull { chapter -> readUrlConfig(chapter.url)?.let { chapter to it } }
                 val chaptersToUpdate = mutableListOf<ChapterUpdate>()
                 parsedChapters.forEach { parsedChapter ->
