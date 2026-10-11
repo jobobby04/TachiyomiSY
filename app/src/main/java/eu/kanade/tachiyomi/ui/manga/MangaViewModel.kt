@@ -6,7 +6,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastFilter
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.AppScope
@@ -85,10 +88,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -117,6 +118,7 @@ import tachiyomi.domain.chapter.model.ChapterUpdate
 import tachiyomi.domain.chapter.model.NoChaptersException
 import tachiyomi.domain.chapter.service.calculateChapterGap
 import tachiyomi.domain.chapter.service.getChapterSort
+import tachiyomi.domain.chapter.service.missingChaptersCount
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.DeleteByMergeId
 import tachiyomi.domain.manga.interactor.DeleteMangaById
@@ -148,7 +150,6 @@ import tachiyomi.i18n.sy.SYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import kotlin.math.floor
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @AssistedInject
@@ -266,7 +267,11 @@ class MangaViewModel(
 
     private val isRefreshingData = MutableStateFlow(false)
 
-    private val downloadStates = MutableStateFlow(emptyMap<Long, DownloadProgress>())
+    private val downloadStates = MutableStateFlow(emptyMap<Long, Download.State>())
+
+    // Progress ticks often, so only the download indicators that read it recompose instead of every tick rebuilding
+    // the chapter list
+    private val downloadProgress = mutableStateMapOf<Long, Int>()
 
     // A finished chapter leaves the queue, and its last status change can be lost with it, so its state is left to
     // the queried item once it's no longer queued
@@ -431,12 +436,11 @@ class MangaViewModel(
             source = mangaAndChapters.source,
             isFromSource = isFromSource,
             chapters = mangaAndChapters.chapters.map { item ->
-                val download = downloads[item.id]
+                val downloadState = downloads[item.id]
                 val selected = item.id in selectedIds
-                if (download == null && !selected) return@map item
+                if (downloadState == null && !selected) return@map item
                 item.copy(
-                    downloadState = download?.status ?: item.downloadState,
-                    downloadProgress = download?.progress ?: item.downloadProgress,
+                    downloadState = downloadState ?: item.downloadState,
                     selected = selected,
                 )
             },
@@ -464,17 +468,17 @@ class MangaViewModel(
             it.processedChapters
             it.chapterListItems
             it.isAnySelected
+            it.selectedChapters
+            it.hasUnreadChapters
+            it.hasReadChapters
+            it.missingChapterCount
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope + subscriberGate, subscriberGate.whileSubscribed(5.seconds), State.Loading)
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            merge(
-                downloadManager.statusFlow(),
-                // Each tick rebuilds the shown chapter items, so cap how often that happens
-                downloadManager.progressFlow().sample(200.milliseconds),
-            )
+            downloadManager.statusFlow()
                 .filter {
                     it.manga.id == mangaId ||
                         // SY -->
@@ -483,6 +487,17 @@ class MangaViewModel(
                 }
                 .catch { logcat(LogPriority.ERROR, it) }
                 .collect(::updateDownloadState)
+        }
+        viewModelScope.launch(Dispatchers.Default) {
+            downloadManager.progressFlow()
+                .filter {
+                    it.manga.id == mangaId ||
+                        // SY -->
+                        successState?.mergedData?.manga?.containsKey(it.manga.id) == true
+                    // SY <--
+                }
+                .catch { logcat(LogPriority.ERROR, it) }
+                .collect { downloadProgress[it.chapter.id] = it.progress }
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -1027,9 +1042,18 @@ class MangaViewModel(
             if (download.status == Download.State.NOT_DOWNLOADED || download.status == Download.State.DOWNLOADED) {
                 it - chapterId
             } else {
-                it + (chapterId to DownloadProgress(download.status, download.progress))
+                it + (chapterId to download.status)
             }
         }
+        if (download.status == Download.State.DOWNLOADING) {
+            downloadProgress[chapterId] = download.progress
+        } else {
+            downloadProgress.remove(chapterId)
+        }
+    }
+
+    fun getDownloadProgress(chapterId: Long): Int {
+        return downloadProgress[chapterId] ?: 0
     }
 
     private fun List<Chapter>.toChapterListItems(
@@ -1074,7 +1098,6 @@ class MangaViewModel(
             ChapterList.Item(
                 chapter = chapter,
                 downloadState = downloadState,
-                downloadProgress = activeDownload?.progress ?: 0,
                 // SY -->
                 sourceName = source?.getNameForMangaInfo(),
                 showScanlator = !isExhManga,
@@ -1642,8 +1665,6 @@ class MangaViewModel(
         // SY <--
     )
 
-    private data class DownloadProgress(val status: Download.State, val progress: Int)
-
     sealed interface State {
         @Immutable
         data object Loading : State
@@ -1677,6 +1698,22 @@ class MangaViewModel(
 
             val isAnySelected by lazy {
                 chapters.fastAny { it.selected }
+            }
+
+            val selectedChapters by lazy {
+                processedChapters.fastFilter { it.selected }
+            }
+
+            val hasUnreadChapters by lazy {
+                processedChapters.fastAny { !it.chapter.read }
+            }
+
+            val hasReadChapters by lazy {
+                chapters.fastAny { it.chapter.read }
+            }
+
+            val missingChapterCount by lazy {
+                processedChapters.fastMap { it.chapter.chapterNumber }.missingChaptersCount()
             }
 
             val chapterListItems by lazy {
@@ -1750,7 +1787,6 @@ sealed class ChapterList {
     data class Item(
         val chapter: Chapter,
         val downloadState: Download.State,
-        val downloadProgress: Int,
         val selected: Boolean = false,
         // SY -->
         val sourceName: String?,
