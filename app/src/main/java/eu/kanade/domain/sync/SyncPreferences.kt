@@ -1,6 +1,7 @@
 package eu.kanade.domain.sync
 
 import eu.kanade.domain.sync.models.SyncSettings
+import eu.kanade.tachiyomi.data.sync.SyncManager
 import eu.kanade.tachiyomi.data.sync.models.SyncTriggerOptions
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
@@ -71,6 +72,8 @@ class SyncPreferences(
         return syncService.get() != 0
     }
 
+    private fun isSyncYomiEnabled() = syncService.get() == SyncManager.SyncService.SYNCYOMI.value
+
     /**
      * Remembers a deleted category so the next SyncYomi v2 request can send it as a tombstone.
      */
@@ -79,11 +82,13 @@ class SyncPreferences(
         pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() + uid.toString())
     }
 
+    @Synchronized
     fun rememberDeletedChapters(keys: Collection<String>) {
-        if (keys.isEmpty() || !isSyncEnabled()) return
+        if (keys.isEmpty() || !isSyncYomiEnabled()) return
         pendingDeletedChapterKeys.set(pendingDeletedChapterKeys.get() + keys)
     }
 
+    @Synchronized
     fun forgetDeletedChapters(keys: Collection<String>) {
         val pending = pendingDeletedChapterKeys.get()
         val remaining = pending - keys.toSet()
