@@ -81,9 +81,15 @@ class SyncPreferences(
         pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() + uid.toString())
     }
 
-    fun rememberDeletedChapter(key: String) {
-        if (key.isEmpty() || !isSyncEnabled()) return
-        pendingDeletedChapterKeys.set(pendingDeletedChapterKeys.get() + key)
+    fun rememberDeletedChapters(keys: Collection<String>) {
+        if (keys.isEmpty() || !isSyncEnabled()) return
+        pendingDeletedChapterKeys.set(pendingDeletedChapterKeys.get() + keys)
+    }
+
+    fun forgetDeletedChapters(keys: Collection<String>) {
+        val pending = pendingDeletedChapterKeys.get()
+        val remaining = pending - keys.toSet()
+        if (remaining.size != pending.size) pendingDeletedChapterKeys.set(remaining)
     }
 
     fun getSyncSettings(): SyncSettings {
