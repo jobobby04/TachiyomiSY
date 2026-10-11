@@ -6,8 +6,10 @@ import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.interactor.GetExcludedScanlators
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
+import eu.kanade.tachiyomi.data.sync.chapterTombstoneKey
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.online.HttpSource
@@ -40,6 +42,9 @@ class SyncChaptersWithSource(
     private val updateManga: UpdateManga,
     private val getExcludedScanlators: GetExcludedScanlators,
     private val libraryPreferences: LibraryPreferences,
+    // SY -->
+    private val syncPreferences: SyncPreferences,
+    // SY <--
 ) {
 
     /**
@@ -240,6 +245,13 @@ class SyncChaptersWithSource(
         }
         // SY <--
 
+        if (removedChapters.isNotEmpty()) {
+            // SY -->
+            removedChapters.forEach { chapter ->
+                syncPreferences.rememberDeletedChapter(chapterTombstoneKey(manga.source, manga.url, chapter.url))
+            }
+            // SY <--
+        }
         val added = chapterRepository.updateFromRemote(
             removedIds = removedChapters.map { it.id },
             added = chaptersToAdd,
