@@ -38,4 +38,13 @@ class SyncPreferencesTest {
 
         assertEquals(emptySet<String>(), prefs.pendingDeletedChapterKeys.get())
     }
+
+    @Test
+    fun `deleted categories are not tracked for google drive`() {
+        val prefs = syncPreferences(syncService = 2)
+
+        prefs.rememberDeletedCategory(7)
+
+        assertEquals(emptySet<String>(), prefs.pendingDeletedCategoryUids.get())
+    }
 }
