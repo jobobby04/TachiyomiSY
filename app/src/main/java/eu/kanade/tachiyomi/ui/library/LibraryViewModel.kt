@@ -780,16 +780,7 @@ class LibraryViewModel(
                         .groupBy { it.mangaId }
                         .forEach ab@{ (mangaId, chapters) ->
                             val mergedManga = mergedMangas[mangaId] ?: return@ab
-                            val downloadChapters = chapters.fastFilterNot { chapter ->
-                                downloadManager.queueState.value.fastAny { chapter.id == it.chapter.id } ||
-                                    downloadManager.isChapterDownloaded(
-                                        chapter.name,
-                                        chapter.scanlator,
-                                        chapter.url,
-                                        mergedManga.ogTitle,
-                                        mergedManga.source,
-                                    )
-                            }
+                            val downloadChapters = chapters.filterNotQueuedOrDownloaded(mergedManga)
 
                             downloadManager.downloadChapters(mergedManga, downloadChapters)
                         }
@@ -799,18 +790,7 @@ class LibraryViewModel(
                 // SY <--
 
                 val chapters = getNextChapters.await(manga.id)
-                    .fastFilterNot { chapter ->
-                        downloadManager.getQueuedDownloadOrNull(chapter.id) != null ||
-                            downloadManager.isChapterDownloaded(
-                                chapter.name,
-                                chapter.scanlator,
-                                chapter.url,
-                                // SY -->
-                                manga.ogTitle,
-                                // SY <--
-                                manga.source,
-                            )
-                    }
+                    .filterNotQueuedOrDownloaded(manga)
                     .let { if (amount != null) it.take(amount) else it }
 
                 downloadManager.downloadChapters(manga, chapters)
@@ -830,16 +810,7 @@ class LibraryViewModel(
                         .groupBy { it.mangaId }
                         .forEach ab@{ (mangaId, chapters) ->
                             val mergedManga = mergedMangas[mangaId] ?: return@ab
-                            val downloadChapters = chapters.fastFilterNot { chapter ->
-                                downloadManager.queueState.value.fastAny { chapter.id == it.chapter.id } ||
-                                    downloadManager.isChapterDownloaded(
-                                        chapter.name,
-                                        chapter.scanlator,
-                                        chapter.url,
-                                        mergedManga.ogTitle,
-                                        mergedManga.source,
-                                    )
-                            }
+                            val downloadChapters = chapters.filterNotQueuedOrDownloaded(mergedManga)
 
                             downloadManager.downloadChapters(mergedManga, downloadChapters)
                         }
@@ -849,18 +820,7 @@ class LibraryViewModel(
                 // SY <--
 
                 val chapters = getBookmarkedChaptersByMangaId.await(manga.id)
-                    .fastFilterNot { chapter ->
-                        downloadManager.getQueuedDownloadOrNull(chapter.id) != null ||
-                            downloadManager.isChapterDownloaded(
-                                chapter.name,
-                                chapter.scanlator,
-                                chapter.url,
-                                // SY -->
-                                manga.ogTitle,
-                                // SY <--
-                                manga.source,
-                            )
-                    }
+                    .filterNotQueuedOrDownloaded(manga)
                 downloadManager.downloadChapters(manga, chapters)
             }
         }
@@ -927,6 +887,12 @@ class LibraryViewModel(
         clearSelection()
     }
 // SY <--
+
+    private fun List<Chapter>.filterNotQueuedOrDownloaded(manga: Manga): List<Chapter> {
+        val queuedDownloads = downloadManager.getQueuedDownloadsByChapterId()
+        val downloadedChapterIds = downloadManager.getDownloadedChapterIds(this, manga)
+        return fastFilterNot { it.id in queuedDownloads || it.id in downloadedChapterIds }
+    }
 
     /**
      * Marks mangas' chapters read status.
