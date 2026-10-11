@@ -399,7 +399,7 @@ class SyncYomiSyncService(
                 return
             }
         }
-        syncPreferences.pendingDeletedChapterKeys.set(syncPreferences.pendingDeletedChapterKeys.get() - sent)
+        syncPreferences.forgetDeletedChapters(sent)
         logcat(LogPriority.DEBUG) { "SyncYomi v2 deletions applied: ${sent.size} keys" }
     }
 }
