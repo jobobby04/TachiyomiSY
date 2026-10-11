@@ -36,9 +36,10 @@ class UpdateManga(
         timeZone: TimeZone = TimeZone.currentSystemDefault(),
         dateTime: LocalDateTime = Clock.System.now().toLocalDateTime(timeZone),
         window: Pair<Long, Long> = fetchInterval.getWindow(dateTime.date, timeZone),
+        foundRelease: Boolean = false,
     ): Boolean {
         return mangaRepository.update(
-            fetchInterval.withFetchInterval(manga, dateTime, timeZone, window),
+            fetchInterval.withFetchInterval(manga, dateTime, timeZone, window, foundRelease),
         )
     }
 
@@ -50,9 +51,10 @@ class UpdateManga(
         timeZone: TimeZone,
         dateTime: LocalDateTime,
         window: Pair<Long, Long>,
+        foundRelease: Boolean,
     ): Boolean {
         return mangaRepository.update(
-            fetchInterval.withFetchInterval(manga, dateTime, timeZone, window).apply {
+            fetchInterval.withFetchInterval(manga, dateTime, timeZone, window, foundRelease).apply {
                 lastUpdate = Clock.System.now().toEpochMilliseconds()
             },
         )
