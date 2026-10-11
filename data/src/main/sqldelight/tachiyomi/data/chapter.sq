@@ -134,7 +134,7 @@ VALUES (
     :remoteDateUpload, :remoteOrder, :remoteMemo, :userRead, :userBookmark,
     :userLastPageRead, :stateDateFetch,
     -- SY -->
-    :stateLastModifiedAt, :stateVersion
+    CASE WHEN :stateLastModifiedAt = 0 THEN strftime('%s', 'now') ELSE :stateLastModifiedAt END, :stateVersion
     -- SY <--
 )
 -- Two syncs of the same entry can race; the chapter the other one already stored is skipped rather
