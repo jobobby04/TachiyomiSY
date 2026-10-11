@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.library
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
@@ -378,6 +379,8 @@ data object LibraryTab : Tab {
                 (context as? MainActivity)?.ready = true
             }
         }
+        // Lets startup be measured up to the library, not just its loading screen
+        ReportDrawnWhen { !state.isLoading }
 
         // SY -->
         val recSearchState by viewModel.recommendationSearch.status.collectAsStateWithLifecycle()

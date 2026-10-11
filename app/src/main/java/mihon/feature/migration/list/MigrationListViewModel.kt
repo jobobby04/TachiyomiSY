@@ -39,7 +39,7 @@ import mihon.feature.migration.list.models.MigratingManga
 import mihon.feature.migration.list.models.MigratingManga.SearchResult
 import mihon.feature.migration.list.search.SmartSourceSearchEngine
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
+import tachiyomi.domain.chapter.interactor.GetChapterSummaryByMangaId
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
@@ -53,7 +53,7 @@ class MigrationListViewModel(
     private val sourceManager: SourceManager,
     private val getManga: GetManga,
     private val networkToLocalManga: NetworkToLocalManga,
-    private val getChaptersByMangaId: GetChaptersByMangaId,
+    private val getChapterSummaryByMangaId: GetChapterSummaryByMangaId,
     private val migrateManga: MigrateMangaUseCase,
     private val updateMangaFromRemote: UpdateMangaFromRemote,
 ) : ViewModel() {
@@ -108,10 +108,10 @@ class MigrationListViewModel(
         }
     }
 
-    private suspend fun getChapterInfo(id: Long) = getChaptersByMangaId.await(id).let { chapters ->
+    private suspend fun getChapterInfo(id: Long) = getChapterSummaryByMangaId.await(id).let { summary ->
         ChapterInfo(
-            latestChapter = chapters.maxOfOrNull { it.chapterNumber },
-            chapterCount = chapters.size,
+            latestChapter = summary.latestChapterNumber,
+            chapterCount = summary.chapterCount.toInt(),
         )
     }
 

@@ -21,6 +21,22 @@ class GetMergedManga(
         }
     }
 
+    /**
+     * Returns the entries of every merged entry, keyed by the merged entry's id.
+     */
+    suspend fun awaitByMergeId(): Map<Long, List<Manga>> {
+        return try {
+            val mangaById = mangaMergeRepository.getMergedManga().associateBy { it.id }
+            mangaMergeRepository.getAllReferences()
+                .groupBy({ it.mergeId }, { it.mangaId?.let(mangaById::get) })
+                .mapNotNull { (mergeId, manga) -> mergeId?.let { it to manga.filterNotNull() } }
+                .toMap()
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e)
+            emptyMap()
+        }
+    }
+
     suspend fun subscribe(): Flow<List<Manga>> {
         return mangaMergeRepository.subscribeMergedManga()
     }

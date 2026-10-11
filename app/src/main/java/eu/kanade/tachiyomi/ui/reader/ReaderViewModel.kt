@@ -83,6 +83,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -126,6 +127,7 @@ import tachiyomi.source.local.isLocal
 import java.util.Date
 import java.util.Locale
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Presenter used by the activity to perform background operations.
@@ -241,6 +243,11 @@ class ReaderViewModel(
 
     // Serializes the progress writes, which outlive the reader, so they are applied in order
     private val progressWrites = Mutex()
+
+    // Set on Main, flushed from the chapter load too
+    @Volatile
+    private var pendingProgressChapter: ReaderChapter? = null
+    private var pendingProgressSave: Job? = null
 
     private var chapterToDownload: Download? = null
 
@@ -705,10 +712,8 @@ class ReaderViewModel(
         val selectedChapter = page.chapter
         val pages = selectedChapter.pages ?: return
 
-        // Save last page read and mark as read if needed. The database calls are main-safe.
-        appScope.launch(Dispatchers.Main.immediate) {
-            updateChapterProgress(selectedChapter, page/* SY --> */, hasExtraPage/* SY <-- */)
-        }
+        // Save last page read and mark as read if needed
+        updateChapterProgress(selectedChapter, page/* SY --> */, hasExtraPage/* SY <-- */)
 
         if (selectedChapter != getCurrentChapter()) {
             logcat { "Setting ${selectedChapter.chapter.url} as active" }
@@ -806,15 +811,16 @@ class ReaderViewModel(
     /**
      * Saves the chapter progress (last read page and whether it's read)
      * if incognito mode isn't on.
+     *
+     * Completing a chapter is saved right away. Other page changes are saved once the reader settles on a page, or
+     * when [saveChapterProgress] is called, so flipping through pages doesn't write to the database on every page.
      */
-    private suspend fun updateChapterProgress(
+    private fun updateChapterProgress(
         readerChapter: ReaderChapter,
         page: Page/* SY --> */,
         hasExtraPage: Boolean, /* SY <-- */
     ) {
         val pageIndex = page.index
-        val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-        val isSyncEnabled = syncPreferences.isSyncEnabled()
 
         mutableState.update {
             it.copy(currentPage = pageIndex + 1)
@@ -822,41 +828,71 @@ class ReaderViewModel(
         readerChapter.requestedPage = pageIndex
         chapterPageIndex = pageIndex
 
-        if (!incognitoMode && page.status !is Page.State.Error) {
-            readerChapter.chapter.last_page_read = pageIndex
-            // SY -->
-            val isLastPage = readerChapter.pages?.lastIndex == pageIndex ||
-                (hasExtraPage && readerChapter.pages?.lastIndex?.minus(1) == page.index)
-            // SY <--
+        if (incognitoMode || page.status is Page.State.Error) return
 
-            // Taken before the first suspension, and the mutex is fair, so the writes land in the order the pages
-            // were selected even when one of them suspends longer
+        // A page change in another chapter would replace that chapter's pending save
+        if (pendingProgressChapter != readerChapter) saveChapterProgress()
+        readerChapter.chapter.last_page_read = pageIndex
+        pendingProgressSave?.cancel()
+
+        // SY -->
+        val isLastPage = readerChapter.pages?.lastIndex == pageIndex ||
+            (hasExtraPage && readerChapter.pages?.lastIndex?.minus(1) == page.index)
+        // SY <--
+        if (isLastPage) {
+            pendingProgressChapter = null
+            writeChapterProgress(readerChapter, onComplete = true)
+        } else {
+            pendingProgressChapter = readerChapter
+            pendingProgressSave = viewModelScope.launch {
+                delay(PROGRESS_SAVE_DELAY)
+                saveChapterProgress()
+            }
+        }
+
+        // SY -->
+        // Check if syncing is enabled for chapter open:
+        if (pageIndex == 0 && syncPreferences.isSyncEnabled() && syncPreferences.getSyncTriggerOptions().syncOnChapterOpen) {
+            SyncDataJob.startNow(context)
+        }
+        // SY <--
+    }
+
+    /**
+     * Writes the progress of the chapter whose page change hasn't been saved yet.
+     */
+    private fun saveChapterProgress() {
+        val readerChapter = pendingProgressChapter ?: return
+        pendingProgressChapter = null
+        writeChapterProgress(readerChapter, onComplete = false)
+    }
+
+    /**
+     * Writes the progress of [readerChapter] on the app scope, so it's saved even when the reader is closing.
+     */
+    private fun writeChapterProgress(readerChapter: ReaderChapter, onComplete: Boolean) {
+        // Immediate and through the mutex, which is fair, so the writes land in the order they were made
+        appScope.launch(Dispatchers.Main.immediate) {
             progressWrites.withLock {
-                if (isLastPage) {
+                if (onComplete) {
                     updateChapterProgressOnComplete(readerChapter)
 
                     // SY -->
                     // Check if syncing is enabled for chapter read:
-                    if (isSyncEnabled && syncTriggerOpt.syncOnChapterRead) {
+                    if (syncPreferences.isSyncEnabled() && syncPreferences.getSyncTriggerOptions().syncOnChapterRead) {
                         SyncDataJob.startNow(context)
                     }
                     // SY <--
                 }
 
+                val chapter = readerChapter.chapter
                 updateChapter.await(
-                    ChapterUpdate(readerChapter.chapter.id!!) {
-                        read = readerChapter.chapter.read
-                        lastPageRead = pageIndex.toLong()
+                    ChapterUpdate(chapter.id!!) {
+                        read = chapter.read
+                        lastPageRead = chapter.last_page_read.toLong()
                     },
                 )
             }
-
-            // SY -->
-            // Check if syncing is enabled for chapter open:
-            if (isSyncEnabled && syncTriggerOpt.syncOnChapterOpen && pageIndex == 0) {
-                SyncDataJob.startNow(context)
-            }
-            // SY <--
         }
     }
 
@@ -919,6 +955,7 @@ class ReaderViewModel(
      * Saves the chapter last read history if incognito mode isn't on.
      */
     private suspend fun updateHistory() {
+        saveChapterProgress()
         getCurrentChapter()?.let { readerChapter ->
             if (incognitoMode) return@let
 
@@ -1562,3 +1599,5 @@ class ReaderViewModel(
         data class CopyImage(val uri: Uri) : Event
     }
 }
+
+private val PROGRESS_SAVE_DELAY = 2.seconds

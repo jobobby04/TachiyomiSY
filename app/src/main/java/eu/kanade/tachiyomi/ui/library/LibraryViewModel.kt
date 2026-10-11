@@ -54,7 +54,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -68,6 +67,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import mihon.core.common.utils.mutate
 import mihon.core.metro.AppCoroutineScope
@@ -77,7 +77,9 @@ import mihon.feature.library.matches
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
+import tachiyomi.core.common.util.lang.SubscriberGate
 import tachiyomi.core.common.util.lang.compareToWithCollator
+import tachiyomi.core.common.util.lang.pausedWhileUnsubscribed
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.SetMangaCategories
 import tachiyomi.domain.category.model.Category
@@ -94,6 +96,7 @@ import tachiyomi.domain.library.model.sort
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.GetIdsOfFavoriteMangaWithMetadata
 import tachiyomi.domain.manga.interactor.GetLibraryManga
+import tachiyomi.domain.manga.interactor.GetMergedManga
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetSearchTags
 import tachiyomi.domain.manga.interactor.GetSearchTitles
@@ -139,6 +142,7 @@ class LibraryViewModel(
     private val exhPreferences: ExhPreferences,
     private val sourcePreferences: SourcePreferences,
     private val getMergedMangaById: GetMergedMangaById,
+    private val getMergedManga: GetMergedManga,
     private val getTracks: GetTracks,
     private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata,
     private val getSearchTags: GetSearchTags,
@@ -152,6 +156,8 @@ class LibraryViewModel(
     private val context: Context,
     // SY <--
 ) : ViewModel() {
+
+    private val subscriberGate = SubscriberGate()
 
     private val searchQuery = MutableStateFlow<String?>(null)
 
@@ -215,7 +221,7 @@ class LibraryViewModel(
         .flatMapLatest { needsTracks -> if (needsTracks) getTracksPerManga.subscribe() else flowOf(emptyMap()) }
 
     // Shared separately so search, selection and dialog changes still reach [state] before the
-    // first query result, and so returning to the tab doesn't flash empty while it restarts.
+    // first query result
     private val library = combine(
         searchQuery.debounce(0.25.seconds),
         getCategories.subscribe(),
@@ -278,7 +284,7 @@ class LibraryViewModel(
             )
         }
         .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), null)
+        .stateIn(viewModelScope + subscriberGate, SharingStarted.Eagerly, null)
 
     // SY -->
     private var recommendationSearchJob: Job? = null
@@ -322,7 +328,7 @@ class LibraryViewModel(
             // SY <--
         )
     }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), State())
+        .stateIn(viewModelScope + subscriberGate, subscriberGate.whileSubscribed(5.seconds), State())
 
     private data class DisplayPreferences(
         val showCategoryTabs: Boolean,
@@ -484,10 +490,9 @@ class LibraryViewModel(
         }
         // SY <--
 
+        // The collator already ignores case, and lowercasing on every comparison is slow on large libraries
         val sortAlphabetically: (LibraryItem, LibraryItem) -> Int = { manga1, manga2 ->
-            val title1 = manga1.libraryManga.manga.title.lowercase()
-            val title2 = manga2.libraryManga.manga.title.lowercase()
-            title1.compareToWithCollator(title2)
+            manga1.libraryManga.manga.title.compareToWithCollator(manga2.libraryManga.manga.title)
         }
 
         val defaultTrackerScoreSortValue = -1.0
@@ -631,17 +636,27 @@ class LibraryViewModel(
         return combine(
             getLibraryManga.subscribe(),
             getLibraryItemPreferencesFlow(),
-            downloadCache.changes,
+            downloadCache.changes.pausedWhileUnsubscribed(),
         ) { libraryManga, preferences, _ ->
             val sources = libraryManga
                 .mapTo(mutableSetOf()) { it.manga.source }
                 .associateWith { sourceManager.getOrStub(it) }
+            // SY -->
+            val mergedMangaById = if (libraryManga.any { it.manga.source == MERGED_SOURCE_ID }) {
+                getMergedManga.awaitByMergeId()
+            } else {
+                emptyMap()
+            }
+            val downloadCounts = downloadManager.getDownloadCounts(
+                libraryManga.map { it.manga } + mergedMangaById.values.flatten(),
+            )
+            // SY <--
             libraryManga.map { manga ->
                 // SY -->
                 val downloadCount = if (manga.manga.source == MERGED_SOURCE_ID) {
-                    getMergedMangaById.await(manga.manga.id).sumOf { downloadManager.getDownloadCount(it) }
+                    mergedMangaById[manga.id].orEmpty().sumOf { downloadCounts.getValue(it.id) }
                 } else {
-                    downloadManager.getDownloadCount(manga.manga)
+                    downloadCounts.getValue(manga.id)
                 }
                 // SY <--
                 val source = sources.getValue(manga.manga.source)

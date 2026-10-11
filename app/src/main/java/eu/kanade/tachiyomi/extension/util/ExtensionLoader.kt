@@ -369,7 +369,7 @@ internal object ExtensionLoader {
         if (signatures.isEmpty()) {
             logcat(LogPriority.WARN) { "Package $pkgName isn't signed" }
             return notLoaded(Extension.NotLoaded.Reason.Unsigned, libVersion)
-        } else if (!trustExtension.isTrusted(pkgInfo, signatures)) {
+        } else if (!trustExtension.isTrusted(pkgInfo, signatures, stores)) {
             logcat(LogPriority.WARN) { "Extension $pkgName isn't trusted" }
             return notLoaded(Extension.NotLoaded.Reason.Untrusted(signatures.last()), libVersion)
         }
