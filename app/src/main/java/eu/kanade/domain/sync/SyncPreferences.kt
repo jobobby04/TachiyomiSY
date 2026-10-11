@@ -77,9 +77,15 @@ class SyncPreferences(
     /**
      * Remembers a deleted category so the next SyncYomi v2 request can send it as a tombstone.
      */
+    @Synchronized
     fun rememberDeletedCategory(uid: Long) {
-        if (uid == 0L || !isSyncEnabled()) return
+        if (uid == 0L || !isSyncYomiEnabled()) return
         pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() + uid.toString())
+    }
+
+    @Synchronized
+    fun forgetDeletedCategories(uids: Collection<String>) {
+        pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() - uids.toSet())
     }
 
     @Synchronized

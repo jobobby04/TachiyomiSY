@@ -176,7 +176,7 @@ class SyncYomiSyncService(
         syncPreferences.syncCursor.set(cursor)
         syncPreferences.fullSyncRequested.set(fullRequested)
         // Only drop the uids we actually sent; a category deleted during the request stays pending.
-        syncPreferences.pendingDeletedCategoryUids.set(syncPreferences.pendingDeletedCategoryUids.get() - pendingDeleted)
+        syncPreferences.forgetDeletedCategories(pendingDeleted)
         if (full) {
             syncPreferences.lastFullSync.set(Clock.System.now().toEpochMilliseconds())
         }
