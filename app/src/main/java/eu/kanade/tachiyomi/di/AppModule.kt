@@ -32,6 +32,7 @@ import exh.eh.EHentaiUpdateHelper
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
+import net.zetetic.database.sqlcipher.driver.SQLCipherDriver
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
@@ -78,25 +79,17 @@ class AppModule(val app: Application) : InjektModule {
                 if (securityPreferences.encryptDatabase.get()) {
                     System.loadLibrary("sqlcipher")
 
-                    return@synchronized AndroidSqliteDriver(
-                        schema = Database.Schema.synchronous(),
-                        context = app,
-                        name = CbzCrypto.DATABASE_NAME,
-                        factory = SupportOpenHelperFactory(CbzCrypto.getDecryptedPasswordSql(), null, false, 25),
-                        callback = object : AndroidSqliteDriver.Callback(Database.Schema.synchronous()) {
-                            override fun onOpen(db: SupportSQLiteDatabase) {
-                                super.onOpen(db)
-                                setPragma(db, "foreign_keys = ON")
-                                setPragma(db, "journal_mode = WAL")
-                                setPragma(db, "synchronous = NORMAL")
-                            }
-
-                            private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
-                                val cursor = db.query("PRAGMA $pragma")
-                                cursor.moveToFirst()
-                                cursor.close()
-                            }
-                        },
+                    return@synchronized AndroidxSqliteDriver(
+                        driver = SQLCipherDriver(
+                            CbzCrypto.getDecryptedPasswordSql(),
+                            null,
+                            null,
+                        ),
+                        databaseType = AndroidxSqliteDatabaseType.FileProvider(app, CbzCrypto.DATABASE_NAME),
+                        schema = Database.Schema,
+                        configuration = AndroidxSqliteConfiguration(
+                            isForeignKeyConstraintsEnabled = true,
+                        ),
                     ).also { sqlDriverRef = WeakReference(it) }
                 }
             }
