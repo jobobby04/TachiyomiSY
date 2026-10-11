@@ -36,6 +36,10 @@ class SyncPreferences(
         Preference.appStateKey("sync_pending_deleted_category_uids"),
         emptySet(),
     )
+    val pendingDeletedChapterKeys: Preference<Set<String>> = preferenceStore.getStringSet(
+        Preference.appStateKey("sync_pending_deleted_chapter_keys"),
+        emptySet(),
+    )
 
     val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
     val syncService: Preference<Int> = preferenceStore.getInt("sync_service", 0)
@@ -73,6 +77,11 @@ class SyncPreferences(
     fun rememberDeletedCategory(uid: Long) {
         if (uid == 0L || !isSyncEnabled()) return
         pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() + uid.toString())
+    }
+
+    fun rememberDeletedChapter(key: String) {
+        if (key.isEmpty() || !isSyncEnabled()) return
+        pendingDeletedChapterKeys.set(pendingDeletedChapterKeys.get() + key)
     }
 
     fun getSyncSettings(): SyncSettings {
