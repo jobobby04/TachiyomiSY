@@ -30,3 +30,7 @@ internal fun extensionStoresDiffer(local: List<BackupExtensionStore>, remote: Li
 
 private fun BackupExtensionStore.syncIdentity() =
     listOf(indexUrl, name, badgeLabel, signingKey, contactWebsite, contactDiscord, isLegacy, extensionListUrl)
+
+/** Must match the SyncYomi server's chapter key byte for byte, or the server tombstones nothing. */
+internal fun chapterTombstoneKey(sourceId: Long, mangaUrl: String, chapterUrl: String): String =
+    "$sourceId|$mangaUrl\u001f$chapterUrl"

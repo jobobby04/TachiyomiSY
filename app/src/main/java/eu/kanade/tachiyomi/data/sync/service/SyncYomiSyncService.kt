@@ -68,6 +68,9 @@ class SyncYomiSyncService(
         SYNC_CANCELLED,
     }
 
+    @Serializable
+    private data class DeletedChapters(val deletedChapters: List<String> = emptyList())
+
     override suspend fun doSync(syncData: SyncData, full: Boolean): SyncResult {
         reportSyncEvent(SyncEventStatus.SYNC_STARTED)
 
@@ -136,6 +139,8 @@ class SyncYomiSyncService(
         val host = syncPreferences.clientHost.get()
         val apiKey = syncPreferences.clientAPIKey.get()
 
+        submitDeletedChapters(host, apiKey)
+
         val pendingDeleted = syncPreferences.pendingDeletedCategoryUids.get()
         val headersBuilder = baseHeaders(apiKey)
             .add("X-Sync-Cursor", syncPreferences.syncCursor.get().toString())
@@ -171,7 +176,7 @@ class SyncYomiSyncService(
         syncPreferences.syncCursor.set(cursor)
         syncPreferences.fullSyncRequested.set(fullRequested)
         // Only drop the uids we actually sent; a category deleted during the request stays pending.
-        syncPreferences.pendingDeletedCategoryUids.set(syncPreferences.pendingDeletedCategoryUids.get() - pendingDeleted)
+        syncPreferences.forgetDeletedCategories(pendingDeleted)
         if (full) {
             syncPreferences.lastFullSync.set(Clock.System.now().toEpochMilliseconds())
         }
@@ -366,5 +371,35 @@ class SyncYomiSyncService(
                 logcat(LogPriority.ERROR) { "Failed to report sync event: ${e.message}" }
             }
         }
+    }
+
+    private suspend fun submitDeletedChapters(host: String, apiKey: String) {
+        val sent = syncPreferences.pendingDeletedChapterKeys.get()
+        if (sent.isEmpty()) return
+
+        val request = POST(
+            url = "$host/api/sync/v2/deletions",
+            headers = baseHeaders(apiKey).build(),
+            body = json
+                .encodeToString(DeletedChapters.serializer(), DeletedChapters(sent.toList()))
+                .toRequestBody("application/json; charset=utf-8".toMediaType()),
+        )
+
+        val response = try {
+            syncClient().newCall(request).await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logcat(LogPriority.WARN) { "SyncYomi v2 deletions not sent: ${e.message}" }
+            return
+        }
+        response.use { resp ->
+            if (!resp.isSuccessful) {
+                logcat(LogPriority.WARN) { "SyncYomi v2 deletions not applied: ${resp.code}" }
+                return
+            }
+        }
+        syncPreferences.forgetDeletedChapters(sent)
+        logcat(LogPriority.DEBUG) { "SyncYomi v2 deletions applied: ${sent.size} keys" }
     }
 }

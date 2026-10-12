@@ -5,8 +5,10 @@ import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.interactor.GetExcludedScanlators
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
+import eu.kanade.tachiyomi.data.sync.chapterTombstoneKey
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.online.HttpSource
@@ -40,6 +42,9 @@ class SyncChaptersWithSource(
     private val getChaptersByMangaId: GetChaptersByMangaId,
     private val getExcludedScanlators: GetExcludedScanlators,
     private val libraryPreferences: LibraryPreferences,
+    // SY -->
+    private val syncPreferences: SyncPreferences,
+    // SY <--
 ) {
 
     /**
@@ -232,13 +237,22 @@ class SyncChaptersWithSource(
         }
         // <-- EXH
 
+        // SY -->
+        val tombstoneKey = { chapter: Chapter -> chapterTombstoneKey(manga.source, manga.url, chapter.url) }
+        // SY <--
         if (removedChapters.isNotEmpty()) {
+            // SY -->
+            syncPreferences.rememberDeletedChapters(removedChapters.map(tombstoneKey))
+            // SY <--
             val toDeleteIds = removedChapters.map { it.id }
             chapterRepository.removeChaptersWithIds(toDeleteIds)
         }
 
         if (updatedToAdd.isNotEmpty()) {
             updatedToAdd = chapterRepository.addAll(updatedToAdd)
+            // SY -->
+            syncPreferences.forgetDeletedChapters(updatedToAdd.map(tombstoneKey))
+            // SY <--
         }
 
         if (updatedChapters.isNotEmpty()) {
