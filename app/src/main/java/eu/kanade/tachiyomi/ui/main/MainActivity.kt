@@ -56,6 +56,7 @@ import com.google.firebase.analytics.analytics
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.presentation.components.AppStateBanners
+import eu.kanade.presentation.components.CloudflareBypassBannerBackgroundColor
 import eu.kanade.presentation.components.DownloadedOnlyBannerBackgroundColor
 import eu.kanade.presentation.components.IncognitoModeBannerBackgroundColor
 import eu.kanade.presentation.components.IndexingBannerBackgroundColor
@@ -71,6 +72,7 @@ import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
 import eu.kanade.tachiyomi.extension.api.ExtensionApi
+import eu.kanade.tachiyomi.network.interceptor.CloudflareBypassStatus
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
@@ -96,6 +98,7 @@ import exh.syDebugVersion
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
@@ -112,6 +115,7 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.injectLazy
 import java.util.LinkedList
+import kotlin.time.Duration.Companion.milliseconds
 
 class MainActivity : BaseActivity() {
 
@@ -189,10 +193,17 @@ class MainActivity : BaseActivity() {
             var incognito by remember { mutableStateOf(getIncognitoState.await(null)) }
             val downloadOnly by preferences.downloadedOnly.collectAsState()
             val indexing by downloadCache.isInitializing.collectAsState()
+            // SY -->
+            val cloudflareBypass by remember { CloudflareBypassStatus.active.debounce(500.milliseconds) }
+                .collectAsState(initial = emptyList())
+            // SY <--
 
             val isSystemInDarkTheme = isSystemInDarkTheme()
             val statusBarBackgroundColor = when {
                 indexing -> IndexingBannerBackgroundColor
+                // SY -->
+                cloudflareBypass.isNotEmpty() -> CloudflareBypassBannerBackgroundColor
+                // SY <--
                 downloadOnly -> DownloadedOnlyBannerBackgroundColor
                 incognito -> IncognitoModeBannerBackgroundColor
                 else -> MaterialTheme.colorScheme.surface
@@ -250,6 +261,9 @@ class MainActivity : BaseActivity() {
                             incognitoMode = incognito,
                             indexing = indexing,
                             modifier = Modifier.windowInsetsPadding(scaffoldInsets),
+                            // SY -->
+                            cloudflareBypass = cloudflareBypass.firstOrNull(),
+                            // SY <--
                         )
                     },
                     contentWindowInsets = scaffoldInsets,

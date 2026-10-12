@@ -31,7 +31,9 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMaxBy
 import dev.icerock.moko.resources.StringResource
+import eu.kanade.tachiyomi.network.interceptor.CloudflareBypassStatus
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 
 val DownloadedOnlyBannerBackgroundColor
@@ -40,6 +42,11 @@ val IncognitoModeBannerBackgroundColor
     @Composable get() = MaterialTheme.colorScheme.primary
 val IndexingBannerBackgroundColor
     @Composable get() = MaterialTheme.colorScheme.secondary
+
+// SY -->
+val CloudflareBypassBannerBackgroundColor
+    @Composable get() = MaterialTheme.colorScheme.secondary
+// SY <--
 
 @Composable
 fun WarningBanner(
@@ -64,6 +71,9 @@ fun AppStateBanners(
     incognitoMode: Boolean,
     indexing: Boolean,
     modifier: Modifier = Modifier,
+    // SY -->
+    cloudflareBypass: CloudflareBypassStatus.Bypass? = null,
+    // SY <--
 ) {
     val density = LocalDensity.current
     val mainInsets = WindowInsets.statusBars
@@ -110,7 +120,29 @@ fun AppStateBanners(
         }.fastMap { it.measure(constraints) }
         val incognitoHeight = incognitoPlaceable.fastMaxBy { it.height }?.height ?: 0
 
-        layout(constraints.maxWidth, indexingHeight + downloadedOnlyHeight + incognitoHeight) {
+        // SY -->
+        val cloudflareBypassPlaceable = subcompose(3) {
+            val lastBypass = remember { arrayOfNulls<CloudflareBypassStatus.Bypass>(1) }
+            if (cloudflareBypass != null) lastBypass[0] = cloudflareBypass
+            AnimatedVisibility(
+                visible = cloudflareBypass != null,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                val top = (mainInsetsTop - indexingHeight - downloadedOnlyHeight - incognitoHeight).coerceAtLeast(0)
+                lastBypass[0]?.let {
+                    CloudflareBypassBanner(
+                        bypass = it,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets(top = top)),
+                    )
+                }
+            }
+        }.fastMap { it.measure(constraints) }
+        val cloudflareBypassHeight = cloudflareBypassPlaceable.fastMaxBy { it.height }?.height ?: 0
+        val totalHeight = indexingHeight + downloadedOnlyHeight + incognitoHeight + cloudflareBypassHeight
+        // SY <--
+
+        layout(constraints.maxWidth, /* SY --> */ totalHeight /* SY <-- */) {
             indexingPlaceable.fastForEach {
                 it.place(0, 0)
             }
@@ -120,9 +152,54 @@ fun AppStateBanners(
             incognitoPlaceable.fastForEach {
                 it.place(0, indexingHeight + downloadedOnlyHeight)
             }
+            // SY -->
+            cloudflareBypassPlaceable.fastForEach {
+                it.place(0, indexingHeight + downloadedOnlyHeight + incognitoHeight)
+            }
+            // SY <--
         }
     }
 }
+
+// SY -->
+@Composable
+private fun CloudflareBypassBanner(bypass: CloudflareBypassStatus.Bypass, modifier: Modifier = Modifier) {
+    val density = LocalDensity.current
+    val method = stringResource(
+        when (bypass.method) {
+            CloudflareBypassStatus.Method.FLARESOLVERR -> SYMR.strings.cloudflare_bypass_method_flaresolverr
+            CloudflareBypassStatus.Method.WEBVIEW -> SYMR.strings.cloudflare_bypass_method_webview
+        },
+    )
+    Row(
+        modifier = Modifier
+            .background(color = CloudflareBypassBannerBackgroundColor)
+            .fillMaxWidth()
+            .padding(8.dp)
+            .then(modifier),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        var textHeight by remember { mutableStateOf(0.dp) }
+        CircularProgressIndicator(
+            modifier = Modifier.requiredSize(textHeight),
+            color = MaterialTheme.colorScheme.onSecondary,
+            strokeWidth = textHeight / 8,
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = stringResource(SYMR.strings.cloudflare_bypass_in_progress, method, bypass.host),
+            color = MaterialTheme.colorScheme.onSecondary,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelMedium,
+            onTextLayout = {
+                with(density) {
+                    textHeight = it.size.height.toDp()
+                }
+            },
+        )
+    }
+}
+// SY <--
 
 @Composable
 private fun DownloadedOnlyModeBanner(modifier: Modifier = Modifier) {
