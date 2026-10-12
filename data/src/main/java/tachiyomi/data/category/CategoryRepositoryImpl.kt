@@ -52,6 +52,17 @@ class CategoryRepositoryImpl(
             .subscribeToList()
     }
 
+    override suspend fun getCategoriesByMangaIds(mangaIds: List<Long>): Map<Long, List<Category>> {
+        return database.categoryQueries
+            .getCategoriesByMangaIds(
+                mangaIds,
+            ) { mangaId, id, name, order, flags, /* SY --> */ version, uid, lastModifiedAt, isSyncing /* SY <-- */ ->
+                mangaId to mapCategory(id, name, order, flags, /* SY --> */ version, uid, lastModifiedAt, isSyncing /* SY <-- */)
+            }
+            .awaitAsList()
+            .groupBy({ it.first }, { it.second })
+    }
+
     override suspend fun insert(category: NewCategory) {
         database.categoryQueries.insert(name = category.name, flags = category.flags)
     }

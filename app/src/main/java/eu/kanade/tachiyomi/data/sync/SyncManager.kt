@@ -17,6 +17,7 @@ import eu.kanade.tachiyomi.data.sync.service.SyncData
 import eu.kanade.tachiyomi.data.sync.service.SyncResult
 import eu.kanade.tachiyomi.data.sync.service.SyncYomiSyncService
 import eu.kanade.tachiyomi.util.system.workManager
+import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
@@ -146,11 +147,12 @@ class SyncManager(
 
         logcat(LogPriority.DEBUG) { "Begin create backup (full=$full)" }
         val backupManga = backupCreator.backupMangas(databaseManga, backupOptions)
+            .toList()
             .let { if (full) it else changedSince(it, syncPreferences.lastPushedAt.get()) }
         val backup = Backup(
             backupManga = backupManga,
             backupCategories = backupCreator.backupCategories(backupOptions),
-            backupSources = backupCreator.backupSources(backupManga),
+            backupSources = backupCreator.backupSources(backupManga.mapTo(mutableSetOf()) { it.source }),
             backupPreferences = backupCreator.backupAppPreferences(backupOptions),
             backupSourcePreferences = backupCreator.backupSourcePreferences(backupOptions),
             backupExtensionStores = backupCreator.backupExtensionStores(backupOptions),

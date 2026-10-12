@@ -8,6 +8,7 @@ import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.backup.BackupFileValidator
+import eu.kanade.tachiyomi.data.backup.BackupWriter
 import eu.kanade.tachiyomi.data.backup.create.creators.CategoriesBackupCreator
 import eu.kanade.tachiyomi.data.backup.create.creators.ExtensionStoresBackupCreator
 import eu.kanade.tachiyomi.data.backup.create.creators.MangaBackupCreator
@@ -22,6 +23,8 @@ import eu.kanade.tachiyomi.data.backup.models.BackupPreference
 import eu.kanade.tachiyomi.data.backup.models.BackupSavedSearch
 import eu.kanade.tachiyomi.data.backup.models.BackupSource
 import eu.kanade.tachiyomi.data.backup.models.BackupSourcePreferences
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
 import okio.buffer
@@ -96,30 +99,34 @@ class BackupCreator(
             val backupManga =
                 backupMangas(getFavorites.await() + nonFavoriteManga /* SY --> */ + mergedManga /* SY <-- */, options)
 
-            val backup = Backup(
-                backupManga = backupManga,
-                backupCategories = backupCategories(options),
-                backupSources = backupSources(backupManga),
-                backupPreferences = backupAppPreferences(options),
-                backupExtensionStores = backupExtensionStores(options),
-                backupSourcePreferences = backupSourcePreferences(options),
-                // SY -->
-                backupSavedSearches = backupSavedSearches(options),
-                // SY <--
-            )
-
-            val byteArray = parser.encodeToByteArray(Backup.serializer(), backup)
-            if (byteArray.isEmpty()) {
-                throw IllegalStateException(context.stringResource(MR.strings.empty_backup_error))
-            }
-
             file.openOutputStream()
                 .also {
                     // Force overwrite old file
                     (it as? FileOutputStream)?.channel?.truncate(0)
                 }
                 .sink().gzip().buffer().use {
-                    it.write(byteArray)
+                    val writer = BackupWriter(it, parser)
+                    val sourceIds = mutableSetOf<Long>()
+                    backupManga.collect { manga ->
+                        writer.writeEntry(manga)
+                        sourceIds += manga.source
+                    }
+                    writer.writeMetadata(
+                        Backup(
+                            backupManga = emptyList(),
+                            backupCategories = backupCategories(options),
+                            backupSources = backupSources(sourceIds),
+                            backupPreferences = backupAppPreferences(options),
+                            backupExtensionStores = backupExtensionStores(options),
+                            backupSourcePreferences = backupSourcePreferences(options),
+                            // SY -->
+                            backupSavedSearches = backupSavedSearches(options),
+                            // SY <--
+                        ),
+                    )
+                    if (writer.isEmpty) {
+                        throw IllegalStateException(context.stringResource(MR.strings.empty_backup_error))
+                    }
                 }
             val fileUri = file.uri
 
@@ -144,14 +151,14 @@ class BackupCreator(
         return categoriesBackupCreator()
     }
 
-    suspend fun backupMangas(mangas: List<Manga>, options: BackupOptions): List<BackupManga> {
-        if (!options.libraryEntries) return emptyList()
+    fun backupMangas(mangas: List<Manga>, options: BackupOptions): Flow<BackupManga> {
+        if (!options.libraryEntries) return emptyFlow()
 
         return mangaBackupCreator(mangas, options)
     }
 
-    suspend fun backupSources(mangas: List<BackupManga>): List<BackupSource> {
-        return sourcesBackupCreator(mangas)
+    suspend fun backupSources(sourceIds: Set<Long>): List<BackupSource> {
+        return sourcesBackupCreator(sourceIds)
     }
 
     fun backupAppPreferences(options: BackupOptions): List<BackupPreference> {

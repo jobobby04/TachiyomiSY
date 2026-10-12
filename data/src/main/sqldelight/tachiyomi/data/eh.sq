@@ -16,7 +16,9 @@ SELECT
     user_last_page_read, state_date_fetch,
     state_last_modified_at, state_version, state_is_syncing
 FROM chapter
-WHERE manga_id IN :mangaIds;
+WHERE manga_id IN :mangaIds
+-- The unique index's order, which getChaptersByMangaId returns too, so backups keep their chapter order
+ORDER BY manga_id, remote_url;
 
 migrateAllNhentaiToOtherLang:
 UPDATE manga

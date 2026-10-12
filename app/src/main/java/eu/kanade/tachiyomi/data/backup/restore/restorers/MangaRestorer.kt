@@ -41,14 +41,13 @@ class MangaRestorer(
     private val now = Clock.System.now().toLocalDateTime(timeZone)
     private val currentFetchWindow = fetchInterval.getWindow(now.date, timeZone)
 
-    suspend fun sortByNew(backupMangas: List<BackupManga>): List<BackupManga> {
+    /**
+     * Returns whether an entry was already in the database at the time of this call.
+     */
+    suspend fun getExistingMatcher(): (BackupManga) -> Boolean {
         val urlsBySource = restoreRepository.getMangaUrlsBySourceId()
 
-        return backupMangas
-            .sortedWith(
-                compareBy<BackupManga> { it.url in urlsBySource[it.source].orEmpty() }
-                    .then(compareByDescending { it.lastModifiedAt }),
-            )
+        return { it.url in urlsBySource[it.source].orEmpty() }
     }
 
     /**
