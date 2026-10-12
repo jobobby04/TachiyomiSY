@@ -1,0 +1,107 @@
+name: APK Builder
+
+# Produces an installable APK as a workflow artifact — no signing secrets needed.
+#
+# A push to master builds `foss`, the release-equivalent build (minified + resource-shrunk,
+# ~30 MB per ABI). Run the workflow manually to pick a different variant:
+#
+#   foss   : what upstream ships. Gradle leaves it unsigned, so this workflow signs it with a key
+#            generated inside the run: installable, but that signature will not match a foss build
+#            signed by another key, and it is NOT the upstream release key (so it cannot receive
+#            upstream auto-updates).
+#   debug  : debug-signed by the runner and debuggable (logcat-friendly, no minification), but
+#            roughly 2x the size because R8 and resource shrinking are off.
+#
+# Why not `assembleRelease`: app/build.gradle.kts applies the google-services + crashlytics
+# plugins whenever the requested task name contains "Release", and those need the
+# GOOGLE_SERVICES_TEXT secret this fork does not have. `foss` is the release build minus Firebase.
+#
+# Triggers: push to master, or run it manually (the dropdown lets you pick the variant).
+# Upstream's "Release Builder" (build_push.yml) only runs on the `release` branch and needs the
+# signing / google-services / client-secrets secrets, which this fork does not have.
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: 'Build type'
+        type: choice
+        options:
+          - foss
+          - debug
+        default: foss
+      all_abis:
+        description: 'Upload every ABI + universal (default: arm64-v8a only)'
+        type: boolean
+        default: false
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: apk-builder-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ inputs.variant || 'foss' }}
+    runs-on: ubuntu-latest
+
+    env:
+      VARIANT: ${{ inputs.variant || 'foss' }}
+      BUILD_TASK: ${{ inputs.variant == 'debug' && ':app:assembleDebug' || ':app:assembleFoss' }}
+      APK_DIR: ${{ inputs.variant == 'debug' && 'debug' || 'foss' }}
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v7
+        with:
+          # COMMIT_COUNT / COMMIT_SHA buildConfig fields read git history, so no shallow clone.
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Set up gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build app
+        run: ./gradlew -I .github/gradle/jitpack-fallbacks.gradle ${{ env.BUILD_TASK }} --console=plain
+
+      - name: Sign with a throwaway key
+        if: env.VARIANT == 'foss'
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -keystore /tmp/throwaway.keystore \
+            -storepass android -keypass android -alias throwaway \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Throwaway Debug,OU=Android,O=Android,C=US"
+          build_tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          for apk in app/build/outputs/apk/${{ env.APK_DIR }}/*-unsigned.apk; do
+            "$build_tools/apksigner" sign --ks /tmp/throwaway.keystore \
+              --ks-pass pass:android --key-pass pass:android "$apk"
+            mv "$apk" "${apk%-unsigned.apk}-selfsigned.apk"
+          done
+
+      - name: Upload APK (arm64-v8a)
+        uses: actions/upload-artifact@v7
+        with:
+          name: TachiyomiSY-${{ github.ref_name }}-${{ env.APK_DIR }}-arm64-v8a
+          path: app/build/outputs/apk/${{ env.APK_DIR }}/*arm64-v8a*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload APK (all ABIs)
+        if: inputs.all_abis
+        uses: actions/upload-artifact@v7
+        with:
+          name: TachiyomiSY-${{ github.ref_name }}-${{ env.APK_DIR }}-all-abis
+          path: app/build/outputs/apk/${{ env.APK_DIR }}/*.apk
+          if-no-files-found: error
+          retention-days: 14

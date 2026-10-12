@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
+import android.view.KeyEvent
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -55,6 +56,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.source.interactor.GetIncognitoState
+import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.AppStateBanners
 import eu.kanade.presentation.components.DownloadedOnlyBannerBackgroundColor
 import eu.kanade.presentation.components.IncognitoModeBannerBackgroundColor
@@ -65,6 +67,7 @@ import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.presentation.more.settings.screen.data.RestoreBackupScreen
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.DefaultNavigatorScreenTransition
+import eu.kanade.presentation.util.VolumeKeyNavigation
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
@@ -117,6 +120,7 @@ class MainActivity : BaseActivity() {
 
     private val libraryPreferences: LibraryPreferences by injectLazy()
     private val preferences: BasePreferences by injectLazy()
+    private val uiPreferences: UiPreferences by injectLazy()
 
     // SY -->
     private val exhPreferences: ExhPreferences by injectLazy()
@@ -344,6 +348,22 @@ class MainActivity : BaseActivity() {
             BlacklistedSources.HIDDEN_SOURCES += EXH_SOURCE_ID
         }
         // SY -->
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (uiPreferences.volumeKeysNavigation.get() &&
+            (event.keyCode == KeyEvent.KEYCODE_VOLUME_UP || event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+        ) {
+            // activeHandler is only non-null for a visible, scrollable list
+            VolumeKeyNavigation.activeHandler?.let { handler ->
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                    val inverted = uiPreferences.volumeKeysNavigationInverted.get()
+                    handler.pageScroll(up = (event.keyCode == KeyEvent.KEYCODE_VOLUME_UP) != inverted)
+                }
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onProvideAssistContent(outContent: AssistContent) {
