@@ -34,7 +34,7 @@
     <string name="use_original_images_on">Saat ini menggunakan gambar asli</string>
     <string name="use_original_images_off">Saat ini menggunakan gambar yang telah di-resample</string>
     <string name="watched_tags">Tag yang telah dibaca</string>
-    <string name="watched_tags_summary">Membuka tampilan web ke halaman tag yang telah Anda tonton di E/ExHentai</string>
+    <string name="watched_tags_summary">Membuka tampilan web ke halaman tag yang pernah Anda tonton di E/ExHentai</string>
     <string name="watched_tags_exh">Tag yang Telah Ditonton di ExHentai</string>
     <string name="tag_filtering_threshold">Batasan Pemfilteran Tag</string>
     <string name="tag_filtering_threshhold_error">Harus diantara -9999 dan 0!</string>
