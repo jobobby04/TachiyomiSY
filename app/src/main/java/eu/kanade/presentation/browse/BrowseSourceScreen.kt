@@ -26,6 +26,8 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Help
 import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.rounded.Refresh
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.automirroredroundedfilled.Help
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.manga.model.Manga
@@ -120,7 +122,7 @@ fun BrowseSourceContent(
                     if (onHelpClick != null) {
                         EmptyScreenAction(
                             stringRes = MR.strings.label_help,
-                            icon = MaterialSymbols.AutoMirroredRounded.Help,
+                            icon = SYMaterialSymbols.AutoMirroredRoundedFilled.Help,
                             onClick = onHelpClick,
                         )
                     } else {

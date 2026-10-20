@@ -1,9 +1,6 @@
 package eu.kanade.presentation.browse.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -18,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.process.MigratingManga
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.MoreVert
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -38,14 +38,14 @@ fun MigrationActionIcon(
         if (result is MigratingManga.SearchResult.Searching) {
             IconButton(onClick = skipManga) {
                 Icon(
-                    imageVector = Icons.Outlined.Close,
+                    imageVector = MaterialSymbols.Rounded.Close,
                     contentDescription = stringResource(SYMR.strings.action_stop),
                 )
             }
         } else if (result is MigratingManga.SearchResult.Result || result is MigratingManga.SearchResult.NotFound) {
             IconButton(onClick = { moreExpanded = !moreExpanded }) {
                 Icon(
-                    imageVector = Icons.Outlined.MoreVert,
+                    imageVector = MaterialSymbols.Rounded.MoreVert,
                     contentDescription = stringResource(MR.strings.action_menu_overflow_description),
                 )
             }

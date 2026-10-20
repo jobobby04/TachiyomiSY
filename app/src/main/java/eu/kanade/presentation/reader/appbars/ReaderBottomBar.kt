@@ -8,8 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
@@ -21,6 +19,9 @@ import mihon.icons.materialsymbols.rounded.FormatListNumbered
 import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.rounded.Settings
 import mihon.icons.materialsymbols.rounded.Share
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.rounded.Input
+import mihon.icons.sy.materialsymbols.roundedfilled.MenuBook
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -136,7 +137,7 @@ fun ReaderBottomBar(
         ) {
             IconButton(onClick = onClickPageLayout) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_book_open_variant_24dp),
+                    imageVector = SYMaterialSymbols.RoundedFilled.MenuBook,
                     contentDescription = stringResource(SYMR.strings.page_layout),
                 )
             }
@@ -145,7 +146,7 @@ fun ReaderBottomBar(
         if (doublePages) {
             IconButton(onClick = onClickShiftPage) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_page_next_outline_24dp),
+                    imageVector = SYMaterialSymbols.Rounded.Input,
                     contentDescription = stringResource(SYMR.strings.shift_double_pages),
                 )
             }

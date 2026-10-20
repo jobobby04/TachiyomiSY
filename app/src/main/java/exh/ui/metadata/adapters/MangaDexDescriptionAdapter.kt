@@ -16,6 +16,7 @@ import exh.metadata.metadata.MangaDexSearchMetadata
 import exh.ui.metadata.adapters.MetadataUIUtil.bindDrawable
 import exh.ui.metadata.adapters.MetadataUIUtil.getRatingString
 import kotlin.math.round
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun MangaDexDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -39,7 +40,7 @@ fun MangaDexDescription(state: State.Success, openMetadataViewer: () -> Unit) {
             binding.rating.isVisible = ratingFloat != null
             binding.ratingBar.isVisible = ratingFloat != null
 
-            binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
+            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
 
             binding.rating.setOnLongClickListener {
                 context.copyToClipboard(

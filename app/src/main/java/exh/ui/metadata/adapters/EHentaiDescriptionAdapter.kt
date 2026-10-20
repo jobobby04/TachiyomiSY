@@ -19,6 +19,7 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import mihon.icons.materialsymbols.R as MaterialSymbolsR
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, search: (String) -> Unit) {
@@ -54,11 +55,11 @@ fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, sea
             binding.uploader.text = meta.uploader ?: context.stringResource(MR.strings.unknown)
 
             binding.size.text = MetadataUtil.humanReadableByteCount(meta.size ?: 0, true)
-            binding.size.bindDrawable(context, R.drawable.ic_outline_sd_card_24)
+            binding.size.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_sd_card)
 
             val length = meta.length ?: 0
             binding.pages.text = context.pluralStringResource(SYMR.plurals.num_pages, length, length)
-            binding.pages.bindDrawable(context, R.drawable.ic_baseline_menu_book_24)
+            binding.pages.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_filled_menu_book)
 
             val language = meta.language ?: context.stringResource(MR.strings.unknown)
             binding.language.text = if (meta.translated == true) {
@@ -73,7 +74,7 @@ fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, sea
             binding.rating.text =
                 (ratingFloat ?: 0F).toString() + " - " + MetadataUIUtil.getRatingString(context, ratingFloat?.times(2))
 
-            binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
+            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
 
             listOf(
                 binding.favorites,

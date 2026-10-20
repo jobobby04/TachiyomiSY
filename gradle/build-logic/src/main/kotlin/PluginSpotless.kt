@@ -41,6 +41,28 @@ class PluginSpotless : Plugin<Project> {
                     "(?m)^(?!import ).*\\bmihon\\.icons\\.custommaterialsymbols\\.R\\.",
                     "Use the CustomMaterialSymbolsR import alias instead of the qualified name",
                 )
+                // SY -->
+                forbidRegex(
+                    "syMaterialSymbolsRImport",
+                    "(?m)^import mihon\\.icons\\.sy\\.materialsymbols\\.R(?! as SYMaterialSymbolsR$)\\b.*$",
+                    "Import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR",
+                )
+                forbidRegex(
+                    "syMaterialSymbolsRQualified",
+                    "(?m)^(?!import ).*\\bmihon\\.icons\\.sy\\.materialsymbols\\.R\\.",
+                    "Use the SYMaterialSymbolsR import alias instead of the qualified name",
+                )
+                forbidRegex(
+                    "syCustomMaterialSymbolsRImport",
+                    "(?m)^import mihon\\.icons\\.sy\\.custommaterialsymbols\\.R(?! as SYCustomMaterialSymbolsR$)\\b.*$",
+                    "Import mihon.icons.sy.custommaterialsymbols.R as SYCustomMaterialSymbolsR",
+                )
+                forbidRegex(
+                    "syCustomMaterialSymbolsRQualified",
+                    "(?m)^(?!import ).*\\bmihon\\.icons\\.sy\\.custommaterialsymbols\\.R\\.",
+                    "Use the SYCustomMaterialSymbolsR import alias instead of the qualified name",
+                )
+                // SY <--
             }
 
             kotlinGradle {

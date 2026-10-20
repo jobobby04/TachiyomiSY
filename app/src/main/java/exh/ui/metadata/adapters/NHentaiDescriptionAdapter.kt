@@ -23,6 +23,7 @@ import java.time.ZonedDateTime
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 import mihon.icons.materialsymbols.R as MaterialSymbolsR
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -65,12 +66,12 @@ fun NHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit) {
                 meta.pageImagePreviewUrls.size,
                 meta.pageImagePreviewUrls.size,
             )
-            binding.pages.bindDrawable(context, R.drawable.ic_baseline_menu_book_24)
+            binding.pages.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_filled_menu_book)
 
             @SuppressLint("SetTextI18n")
             binding.id.text = "#" + (meta.nhId ?: 0)
 
-            binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
+            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
 
             listOf(
                 binding.favorites,

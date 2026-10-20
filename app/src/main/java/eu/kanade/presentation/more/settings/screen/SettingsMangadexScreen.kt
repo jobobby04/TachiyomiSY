@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PeopleAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -42,6 +40,8 @@ import exh.md.utils.MdConstants
 import exh.md.utils.MdUtil
 import logcat.LogPriority
 import mihon.app.di.appGraph
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Group
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
@@ -142,7 +142,7 @@ object SettingsMangadexScreen : SearchableSettings {
                     title = mdex.name + " Login",
                     widget = {
                         Icon(
-                            imageVector = Icons.Outlined.PeopleAlt,
+                            imageVector = MaterialSymbols.Rounded.Group,
                             contentDescription = null,
                             modifier = Modifier
                                 .padding(start = 12.dp, end = PrefsHorizontalPadding)

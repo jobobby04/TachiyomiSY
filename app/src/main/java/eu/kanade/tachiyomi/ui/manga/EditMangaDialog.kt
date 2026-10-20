@@ -59,6 +59,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.source.local.isLocal
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun EditMangaDialog(
@@ -371,7 +372,7 @@ private fun ChipGroup.setChips(items: List<String>, scope: CoroutineScope) {
     val addTagChip = Chip(context).apply {
         setText(SYMR.strings.add_tags.getString(context))
 
-        chipIcon = ContextCompat.getDrawable(context, R.drawable.ic_add_24dp)?.apply {
+        chipIcon = ContextCompat.getDrawable(context, SYMaterialSymbolsR.drawable.rounded_add)?.apply {
             isChipIconVisible = true
             setTint(context.getResourceColor(R.attr.colorAccent))
         }

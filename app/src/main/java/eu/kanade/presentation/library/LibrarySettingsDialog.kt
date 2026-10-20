@@ -14,8 +14,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.util.fastForEach
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.components.TabbedDialog
@@ -26,7 +27,14 @@ import eu.kanade.tachiyomi.util.system.isDebugBuildType
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import kotlinx.coroutines.flow.map
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.Label
 import mihon.icons.materialsymbols.rounded.Refresh
+import mihon.icons.materialsymbols.rounded.Sync
+import mihon.icons.sy.custommaterialsymbols.SYCustomMaterialSymbols
+import mihon.icons.sy.custommaterialsymbols.rounded.Ungroup
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.rounded.Timelapse
+import mihon.icons.sy.materialsymbols.roundedfilled.Explore
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryDisplayMode
@@ -358,16 +366,16 @@ private fun ColumnScope.DisplayPage(
 data class GroupMode(
     val int: Int,
     val nameRes: StringResource,
-    val drawableRes: Int,
+    val icon: ImageVector,
 )
 
-private fun groupTypeDrawableRes(type: Int): Int {
+private fun groupTypeIcon(type: Int): ImageVector {
     return when (type) {
-        LibraryGroup.BY_STATUS -> R.drawable.ic_progress_clock_24dp
-        LibraryGroup.BY_TRACK_STATUS -> R.drawable.ic_sync_24dp
-        LibraryGroup.BY_SOURCE -> R.drawable.ic_browse_filled_24dp
-        LibraryGroup.UNGROUPED -> R.drawable.ic_ungroup_24dp
-        else -> R.drawable.ic_label_24dp
+        LibraryGroup.BY_STATUS -> SYMaterialSymbols.Rounded.Timelapse
+        LibraryGroup.BY_TRACK_STATUS -> MaterialSymbols.Rounded.Sync
+        LibraryGroup.BY_SOURCE -> SYMaterialSymbols.RoundedFilled.Explore
+        LibraryGroup.UNGROUPED -> SYCustomMaterialSymbols.Rounded.Ungroup
+        else -> MaterialSymbols.AutoMirroredRounded.Label
     }
 }
 
@@ -402,7 +410,7 @@ private fun ColumnScope.GroupPage(
             GroupMode(
                 it,
                 groupTypeStringRes(it, hasCategories),
-                groupTypeDrawableRes(it),
+                groupTypeIcon(it),
             )
         }
     }
@@ -410,7 +418,7 @@ private fun ColumnScope.GroupPage(
     groups.fastForEach {
         IconItem(
             label = stringResource(it.nameRes),
-            icon = painterResource(it.drawableRes),
+            icon = rememberVectorPainter(it.icon),
             selected = it.int == viewModel.grouping,
             onClick = {
                 viewModel.setGrouping(it.int)

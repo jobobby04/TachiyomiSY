@@ -101,7 +101,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/download"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_delete_24dp"
+                app:srcCompat="@drawable/rounded_delete"
                 app:tint="?android:attr/textColorPrimary" />
 
             <ImageButton
@@ -115,7 +115,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/get_chapter_updates"
                 app:layout_constraintStart_toEndOf="@+id/remove"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_get_app_24dp"
+                app:srcCompat="@drawable/rounded_download"
                 app:tint="?android:attr/textColorPrimary" />
 
             <ImageButton
@@ -129,7 +129,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/download"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_sync_24dp"
+                app:srcCompat="@drawable/rounded_sync"
                 app:tint="?android:attr/textColorPrimary" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

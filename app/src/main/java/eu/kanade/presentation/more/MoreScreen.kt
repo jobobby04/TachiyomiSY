@@ -1,9 +1,6 @@
 package eu.kanade.presentation.more
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
-import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,6 +19,9 @@ import mihon.icons.materialsymbols.rounded.QueryStats
 import mihon.icons.materialsymbols.rounded.Settings
 import mihon.icons.materialsymbols.rounded.Storage
 import mihon.icons.materialsymbols.rounded.Verified
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.automirroredrounded.PlaylistAdd
+import mihon.icons.sy.materialsymbols.rounded.History
 import tachiyomi.core.common.Constants
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
@@ -95,7 +95,7 @@ fun MoreScreen(
                 item {
                     TextPreferenceWidget(
                         title = stringResource(MR.strings.label_recent_manga),
-                        icon = Icons.Outlined.History,
+                        icon = SYMaterialSymbols.Rounded.History,
                         onPreferenceClick = onClickHistory,
                     )
                 }
@@ -156,7 +156,7 @@ fun MoreScreen(
             item {
                 TextPreferenceWidget(
                     title = stringResource(SYMR.strings.eh_batch_add),
-                    icon = Icons.AutoMirrored.Outlined.PlaylistAdd,
+                    icon = SYMaterialSymbols.AutoMirroredRounded.PlaylistAdd,
                     onPreferenceClick = onClickBatchAdd,
                 )
             }

@@ -14,6 +14,7 @@ import exh.metadata.metadata.HBrowseSearchMetadata
 import exh.ui.metadata.adapters.MetadataUIUtil.bindDrawable
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.i18n.sy.SYMR
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun HBrowseDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -30,9 +31,9 @@ fun HBrowseDescription(state: State.Success, openMetadataViewer: () -> Unit) {
 
             binding.pages.text =
                 context.pluralStringResource(SYMR.plurals.num_pages, meta.length ?: 0, meta.length ?: 0)
-            binding.pages.bindDrawable(context, R.drawable.ic_baseline_menu_book_24)
+            binding.pages.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_filled_menu_book)
 
-            binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
+            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
 
             binding.pages.setOnLongClickListener {
                 context.copyToClipboard(

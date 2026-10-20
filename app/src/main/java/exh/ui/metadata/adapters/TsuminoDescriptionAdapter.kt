@@ -20,6 +20,7 @@ import tachiyomi.i18n.sy.SYMR
 import java.util.Date
 import kotlin.math.round
 import mihon.icons.materialsymbols.R as MaterialSymbolsR
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun TsuminoDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -48,7 +49,7 @@ fun TsuminoDescription(state: State.Success, openMetadataViewer: () -> Unit) {
 
             binding.pages.text =
                 context.pluralStringResource(SYMR.plurals.num_pages, meta.length ?: 0, meta.length ?: 0)
-            binding.pages.bindDrawable(context, R.drawable.ic_baseline_menu_book_24)
+            binding.pages.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_filled_menu_book)
 
             binding.ratingBar.rating = meta.averageRating ?: 0F
             @SuppressLint("SetTextI18n")
@@ -56,7 +57,7 @@ fun TsuminoDescription(state: State.Success, openMetadataViewer: () -> Unit) {
                 (round((meta.averageRating ?: 0F) * 100.0) / 100.0).toString() + " - " +
                 MetadataUIUtil.getRatingString(context, meta.averageRating?.times(2))
 
-            binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
+            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
 
             listOf(
                 binding.favorites,

@@ -46,6 +46,11 @@ include(":i18n-sy")
 include(":icons:custom-material-symbols")
 include(":icons:material-symbols")
 include(":icons:simple-icons")
+// SY -->
+include(":icons-sy:brands")
+include(":icons-sy:custom-material-symbols")
+include(":icons-sy:material-symbols")
+// SY <--
 include(":presentation-core")
 include(":presentation-widget")
 include(":source-api")

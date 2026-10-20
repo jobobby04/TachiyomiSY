@@ -8,12 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.CopyAll
-import androidx.compose.material.icons.outlined.Done
-import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,6 +22,12 @@ import eu.kanade.presentation.browse.components.MigrationItemResult
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.tachiyomi.ui.browse.migration.advanced.process.MigratingManga
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
+import mihon.icons.materialsymbols.rounded.Check
+import mihon.icons.materialsymbols.rounded.ContentCopy
+import mihon.icons.materialsymbols.rounded.CopyAll
+import mihon.icons.materialsymbols.rounded.DoneAll
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
@@ -68,13 +68,13 @@ fun MigrationListScreen(
                         listOf(
                             AppBar.Action(
                                 title = stringResource(MR.strings.copy),
-                                icon = if (items.size == 1) Icons.Outlined.ContentCopy else Icons.Outlined.CopyAll,
+                                icon = if (items.size == 1) MaterialSymbols.Rounded.ContentCopy else MaterialSymbols.Rounded.CopyAll,
                                 onClick = { openMigrationDialog(false) },
                                 enabled = migrationDone,
                             ),
                             AppBar.Action(
                                 title = stringResource(MR.strings.migrate),
-                                icon = if (items.size == 1) Icons.Outlined.Done else Icons.Outlined.DoneAll,
+                                icon = if (items.size == 1) MaterialSymbols.Rounded.Check else MaterialSymbols.Rounded.DoneAll,
                                 onClick = { openMigrationDialog(false) },
                                 enabled = migrationDone,
                             ),
@@ -112,7 +112,7 @@ fun MigrationListScreen(
                     )
 
                     Icon(
-                        Icons.AutoMirrored.Outlined.ArrowForward,
+                        MaterialSymbols.AutoMirroredRounded.ArrowForward,
                         contentDescription = stringResource(SYMR.strings.migrating_to),
                         modifier = Modifier.weight(0.2f),
                     )

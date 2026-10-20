@@ -1,7 +1,5 @@
 package eu.kanade.tachiyomi.ui.browse.feed
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +20,8 @@ import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Add
 import tachiyomi.domain.source.interactor.GetRemoteManga
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
@@ -52,7 +52,7 @@ fun Screen.feedTab(): TabContent {
         actions = listOf(
             AppBar.Action(
                 title = stringResource(MR.strings.action_add),
-                icon = Icons.Outlined.Add,
+                icon = MaterialSymbols.Rounded.Add,
                 onClick = {
                     viewModel.openAddDialog()
                 },

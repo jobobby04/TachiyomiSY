@@ -18,6 +18,7 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import kotlin.math.round
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun PururinDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -43,10 +44,10 @@ fun PururinDescription(state: State.Success, openMetadataViewer: () -> Unit) {
             binding.uploader.text = meta.uploaderDisp ?: meta.uploader.orEmpty()
 
             binding.size.text = meta.fileSize ?: context.stringResource(MR.strings.unknown)
-            binding.size.bindDrawable(context, R.drawable.ic_outline_sd_card_24)
+            binding.size.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_sd_card)
 
             binding.pages.text = context.pluralStringResource(SYMR.plurals.num_pages, meta.pages ?: 0, meta.pages ?: 0)
-            binding.pages.bindDrawable(context, R.drawable.ic_baseline_menu_book_24)
+            binding.pages.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_filled_menu_book)
 
             val ratingFloat = meta.averageRating?.toFloat()
             binding.ratingBar.rating = ratingFloat ?: 0F
@@ -55,7 +56,7 @@ fun PururinDescription(state: State.Success, openMetadataViewer: () -> Unit) {
                 (round((ratingFloat ?: 0F) * 100.0) / 100.0).toString() + " - " +
                 MetadataUIUtil.getRatingString(context, ratingFloat?.times(2))
 
-            binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
+            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
 
             listOf(
                 binding.genre,

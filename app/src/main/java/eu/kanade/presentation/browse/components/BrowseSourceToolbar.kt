@@ -17,11 +17,12 @@ import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.Source
 import exh.source.anyIs
 import mihon.icons.materialsymbols.MaterialSymbols
-import mihon.icons.materialsymbols.automirroredrounded.Help
 import mihon.icons.materialsymbols.automirroredroundedfilled.ViewList
 import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.roundedfilled.ViewCompact
 import mihon.icons.materialsymbols.roundedfilled.ViewModule
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.automirroredroundedfilled.Help
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -85,7 +86,7 @@ fun BrowseSourceToolbar(
                             add(
                                 AppBar.Action(
                                     title = stringResource(MR.strings.label_help),
-                                    icon = MaterialSymbols.AutoMirroredRounded.Help,
+                                    icon = SYMaterialSymbols.AutoMirroredRoundedFilled.Help,
                                     onClick = onHelpClick,
                                 ),
                             )

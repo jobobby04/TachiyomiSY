@@ -14,6 +14,7 @@ import exh.metadata.metadata.EightMusesSearchMetadata
 import exh.ui.metadata.adapters.MetadataUIUtil.bindDrawable
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun EightMusesDescription(state: State.Success, openMetadataViewer: () -> Unit) {
@@ -30,7 +31,7 @@ fun EightMusesDescription(state: State.Success, openMetadataViewer: () -> Unit) 
 
             binding.title.text = meta.title ?: context.stringResource(MR.strings.unknown)
 
-            binding.moreInfo.bindDrawable(context, R.drawable.ic_info_24dp)
+            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
 
             binding.title.setOnLongClickListener {
                 context.copyToClipboard(

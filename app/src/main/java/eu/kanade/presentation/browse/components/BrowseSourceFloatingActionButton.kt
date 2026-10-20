@@ -1,12 +1,12 @@
 package eu.kanade.presentation.browse.components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.FilterList
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -28,7 +28,7 @@ fun BrowseSourceFloatingActionButton(
                 },
             )
         },
-        icon = { Icon(Icons.Outlined.FilterList, contentDescription = "") },
+        icon = { Icon(MaterialSymbols.Rounded.FilterList, contentDescription = "") },
         onClick = onFabClick,
     )
 }
