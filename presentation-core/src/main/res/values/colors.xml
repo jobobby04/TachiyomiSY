@@ -8,9 +8,10 @@
     <color name="divider_default">@color/md_black_1000_12</color>
 
     <!-- Blue Theme -->
-    <color name="accent_blue">#0058A0</color>
+    <color name="accent_blue">#54759E</color>
 
-    <color name="icon_background">#FAFAFA</color>
+    <color name="icon_background">@color/ic_launcher_background</color>
+    <color name="icon_foreground">#2E84BF</color>
 
     <!-- AMOLED Mode -->
     <color name="amoled_background">#000000</color>
