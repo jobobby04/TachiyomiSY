@@ -30,13 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import com.gowtham.ratingbar.ComposeStars
-import com.gowtham.ratingbar.RatingBarStyle
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.manga.components.MangaCover
 import exh.metadata.MetadataUtil
 import exh.metadata.metadata.EHentaiSearchMetadata
 import exh.metadata.metadata.RaisedSearchMetadata
+import exh.ui.metadata.adapters.MetadataStars
 import exh.util.SourceTagsUtil
 import exh.util.SourceTagsUtil.GenreColor
 import exh.util.floor
@@ -222,18 +221,10 @@ fun BrowseSourceEHentaiListItem(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
                     horizontalAlignment = Alignment.Start,
                 ) {
-                    ComposeStars(
-                        value = rating,
-                        numOfStars = 5,
+                    MetadataStars(
+                        rating = rating,
                         size = 18.dp,
                         spaceBetween = 2.dp,
-                        hideInactiveStars = false,
-                        style = RatingBarStyle.Fill(
-                            activeColor = Color(0xFF005ED7),
-                            inActiveColor = Color(0xE1E2ECFF),
-                        ),
-                        painterEmpty = null,
-                        painterFilled = null,
                     )
                     val color = genre?.first?.color
                     val res = genre?.second
