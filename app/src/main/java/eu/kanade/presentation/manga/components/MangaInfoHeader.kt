@@ -270,26 +270,39 @@ fun ExpandableMangaDescription(
     // SY -->
     searchMetadataChips: SearchMetadataChips?,
     doSearch: (query: String, global: Boolean) -> Unit,
+    hideEmptyDescription: Boolean = false,
     // SY <--
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        val (expanded, onExpanded) = rememberSaveable {
+        // SY -->
+        val (expandedState, onExpanded) = rememberSaveable {
             mutableStateOf(defaultExpandState)
         }
+        // Sources with a metadata panel don't need the placeholder, and without the summary there is
+        // nothing to collapse the tags with
+        val showSummary = !hideEmptyDescription || !description.isNullOrBlank() || notes.isNotBlank()
+        val expanded = expandedState || !showSummary
+        // SY <--
         val desc =
             description.takeIf { !it.isNullOrBlank() } ?: stringResource(MR.strings.description_placeholder)
 
-        MangaSummary(
-            description = desc,
-            expanded = expanded,
-            notes = notes,
-            onEditNotesClicked = onEditNotes,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .padding(horizontal = 16.dp)
-                .clickableNoIndication { onExpanded(!expanded) },
-        )
+        // SY -->
+        if (showSummary) {
+            // SY <--
+            MangaSummary(
+                description = desc,
+                expanded = expanded,
+                notes = notes,
+                onEditNotesClicked = onEditNotes,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .padding(horizontal = 16.dp)
+                    .clickableNoIndication { onExpanded(!expanded) },
+            )
+            // SY -->
+        }
+        // SY <--
         val tags = tagsProvider()
         if (!tags.isNullOrEmpty()) {
             Box(
