@@ -7,61 +7,6 @@ import java.util.Locale
 class SearchEngine {
     private val queryCache = mutableMapOf<String, List<QueryComponent>>()
 
-    fun textToSubQueries(
-        namespace: String?,
-        component: Text?,
-    ): Pair<String, List<String>>? {
-        val maybeLenientComponent = component?.let {
-            if (!it.exact) {
-                it.asLenientTagQueries()
-            } else {
-                listOf(it.asQuery())
-            }
-        }
-        val componentTagQuery = maybeLenientComponent?.let {
-            val params = mutableListOf<String>()
-            it.joinToString(separator = " OR ", prefix = "(", postfix = ")") { q ->
-                params += q
-                "search_tags.name LIKE ?"
-            } to params
-        }
-        return when {
-            namespace != null -> {
-                var query =
-                    """
-                    (SELECT ${"manga_id"} AS $COL_MANGA_ID FROM ${"search_tags"}
-                        WHERE ${"namespace"} IS NOT NULL
-                        AND ${"namespace"} LIKE ?
-                    """.trimIndent()
-                val params = mutableListOf(escapeLike(namespace))
-                if (componentTagQuery != null) {
-                    query += "\n    AND ${componentTagQuery.first}"
-                    params += componentTagQuery.second
-                }
-
-                "$query)" to params
-            }
-            component != null -> {
-                // Match title + tags
-                val tagQuery =
-                    """
-                    SELECT ${"manga_id"} AS $COL_MANGA_ID FROM ${"search_tags"}
-                        WHERE ${componentTagQuery!!.first}
-                    """.trimIndent() to componentTagQuery.second
-
-                val titleQuery =
-                    """
-                    SELECT ${"manga_id"} AS $COL_MANGA_ID FROM ${"search_titles"}
-                        WHERE ${"title"} LIKE ?
-                    """.trimIndent() to listOf(component.asLenientTitleQuery())
-
-                "(${tagQuery.first} UNION ${titleQuery.first})".trimIndent() to
-                    (tagQuery.second + titleQuery.second)
-            }
-            else -> null
-        }
-    }
-
     fun parseQuery(query: String, enableWildcard: Boolean = true) = queryCache.getOrPut(query) {
         val res = mutableListOf<QueryComponent>()
 
@@ -139,8 +84,6 @@ class SearchEngine {
     }
 
     companion object {
-        private const val COL_MANGA_ID = "cmid"
-
         fun escapeLike(string: String): String {
             return string.replace("\\", "\\\\")
                 .replace("_", "\\_")
