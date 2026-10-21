@@ -19,9 +19,6 @@ SELECT * FROM search_metadata;
 selectByMangaId:
 SELECT * FROM search_metadata WHERE manga_id = ?;
 
-selectByIndexedExtra:
-SELECT * FROM search_metadata WHERE indexed_extra = ?;
-
 upsert:
 INSERT INTO search_metadata(manga_id, uploader, extra, indexed_extra, extra_version)
 VALUES (:mangaId, :uploader, :extra, :indexedExtra, :extraVersion)

@@ -9,17 +9,11 @@ CREATE TABLE saved_search(
 selectBySource:
 SELECT * FROM saved_search WHERE source = :sourceId;
 
-deleteBySource:
-DELETE FROM saved_search WHERE source = :sourceId;
-
 selectAll:
 SELECT * FROM saved_search;
 
 selectById:
 SELECT * FROM saved_search WHERE _id = :id;
-
-selectByIds:
-SELECT * FROM saved_search WHERE _id IN :ids;
 
 selectNamesAndSources:
 SELECT source, name

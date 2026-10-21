@@ -325,8 +325,3 @@ SELECT * FROM mangas;
 
 deleteById:
 DELETE FROM mangas WHERE _id = :id;
-
-getIdByUrlAndSource:
-SELECT _id
-FROM mangas
-WHERE url = :url AND source = :source;

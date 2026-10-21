@@ -23,9 +23,6 @@ CREATE INDEX merged_merge_id_index ON merged(merge_id);
 selectByMergeId:
 SELECT * FROM merged WHERE merge_id = ?;
 
-selectByMergeUrl:
-SELECT * FROM merged WHERE merge_url = ?;
-
 deleteByMergeId:
 DELETE FROM merged WHERE merge_id = ?;
 
@@ -45,14 +42,6 @@ FROM (
 JOIN mangas
 ON mangas._id = M.manga_id;
 
-selectMergedMangasByUrl:
-SELECT mangas.*
-FROM (
-    SELECT manga_id FROM merged WHERE merge_url = ?
-) AS M
-JOIN mangas
-ON mangas._id = M.manga_id;
-
 selectAllMergedMangas:
 SELECT mangas.*
 FROM (
@@ -61,19 +50,8 @@ FROM (
 JOIN mangas
 ON mangas._id = M.manga_id;
 
-deleteByMergeUrl:
-DELETE FROM merged WHERE merge_url = ?;
-
 selectAll:
 SELECT * FROM merged;
-
-selectChaptersByMergedId:
-SELECT chapters.*
-FROM (
-    SELECT manga_id FROM merged WHERE merge_id = ?
-) AS M
-JOIN chapters
-ON chapters.manga_id = M.manga_id;
 
 insertReturningId:
 INSERT INTO merged(
