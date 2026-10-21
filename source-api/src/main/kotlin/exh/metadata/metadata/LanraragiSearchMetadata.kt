@@ -25,6 +25,8 @@ class LanraragiSearchMetadata : RaisedSearchMetadata() {
 
     var pageCount: Int? = null
 
+    var archives: List<String>? = null
+
     var baseUrl: String? = null
 
     var filename: String? = null
@@ -92,7 +94,8 @@ class LanraragiSearchMetadata : RaisedSearchMetadata() {
         }
 
         fun getThumbnailUri(baseUrl: String, id: String, page: Int): String {
-            val uri = getApiUriBuilder(baseUrl, "/api/archives/$id/thumbnail")
+            val endpoint = if (id.startsWith("TANK_")) "tankoubons" else "archives"
+            val uri = getApiUriBuilder(baseUrl, "/api/$endpoint/$id/thumbnail")
 
             if (page > 1) {
                 uri.appendQueryParameter("page", page.toString())
