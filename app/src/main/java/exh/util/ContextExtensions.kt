@@ -3,7 +3,6 @@ package exh.util
 import android.app.job.JobScheduler
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.res.Configuration
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
@@ -21,12 +20,6 @@ val Context.clipboardManager: ClipboardManager
 
 val Context.jobScheduler: JobScheduler
     get() = applicationContext.getSystemService()!!
-
-val Context.isInNightMode: Boolean
-    get() {
-        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        return currentNightMode == Configuration.UI_MODE_NIGHT_YES
-    }
 
 fun Context.createPartialWakeLock(tag: String): PowerManager.WakeLock =
     powerManager.newWakeLock(

@@ -41,18 +41,6 @@ inline fun <reified T : Source> Source.getMainSource(): T? = if (this is Enhance
     this as? T
 }
 
-fun Source.getOriginalSource(): Source = if (this is EnhancedHttpSource) {
-    this.originalSource
-} else {
-    this
-}
-
-fun Source.getEnhancedSource(): Source = if (this is EnhancedHttpSource) {
-    this.enhancedSource
-} else {
-    this
-}
-
 inline fun <reified T> Source.anyIs(): Boolean {
     return if (this is EnhancedHttpSource) {
         originalSource is T || enhancedSource is T

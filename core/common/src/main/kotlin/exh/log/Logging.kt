@@ -14,8 +14,6 @@ fun Any.xLogW(log: String) = xLog().w(log)
 fun Any.xLogD(log: String) = xLog().d(log)
 fun Any.xLogI(log: String) = xLog().i(log)
 fun Any.xLog(logLevel: LogLevel, log: String) = xLog().log(logLevel.int, log)
-fun Any.xLogJson(log: String) = xLog().json(log)
-fun Any.xLogXML(log: String) = xLog().xml(log)
 
 fun Any.xLogE(log: String, e: Throwable) = xLogStack().e(log, e)
 fun Any.xLogW(log: String, e: Throwable) = xLogStack().w(log, e)

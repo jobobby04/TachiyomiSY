@@ -9,7 +9,6 @@ import org.koin.core.logger.Level
 import org.koin.core.logger.Logger
 import org.koin.core.logger.MESSAGE
 import org.koin.core.module.Module
-import org.koin.core.scope.Scope
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.InjektScope
 
@@ -47,16 +46,6 @@ interface InjektModule {
 inline fun <reified T> InjektModule.addSingleton(instance: T) {
     val module = InjektKoinBridge.getModule(this)
     module.single<T> { instance }
-}
-
-inline fun <reified T> InjektModule.addSingletonFactory(crossinline instance: Scope.() -> T) {
-    val module = InjektKoinBridge.getModule(this)
-    module.single<T> { instance() }
-}
-
-inline fun <reified T> InjektModule.addFactory(crossinline instance: Scope.() -> T) {
-    val module = InjektKoinBridge.getModule(this)
-    module.factory<T> { instance() }
 }
 
 fun InjektScope.importModule(injektModule: InjektModule) {
