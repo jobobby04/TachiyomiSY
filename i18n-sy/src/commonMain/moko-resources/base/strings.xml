@@ -682,13 +682,17 @@
     <string name="merged_references_invalid">Merged references invalid</string>
     <string name="merged_chapter_updates_error">Toggle chapter updates error</string>
     <string name="merged_toggle_download_chapters_error">Toggle download chapters error</string>
-    <string name="allow_deduplication">Allow deduplication:</string>
-    <string name="deduplication_mode">Dedupe mode:</string>
-    <string name="deduplication_entry_info">Info entry:</string>
-    <string name="no_dedupe">No dedupe</string>
-    <string name="dedupe_priority">Dedupe by priority</string>
-    <string name="dedupe_most_chapters">Show source with most chapters</string>
-    <string name="dedupe_highest_chapter">Show source with highest chapter number</string>
+    <string name="merge_duplicate_chapters">Duplicate chapters</string>
+    <string name="merge_dedupe_keep_all">Keep all</string>
+    <string name="merge_dedupe_priority">Priority</string>
+    <string name="merge_dedupe_most">Most</string>
+    <string name="merge_dedupe_highest">Highest</string>
+    <string name="merge_dedupe_keep_all_summary">Show every chapter from every entry.</string>
+    <string name="merge_dedupe_priority_summary">Show each chapter once, from the highest entry below that has it.</string>
+    <string name="merge_dedupe_most_summary">Show only the chapters of the entry with the most chapters.</string>
+    <string name="merge_dedupe_highest_summary">Show only the chapters of the entry with the highest chapter number.</string>
+    <string name="merge_info_source">Info source</string>
+    <string name="merge_drag_to_set_priority">Drag to set priority</string>
 
     <!-- MangaDex -->
     <string name="md_follows_unfollowed">Unfollowed</string>
