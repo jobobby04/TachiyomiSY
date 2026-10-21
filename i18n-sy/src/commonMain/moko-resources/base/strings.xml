@@ -480,11 +480,10 @@
     <string name="skipping_">(skipping %1$d)</string>
 
     <!-- Bulk recommendation search -->
-    <string name="rec_search">Find common recommendations</string>
-    <string name="rec_hide_library_entries">Hide results already in your library</string>
-    <string name="rec_services_to_search">Recommendation services to search</string>
-    <string name="rec_group_source">Source recommendations</string>
-    <string name="rec_group_tracker">Tracker recommendations</string>
+    <string name="rec_hide_library_entries">Hide entries in library</string>
+    <string name="rec_search_in">Search in</string>
+    <string name="rec_sources_summary">Each entry\'s own source</string>
+    <string name="rec_trackers_summary">Your logged-in tracking services</string>
     <string name="rec_common_recommendations">Common recommendations</string>
     <string name="rec_search_short">Find recommendations</string>
     <string name="rec_no_results">No recommendations found</string>

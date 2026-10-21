@@ -77,4 +77,8 @@
         <item quantity="one">%d row</item>
         <item quantity="other">%d rows</item>
     </plurals>
+    <plurals name="rec_selected_entries">
+        <item quantity="one">For %d selected entry</item>
+        <item quantity="other">For %d selected entries</item>
+    </plurals>
 </resources>
