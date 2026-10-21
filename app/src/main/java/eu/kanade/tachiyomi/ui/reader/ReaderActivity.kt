@@ -151,10 +151,6 @@ class ReaderActivity : BaseActivity() {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
         }
-
-        const val SHIFT_DOUBLE_PAGES = "shiftingDoublePages"
-        const val SHIFTED_PAGE_INDEX = "shiftedPageIndex"
-        const val SHIFTED_CHAP_INDEX = "shiftedChapterIndex"
     }
 
     @Inject private lateinit var readerPreferences: ReaderPreferences
@@ -764,7 +760,6 @@ class ReaderActivity : BaseActivity() {
 
                     retried++
                 }
-
 
             withUIContext {
                 toast(pluralStringResource(SYMR.plurals.eh_retry_toast, retried, retried))

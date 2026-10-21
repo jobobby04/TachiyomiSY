@@ -1324,11 +1324,6 @@ class LibraryViewModel(
 
 // SY -->
 
-    /** Returns first unread chapter of a manga */
-    suspend fun getFirstUnread(manga: Manga): Chapter? {
-        return getNextChapters.await(manga.id).firstOrNull()
-    }
-
     private suspend fun List<LibraryItem>.getGroupedMangaItems(
         groupType: Int,
     ): Map<Category, List</* LibraryItem */ Long>> {

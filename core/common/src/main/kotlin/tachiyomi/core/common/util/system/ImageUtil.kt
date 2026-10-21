@@ -22,7 +22,6 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.get
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import androidx.exifinterface.media.ExifInterface
 import ca.mpreg.imagedecoder.ImageDecoder
 import com.hippo.unifile.UniFile
 import logcat.LogPriority
@@ -30,7 +29,6 @@ import okio.Buffer
 import okio.BufferedSource
 import java.io.File
 import java.io.InputStream
-import java.security.SecureRandom
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
@@ -600,23 +598,6 @@ object ImageUtil {
         BitmapFactory.decodeStream(imageSource.peek().inputStream(), null, options)
         return options
     }
-
-    /**
-     * Creates random exif metadata used as padding to make
-     * the size of files inside  CBZ archives unique
-     */
-    fun addPaddingToImageExif(imageFile: File) {
-        try {
-            val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-            val padding = List(SecureRandom().nextInt(16384) + 16384) { charPool.random() }.joinToString("")
-            val exif = ExifInterface(imageFile.absolutePath)
-            exif.setAttribute("UserComment", padding)
-            exif.saveAttributes()
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e)
-        }
-    }
-    // SY <--
 
     private fun getBitmapRegionDecoder(imageStream: InputStream): BitmapRegionDecoder? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

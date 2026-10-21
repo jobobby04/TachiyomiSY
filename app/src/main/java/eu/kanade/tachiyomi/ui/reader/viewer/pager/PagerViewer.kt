@@ -488,6 +488,5 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         adapter.splitDoublePages(currentPage)
     }
 
-    fun getShiftedPage(): ReaderPage? = adapter.pageToShift
     // SY <--
 }

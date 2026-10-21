@@ -210,11 +210,6 @@ class AndroidSourceManager(
             it.id !in BlacklistedSources.HIDDEN_SOURCES
         }
 
-    suspend fun getDelegatedCatalogueSources() = sourcesMap().values
-        .filterIsInstance<EnhancedHttpSource>()
-        .mapNotNull { enhancedHttpSource ->
-            enhancedHttpSource.enhancedSource as? DelegatedHttpSource
-        }
     // SY <--
 
     private fun registerStubSource(source: StubSource) {
