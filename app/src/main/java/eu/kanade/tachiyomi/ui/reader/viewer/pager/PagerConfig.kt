@@ -112,9 +112,27 @@ class PagerConfig(
 
         readerPreferences.dualPageSplitPaged
             .register(
-                { dualPageSplit = it },
+                {
+                    dualPageSplit = it
+                    // Keep the split/merged-pages exclusivity symmetric: the initial value
+                    // above and the page-layout listener both disable merged double pages
+                    // while the split is on, but flipping the toggle at runtime left
+                    // doublePages stale, so holders kept a sibling page whose image is
+                    // never rendered.
+                    if (!autoDoublePages) {
+                        doublePages = readerPreferences.pageLayout.get() == PageLayout.DOUBLE_PAGES && !it
+                    }
+                },
                 {
                     imagePropertyChangedListener?.invoke()
+                    if (!autoDoublePages) {
+                        val wasDoublePages = doublePages
+                        doublePages = readerPreferences.pageLayout.get() == PageLayout.DOUBLE_PAGES && !it
+                        if (doublePages != wasDoublePages) {
+                            // The item pairing changed; rejoin items like a layout change does.
+                            reloadChapterListener?.invoke(doublePages)
+                        }
+                    }
                     dualPageSplitChangedListener?.invoke(it)
                 },
             )
