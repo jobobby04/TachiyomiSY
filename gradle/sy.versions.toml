@@ -10,7 +10,7 @@ versionsx = "com.github.ben-manes:gradle-versions-plugin:0.51.0"
 
 sqlcipher = "net.zetetic:sqlcipher-android:4.19.1"
 
-google-api-services-drive = "com.google.apis:google-api-services-drive:v3-rev197-1.25.0"
+google-api-services-drive = "com.google.apis:google-api-services-drive:v3-rev20261011-2.0.0"
 google-api-client-oauth = "com.google.oauth-client:google-oauth-client:1.39.0"
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
