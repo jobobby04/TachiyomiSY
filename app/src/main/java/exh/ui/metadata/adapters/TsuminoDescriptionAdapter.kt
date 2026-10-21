@@ -1,84 +1,68 @@
 package exh.ui.metadata.adapters
 
-import android.annotation.SuppressLint
-import android.view.LayoutInflater
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.databinding.DescriptionAdapterTsBinding
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel.State
-import eu.kanade.tachiyomi.util.system.copyToClipboard
 import exh.metadata.metadata.TsuminoSearchMetadata
-import exh.ui.metadata.adapters.MetadataUIUtil.bindDrawable
-import tachiyomi.core.common.i18n.pluralStringResource
-import tachiyomi.core.common.i18n.stringResource
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Bookmark
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.roundedfilled.MenuBook
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
+import tachiyomi.presentation.core.i18n.pluralStringResource
+import tachiyomi.presentation.core.i18n.stringResource
 import java.util.Date
-import kotlin.math.round
-import mihon.icons.materialsymbols.R as MaterialSymbolsR
-import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun TsuminoDescription(state: State.Success, openMetadataViewer: () -> Unit) {
+    val meta = state.meta as? TsuminoSearchMetadata ?: return
     val context = LocalContext.current
-    AndroidView(
-        modifier = Modifier.fillMaxWidth(),
-        factory = { factoryContext ->
-            DescriptionAdapterTsBinding.inflate(LayoutInflater.from(factoryContext)).root
-        },
-        update = {
-            val meta = state.meta
-            if (meta == null || meta !is TsuminoSearchMetadata) return@AndroidView
-            val binding = DescriptionAdapterTsBinding.bind(it)
+    val unknown = stringResource(MR.strings.unknown)
 
-            binding.genre.text = meta.category?.let { MetadataUIUtil.getGenreAndColour(context, it) }?.let {
-                binding.genre.setBackgroundColor(it.first)
-                it.second
-            } ?: meta.category ?: context.stringResource(MR.strings.unknown)
+    MetadataDescription {
+        MetadataRow(openMetadataViewer = openMetadataViewer) {
+            val genre = remember(meta.category) { meta.category?.let { MetadataUIUtil.getGenreAndColour(context, it) } }
+            MetadataGenre(
+                text = genre?.second ?: meta.category ?: unknown,
+                color = genre?.first,
+            )
+        }
 
-            binding.favorites.text = (meta.favorites ?: 0).toString()
-            binding.favorites.bindDrawable(context, MaterialSymbolsR.drawable.rounded_book)
+        MetadataFacts {
+            fact {
+                MetadataRating(
+                    rating = meta.averageRating ?: 0F,
+                    score = meta.averageRating,
+                    label = MetadataUIUtil.getRatingString(context, meta.averageRating?.times(2)),
+                )
+            }
+            fact {
+                MetadataText(
+                    text = (meta.favorites ?: 0).toString(),
+                    icon = MaterialSymbols.Rounded.Bookmark,
+                )
+            }
+        }
 
-            binding.whenPosted.text = TsuminoSearchMetadata.TSUMINO_DATE_FORMAT.format(Date(meta.uploadDate ?: 0))
-
-            binding.uploader.text = meta.uploader ?: context.stringResource(MR.strings.unknown)
-
-            binding.pages.text =
-                context.pluralStringResource(SYMR.plurals.num_pages, meta.length ?: 0, meta.length ?: 0)
-            binding.pages.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_filled_menu_book)
-
-            binding.ratingBar.rating = meta.averageRating ?: 0F
-            @SuppressLint("SetTextI18n")
-            binding.rating.text =
-                (round((meta.averageRating ?: 0F) * 100.0) / 100.0).toString() + " - " +
-                MetadataUIUtil.getRatingString(context, meta.averageRating?.times(2))
-
-            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
-
-            listOf(
-                binding.favorites,
-                binding.genre,
-                binding.pages,
-                binding.rating,
-                binding.uploader,
-                binding.whenPosted,
-            ).forEach { textView ->
-                textView.setOnLongClickListener {
-                    context.copyToClipboard(
-                        textView.text.toString(),
-                        textView.text.toString(),
-                    )
-                    true
+        MetadataFacts {
+            fact {
+                val length = meta.length ?: 0
+                MetadataText(
+                    text = pluralStringResource(SYMR.plurals.num_pages, length, length),
+                    icon = SYMaterialSymbols.RoundedFilled.MenuBook,
+                )
+            }
+            fact {
+                MetadataUploader(uploader = meta.uploader ?: unknown)
+            }
+            fact {
+                val whenPosted = remember(meta.uploadDate) {
+                    TsuminoSearchMetadata.TSUMINO_DATE_FORMAT.format(Date(meta.uploadDate ?: 0))
                 }
+                MetadataText(text = whenPosted)
             }
-
-            binding.moreInfo.setOnClickListener {
-                openMetadataViewer()
-            }
-        },
-    )
+        }
+    }
 }

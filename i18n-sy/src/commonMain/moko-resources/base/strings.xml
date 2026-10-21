@@ -670,6 +670,7 @@
     <!-- Extra gallery info -->
     <string name="is_visible">Visible: %1$s</string>
     <string name="language_translated">%1$s TR</string>
+    <string name="disowned">Disowned</string>
 
     <!-- Merged entry -->
     <string name="merge_settings">Merge settings</string>

@@ -1,106 +1,109 @@
 package exh.ui.metadata.adapters
 
-import android.annotation.SuppressLint
-import android.view.LayoutInflater
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.databinding.DescriptionAdapterEhBinding
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel.State
-import eu.kanade.tachiyomi.util.system.copyToClipboard
 import exh.metadata.MetadataUtil
 import exh.metadata.metadata.EHentaiSearchMetadata
-import exh.ui.metadata.adapters.MetadataUIUtil.bindDrawable
-import tachiyomi.core.common.i18n.pluralStringResource
-import tachiyomi.core.common.i18n.stringResource
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Bookmark
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.rounded.SdCard
+import mihon.icons.sy.materialsymbols.rounded.Translate
+import mihon.icons.sy.materialsymbols.roundedfilled.MenuBook
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import mihon.icons.materialsymbols.R as MaterialSymbolsR
-import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
+import tachiyomi.presentation.core.i18n.pluralStringResource
+import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun EHentaiDescription(state: State.Success, openMetadataViewer: () -> Unit, search: (String) -> Unit) {
+    val meta = state.meta as? EHentaiSearchMetadata ?: return
     val context = LocalContext.current
-    AndroidView(
-        modifier = Modifier.fillMaxWidth(),
-        factory = { factoryContext ->
-            DescriptionAdapterEhBinding.inflate(LayoutInflater.from(factoryContext)).root
-        },
-        update = {
-            val meta = state.meta
-            if (meta == null || meta !is EHentaiSearchMetadata) return@AndroidView
-            val binding = DescriptionAdapterEhBinding.bind(it)
+    val unknown = stringResource(MR.strings.unknown)
 
-            binding.genre.text =
-                meta.genre?.let { MetadataUIUtil.getGenreAndColour(context, it) }
-                    ?.let {
-                        binding.genre.setBackgroundColor(it.first)
-                        it.second
-                    }
-                    ?: meta.genre
-                    ?: context.stringResource(MR.strings.unknown)
-
-            binding.visible.text =
-                context.stringResource(
-                    SYMR.strings.is_visible,
-                    meta.visible ?: context.stringResource(MR.strings.unknown),
+    MetadataDescription {
+        MetadataRow(openMetadataViewer = openMetadataViewer) {
+            val genre = remember(meta.genre) { meta.genre?.let { MetadataUIUtil.getGenreAndColour(context, it) } }
+            MetadataGenre(
+                text = genre?.second ?: meta.genre ?: unknown,
+                color = genre?.first,
+            )
+            val language = meta.language ?: unknown
+            MetadataChip(
+                text = if (meta.translated == true) {
+                    stringResource(SYMR.strings.language_translated, language)
+                } else {
+                    language
+                },
+                icon = SYMaterialSymbols.Rounded.Translate,
+            )
+            val hiddenReason = remember(meta.visible) { hiddenReason(meta.visible) }
+            if (hiddenReason != null) {
+                MetadataChip(
+                    text = hiddenReason,
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 )
-
-            binding.favorites.text = (meta.favorites ?: 0).toString()
-            binding.favorites.bindDrawable(context, MaterialSymbolsR.drawable.rounded_book)
-
-            binding.uploader.text = meta.uploader ?: context.stringResource(MR.strings.unknown)
-
-            binding.size.text = MetadataUtil.humanReadableByteCount(meta.size ?: 0, true)
-            binding.size.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_sd_card)
-
-            val length = meta.length ?: 0
-            binding.pages.text = context.pluralStringResource(SYMR.plurals.num_pages, length, length)
-            binding.pages.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_filled_menu_book)
-
-            val language = meta.language ?: context.stringResource(MR.strings.unknown)
-            binding.language.text = if (meta.translated == true) {
-                context.stringResource(SYMR.strings.language_translated, language)
-            } else {
-                language
             }
+        }
 
-            val ratingFloat = meta.averageRating?.toFloat()
-            binding.ratingBar.rating = ratingFloat ?: 0F
-            @SuppressLint("SetTextI18n")
-            binding.rating.text =
-                (ratingFloat ?: 0F).toString() + " - " + MetadataUIUtil.getRatingString(context, ratingFloat?.times(2))
-
-            binding.moreInfo.bindDrawable(context, SYMaterialSymbolsR.drawable.rounded_info)
-
-            listOf(
-                binding.favorites,
-                binding.genre,
-                binding.language,
-                binding.pages,
-                binding.rating,
-                binding.uploader,
-                binding.visible,
-            ).forEach { textView ->
-                textView.setOnLongClickListener {
-                    context.copyToClipboard(
-                        textView.text.toString(),
-                        textView.text.toString(),
-                    )
-                    true
-                }
+        MetadataFacts {
+            fact {
+                val ratingFloat = meta.averageRating?.toFloat()
+                MetadataRating(
+                    rating = ratingFloat ?: 0F,
+                    score = ratingFloat,
+                    label = MetadataUIUtil.getRatingString(context, ratingFloat?.times(2)),
+                )
             }
-
-            binding.uploader.setOnClickListener {
-                meta.uploader?.let { search("uploader:\"$it\"") }
+            fact {
+                MetadataText(
+                    text = (meta.favorites ?: 0).toString(),
+                    icon = MaterialSymbols.Rounded.Bookmark,
+                )
             }
+        }
 
-            binding.moreInfo.setOnClickListener {
-                openMetadataViewer()
+        MetadataFacts {
+            fact {
+                val length = meta.length ?: 0
+                MetadataText(
+                    text = pluralStringResource(SYMR.plurals.num_pages, length, length),
+                    icon = SYMaterialSymbols.RoundedFilled.MenuBook,
+                )
             }
-        },
-    )
+            fact {
+                MetadataText(
+                    text = MetadataUtil.humanReadableByteCount(meta.size ?: 0, true),
+                    icon = SYMaterialSymbols.Rounded.SdCard,
+                    copyable = false,
+                )
+            }
+            fact {
+                val uploader = meta.uploader
+                MetadataUploader(
+                    uploader = uploader ?: unknown,
+                    disowned = uploader.equals(DISOWNED_UPLOADER, ignoreCase = true),
+                    onClick = uploader?.let { { search("uploader:\"$it\"") } },
+                )
+            }
+        }
+    }
 }
+
+/**
+ * E-Hentai stores visibility as "Yes", or "No (reason)" (e.g. "No (Expunged)") for hidden galleries.
+ *
+ * @return the reason a gallery is hidden, the raw value if it has no reason, or null when it is visible.
+ */
+private fun hiddenReason(visible: String?): String? {
+    val value = visible?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    if (value.startsWith("Yes", ignoreCase = true)) return null
+    return value.substringAfter('(', "").substringBeforeLast(')').trim().ifEmpty { value }
+}
+
+/** Uploader reported by E-Hentai when the uploader has disowned the gallery. */
+private const val DISOWNED_UPLOADER = "(Disowned)"
