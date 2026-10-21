@@ -26,10 +26,6 @@
         <item quantity="one">Copy %1$d%2$s entry?</item>
         <item quantity="other">Copy %1$d%2$s entries?</item>
     </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d entry migrated</item>
-        <item quantity="other">%d entries migrated</item>
-    </plurals>
     <!-- Extra gallery info -->
     <plurals name="num_pages">
         <item quantity="one">%1$d page</item>

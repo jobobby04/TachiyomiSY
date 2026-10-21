@@ -7,7 +7,6 @@
     <string name="action_migrate_now">Migrate now</string>
     <string name="action_copy_now">Copy now</string>
     <string name="action_clean_titles">Clean titles</string>
-    <string name="action_start_reading">Start reading</string>
     <string name="action_edit_info">Edit info</string>
 
     <!-- Entry Type -->
@@ -152,7 +151,6 @@
     <string name="wsrv">wsrv.nl</string>
     <string name="bandwidth_data_saver_server">Bandwidth Hero Proxy Server</string>
     <string name="data_saver_server_summary">Put Bandwidth Hero Proxy server url here</string>
-    <string name="clear_db_exclude_read">Keep entries with read chapters</string>
     <string name="pref_include_chapter_url_hash">Include chapter URL hash</string>
     <string name="pref_include_chapter_url_hash_desc">Append the first six characters of the chapter URL's MD5 hash to the chapter file or folder name.</string>
 
@@ -184,15 +182,10 @@
 
     <!-- Library settings -->
     <string name="pref_sorting_settings">Sorting Settings</string>
-    <string name="pref_skip_pre_migration_summary">Use last saved pre-migration preferences and sources to mass migrate</string>
     <string name="library_group_updates">Library dynamic category updates</string>
     <string name="library_group_updates_global">Always launch global updates</string>
     <string name="library_group_updates_all_but_ungrouped">Launch global updates only for ungrouped, category updates for others</string>
     <string name="library_group_updates_all">Launch category updates all the time</string>
-    <string name="pref_mark_read_dupe_chapters">Mark duplicate chapters as read</string>
-    <string name="pref_mark_read_dupe_chapters_summary">Mark duplicate chapters as read after reading</string>
-    <string name="pref_library_mark_duplicate_chapters">Mark new duplicate chapters as read</string>
-    <string name="pref_library_mark_duplicate_chapters_summary">Automatically mark new chapters as read if it has been read before</string>
     <string name="update_30min">Every 30 minutes</string>
     <string name="update_1hour">Every hour</string>
     <string name="update_3hour">Every 3 hours</string>
@@ -210,8 +203,6 @@
 
     <!-- Backup settings -->
     <string name="custom_entry_info">Custom entry info</string>
-    <string name="all_read_entries">All read entries</string>
-    <string name="label_sync">Sync</string>
     <string name="label_triggers">Triggers</string>
 
     <!-- Sync settings -->
@@ -242,9 +233,6 @@
     <string name="google_drive_login_success">Logged in to Google Drive</string>
     <string name="google_drive_login_failed">Failed to log in to Google Drive: %s</string>
     <string name="google_drive_not_signed_in">Not signed in to Google Drive</string>
-    <string name="error_uploading_sync_data">Error uploading sync data to Google Drive</string>
-    <string name="error_deleting_google_drive_lock_file">Error Deleting Google Drive Lock File</string>
-    <string name="error_before_sync_gdrive">Error before sync: %s</string>
     <string name="pref_purge_confirmation_title">Purge confirmation</string>
     <string name="pref_purge_confirmation_message">Purging sync data will delete all your sync data from Google Drive. Are you sure you want to continue?</string>
     <string name="pref_sync_options">Create sync triggers</string>
@@ -283,7 +271,6 @@
     <string name="password_protect_downloads_summary">Encrypts CBZ archive downloads with the given password.\nWARNING: DATA INSIDE THE ARCHIVES WILL BE LOST FOREVER IF YOU FORGET THE PASSWORD</string>
     <string name="delete_cbz_archive_password">Delete CBZ archive password</string>
     <string name="cbz_archive_password">CBZ archive password</string>
-    <string name="wrong_cbz_archive_password">Wrong CBZ archive password</string>
     <string name="encryption_type">Encryption type</string>
     <string name="aes_256">AES 256</string>
     <string name="aes_128">AES 128</string>
@@ -312,7 +299,6 @@
     <string name="preserve_reading_position">Preserve reading position on read entries</string>
     <string name="auto_webtoon_mode">Auto Webtoon Mode</string>
     <string name="auto_webtoon_mode_summary">Use auto webtoon mode for entries that are detected to likely use the long strip format</string>
-    <string name="enable_zoom_out">Enable zoom out</string>
     <string name="tap_scroll_page">Tap scroll by page</string>
     <string name="tap_scroll_page_summary">Tapping will scroll by page instead of screen size when this option is enabled</string>
     <string name="reader_bottom_buttons">Reader Bottom Buttons</string>
@@ -421,8 +407,6 @@
     <string name="saved_searches">Saved Searches</string>
     <string name="save_search">Save current search query?</string>
     <string name="save_search_hint">My search name</string>
-    <string name="save_search_failed_to_load">Failed to load saved searches!</string>
-    <string name="save_search_failed_to_load_message">An error occurred while loading your saved searches.</string>
     <string name="save_search_delete">Delete saved search query?</string>
     <string name="save_search_delete_message">Are you sure you wish to delete your saved search query: \'%1$s\'?</string>
     <string name="save_search_invalid">Saved search invalid, filters have changed</string>
@@ -455,11 +439,7 @@
     <string name="redundant_extension_message">This extension is redundant and will not be used inside this version of Tachiyomi.</string>
 
     <!-- Migration -->
-    <string name="select_sources">Select sources</string>
-    <string name="select_none">Select none</string>
     <string name="migration">Migration</string>
-    <string name="skip_pre_migration">Skip pre-migration</string>
-    <string name="pre_migration_skip_toast">To show this screen again, go to Settings -> Library.</string>
     <string name="use_intelligent_search">Search title + keywords of title</string>
     <string name="data_to_include_in_migration">Data to include in migration</string>
     <string name="include_extra_search_parameter">Include extra search parameter when searching</string>
@@ -471,9 +451,6 @@
     <string name="search_parameter">Search parameter (e.g. language:english)</string>
     <string name="latest_">Latest: %1$s</string>
     <string name="migrating_to">migrating to</string>
-    <string name="match_pinned_sources">Match pinned sources</string>
-    <string name="match_enabled_sources">Match enabled sources</string>
-    <string name="no_chapters_found_for_migration">No chapters found, this entry cannot be used for migration</string>
     <string name="no_alternatives_found">No Alternatives Found</string>
     <string name="stop_migrating">Stop migrating?</string>
     <string name="action_stop">Stop</string>
@@ -538,7 +515,6 @@
     <string name="favorites_sync_failed_to_add_to_local">Failed to add gallery to local database: </string>
     <string name="favorites_sync_failed_to_add_to_local_error">\'%1$s\' %2$s</string>
     <string name="favorites_sync_failed_to_add_to_local_unknown_type">\'%1$s\' (%2$s) is not a valid gallery!</string>
-    <string name="favorites_sync_waiting_for_start">Waiting for sync to start</string>
     <string name="favorites_sync_gallery_in_multiple_categories">The gallery: %1$s is in more than one category (%2$s)!</string>
     <string name="favorites_sync_initializing">Initializing sync</string>
     <string name="favorites_sync_processing_throttle">%1$s\n\nSync is currently throttling (to avoid being banned from ExHentai) and may take a long time to complete.</string>
@@ -573,7 +549,6 @@
     <string name="gallery_adder_uri_map_to_gallery_error">Source URI map-to-gallery error!</string>
     <string name="gallery_adder_uri_map_to_chapter_error">Source URI map-to-chapter error!</string>
     <string name="gallery_adder_uri_clean_error">Source URI clean error!</string>
-    <string name="gallery_adder_chapter_fetch_error">Failed to update chapters for gallery: %1$s!</string>
     <string name="gallery_adder_could_not_add_gallery">Could not add gallery (url: %1$s)!</string>
     <string name="gallery_adder_could_not_identify_chapter">Could not identify chapter (url: %1$s)!</string>
 
@@ -643,8 +618,6 @@
     <string name="japanese_title">Japanese Title</string>
     <string name="english_title">English Title</string>
     <string name="short_title">Short Title</string>
-    <string name="cover_image_file_type">Cover image file type</string>
-    <string name="thumbnail_image_file_type">Thumbnail image file type</string>
     <string name="url">Url</string>
     <string name="uploader_capital">Uploader Capitalized</string>
     <string name="uploader">Uploader</string>
@@ -665,7 +638,6 @@
     <string name="base_url">Base url</string>
 
     <!-- Extra gallery info -->
-    <string name="is_visible">Visible: %1$s</string>
     <string name="language_translated">%1$s TR</string>
     <string name="disowned">Disowned</string>
 
@@ -679,8 +651,6 @@
     <string name="download_merged_entry">Toggle new chapter downloads</string>
     <string name="download_merged_entry_desc">Toggling this will disable or enable chapter downloads for this merged entry</string>
     <string name="merged_references_invalid">Merged references invalid</string>
-    <string name="merged_chapter_updates_error">Toggle chapter updates error</string>
-    <string name="merged_toggle_download_chapters_error">Toggle download chapters error</string>
     <string name="merge_duplicate_chapters">Duplicate chapters</string>
     <string name="merge_dedupe_keep_all">Keep all</string>
     <string name="merge_dedupe_priority">Priority</string>
@@ -710,7 +680,6 @@
     <string name="final_chapter">Final chapter</string>
 
     <!-- Scanlator filters -->
-    <string name="select_scanlators">Scanlator groups to show</string>
 
     <!-- Similar -->
     <string name="similar">Similar to %1$s</string>
