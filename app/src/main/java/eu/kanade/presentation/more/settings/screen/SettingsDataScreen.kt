@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -44,6 +45,7 @@ import com.google.zxing.client.android.Intents
 import com.hippo.unifile.UniFile
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.data.CreateBackupScreen
@@ -63,8 +65,13 @@ import eu.kanade.tachiyomi.data.export.LibraryExporter
 import eu.kanade.tachiyomi.data.export.LibraryExporter.ExportOptions
 import eu.kanade.tachiyomi.data.sync.SyncDataJob
 import eu.kanade.tachiyomi.data.sync.SyncManager
+import eu.kanade.tachiyomi.data.sync.SyncNotifier
 import eu.kanade.tachiyomi.data.sync.service.GoogleDriveService
 import eu.kanade.tachiyomi.data.sync.service.GoogleDriveSyncService
+import eu.kanade.tachiyomi.data.sync.service.SyncAccessInterceptor
+import eu.kanade.tachiyomi.data.sync.service.SyncAccessMode
+import eu.kanade.tachiyomi.data.sync.service.SyncYomiSyncService
+import eu.kanade.tachiyomi.ui.setting.SyncAccessLoginActivity
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.workManager
@@ -79,6 +86,7 @@ import mihon.icons.sy.materialsymbols.SYMaterialSymbols
 import mihon.icons.sy.materialsymbols.rounded.QrCodeScanner
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.displayablePath
+import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
@@ -712,7 +720,141 @@ object SettingsDataScreen : SearchableSettings {
                     },
                 )
             },
+            getSyncAccessGroup(syncPreferences),
         )
+    }
+
+    @Composable
+    private fun getSyncAccessGroup(syncPreferences: SyncPreferences): Preference.PreferenceGroup {
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        val accessMode by syncPreferences.accessMode.collectAsState()
+        val accessCookie by syncPreferences.accessCookie.collectAsState()
+
+        val modeItems: List<Preference.PreferenceItem<out Any, out Any>> = when (SyncAccessMode.fromInt(accessMode)) {
+            SyncAccessMode.NONE -> emptyList()
+            SyncAccessMode.CF_SERVICE_TOKEN -> listOf(
+                getSecretPreference(syncPreferences.cfAccessClientId, SYMR.strings.pref_sync_access_client_id),
+                getSecretPreference(syncPreferences.cfAccessClientSecret, SYMR.strings.pref_sync_access_client_secret),
+            )
+            SyncAccessMode.CUSTOM_HEADERS -> listOf(
+                Preference.PreferenceItem.CustomPreference(
+                    title = stringResource(SYMR.strings.pref_sync_access_headers),
+                ) {
+                    val values by syncPreferences.accessCustomHeaders.collectAsState()
+                    EditTextPreferenceWidget(
+                        title = stringResource(SYMR.strings.pref_sync_access_headers),
+                        subtitle = stringResource(SYMR.strings.pref_sync_access_headers_summ),
+                        icon = null,
+                        value = values,
+                        singleLine = false,
+                        onConfirm = {
+                            try {
+                                SyncAccessInterceptor.parseCustomHeaders(it)
+                                syncPreferences.accessCustomHeaders.set(it)
+                                true
+                            } catch (e: IllegalArgumentException) {
+                                context.toast(e.message)
+                                false
+                            }
+                        },
+                    )
+                },
+            )
+            SyncAccessMode.BASIC_AUTH -> listOf(
+                Preference.PreferenceItem.EditTextPreference(
+                    preference = syncPreferences.accessBasicUser,
+                    title = stringResource(SYMR.strings.pref_sync_access_username),
+                ),
+                getSecretPreference(syncPreferences.accessBasicPassword, SYMR.strings.pref_sync_access_password),
+            )
+            SyncAccessMode.BROWSER_COOKIE -> listOf(
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(SYMR.strings.pref_sync_access_login),
+                    subtitle = stringResource(
+                        if (accessCookie.isBlank()) {
+                            SYMR.strings.sync_access_not_logged_in
+                        } else {
+                            SYMR.strings.sync_access_logged_in
+                        },
+                    ),
+                    onClick = { context.startActivity(SyncAccessLoginActivity.newIntent(context)) },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(SYMR.strings.pref_sync_access_clear_session),
+                    enabled = accessCookie.isNotBlank(),
+                    onClick = {
+                        syncPreferences.accessCookie.set("")
+                        syncPreferences.accessCookieHost.set("")
+                    },
+                ),
+            )
+        }
+
+        return Preference.PreferenceGroup(
+            title = stringResource(SYMR.strings.pref_sync_access_category),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.ListPreference(
+                    preference = syncPreferences.accessMode,
+                    title = stringResource(SYMR.strings.pref_sync_access_mode),
+                    entries = mapOf(
+                        SyncAccessMode.NONE.value to stringResource(SYMR.strings.sync_access_none),
+                        SyncAccessMode.CF_SERVICE_TOKEN.value to
+                            stringResource(SYMR.strings.sync_access_cf_service_token),
+                        SyncAccessMode.CUSTOM_HEADERS.value to stringResource(SYMR.strings.sync_access_custom_headers),
+                        SyncAccessMode.BASIC_AUTH.value to stringResource(SYMR.strings.sync_access_basic_auth),
+                        SyncAccessMode.BROWSER_COOKIE.value to stringResource(SYMR.strings.sync_access_browser_login),
+                    ),
+                    onValueChanged = {
+                        syncPreferences.v2ProbedHost.set("")
+                        true
+                    },
+                ),
+            ) + modeItems + Preference.PreferenceItem.TextPreference(
+                title = stringResource(SYMR.strings.pref_sync_test_connection),
+                onClick = {
+                    scope.launchIO {
+                        syncPreferences.v2ProbedHost.set("")
+                        val service = SyncYomiSyncService(
+                            context,
+                            context.appGraph.json,
+                            syncPreferences,
+                            SyncNotifier(context, context.appGraph.securityPreferences),
+                            ProtoBuf,
+                        )
+                        val message = try {
+                            service.supportsV2()
+                            context.stringResource(SYMR.strings.sync_test_connection_success)
+                        } catch (e: Exception) {
+                            e.message
+                        }
+                        withUIContext { context.toast(message, Toast.LENGTH_LONG) }
+                    }
+                },
+            ),
+        )
+    }
+
+    @Composable
+    private fun getSecretPreference(
+        preference: tachiyomi.core.common.preference.Preference<String>,
+        title: StringResource,
+    ): Preference.PreferenceItem.CustomPreference {
+        return Preference.PreferenceItem.CustomPreference(title = stringResource(title)) {
+            val value by preference.collectAsState()
+            EditTextPreferenceWidget(
+                title = stringResource(title),
+                subtitle = stringResource(
+                    if (value.isBlank()) SYMR.strings.sync_access_value_not_set else SYMR.strings.sync_access_value_set,
+                ),
+                icon = null,
+                value = value,
+                onConfirm = {
+                    preference.set(it.trim())
+                    true
+                },
+            )
+        }
     }
 
     @Composable
