@@ -33,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -243,24 +244,35 @@ fun EditMangaDialog(
                 )
             }
             HorizontalDivider()
-            Button(
-                onClick = {
-                    onPositiveClick(
-                        title.text.toString(),
-                        author.text.toString(),
-                        artist.text.toString(),
-                        thumbnailUrl.text.toString(),
-                        description.text.toString(),
-                        tags.toList(),
-                        statusIndex.toStatus()?.toLong(),
-                    )
-                    onDismissRequest()
-                },
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(stringResource(MR.strings.action_save))
+                OutlinedButton(
+                    onClick = onDismissRequest,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(MR.strings.action_cancel))
+                }
+                Button(
+                    onClick = {
+                        onPositiveClick(
+                            title.text.toString(),
+                            author.text.toString(),
+                            artist.text.toString(),
+                            thumbnailUrl.text.toString(),
+                            description.text.toString(),
+                            tags.toList(),
+                            statusIndex.toStatus()?.toLong(),
+                        )
+                        onDismissRequest()
+                    },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(MR.strings.action_save))
+                }
             }
         }
     }
