@@ -1,5 +1,3 @@
-import mihon.gradle.tasks.GenerateVectorDrawablesTask
-
 plugins {
     alias(mihonx.plugins.android.library)
     alias(mihonx.plugins.compose)
@@ -57,33 +55,6 @@ valkyrie {
             sourceFolder = "autoMirroredRoundedFilled"
             autoMirror = true
         }
-    }
-}
-
-androidComponents {
-    onVariants { variant ->
-        val resSource = variant.sources.res ?: return@onVariants
-
-        val variantName = variant.name.replaceFirstChar { it.uppercase() }
-        val task = tasks.register<GenerateVectorDrawablesTask>("generate${variantName}VectorDrawables") {
-            svgFiles.from(
-                listOf(
-                    "roundedFilled/menu_book",
-                    "rounded/sd_card",
-                ).map { layout.projectDirectory.file("src/main/valkyrieResources/$it.svg") },
-            )
-            // Symbols already in :icons:material-symbols that SY views need as drawables
-            svgFiles.from(
-                listOf(
-                    "rounded/add",
-                    "rounded/delete",
-                    "rounded/download",
-                    "rounded/info",
-                    "rounded/sync",
-                ).map { rootProject.layout.projectDirectory.file("icons/material-symbols/src/main/valkyrieResources/$it.svg") },
-            )
-        }
-        resSource.addGeneratedSourceDirectory(task) { it.outputDir }
     }
 }
 
