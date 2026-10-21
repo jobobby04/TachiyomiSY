@@ -83,6 +83,10 @@ class SyncYomiSyncService(
             } else {
                 doSyncV1(syncData)
             }
+        } catch (e: SyncAccessDeniedException) {
+            logcat(LogPriority.ERROR) { "Sync blocked by access proxy: ${e.message}" }
+            notifier.showSyncError(e.message)
+            return SyncResult(null, changed = false, protocolV2 = v2)
         } catch (e: Exception) {
             if (e is CancellationException) {
                 reportSyncEvent(SyncEventStatus.SYNC_CANCELLED, e.message)
@@ -230,6 +234,7 @@ class SyncYomiSyncService(
         .add("X-Device-Name", Build.MODEL)
 
     private fun syncClient(): OkHttpClient = OkHttpClient.Builder()
+        .addNetworkInterceptor(SyncAccessInterceptor(syncPreferences))
         .connectTimeout(TIMEOUT)
         .readTimeout(TIMEOUT)
         .writeTimeout(TIMEOUT)
@@ -252,8 +257,7 @@ class SyncYomiSyncService(
             headers = headers,
         )
 
-        val client = OkHttpClient()
-        val response = client.newCall(downloadRequest).await()
+        val response = syncClient().newCall(downloadRequest).await()
 
         if (response.code == HttpStatus.SC_NOT_MODIFIED) {
             // not modified
@@ -366,8 +370,7 @@ class SyncYomiSyncService(
                     body = requestBody,
                 )
 
-                val client = OkHttpClient()
-                client.newCall(request).await().close()
+                syncClient().newCall(request).await().close()
             } catch (e: Exception) {
                 logcat(LogPriority.ERROR) { "Failed to report sync event: ${e.message}" }
             }
