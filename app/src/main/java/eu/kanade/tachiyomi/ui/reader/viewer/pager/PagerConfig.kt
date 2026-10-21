@@ -112,9 +112,21 @@ class PagerConfig(
 
         readerPreferences.dualPageSplitPaged
             .register(
-                { dualPageSplit = it },
+                {
+                    dualPageSplit = it
+                    if (!autoDoublePages) {
+                        doublePages = readerPreferences.pageLayout.get() == PageLayout.DOUBLE_PAGES && !it
+                    }
+                },
                 {
                     imagePropertyChangedListener?.invoke()
+                    if (!autoDoublePages) {
+                        doublePages = readerPreferences.pageLayout.get() == PageLayout.DOUBLE_PAGES && !it
+                    }
+                    // doublePages was already recomputed in the assignment pass, so the
+                    // previous value cannot be compared here - rejoin items unconditionally
+                    // like a layout change does.
+                    reloadChapterListener?.invoke(doublePages)
                     dualPageSplitChangedListener?.invoke(it)
                 },
             )
