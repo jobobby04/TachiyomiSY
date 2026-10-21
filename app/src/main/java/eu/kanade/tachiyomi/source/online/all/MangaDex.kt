@@ -200,6 +200,9 @@ class MangaDex(delegate: HttpSource, val context: Context) :
         return delegate.latestUpdatesParse(response)
     }
 
+    override val overridesMangaDetails = true
+    override val overridesChapterList = true
+
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
         return mangaHandler.fetchMangaDetailsObservable(

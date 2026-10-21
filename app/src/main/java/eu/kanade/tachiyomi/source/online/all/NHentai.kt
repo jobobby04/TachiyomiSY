@@ -67,6 +67,8 @@ class NHentai(delegate: HttpSource, val context: Context) :
         }
     }
 
+    override val overridesMangaDetails = true
+
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
         return runAsObservable {

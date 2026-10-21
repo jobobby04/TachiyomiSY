@@ -6,9 +6,7 @@ import androidx.core.net.toUri
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
-import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.NamespaceSource
@@ -47,14 +45,7 @@ class EightMuses(delegate: HttpSource, val context: Context) :
         }
     }
 
-    override suspend fun getMangaUpdate(
-        manga: SManga,
-        chapters: List<SChapter>,
-        fetchDetails: Boolean,
-        fetchChapters: Boolean,
-    ): SMangaUpdate {
-        return super<DelegatedHttpSource>.getMangaUpdate(manga, chapters, fetchDetails, fetchChapters)
-    }
+    override val overridesMangaDetails = true
 
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {

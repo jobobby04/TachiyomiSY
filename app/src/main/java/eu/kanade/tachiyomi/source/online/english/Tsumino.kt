@@ -57,6 +57,8 @@ class Tsumino(delegate: HttpSource, val context: Context) :
         return "https://tsumino.com/Book/Info/${uri.lastPathSegment}"
     }
 
+    override val overridesMangaDetails = true
+
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
         return runAsObservable {

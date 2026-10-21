@@ -7,10 +7,13 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.source.online.HttpSource
+import kotlinx.coroutines.async
+import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import rx.Observable
+import tachiyomi.core.common.util.lang.awaitSingle
 
 @Suppress("OverridingDeprecatedMember", "DEPRECATION")
 abstract class DelegatedHttpSource(val delegate: HttpSource) : HttpSource() {
@@ -231,6 +234,16 @@ abstract class DelegatedHttpSource(val delegate: HttpSource) : HttpSource() {
     }
 
     /**
+     * Set when [fetchMangaDetails] is overridden, so [getMangaUpdate] uses it instead of the delegate.
+     */
+    protected open val overridesMangaDetails = false
+
+    /**
+     * Set when [fetchChapterList] is overridden, so [getMangaUpdate] uses it instead of the delegate.
+     */
+    protected open val overridesChapterList = false
+
+    /**
      * Fetches updated information for a manga.
      *
      * Depending on the provided flags or source availability, this may include
@@ -251,9 +264,24 @@ abstract class DelegatedHttpSource(val delegate: HttpSource) : HttpSource() {
         chapters: List<SChapter>,
         fetchDetails: Boolean,
         fetchChapters: Boolean,
-    ): SMangaUpdate {
+    ): SMangaUpdate = supervisorScope {
         ensureDelegateCompatible()
-        return delegate.getMangaUpdate(manga, chapters, fetchDetails, fetchChapters)
+        val ownDetails = fetchDetails && overridesMangaDetails
+        val ownChapters = fetchChapters && overridesChapterList
+        val delegateDetails = fetchDetails && !ownDetails
+        val delegateChapters = fetchChapters && !ownChapters
+
+        val asyncManga = if (ownDetails) async { fetchMangaDetails(manga).awaitSingle() } else null
+        val asyncChapters = if (ownChapters) async { fetchChapterList(manga).awaitSingle() } else null
+        val update = if (delegateDetails || delegateChapters) {
+            delegate.getMangaUpdate(manga, chapters, delegateDetails, delegateChapters)
+        } else {
+            null
+        }
+        SMangaUpdate(
+            asyncManga?.await() ?: update?.manga ?: manga,
+            asyncChapters?.await() ?: update?.chapters ?: chapters,
+        )
     }
 
     /**

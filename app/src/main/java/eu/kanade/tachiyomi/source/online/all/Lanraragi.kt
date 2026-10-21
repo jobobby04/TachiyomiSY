@@ -76,6 +76,8 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
         return GET(uri.toString(), headers)
     }
 
+    override val overridesMangaDetails = true
+
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
         return runAsObservable {
