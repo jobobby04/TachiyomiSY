@@ -38,6 +38,7 @@ import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.presentation.util.isTabletUi
 import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.source.getNameForMangaInfo
 import eu.kanade.tachiyomi.source.isLocalOrStub
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
@@ -351,6 +352,7 @@ class MangaScreen(
             is MangaViewModel.Dialog.EditMangaInfo -> {
                 EditMangaDialog(
                     manga = dialog.manga,
+                    sourceName = successState.source.getNameForMangaInfo(),
                     onDismissRequest = viewModel::dismissDialog,
                     onPositiveClick = viewModel::updateMangaInfo,
                 )

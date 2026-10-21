@@ -1,69 +1,87 @@
 package eu.kanade.tachiyomi.ui.manga
 
-import android.content.Context
-import android.view.LayoutInflater
-import android.widget.ArrayAdapter
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
-import androidx.core.view.children
-import coil3.load
-import coil3.request.transformations
-import coil3.transform.RoundedCornersTransformation
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import eu.kanade.presentation.components.AdaptiveSheet
+import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.track.components.TrackLogoIcon
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.Tracker
-import eu.kanade.tachiyomi.data.track.TrackerManager
-import eu.kanade.tachiyomi.databinding.EditMangaDialogBinding
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.util.lang.chop
-import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.toast
-import eu.kanade.tachiyomi.widget.materialdialogs.setTextInput
-import exh.ui.metadata.adapters.MetadataUIUtil.getResourceColor
 import exh.util.dropBlank
 import exh.util.trimOrNull
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import logcat.LogPriority
 import mihon.app.di.appGraph
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Add
+import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.MoreVert
+import mihon.icons.materialsymbols.rounded.Sync
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.rounded.History
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.model.Track
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.source.local.isLocal
-import mihon.icons.sy.materialsymbols.R as SYMaterialSymbolsR
 
 @Composable
 fun EditMangaDialog(
     manga: Manga,
+    sourceName: String,
     onDismissRequest: () -> Unit,
     onPositiveClick: (
         title: String?,
@@ -75,45 +93,408 @@ fun EditMangaDialog(
         status: Long?,
     ) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    var binding by remember {
-        mutableStateOf<EditMangaDialogBinding?>(null)
-    }
-    val showTrackerSelectionDialogue = remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val getTracks = remember { context.appGraph.getTracks }
-    val trackerManager = remember { context.appGraph.trackerManager }
-    val tracks = remember { mutableStateOf(emptyList<Pair<Track, Tracker>>()) }
+    val scope = rememberCoroutineScope()
+    val isLocal = remember(manga) { manga.isLocal() }
+
+    val title = rememberTextFieldState(
+        if (isLocal) {
+            manga.title.takeIf { it != manga.url }
+        } else {
+            manga.title.takeIf { it != manga.ogTitle }
+        }.orEmpty(),
+    )
+    val author = rememberTextFieldState(manga.author.takeIf { isLocal || it != manga.ogAuthor }.orEmpty())
+    val artist = rememberTextFieldState(manga.artist.takeIf { isLocal || it != manga.ogArtist }.orEmpty())
+    val thumbnailUrl = rememberTextFieldState(
+        manga.thumbnailUrl.takeIf { isLocal || it != manga.ogThumbnailUrl }.orEmpty(),
+    )
+    val description = rememberTextFieldState(
+        manga.description.takeIf { isLocal || it != manga.ogDescription }.orEmpty(),
+    )
+    val tags = remember { manga.genre.orEmpty().dropBlank().toMutableStateList() }
+    var statusIndex by remember {
+        mutableStateOf(if (manga.status != manga.ogStatus) manga.status.toStatusIndex() else 0)
+    }
+
+    var showAddTagsDialog by remember { mutableStateOf(false) }
+    var trackerChoices by remember { mutableStateOf<List<Pair<Track, Tracker>>?>(null) }
+
+    val ogTitle = if (isLocal) manga.url else manga.ogTitle
+
+    fun resetTags() {
+        tags.clear()
+        if (!manga.genre.isNullOrEmpty() && !isLocal) {
+            tags.addAll(manga.ogGenre.orEmpty())
+        }
+    }
+
+    suspend fun autofillFromTracker(track: Track, tracker: Tracker) {
+        try {
+            val metadata = tracker.getMangaMetadata(track)
+            metadata?.title?.takeIf { it.isNotBlank() }?.let { title.setTextAndPlaceCursorAtEnd(it) }
+            metadata?.authors?.takeIf { it.isNotBlank() }?.let { author.setTextAndPlaceCursorAtEnd(it) }
+            metadata?.artists?.takeIf { it.isNotBlank() }?.let { artist.setTextAndPlaceCursorAtEnd(it) }
+            metadata?.thumbnailUrl?.takeIf { it.isNotBlank() }?.let { thumbnailUrl.setTextAndPlaceCursorAtEnd(it) }
+            metadata?.description?.takeIf { it.isNotBlank() }?.let { description.setTextAndPlaceCursorAtEnd(it) }
+        } catch (e: Throwable) {
+            tracker.logcat(LogPriority.ERROR, e)
+            context.toast(context.stringResource(MR.strings.track_error, tracker.name, e.message ?: ""))
+        }
+    }
+
+    AdaptiveSheet(onDismissRequest = onDismissRequest) {
+        Column {
+            EditMangaHeader(
+                onFillFromTrackerClick = {
+                    scope.launch {
+                        val tracks = context.appGraph.getTracks.await(manga.id)
+                            .mapNotNull { track ->
+                                track to (context.appGraph.trackerManager.get(track.trackerId) ?: return@mapNotNull null)
+                            }
+                            .filterNot { (_, tracker) -> tracker is EnhancedTracker }
+                        when {
+                            tracks.isEmpty() -> context.toast(context.stringResource(SYMR.strings.entry_not_tracked))
+                            tracks.size > 1 -> trackerChoices = tracks
+                            else -> autofillFromTracker(tracks.first().first, tracks.first().second)
+                        }
+                    }
+                },
+                onResetInfoClick = {
+                    title.clearText()
+                    author.clearText()
+                    artist.clearText()
+                    thumbnailUrl.clearText()
+                    description.clearText()
+                    resetTags()
+                },
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    MangaCover.Book(
+                        data = manga,
+                        modifier = Modifier.width(76.dp),
+                        shape = RoundedCornerShape(6.dp),
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = listOfNotNull(sourceName, ogTitle.takeIf { it.isNotBlank() }).joinToString(" · "),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        StatusField(
+                            selectedIndex = statusIndex,
+                            onSelect = { statusIndex = it },
+                        )
+                    }
+                }
+
+                EditMangaTextField(
+                    state = title,
+                    label = stringResource(MR.strings.title),
+                    original = ogTitle,
+                    singleLine = true,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    EditMangaTextField(
+                        state = author,
+                        label = stringResource(MR.strings.author),
+                        original = manga.ogAuthor.takeUnless { isLocal },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                    EditMangaTextField(
+                        state = artist,
+                        label = stringResource(MR.strings.artist),
+                        original = manga.ogArtist.takeUnless { isLocal },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                EditMangaTextField(
+                    state = thumbnailUrl,
+                    label = stringResource(SYMR.strings.thumbnail_url),
+                    original = manga.ogThumbnailUrl.takeUnless { isLocal },
+                )
+                EditMangaTextField(
+                    state = description,
+                    label = stringResource(SYMR.strings.entry_description),
+                    original = manga.ogDescription.takeUnless { isLocal },
+                    minLines = 3,
+                )
+
+                TagsSection(
+                    tags = tags,
+                    onAddTagsClick = { showAddTagsDialog = true },
+                    onResetTagsClick = ::resetTags,
+                )
+            }
+            HorizontalDivider()
+            Button(
+                onClick = {
+                    onPositiveClick(
+                        title.text.toString(),
+                        author.text.toString(),
+                        artist.text.toString(),
+                        thumbnailUrl.text.toString(),
+                        description.text.toString(),
+                        tags.toList(),
+                        statusIndex.toStatus()?.toLong(),
+                    )
+                    onDismissRequest()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp),
+            ) {
+                Text(stringResource(MR.strings.action_save))
+            }
+        }
+    }
+
+    if (showAddTagsDialog) {
+        AddTagsDialog(
+            onDismissRequest = { showAddTagsDialog = false },
+            onConfirm = { newTags -> tags.addAll(newTags) },
+        )
+    }
+
+    trackerChoices?.let { choices ->
+        TrackerSelectDialog(
+            tracks = choices,
+            onDismissRequest = { trackerChoices = null },
+            onTrackerSelect = { tracker, track ->
+                scope.launch { autofillFromTracker(track, tracker) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun EditMangaHeader(
+    onFillFromTrackerClick: () -> Unit,
+    onResetInfoClick: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, top = 12.dp, end = 8.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(SYMR.strings.action_edit_info),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.weight(1f),
+        )
+        Box {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    imageVector = MaterialSymbols.Rounded.MoreVert,
+                    contentDescription = stringResource(MR.strings.action_menu_overflow_description),
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(SYMR.strings.fill_from_tracker)) },
+                    onClick = {
+                        expanded = false
+                        onFillFromTrackerClick()
+                    },
+                    leadingIcon = { Icon(MaterialSymbols.Rounded.Sync, contentDescription = null) },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(SYMR.strings.reset_info)) },
+                    onClick = {
+                        expanded = false
+                        onResetInfoClick()
+                    },
+                    leadingIcon = { Icon(SYMaterialSymbols.Rounded.History, contentDescription = null) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusField(
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+    ) {
+        OutlinedTextField(
+            value = stringResource(StatusLabels[selectedIndex]),
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(stringResource(MR.strings.status)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            StatusLabels.forEachIndexed { index, label ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(label)) },
+                    onClick = {
+                        expanded = false
+                        onSelect(index)
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditMangaTextField(
+    state: TextFieldState,
+    label: String,
+    original: String?,
+    modifier: Modifier = Modifier,
+    singleLine: Boolean = false,
+    minLines: Int = 1,
+) {
+    val originalValue = original?.takeIf { it.isNotBlank() }
+    OutlinedTextField(
+        state = state,
+        label = { Text(label) },
+        // Keep the label up so the source value shows as the placeholder
+        labelPosition = TextFieldLabelPosition.Cutout(isAlwaysMinimized = originalValue != null),
+        placeholder = originalValue?.let {
+            {
+                Text(
+                    text = it,
+                    maxLines = minLines,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
+        trailingIcon = if (state.text.isNotEmpty()) {
+            {
+                IconButton(onClick = { state.clearText() }) {
+                    Icon(
+                        imageVector = MaterialSymbols.Rounded.Close,
+                        contentDescription = stringResource(MR.strings.action_reset),
+                    )
+                }
+            }
+        } else {
+            null
+        },
+        supportingText = originalValue?.takeIf { state.text.isNotEmpty() }?.let {
+            {
+                Text(
+                    text = stringResource(SYMR.strings.source_value_hint, it.replace("\n", " ")),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
+        lineLimits = if (singleLine) {
+            TextFieldLineLimits.SingleLine
+        } else {
+            TextFieldLineLimits.MultiLine(minHeightInLines = minLines)
+        },
+        modifier = modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun TagsSection(
+    tags: SnapshotStateList<String>,
+    onAddTagsClick: () -> Unit,
+    onResetTagsClick: () -> Unit,
+) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(SYMR.strings.entry_tags),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onResetTagsClick) {
+                Text(stringResource(SYMR.strings.reset_tags))
+            }
+        }
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            tags.forEachIndexed { index, tag ->
+                InputChip(
+                    selected = false,
+                    onClick = {},
+                    label = { Text(tag) },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = MaterialSymbols.Rounded.Close,
+                            contentDescription = stringResource(MR.strings.action_remove),
+                            modifier = Modifier
+                                .size(InputChipDefaults.IconSize)
+                                .clickable { tags.removeAt(index) },
+                        )
+                    },
+                )
+            }
+            AssistChip(
+                onClick = onAddTagsClick,
+                label = { Text(stringResource(SYMR.strings.add_tag)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = MaterialSymbols.Rounded.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(AssistChipDefaults.IconSize),
+                    )
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddTagsDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: (List<String>) -> Unit,
+) {
+    var input by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(
                 onClick = {
-                    @Suppress("NAME_SHADOWING")
-                    val binding = binding ?: return@TextButton
-                    onPositiveClick(
-                        binding.title.text.toString(),
-                        binding.mangaAuthor.text.toString(),
-                        binding.mangaArtist.text.toString(),
-                        binding.thumbnailUrl.text.toString(),
-                        binding.mangaDescription.text.toString(),
-                        binding.mangaGenresTags.getTextStrings(),
-                        binding.status.selectedItemPosition.let {
-                            when (it) {
-                                1 -> SManga.ONGOING
-                                2 -> SManga.COMPLETED
-                                3 -> SManga.LICENSED
-                                4 -> SManga.PUBLISHING_FINISHED
-                                5 -> SManga.CANCELLED
-                                6 -> SManga.ON_HIATUS
-                                else -> null
-                            }
-                        }?.toLong(),
-                    )
+                    onConfirm(input.split(",").mapNotNull { it.trimOrNull() })
                     onDismissRequest()
                 },
             ) {
-                Text(stringResource(MR.strings.action_save))
+                Text(stringResource(MR.strings.action_ok))
             }
         },
         dismissButton = {
@@ -121,38 +502,18 @@ fun EditMangaDialog(
                 Text(stringResource(MR.strings.action_cancel))
             }
         },
+        title = { Text(stringResource(SYMR.strings.add_tags)) },
         text = {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                AndroidView(
-                    factory = { factoryContext ->
-                        EditMangaDialogBinding.inflate(LayoutInflater.from(factoryContext))
-                            .also { binding = it }
-                            .apply {
-                                onViewCreated(manga, factoryContext, this, scope, getTracks, trackerManager, tracks, showTrackerSelectionDialogue)
-                            }
-                            .root
-                    },
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(SYMR.strings.multi_tags_comma_separated))
+                OutlinedTextField(
+                    value = input,
+                    onValueChange = { input = it },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
     )
-
-    if (showTrackerSelectionDialogue.value) {
-        TrackerSelectDialog(
-            tracks = tracks.value,
-            onDismissRequest = { showTrackerSelectionDialogue.value = false },
-            onTrackerSelect = { tracker, track ->
-                scope.launch {
-                    autofillFromTracker(binding!!, track, tracker)
-                }
-            },
-        )
-    }
 }
 
 @Composable
@@ -195,210 +556,33 @@ private fun TrackerSelectDialog(
     )
 }
 
-private fun onViewCreated(manga: Manga, context: Context, binding: EditMangaDialogBinding, scope: CoroutineScope, getTracks: GetTracks, trackerManager: TrackerManager, tracks: MutableState<List<Pair<Track, Tracker>>>, showTrackerSelectionDialogue: MutableState<Boolean>) {
-    loadCover(manga, binding)
+private val StatusLabels = listOf(
+    MR.strings.label_default,
+    MR.strings.ongoing,
+    MR.strings.completed,
+    MR.strings.licensed,
+    MR.strings.publishing_finished,
+    MR.strings.cancelled,
+    MR.strings.on_hiatus,
+)
 
-    val statusAdapter: ArrayAdapter<String> = ArrayAdapter(
-        context,
-        android.R.layout.simple_spinner_dropdown_item,
-        listOf(
-            MR.strings.label_default,
-            MR.strings.ongoing,
-            MR.strings.completed,
-            MR.strings.licensed,
-            MR.strings.publishing_finished,
-            MR.strings.cancelled,
-            MR.strings.on_hiatus,
-        ).map { context.stringResource(it) },
-    )
-
-    binding.status.adapter = statusAdapter
-    if (manga.status != manga.ogStatus) {
-        binding.status.setSelection(
-            when (manga.status.toInt()) {
-                SManga.UNKNOWN -> 0
-                SManga.ONGOING -> 1
-                SManga.COMPLETED -> 2
-                SManga.LICENSED -> 3
-                SManga.PUBLISHING_FINISHED, 61 -> 4
-                SManga.CANCELLED, 62 -> 5
-                SManga.ON_HIATUS, 63 -> 6
-                else -> 0
-            },
-        )
-    }
-
-    if (manga.isLocal()) {
-        if (manga.title != manga.url) {
-            binding.title.setText(manga.title)
-        }
-
-        binding.title.hint = context.stringResource(SYMR.strings.title_hint, manga.url)
-        binding.mangaAuthor.setText(manga.author.orEmpty())
-        binding.mangaArtist.setText(manga.artist.orEmpty())
-        binding.thumbnailUrl.setText(manga.thumbnailUrl.orEmpty())
-        binding.mangaDescription.setText(manga.description.orEmpty())
-        binding.mangaGenresTags.setChips(manga.genre.orEmpty().dropBlank(), scope)
-    } else {
-        if (manga.title != manga.ogTitle) {
-            binding.title.append(manga.title)
-        }
-        if (manga.author != manga.ogAuthor) {
-            binding.mangaAuthor.append(manga.author.orEmpty())
-        }
-        if (manga.artist != manga.ogArtist) {
-            binding.mangaArtist.append(manga.artist.orEmpty())
-        }
-        if (manga.thumbnailUrl != manga.ogThumbnailUrl) {
-            binding.thumbnailUrl.append(manga.thumbnailUrl.orEmpty())
-        }
-        if (manga.description != manga.ogDescription) {
-            binding.mangaDescription.append(manga.description.orEmpty())
-        }
-        binding.mangaGenresTags.setChips(manga.genre.orEmpty().dropBlank(), scope)
-
-        binding.title.hint = context.stringResource(SYMR.strings.title_hint, manga.ogTitle)
-
-        binding.mangaAuthor.hint = context.stringResource(SYMR.strings.author_hint, manga.ogAuthor ?: "")
-        binding.mangaArtist.hint = context.stringResource(SYMR.strings.artist_hint, manga.ogArtist ?: "")
-        binding.mangaDescription.hint =
-            context.stringResource(
-                SYMR.strings.description_hint,
-                manga.ogDescription?.takeIf { it.isNotBlank() }?.replace("\n", " ")?.chop(20) ?: "",
-            )
-        binding.thumbnailUrl.hint =
-            context.stringResource(
-                SYMR.strings.thumbnail_url_hint,
-                manga.ogThumbnailUrl?.let {
-                    it.chop(40) + if (it.length > 46) "." + it.substringAfterLast(".").chop(6) else ""
-                } ?: "",
-            )
-    }
-    binding.mangaGenresTags.clearFocus()
-
-    binding.resetTags.setOnClickListener { resetTags(manga, binding, scope) }
-    binding.resetInfo.setOnClickListener { resetInfo(manga, binding, scope) }
-    binding.autofillFromTracker.setOnClickListener {
-        scope.launch {
-            getTrackers(manga, binding, context, getTracks, trackerManager, tracks, showTrackerSelectionDialogue)
-        }
-    }
+private fun Long.toStatusIndex(): Int = when (toInt()) {
+    SManga.UNKNOWN -> 0
+    SManga.ONGOING -> 1
+    SManga.COMPLETED -> 2
+    SManga.LICENSED -> 3
+    SManga.PUBLISHING_FINISHED, 61 -> 4
+    SManga.CANCELLED, 62 -> 5
+    SManga.ON_HIATUS, 63 -> 6
+    else -> 0
 }
 
-private suspend fun getTrackers(manga: Manga, binding: EditMangaDialogBinding, context: Context, getTracks: GetTracks, trackerManager: TrackerManager, tracks: MutableState<List<Pair<Track, Tracker>>>, showTrackerSelectionDialogue: MutableState<Boolean>) {
-    tracks.value = getTracks.await(manga.id).mapNotNull { track ->
-        track to (trackerManager.get(track.trackerId) ?: return@mapNotNull null)
-    }
-        .filterNot { (_, tracker) -> tracker is EnhancedTracker }
-
-    if (tracks.value.isEmpty()) {
-        context.toast(context.stringResource(SYMR.strings.entry_not_tracked))
-        return
-    }
-
-    if (tracks.value.size > 1) {
-        showTrackerSelectionDialogue.value = true
-        return
-    }
-
-    autofillFromTracker(binding, tracks.value.first().first, tracks.value.first().second)
+private fun Int.toStatus(): Int? = when (this) {
+    1 -> SManga.ONGOING
+    2 -> SManga.COMPLETED
+    3 -> SManga.LICENSED
+    4 -> SManga.PUBLISHING_FINISHED
+    5 -> SManga.CANCELLED
+    6 -> SManga.ON_HIATUS
+    else -> null
 }
-
-private fun setTextIfNotBlank(field: (String) -> Unit, value: String?) {
-    value?.takeIf { it.isNotBlank() }?.let { field(it) }
-}
-
-private suspend fun autofillFromTracker(binding: EditMangaDialogBinding, track: Track, tracker: Tracker) {
-    try {
-        val trackerMangaMetadata = tracker.getMangaMetadata(track)
-
-        setTextIfNotBlank(binding.title::setText, trackerMangaMetadata?.title)
-        setTextIfNotBlank(binding.mangaAuthor::setText, trackerMangaMetadata?.authors)
-        setTextIfNotBlank(binding.mangaArtist::setText, trackerMangaMetadata?.artists)
-        setTextIfNotBlank(binding.thumbnailUrl::setText, trackerMangaMetadata?.thumbnailUrl)
-        setTextIfNotBlank(binding.mangaDescription::setText, trackerMangaMetadata?.description)
-    } catch (e: Throwable) {
-        tracker.logcat(LogPriority.ERROR, e)
-        binding.root.context.toast(
-            binding.root.context.stringResource(
-                MR.strings.track_error,
-                tracker.name,
-                e.message ?: "",
-            ),
-        )
-    }
-}
-
-private fun resetTags(manga: Manga, binding: EditMangaDialogBinding, scope: CoroutineScope) {
-    if (manga.genre.isNullOrEmpty() || manga.isLocal()) {
-        binding.mangaGenresTags.setChips(emptyList(), scope)
-    } else {
-        binding.mangaGenresTags.setChips(manga.ogGenre.orEmpty(), scope)
-    }
-}
-
-private fun loadCover(manga: Manga, binding: EditMangaDialogBinding) {
-    binding.mangaCover.load(manga) {
-        transformations(RoundedCornersTransformation(4.dpToPx.toFloat()))
-    }
-}
-
-private fun resetInfo(manga: Manga, binding: EditMangaDialogBinding, scope: CoroutineScope) {
-    binding.title.setText("")
-    binding.mangaAuthor.setText("")
-    binding.mangaArtist.setText("")
-    binding.thumbnailUrl.setText("")
-    binding.mangaDescription.setText("")
-    resetTags(manga, binding, scope)
-}
-
-private fun ChipGroup.setChips(items: List<String>, scope: CoroutineScope) {
-    removeAllViews()
-
-    items.asSequence().map { item ->
-        Chip(context).apply {
-            text = item
-
-            isCloseIconVisible = true
-            closeIcon?.setTint(context.getResourceColor(R.attr.colorAccent))
-            setOnCloseIconClickListener {
-                removeView(this)
-            }
-        }
-    }.forEach {
-        addView(it)
-    }
-
-    val addTagChip = Chip(context).apply {
-        setText(SYMR.strings.add_tags.getString(context))
-
-        chipIcon = ContextCompat.getDrawable(context, SYMaterialSymbolsR.drawable.rounded_add)?.apply {
-            isChipIconVisible = true
-            setTint(context.getResourceColor(R.attr.colorAccent))
-        }
-
-        setOnClickListener {
-            var newTags: String? = null
-            MaterialAlertDialogBuilder(context)
-                .setTitle(SYMR.strings.add_tags.getString(context))
-                .setMessage(SYMR.strings.multi_tags_comma_separated.getString(context))
-                .setTextInput { newTags = it.trimOrNull() }
-                .setPositiveButton(MR.strings.action_ok.getString(context)) { _, _ ->
-                    newTags?.let {
-                        setChips(items + it.split(",").map { it.trimOrNull() }.filterNotNull(), scope)
-                    }
-                }
-                .setNegativeButton(MR.strings.action_cancel.getString(context), null)
-                .show()
-        }
-    }
-    addView(addTagChip)
-}
-
-private fun ChipGroup.getTextStrings(): List<String> = children.mapNotNull {
-    if (it is Chip && !it.text.toString().contains(context.stringResource(SYMR.strings.add_tags), ignoreCase = true)) {
-        it.text.toString()
-    } else {
-        null
-    }
-}.toList()

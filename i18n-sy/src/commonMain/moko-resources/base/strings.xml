@@ -395,18 +395,16 @@
     <string name="merge_duplicate">This merged entry is a duplicate!</string>
 
     <!-- Entry Info Edit -->
-    <string name="reset_tags">Reset Tags</string>
+    <string name="reset_tags">Reset tags</string>
     <string name="add_tags">Add Tags</string>
-    <string name="reset_info">Reset Info</string>
-    <string name="title_hint">Title: %1$s</string>
-    <string name="description_hint">Description: %1$s</string>
-    <string name="author_hint">Author: %1$s</string>
-    <string name="artist_hint">Artist: %1$s</string>
-    <string name="thumbnail_url_hint">Thumbnail Url: %1$s</string>
+    <string name="reset_info">Reset info</string>
     <string name="multi_tags_comma_separated">Enter tag(s), seperated by commas.</string>
     <string name="select_tracker">Select a tracker</string>
     <string name="entry_not_tracked">Entry is not tracked.</string>
     <string name="fill_from_tracker">Fill from tracker</string>
+    <string name="entry_description">Description</string>
+    <string name="entry_tags">Tags</string>
+    <string name="source_value_hint">Source: %1$s</string>
 
     <!-- Browse -->
     <!-- Sources Tab -->
@@ -442,7 +440,7 @@
     <string name="feed_add">Add %1$s to feed?</string>
 
     <!-- Sort by tags -->
-    <string name="add_tag">Add Tag</string>
+    <string name="add_tag">Add tag</string>
     <string name="pref_tag_sorting">Tag sorting tags</string>
     <string name="tag_sorting">Tag sorting</string>
     <string name="action_add_tags_message">Read this! Tags must be exact, there are no partial matches, you cannot do netorare to filter out female:netorare or similar!\nThe style for namespace tags is\n\"female: sole female\"\nwithout quotes!\nAdding multiple variants of the same tag is supported, so feel free to do \"tag: netorare\" for NHentai and \"female: netorare\" for E-Hentai!</string>
@@ -625,7 +623,7 @@
     <string name="id">Id</string>
     <string name="token">Token</string>
     <string name="is_exhentai_gallery">is Exhentai gallery</string>
-    <string name="thumbnail_url">Thumbnail url</string>
+    <string name="thumbnail_url">Thumbnail URL</string>
     <string name="genre">Genre</string>
     <string name="date_posted">Date posted</string>
     <string name="page_count">Page count</string>
