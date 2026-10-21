@@ -39,6 +39,36 @@ class SyncPreferences(
         emptySet(),
     )
 
+    // SyncYomi access protection, private so it never ends up in synced backups
+    val accessMode: Preference<Int> = preferenceStore.getInt(Preference.privateKey("sync_access_mode"), 0)
+    val cfAccessClientId: Preference<String> = preferenceStore.getString(
+        Preference.privateKey("sync_cf_access_client_id"),
+        "",
+    )
+    val cfAccessClientSecret: Preference<String> = preferenceStore.getString(
+        Preference.privateKey("sync_cf_access_client_secret"),
+        "",
+    )
+
+    val accessCustomHeaders: Preference<String> = preferenceStore.getString(
+        Preference.privateKey("sync_access_custom_headers"),
+        "",
+    )
+    val accessBasicUser: Preference<String> = preferenceStore.getString(
+        Preference.privateKey("sync_access_basic_user"),
+        "",
+    )
+    val accessBasicPassword: Preference<String> = preferenceStore.getString(
+        Preference.privateKey("sync_access_basic_password"),
+        "",
+    )
+
+    val accessCookie: Preference<String> = preferenceStore.getString(Preference.privateKey("sync_access_cookie"), "")
+    val accessCookieHost: Preference<String> = preferenceStore.getString(
+        Preference.privateKey("sync_access_cookie_host"),
+        "",
+    )
+
     val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
     val syncService: Preference<Int> = preferenceStore.getInt("sync_service", 0)
 
