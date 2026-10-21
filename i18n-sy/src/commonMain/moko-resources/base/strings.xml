@@ -2,10 +2,6 @@
 <resources>
 
     <!-- Actions -->
-    <string name="action_skip_entry">Don\'t migrate</string>
-    <string name="action_search_manually">Search manually</string>
-    <string name="action_migrate_now">Migrate now</string>
-    <string name="action_copy_now">Copy now</string>
     <string name="action_clean_titles">Clean titles</string>
     <string name="action_edit_info">Edit info</string>
 
@@ -440,21 +436,6 @@
 
     <!-- Migration -->
     <string name="migration">Migration</string>
-    <string name="use_intelligent_search">Search title + keywords of title</string>
-    <string name="data_to_include_in_migration">Data to include in migration</string>
-    <string name="include_extra_search_parameter">Include extra search parameter when searching</string>
-    <string name="use_most_chapters">Use source with the most chapters (slower)</string>
-    <string name="use_first_source">Use first source with alternative</string>
-    <string name="skip_this_step_next_time">Skip this step next time</string>
-    <string name="hide_not_found_entries">Hide not found entries</string>
-    <string name="only_show_updated_entries">Only show entries with new chapters</string>
-    <string name="search_parameter">Search parameter (e.g. language:english)</string>
-    <string name="latest_">Latest: %1$s</string>
-    <string name="migrating_to">migrating to</string>
-    <string name="no_alternatives_found">No Alternatives Found</string>
-    <string name="stop_migrating">Stop migrating?</string>
-    <string name="action_stop">Stop</string>
-    <string name="skipping_">(skipping %1$d)</string>
 
     <!-- Bulk recommendation search -->
     <string name="rec_hide_library_entries">Hide entries in library</string>
