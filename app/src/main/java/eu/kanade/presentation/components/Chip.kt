@@ -337,67 +337,6 @@ object SuggestionChipDefaults {
         disabledBorderColor = disabledBorderColor,
         borderWidth = borderWidth,
     )
-
-    /**
-     * Creates a [ChipColors] that represents the default container, label, and icon colors used in
-     * an elevated [SuggestionChip].
-     *
-     * @param containerColor the container color of this chip when enabled
-     * @param labelColor the label color of this chip when enabled
-     * @param iconContentColor the color of this chip's icon when enabled
-     * @param disabledContainerColor the container color of this chip when not enabled
-     * @param disabledLabelColor the label color of this chip when not enabled
-     * @param disabledIconContentColor the color of this chip's icon when not enabled
-     */
-    @Composable
-    fun elevatedSuggestionChipColors(
-        containerColor: Color = MaterialTheme.colorScheme.surface,
-        labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-        iconContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-        disabledContainerColor: Color = MaterialTheme.colorScheme.onSurface
-            .copy(alpha = 0.12f),
-        disabledLabelColor: Color = MaterialTheme.colorScheme.onSurface
-            .copy(alpha = 0.38f),
-        disabledIconContentColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-    ): ChipColors = ChipColors(
-        containerColor = containerColor,
-        labelColor = labelColor,
-        leadingIconContentColor = iconContentColor,
-        trailingIconContentColor = Color.Unspecified,
-        disabledContainerColor = disabledContainerColor,
-        disabledLabelColor = disabledLabelColor,
-        disabledLeadingIconContentColor = disabledIconContentColor,
-        disabledTrailingIconContentColor = Color.Unspecified,
-    )
-
-    /**
-     * Creates a [ChipElevation] that will animate between the provided values according to the
-     * Material specification for an elevated [SuggestionChip].
-     *
-     * @param defaultElevation the elevation used when the chip is has no other
-     * [Interaction]s
-     * @param pressedElevation the elevation used when the chip is pressed
-     * @param focusedElevation the elevation used when the chip is focused
-     * @param hoveredElevation the elevation used when the chip is hovered
-     * @param draggedElevation the elevation used when the chip is dragged
-     * @param disabledElevation the elevation used when the chip is not enabled
-     */
-    @Composable
-    fun elevatedSuggestionChipElevation(
-        defaultElevation: Dp = 1.0.dp,
-        pressedElevation: Dp = 1.0.dp,
-        focusedElevation: Dp = 1.0.dp,
-        hoveredElevation: Dp = 3.0.dp,
-        draggedElevation: Dp = 8.0.dp,
-        disabledElevation: Dp = 0.0.dp,
-    ): ChipElevation = ChipElevation(
-        defaultElevation = defaultElevation,
-        pressedElevation = pressedElevation,
-        focusedElevation = focusedElevation,
-        hoveredElevation = hoveredElevation,
-        draggedElevation = draggedElevation,
-        disabledElevation = disabledElevation,
-    )
 }
 
 /**

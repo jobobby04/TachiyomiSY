@@ -16,11 +16,6 @@ data class SyncTriggerOptions(
         syncOnAppResume,
     )
 
-    fun anyEnabled() = syncOnChapterRead ||
-        syncOnChapterOpen ||
-        syncOnAppStart ||
-        syncOnAppResume
-
     companion object {
         val mainOptions = listOf(
             Entry(

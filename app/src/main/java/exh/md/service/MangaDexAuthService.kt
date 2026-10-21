@@ -49,18 +49,6 @@ class MangaDexAuthService(
         }
     }
 
-    suspend fun readChaptersForManga(mangaId: String): ReadChapterDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                GET(
-                    "${MdApi.manga}/$mangaId/read",
-                    headers,
-                    CacheControl.FORCE_NETWORK,
-                ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
     suspend fun updateReadingStatusForManga(
         mangaId: String,
         readingStatusDto: ReadingStatusDto,
@@ -85,43 +73,6 @@ class MangaDexAuthService(
                     headers,
                     cache = CacheControl.FORCE_NETWORK,
                 ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
-    suspend fun readingStatusByType(status: String): ReadingStatusMapDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                GET(
-                    "${MdApi.readingStatusForAllManga}?status=$status",
-                    headers,
-                    cache = CacheControl.FORCE_NETWORK,
-                ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
-    suspend fun markChapterRead(chapterId: String): ResultDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                POST(
-                    "${MdApi.chapter}/$chapterId/read",
-                    headers,
-                    cache = CacheControl.FORCE_NETWORK,
-                ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
-    suspend fun markChapterUnRead(chapterId: String): ResultDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                Request.Builder()
-                    .url("${MdApi.chapter}/$chapterId/read")
-                    .delete()
-                    .headers(headers)
-                    .cacheControl(CacheControl.FORCE_NETWORK)
-                    .build(),
             ).awaitSuccess().parseAs()
         }
     }

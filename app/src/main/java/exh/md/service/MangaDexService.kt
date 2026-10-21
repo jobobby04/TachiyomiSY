@@ -178,19 +178,6 @@ class MangaDexService(
         }
     }
 
-    suspend fun atHomeImageReport(atHomeImageReportDto: AtHomeImageReportDto): ResultDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                POST(
-                    MdConstants.atHomeReportUrl,
-                    body = MdUtil.encodeToBody(atHomeImageReportDto),
-                    headers = headers,
-                    cache = CacheControl.FORCE_NETWORK,
-                ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
     suspend fun getAtHomeServer(
         atHomeRequestUrl: String,
     ): AtHomeDto {

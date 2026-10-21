@@ -108,10 +108,6 @@ class SyncSettingsSelectorModel(
         }
     }
 
-    fun syncNow(context: Context) {
-        SyncDataJob.startNow(context)
-    }
-
     @Immutable
     data class State(
         val options: BackupOptions = BackupOptions(),

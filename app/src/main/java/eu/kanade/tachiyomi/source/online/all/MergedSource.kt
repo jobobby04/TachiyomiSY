@@ -120,13 +120,6 @@ class MergedSource : HttpSource() {
         }
     }
 
-    suspend fun fetchChaptersForMergedManga(
-        manga: Manga,
-        downloadChapters: Boolean = true,
-    ) {
-        fetchChaptersAndSync(manga, downloadChapters)
-    }
-
     suspend fun fetchChaptersAndSync(manga: Manga, downloadChapters: Boolean = true): List<Chapter> {
         val mangaReferences = getMergedReferencesById.await(manga.id)
         require(mangaReferences.isNotEmpty()) {
