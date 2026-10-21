@@ -106,4 +106,4 @@ private fun hiddenReason(visible: String?): String? {
 }
 
 /** Uploader reported by E-Hentai when the uploader has disowned the gallery. */
-private const val DISOWNED_UPLOADER = "(Disowned)"
+internal const val DISOWNED_UPLOADER = "(Disowned)"

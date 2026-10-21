@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -179,13 +180,16 @@ fun MetadataText(
 }
 
 /**
- * Uploader shown as a link that runs [onClick], or as a muted label when the uploader is disowned.
+ * Uploader shown as a link that runs [onClick], or as a muted label when the uploader is disowned. [emphasized] shows
+ * it like a link without one.
  */
 @Composable
 fun MetadataUploader(
     uploader: String,
     disowned: Boolean = false,
     onClick: (() -> Unit)? = null,
+    emphasized: Boolean = onClick != null,
+    copyable: Boolean = true,
 ) {
     if (disowned) {
         MetadataText(
@@ -200,23 +204,24 @@ fun MetadataUploader(
         MetadataText(
             text = uploader,
             icon = MaterialSymbols.Rounded.Person,
-            style = if (onClick != null) {
+            style = if (emphasized) {
                 MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
             } else {
                 MaterialTheme.typography.bodyMedium
             },
-            color = if (onClick != null) {
+            color = if (emphasized) {
                 MaterialTheme.colorScheme.primary
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
+            copyable = copyable,
             onClick = onClick,
         )
     }
 }
 
 /**
- * Compact label, outlined unless [containerColor] is set, copied to the clipboard on long press.
+ * Compact label, outlined unless [containerColor] is set, copied to the clipboard on long press when [copyable].
  */
 @Composable
 fun MetadataChip(
@@ -226,6 +231,7 @@ fun MetadataChip(
     containerColor: Color? = null,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     small: Boolean = false,
+    copyable: Boolean = true,
 ) {
     val context = LocalContext.current
     val horizontalPadding = if (small) 8.dp else 10.dp
@@ -234,11 +240,18 @@ fun MetadataChip(
         shape = RoundedCornerShape(if (small) 6.dp else 8.dp),
         color = containerColor ?: Color.Transparent,
         contentColor = contentColor,
-        border = if (containerColor == null) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
+        border = if (containerColor == null) {
+            BorderStroke(
+                width = 1.dp,
+                color = if (small) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outline,
+            )
+        } else {
+            null
+        },
     ) {
         Row(
             modifier = Modifier
-                .metadataClickable(context, text, copyable = true, onClick = null)
+                .metadataClickable(context, text, copyable = copyable, onClick = null)
                 .height(if (small) 24.dp else 28.dp)
                 .padding(start = if (icon != null) 6.dp else horizontalPadding, end = horizontalPadding),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -263,20 +276,35 @@ fun MetadataChip(
 }
 
 /**
- * Genre chip on the source's genre color, or on the highest surface container when the genre is unknown.
+ * Genre chip on the source's genre color, or on the highest surface container when the genre is unknown. Text on a
+ * genre color is light on darker colors and dark on lighter ones.
  */
 @Composable
 fun MetadataGenre(
     text: String,
     @ColorInt color: Int?,
     modifier: Modifier = Modifier,
+    small: Boolean = false,
+    copyable: Boolean = true,
 ) {
     MetadataChip(
         text = text,
         modifier = modifier,
         containerColor = color?.let(::Color) ?: MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = color?.let(::genreContentColor) ?: MaterialTheme.colorScheme.onSurface,
+        small = small,
+        copyable = copyable,
     )
 }
+
+private fun genreContentColor(@ColorInt color: Int): Color {
+    return if (Color(color).luminance() < GENRE_LIGHT_CONTENT_MAX_LUMINANCE) GenreLightContent else GenreDarkContent
+}
+
+private const val GENRE_LIGHT_CONTENT_MAX_LUMINANCE = 0.32f
+
+private val GenreLightContent = Color.White
+private val GenreDarkContent = Color(0xFF1B1B21)
 
 /**
  * Five star [rating] in half star steps, followed by the [score] and its [label].
