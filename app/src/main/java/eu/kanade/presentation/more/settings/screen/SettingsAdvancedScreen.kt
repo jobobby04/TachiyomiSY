@@ -37,6 +37,7 @@ import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateWorker
+import eu.kanade.tachiyomi.data.library.MetadataUpdateWorker
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.network.PREF_DOH_360
 import eu.kanade.tachiyomi.network.PREF_DOH_ADGUARD
@@ -336,11 +337,7 @@ object SettingsAdvancedScreen : SearchableSettings {
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_refresh_library_covers),
-                    onClick = {
-                        scope.launch {
-                            LibraryUpdateWorker.startNow(context.workManager, target = LibraryUpdateWorker.Target.COVERS)
-                        }
-                    },
+                    onClick = { scope.launch { MetadataUpdateWorker.startNow(context.workManager) } },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_reset_viewer_flags),

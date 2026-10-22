@@ -194,7 +194,6 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             try {
                 when (target) {
                     Target.CHAPTERS -> updateChapterList()
-                    Target.COVERS -> updateCovers()
                     // SY -->
                     Target.SYNC_FOLLOWS -> syncFollows()
                     Target.PUSH_FAVORITES -> pushFavorites()
@@ -524,50 +523,6 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         return if (update.manga.favorite) update.newChapters else emptyList()
     }
 
-    private suspend fun updateCovers() {
-        val semaphore = Semaphore(5)
-        val progressCount = AtomicInt(0)
-        val currentlyUpdatingManga = CopyOnWriteArrayList<Manga>()
-
-        coroutineScope {
-            mangaToUpdate.groupBy { it.manga.source }
-                .values
-                .map { mangaInSource ->
-                    async {
-                        semaphore.withPermit {
-                            mangaInSource.forEach { libraryManga ->
-                                val manga = libraryManga.manga
-                                ensureActive()
-
-                                withUpdateNotification(
-                                    currentlyUpdatingManga,
-                                    progressCount,
-                                    manga,
-                                ) {
-                                    val source = sourceManager.get(manga.source) ?: return@withUpdateNotification
-                                    try {
-                                        updateMangaFromRemote(
-                                            source,
-                                            manga,
-                                            fetchDetails = true,
-                                            fetchChapters = false,
-                                            manualFetch = true,
-                                        ).getOrThrow()
-                                    } catch (e: Throwable) {
-                                        // Ignore errors and continue
-                                        logcat(LogPriority.ERROR, e)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                .awaitAll()
-        }
-
-        notifier.cancelProgressNotification()
-    }
-
     // SY -->
 
     /**
@@ -722,7 +677,6 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
      */
     enum class Target {
         CHAPTERS, // Manga chapters
-        COVERS, // Manga covers
 
         // SY -->
         SYNC_FOLLOWS, // MangaDex specific, pull mangadex manga in reading, rereading
