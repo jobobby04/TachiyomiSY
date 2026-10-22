@@ -8,8 +8,6 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.extension.model.Extension
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
+import mihon.core.metro.AppCoroutineScope
 import mihon.data.extension.service.ExtensionStoreService
 import mihon.domain.extension.model.ExtensionStore
 import mihon.domain.extension.repository.ExtensionStoreRepository
@@ -34,13 +33,10 @@ import kotlin.time.Duration.Companion.seconds
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class ExtensionStoreRepositoryImpl(
+    @AppCoroutineScope scope: CoroutineScope,
     private val service: ExtensionStoreService,
     private val database: Database,
 ) : ExtensionStoreRepository {
-
-    // SY -->
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    // SY <--
 
     private val stores = database.extension_storeQueries.getAll(::extensionStoreMapper)
         .subscribeToList()
