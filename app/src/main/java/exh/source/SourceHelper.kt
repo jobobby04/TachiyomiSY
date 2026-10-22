@@ -7,6 +7,7 @@ import eu.kanade.tachiyomi.source.online.all.NHentai
 import eu.kanade.tachiyomi.source.online.english.EightMuses
 import eu.kanade.tachiyomi.source.online.english.HBrowse
 import eu.kanade.tachiyomi.source.online.english.HentaiNexus
+import eu.kanade.tachiyomi.source.online.english.NineHentai
 import eu.kanade.tachiyomi.source.online.english.Pururin
 import eu.kanade.tachiyomi.source.online.english.Tsumino
 
@@ -23,6 +24,7 @@ private val DELEGATED_METADATA_SOURCES by lazy {
         NHentai::class,
         Lanraragi::class,
         HentaiNexus::class,
+        NineHentai::class,
     )
 }
 

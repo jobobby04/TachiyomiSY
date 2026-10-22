@@ -72,6 +72,7 @@ import eu.kanade.tachiyomi.source.online.all.NHentai
 import eu.kanade.tachiyomi.source.online.english.EightMuses
 import eu.kanade.tachiyomi.source.online.english.HBrowse
 import eu.kanade.tachiyomi.source.online.english.HentaiNexus
+import eu.kanade.tachiyomi.source.online.english.NineHentai
 import eu.kanade.tachiyomi.source.online.english.Pururin
 import eu.kanade.tachiyomi.source.online.english.Tsumino
 import eu.kanade.tachiyomi.ui.manga.ChapterList
@@ -90,6 +91,7 @@ import exh.ui.metadata.adapters.HentaiNexusDescription
 import exh.ui.metadata.adapters.LanraragiDescription
 import exh.ui.metadata.adapters.MangaDexDescription
 import exh.ui.metadata.adapters.NHentaiDescription
+import exh.ui.metadata.adapters.NineHentaiDescription
 import exh.ui.metadata.adapters.PururinDescription
 import exh.ui.metadata.adapters.TsuminoDescription
 import mihon.icons.materialsymbols.MaterialSymbols
@@ -1082,6 +1084,9 @@ fun metadataDescription(source: Source): MetadataDescriptionComposable? {
             }
             is HentaiNexus -> { state, openMetadataViewer, _ ->
                 HentaiNexusDescription(state, openMetadataViewer)
+            }
+            is NineHentai -> { state, openMetadataViewer, _ ->
+                NineHentaiDescription(state, openMetadataViewer)
             }
             else -> null
         }

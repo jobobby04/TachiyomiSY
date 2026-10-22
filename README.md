@@ -60,6 +60,7 @@ Additional features for some extensions, features include custom description, op
 * HentaiNexus
 * Mangadex
 * NHentai
+* NineHentai
 * Puruin
 * LANraragi
 

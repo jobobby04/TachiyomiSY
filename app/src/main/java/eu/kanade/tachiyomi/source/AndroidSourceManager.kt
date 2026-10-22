@@ -16,6 +16,7 @@ import eu.kanade.tachiyomi.source.online.all.NHentai
 import eu.kanade.tachiyomi.source.online.english.EightMuses
 import eu.kanade.tachiyomi.source.online.english.HBrowse
 import eu.kanade.tachiyomi.source.online.english.HentaiNexus
+import eu.kanade.tachiyomi.source.online.english.NineHentai
 import eu.kanade.tachiyomi.source.online.english.Pururin
 import eu.kanade.tachiyomi.source.online.english.Tsumino
 import exh.log.xLogD
@@ -30,6 +31,7 @@ import exh.source.ExhPreferences
 import exh.source.HBROWSE_SOURCE_ID
 import exh.source.HENTAINEXUS_SOURCE_ID
 import exh.source.MERGED_SOURCE_ID
+import exh.source.NINEHENTAI_SOURCE_ID
 import exh.source.PURURIN_SOURCE_ID
 import exh.source.TSUMINO_SOURCE_ID
 import exh.source.handleSourceLibrary
@@ -71,6 +73,7 @@ class AndroidSourceManager(
     private val nHentaiFactory: NHentai.Factory,
     private val lanraragiFactory: Lanraragi.Factory,
     private val hentaiNexusFactory: HentaiNexus.Factory,
+    private val nineHentaiFactory: NineHentai.Factory,
     private val exhPreferences: ExhPreferences,
     private val sourcePreferences: SourcePreferences,
     // SY <--
@@ -189,6 +192,7 @@ class AndroidSourceManager(
         NHentai::class -> nHentaiFactory.create(delegate)
         Lanraragi::class -> lanraragiFactory.create(delegate)
         HentaiNexus::class -> hentaiNexusFactory.create(delegate)
+        NineHentai::class -> nineHentaiFactory.create(delegate)
         else -> error("No delegated source factory for $kClass")
     }
 
@@ -310,6 +314,12 @@ class AndroidSourceManager(
                 HENTAINEXUS_SOURCE_ID,
                 "eu.kanade.tachiyomi.extension.en.hentainexus.HentaiNexus",
                 HentaiNexus::class,
+            ),
+            DelegatedSource(
+                "NineHentai",
+                NINEHENTAI_SOURCE_ID,
+                "eu.kanade.tachiyomi.extension.en.ninehentai.NineHentai",
+                NineHentai::class,
             ),
         ).associateBy { it.originalSourceQualifiedClassName }
 

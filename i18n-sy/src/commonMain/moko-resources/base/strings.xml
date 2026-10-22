@@ -572,6 +572,8 @@
     <string name="gallery_size">Gallery size</string>
     <string name="total_favorites">Total favorites</string>
     <string name="total_ratings">Total ratings</string>
+    <string name="total_views">Total views</string>
+    <string name="total_downloads">Total downloads</string>
     <string name="average_rating">Average rating</string>
     <string name="aged">Aged</string>
     <string name="last_update_check">Last update check</string>
