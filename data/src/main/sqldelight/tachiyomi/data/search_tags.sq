@@ -27,4 +27,4 @@ INSERT INTO search_tags(manga_id, namespace, name, type)
 VALUES (:mangaId, :namespace, :name, :type);
 
 deleteAll:
-DELETE FROM search_titles;
+DELETE FROM search_tags;
