@@ -38,7 +38,7 @@ android {
         versionCode = 84
         versionName = "1.13.2"
 
-        buildConfigField("String", "UPSTREAM_VERSION", """"0.20.1"""")
+        buildConfigField("String", "UPSTREAM_VERSION", """"0.21.2"""")
 
         buildConfigField("boolean", "INCLUDE_UPDATER", "false")
 
