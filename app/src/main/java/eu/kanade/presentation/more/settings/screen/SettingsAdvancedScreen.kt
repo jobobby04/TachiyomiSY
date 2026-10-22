@@ -145,18 +145,9 @@ object SettingsAdvancedScreen : SearchableSettings {
             Preference.PreferenceItem.TextPreference(
                 title = stringResource(MR.strings.pref_manage_notifications),
                 onClick = {
-                    // SY -->
-                    val intent = Intent().apply {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        } else {
-                            setAction("android.settings.APP_NOTIFICATION_SETTINGS")
-                            putExtra("app_package", context.packageName)
-                            putExtra("app_uid", context.applicationInfo.uid)
-                        }
+                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                     }
-                    // SY <--
                     context.startActivity(intent)
                 },
             ),

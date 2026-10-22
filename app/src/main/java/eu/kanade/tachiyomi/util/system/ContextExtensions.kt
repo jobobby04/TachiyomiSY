@@ -176,12 +176,8 @@ val Context.isShizukuInstalled: Boolean
     }
 
 fun Context.launchRequestPackageInstallsPermission() {
-    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-            data = "package:$packageName".toUri()
-        }
-    } else {
-        Intent(Settings.ACTION_SECURITY_SETTINGS)
+    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+        data = "package:$packageName".toUri()
+        startActivity(this)
     }
-    startActivity(intent)
 }
