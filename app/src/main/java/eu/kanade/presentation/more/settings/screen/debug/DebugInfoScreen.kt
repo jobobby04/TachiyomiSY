@@ -130,6 +130,7 @@ class DebugInfoScreen : Screen() {
                 -> "Error $result"
                 ProfileVerifier.CompilationStatus.RESULT_CODE_ERROR_UNSUPPORTED_API_VERSION -> "Not supported"
                 ProfileVerifier.CompilationStatus.RESULT_CODE_PROFILE_ENQUEUED_FOR_COMPILATION -> "Pending compilation"
+                ProfileVerifier.CompilationStatus.RESULT_CODE_ERROR_NO_PROFILE_EMBEDDED -> "No profile embedded"
                 else -> "Unknown code $result"
             }
         }
