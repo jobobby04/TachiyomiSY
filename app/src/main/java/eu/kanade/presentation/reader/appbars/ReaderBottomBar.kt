@@ -107,7 +107,7 @@ fun ReaderBottomBar(
             IconButton(onClick = onClickOrientation) {
                 Icon(
                     imageVector = orientation.icon,
-                    contentDescription = stringResource(MR.strings.pref_rotation_type),
+                    contentDescription = stringResource(MR.strings.rotation_type),
                 )
             }
         }

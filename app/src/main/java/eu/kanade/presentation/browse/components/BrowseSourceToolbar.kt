@@ -95,7 +95,7 @@ fun BrowseSourceToolbar(
                         if (isConfigurableSource && displayMode != null) {
                             add(
                                 AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_web_view),
+                                    title = stringResource(MR.strings.action_open_in_web_view),
                                     onClick = onWebViewClick,
                                 ),
                             )
