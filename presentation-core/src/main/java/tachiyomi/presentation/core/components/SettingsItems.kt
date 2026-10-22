@@ -303,7 +303,6 @@ fun SelectItem(
             label = { Text(text = label) },
             value = options.getOrNull(selectedIndex)?.toString().orEmpty(),
             onValueChange = {},
-            enabled = false,
             readOnly = true,
             singleLine = true,
             trailingIcon = {
@@ -311,9 +310,7 @@ fun SelectItem(
                     expanded = expanded,
                 )
             },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            ),
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
         )
 
         ExposedDropdownMenu(
