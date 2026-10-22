@@ -30,12 +30,15 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import mihon.core.metro.AppCoroutineScope
 import mihon.domain.manga.model.toDomainManga
+import tachiyomi.core.common.util.lang.SubscriberGate
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.source.interactor.CountFeedSavedSearchGlobal
@@ -49,6 +52,7 @@ import tachiyomi.domain.source.model.SavedSearch
 import tachiyomi.domain.source.service.SourceManager
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 import java.util.concurrent.Executors
+import kotlin.time.Duration.Companion.seconds
 import androidx.compose.runtime.State as ComposeState
 import tachiyomi.domain.manga.model.Manga as DomainManga
 
@@ -73,8 +77,13 @@ open class FeedViewModel(
     @AppCoroutineScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
-    val state: StateFlow<State>
-        field = MutableStateFlow(State())
+    private val subscriberGate = SubscriberGate()
+
+    private val mutableState = MutableStateFlow(State())
+
+    // Keeps the feed while it's hidden, but holds back database updates until it's shown again
+    val state: StateFlow<State> = mutableState
+        .stateIn(viewModelScope + subscriberGate, subscriberGate.whileSubscribed(5.seconds), State())
 
     private val _events = Channel<Event>(Int.MAX_VALUE)
     val events = _events.receiveAsFlow()
@@ -95,7 +104,7 @@ open class FeedViewModel(
                         results = null,
                     )
                 }
-                state.update { state ->
+                mutableState.update { state ->
                     state.copy(
                         items = items,
                     )
@@ -103,14 +112,14 @@ open class FeedViewModel(
                 getFeed(items)
             }
             .catch { _events.send(Event.FailedFetchingSources) }
-            .launchIn(viewModelScope)
+            .launchIn(viewModelScope + subscriberGate)
     }
 
     fun init() {
         pushed = false
         viewModelScope.launch(Dispatchers.IO) {
-            val newItems = state.value.items?.map { it.copy(results = null) } ?: return@launch
-            state.update { state ->
+            val newItems = mutableState.value.items?.map { it.copy(results = null) } ?: return@launch
+            mutableState.update { state ->
                 state.copy(
                     items = newItems,
                 )
@@ -126,7 +135,7 @@ open class FeedViewModel(
                 return@launch
             }
             val enabledSources = getEnabledSources()
-            state.update { state ->
+            mutableState.update { state ->
                 state.copy(
                     dialog = Dialog.AddFeed(enabledSources),
                 )
@@ -136,7 +145,7 @@ open class FeedViewModel(
 
     fun openAddSearchDialog(source: Source) {
         viewModelScope.launch(Dispatchers.IO) {
-            state.update { state ->
+            mutableState.update { state ->
                 state.copy(
                     dialog = Dialog.AddFeedSearch(
                         source,
@@ -152,7 +161,7 @@ open class FeedViewModel(
 
     fun openDeleteDialog(feed: FeedSavedSearch) {
         viewModelScope.launch(Dispatchers.IO) {
-            state.update { state ->
+            mutableState.update { state ->
                 state.copy(
                     dialog = Dialog.DeleteFeed(feed),
                 )
@@ -264,7 +273,7 @@ open class FeedViewModel(
                         )
                     }
 
-                    state.update { state ->
+                    mutableState.update { state ->
                         state.copy(
                             items = state.items?.map { if (it.feed.id == result.feed.id) result else it },
                         )
@@ -300,7 +309,7 @@ open class FeedViewModel(
     }
 
     fun dismissDialog() {
-        state.update { it.copy(dialog = null) }
+        mutableState.update { it.copy(dialog = null) }
     }
 
     sealed class Dialog {

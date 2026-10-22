@@ -35,12 +35,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import mihon.core.metro.AppCoroutineScope
 import mihon.domain.manga.model.toDomainManga
+import tachiyomi.core.common.util.lang.SubscriberGate
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.source.interactor.CountFeedSavedSearchBySourceId
@@ -55,6 +58,7 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.sy.SYMR
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 import java.util.concurrent.Executors
+import kotlin.time.Duration.Companion.seconds
 import androidx.compose.runtime.State as ComposeState
 import tachiyomi.domain.manga.model.Manga as DomainManga
 
@@ -75,8 +79,13 @@ open class SourceFeedViewModel(
     @AppCoroutineScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
-    val state: StateFlow<State>
-        field = MutableStateFlow(State())
+    private val subscriberGate = SubscriberGate()
+
+    private val mutableState = MutableStateFlow(State())
+
+    // Keeps the source feed while it's hidden, but holds back database updates until it's shown again
+    val state: StateFlow<State> = mutableState
+        .stateIn(viewModelScope + subscriberGate, subscriberGate.whileSubscribed(5.seconds), State())
 
     @AssistedFactory
     @ManualViewModelAssistedFactoryKey
@@ -98,7 +107,7 @@ open class SourceFeedViewModel(
             setFilters(source.getFilterList())
 
             val searches = loadSearches(source)
-            state.update {
+            mutableState.update {
                 it.copy(
                     source = source,
                     savedSearches = searches,
@@ -108,14 +117,14 @@ open class SourceFeedViewModel(
             getFeedSavedSearchBySourceId.subscribe(sourceId)
                 .onEach {
                     val items = getSourcesToGetFeed(source, it)
-                    state.update { state ->
+                    mutableState.update { state ->
                         state.copy(
                             items = items,
                         )
                     }
                     getFeed(source, items)
                 }
-                .launchIn(viewModelScope)
+                .launchIn(viewModelScope + subscriberGate)
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -123,7 +132,7 @@ open class SourceFeedViewModel(
     }
 
     fun setFilters(filters: FilterList) {
-        state.update { it.copy(filters = filters) }
+        mutableState.update { it.copy(filters = filters) }
     }
 
     private suspend fun hasTooManyFeeds(): Boolean {
@@ -193,7 +202,7 @@ open class SourceFeedViewModel(
                         networkToLocalManga(page.map { it.toDomainManga(source.id) })
                     }
 
-                    state.update { state ->
+                    mutableState.update { state ->
                         state.copy(
                             items = state.items.map { item ->
                                 if (item.id == sourceFeed.id) sourceFeed.withResults(titles) else item
@@ -234,19 +243,19 @@ open class SourceFeedViewModel(
             .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, EXHSavedSearch::name))
 
     fun onFilter(onBrowseClick: (query: String?, filters: String?) -> Unit) {
-        val source = state.value.source ?: return
+        val source = mutableState.value.source ?: return
         viewModelScope.launch(Dispatchers.IO) {
-            val allDefault = state.value.filters == source.getFilterList()
+            val allDefault = mutableState.value.filters == source.getFilterList()
             dismissDialog()
             if (allDefault) {
                 onBrowseClick(
-                    state.value.searchQuery?.nullIfBlank(),
+                    mutableState.value.searchQuery?.nullIfBlank(),
                     null,
                 )
             } else {
                 onBrowseClick(
-                    state.value.searchQuery?.nullIfBlank(),
-                    Json.encodeToString(filterSerializer.serialize(state.value.filters)),
+                    mutableState.value.searchQuery?.nullIfBlank(),
+                    Json.encodeToString(filterSerializer.serialize(mutableState.value.filters)),
                 )
             }
         }
@@ -258,8 +267,8 @@ open class SourceFeedViewModel(
         onToast: (StringResource) -> Unit,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val source = state.value.source ?: return@launch
-            if (search.filterList == null && state.value.filters.isNotEmpty()) {
+            val source = mutableState.value.source ?: return@launch
+            if (search.filterList == null && mutableState.value.filters.isNotEmpty()) {
                 withContext(Dispatchers.Main) {
                     onToast(SYMR.strings.save_search_invalid)
                 }
@@ -271,7 +280,7 @@ open class SourceFeedViewModel(
 
             if (!allDefault) {
                 onBrowseClick(
-                    state.value.searchQuery?.nullIfBlank(),
+                    mutableState.value.searchQuery?.nullIfBlank(),
                     search.id,
                 )
             }
@@ -295,7 +304,7 @@ open class SourceFeedViewModel(
 
     fun onMangaDexRandom(onRandomFound: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            val source = state.value.source ?: return@launch
+            val source = mutableState.value.source ?: return@launch
             val random = source.getMainSource<MangaDex>()?.fetchRandomMangaUrl()
                 ?: return@launch
             onRandomFound(random)
@@ -303,23 +312,23 @@ open class SourceFeedViewModel(
     }
 
     fun search(query: String?) {
-        state.update { it.copy(searchQuery = query) }
+        mutableState.update { it.copy(searchQuery = query) }
     }
 
     fun openFilterSheet() {
-        state.update { it.copy(dialog = Dialog.Filter) }
+        mutableState.update { it.copy(dialog = Dialog.Filter) }
     }
 
     fun openDeleteFeed(feed: FeedSavedSearch) {
-        state.update { it.copy(dialog = Dialog.DeleteFeed(feed)) }
+        mutableState.update { it.copy(dialog = Dialog.DeleteFeed(feed)) }
     }
 
     fun openAddFeed(feedId: Long, name: String) {
-        state.update { it.copy(dialog = Dialog.AddFeed(feedId, name)) }
+        mutableState.update { it.copy(dialog = Dialog.AddFeed(feedId, name)) }
     }
 
     fun dismissDialog() {
-        state.update { it.copy(dialog = null) }
+        mutableState.update { it.copy(dialog = null) }
     }
 
     sealed class Dialog {
