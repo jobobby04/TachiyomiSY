@@ -165,6 +165,7 @@ fun ReaderAppBars(
                                 contentAlignment = Alignment.BottomCenter,
                             ) {
                                 ChapterNavigator(
+                                    modifier = Modifier.fillMaxHeight(verticalNavigatorHeight),
                                     type = chapterNavigatorType,
                                     onNextChapter = onNextChapter,
                                     enabledNext = enabledNext,
