@@ -114,10 +114,10 @@ private fun StructStat.toArchiveStat() = ArchiveEntry.StructStat().apply {
     stSize = st_size
     stBlksize = st_blksize
     stBlocks = st_blocks
-    stAtim = timespec(st_atime)
-    stMtim = timespec(st_mtime)
-    stCtim = timespec(st_ctime)
+    stAtim = st_atime.toTimespec()
+    stMtim = st_mtime.toTimespec()
+    stCtim = st_ctime.toTimespec()
     stIno = st_ino
 }
 
-private fun timespec(tvSec: Long) = ArchiveEntry.StructTimespec().also { it.tvSec = tvSec }
+private fun Long.toTimespec() = ArchiveEntry.StructTimespec().also { it.tvSec = this }

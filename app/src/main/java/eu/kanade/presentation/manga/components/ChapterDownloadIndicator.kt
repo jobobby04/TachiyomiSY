@@ -150,6 +150,7 @@ private fun DownloadingIndicator(
             val animatedProgress by animateFloatAsState(
                 targetValue = downloadProgress / 100f,
                 animationSpec = WavyProgressIndicatorDefaults.ProgressAnimationSpec,
+                label = "progress",
             )
             CircularWavyProgressIndicator(
                 progress = { animatedProgress },

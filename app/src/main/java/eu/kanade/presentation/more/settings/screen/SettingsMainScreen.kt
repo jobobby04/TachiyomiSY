@@ -171,8 +171,8 @@ object SettingsMainScreen : Screen() {
 
     private data class Item(
         val titleRes: StringResource,
-        val subtitleRes: StringResource,
-        val formatSubtitle: @Composable () -> String = { stringResource(subtitleRes) },
+        val subtitleRes: StringResource? = null,
+        val formatSubtitle: @Composable () -> String? = { subtitleRes?.let { stringResource(it) } },
         val icon: ImageVector,
         val screen: VoyagerScreen,
     )
@@ -248,7 +248,6 @@ object SettingsMainScreen : Screen() {
         ),
         Item(
             titleRes = MR.strings.pref_category_about,
-            subtitleRes = StringResource(0),
             formatSubtitle = {
                 "${stringResource(MR.strings.app_name)} ${AboutScreen.getVersionName(withBuildDate = false)}"
             },
