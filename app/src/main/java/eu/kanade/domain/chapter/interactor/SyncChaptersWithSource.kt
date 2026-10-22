@@ -98,12 +98,14 @@ class SyncChaptersWithSource(
             sourceChapters
         }
 
-        for (ch in preparedChapters) {
-            if (!sourceUrls.add(ch.url)) continue
+        // Recognize chapter numbers, from the whole list since names alone don't always tell.
+        val recognizedChapters = preparedChapters
+            .zip(ChapterRecognition.parseChapterNumbers(manga.title, preparedChapters)) { chapter, numbering ->
+                chapter.copy(chapterNumber = numbering.chapter?.let(ChapterRecognition::toDouble) ?: -1.0)
+            }
 
-            // Recognize chapter number for the chapter.
-            val chapterNumber = ChapterRecognition.parseChapterNumber(manga.title, ch.name, ch.chapterNumber)
-            val chapter = ch.copy(chapterNumber = chapterNumber)
+        for (chapter in recognizedChapters) {
+            if (!sourceUrls.add(chapter.url)) continue
 
             val dbChapter = dbChaptersByUrl[chapter.url]
 
