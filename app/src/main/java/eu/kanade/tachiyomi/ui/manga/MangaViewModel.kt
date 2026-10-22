@@ -283,6 +283,8 @@ class MangaViewModel(
         states.filterKeys { it in queuedChapterIds }
     }
 
+    private val hideMissingChapters = libraryPreferences.hideMissingChapters.get()
+
     private var hasPromptedToAddBefore = false
 
     private val defaultChapterFlagsJob = viewModelScope.launch(Dispatchers.IO) {
@@ -459,6 +461,7 @@ class MangaViewModel(
             hasLoggedInTrackers = hasLoggedInTrackers,
             isRefreshingData = isRefreshingData,
             dialog = dialog,
+            hideMissingChapters = hideMissingChapters,
             // SY -->
             meta = mangaAndChapters.meta,
             mergedData = mangaAndChapters.mergedData,
@@ -1689,6 +1692,7 @@ class MangaViewModel(
             val hasLoggedInTrackers: Boolean = false,
             val isRefreshingData: Boolean = false,
             val dialog: MangaViewModel.Dialog? = null,
+            val hideMissingChapters: Boolean = false,
             // SY -->
             val meta: RaisedSearchMetadata?,
             val mergedData: MergedMangaData?,
@@ -1721,10 +1725,15 @@ class MangaViewModel(
             }
 
             val missingChapterCount by lazy {
+                if (hideMissingChapters) return@lazy 0
                 processedChapters.fastMap { it.chapter.chapterNumber }.missingChaptersCount()
             }
 
             val chapterListItems by lazy {
+                if (hideMissingChapters) {
+                    return@lazy processedChapters
+                }
+
                 processedChapters.insertSeparators { before, after ->
                     val (lowerChapter, higherChapter) = if (manga.sortDescending()) {
                         after to before

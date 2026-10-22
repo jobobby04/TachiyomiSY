@@ -204,6 +204,11 @@ class LibraryPreferences(
 
     val autoClearChapterCache: Preference<Boolean> = preferenceStore.getBoolean("auto_clear_chapter_cache", false)
 
+    val hideMissingChapters: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_hide_missing_chapter_indicators",
+        false,
+    )
+
     // endregion
 
     // region Swipe Actions
