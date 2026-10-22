@@ -131,6 +131,7 @@ fun ReaderPageActionsDialog(
                         title = stringResource(SYMR.strings.action_set_second_page_cover),
                         icon = MaterialSymbols.Rounded.Photo,
                         onClick = {
+                            useExtraPage = true
                             showSetCoverDialog = true
                         },
                     )
@@ -206,7 +207,12 @@ fun ReaderPageActionsDialog(
                 useExtraPage = false
                 // SY <--
             },
-            onDismiss = { showSetCoverDialog = false },
+            onDismiss = {
+                showSetCoverDialog = false
+                // SY -->
+                useExtraPage = false
+                // SY <--
+            },
         )
     }
 }
