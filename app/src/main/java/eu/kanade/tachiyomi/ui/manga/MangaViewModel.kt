@@ -287,7 +287,7 @@ class MangaViewModel(
 
     private var hasPromptedToAddBefore = false
 
-    private val defaultChapterFlagsJob = viewModelScope.launch(Dispatchers.IO) {
+    private val defaultChapterFlagsJob = viewModelScope.launch {
         val manga = getMangaAndChapters.awaitManga(mangaId)
         if (!manga.favorite) {
             setMangaDefaultChapterFlags.await(manga)
@@ -512,7 +512,7 @@ class MangaViewModel(
                 .collect { downloadProgress[it.chapter.id] = it.progress }
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             // The state loads the entry and its chapters anyway, so they aren't queried separately
             val loadedState = state.filterIsInstance<State.Success>().first()
             val manga = loadedState.manga
