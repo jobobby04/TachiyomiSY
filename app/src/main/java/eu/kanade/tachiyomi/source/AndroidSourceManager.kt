@@ -15,6 +15,7 @@ import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.source.online.all.NHentai
 import eu.kanade.tachiyomi.source.online.english.EightMuses
 import eu.kanade.tachiyomi.source.online.english.HBrowse
+import eu.kanade.tachiyomi.source.online.english.HentaiNexus
 import eu.kanade.tachiyomi.source.online.english.Pururin
 import eu.kanade.tachiyomi.source.online.english.Tsumino
 import exh.log.xLogD
@@ -27,6 +28,7 @@ import exh.source.EXH_SOURCE_ID
 import exh.source.EnhancedHttpSource
 import exh.source.ExhPreferences
 import exh.source.HBROWSE_SOURCE_ID
+import exh.source.HENTAINEXUS_SOURCE_ID
 import exh.source.MERGED_SOURCE_ID
 import exh.source.PURURIN_SOURCE_ID
 import exh.source.TSUMINO_SOURCE_ID
@@ -68,6 +70,7 @@ class AndroidSourceManager(
     private val eightMusesFactory: EightMuses.Factory,
     private val nHentaiFactory: NHentai.Factory,
     private val lanraragiFactory: Lanraragi.Factory,
+    private val hentaiNexusFactory: HentaiNexus.Factory,
     private val exhPreferences: ExhPreferences,
     private val sourcePreferences: SourcePreferences,
     // SY <--
@@ -138,7 +141,7 @@ class AndroidSourceManager(
             if (matched != null) {
                 DELEGATED_SOURCES[matched]
             } else {
-                DELEGATED_SOURCES[sourceQName]
+                DELEGATED_SOURCES[sourceQName] ?: DELEGATED_SOURCES_BY_ID[id]
             }
         } else {
             null
@@ -185,6 +188,7 @@ class AndroidSourceManager(
         EightMuses::class -> eightMusesFactory.create(delegate)
         NHentai::class -> nHentaiFactory.create(delegate)
         Lanraragi::class -> lanraragiFactory.create(delegate)
+        HentaiNexus::class -> hentaiNexusFactory.create(delegate)
         else -> error("No delegated source factory for $kClass")
     }
 
@@ -301,7 +305,19 @@ class AndroidSourceManager(
                 Lanraragi::class,
                 true,
             ),
+            DelegatedSource(
+                "HentaiNexus",
+                HENTAINEXUS_SOURCE_ID,
+                "eu.kanade.tachiyomi.extension.en.hentainexus.HentaiNexus",
+                HentaiNexus::class,
+            ),
         ).associateBy { it.originalSourceQualifiedClassName }
+
+        // Keiyoushi extensions are obfuscated and all share the generated entry point class name,
+        // so sources with a fixed id are also matched by it
+        private val DELEGATED_SOURCES_BY_ID = DELEGATED_SOURCES.values
+            .filterNot { it.factory }
+            .associateBy { it.sourceId }
 
         val currentDelegatedSources: MutableMap<Long, DelegatedSource> =
             ListenMutableMap(mutableMapOf(), ::handleSourceLibrary)
