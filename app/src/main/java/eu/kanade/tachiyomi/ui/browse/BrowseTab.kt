@@ -107,7 +107,7 @@ data object BrowseTab : Tab {
         )
         LaunchedEffect(Unit) {
             switchToExtensionTabChannel.receiveAsFlow()
-                .collectLatest { state.scrollToPage(/* SY --> */2/* SY <-- */) }
+                .collectLatest { state.scrollToPage(/* SY --> */if (hideFeedTab) 1 else 2/* SY <-- */) }
         }
 
         LaunchedEffect(Unit) {
