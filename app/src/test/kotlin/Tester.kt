@@ -50,21 +50,21 @@ class Tester {
         val favorites = listOf(
             Manga.create().copy(
                 id = 1,
-                favorite = true,
+                favoriteAt = 1L,
                 source = EXH_SOURCE_ID,
                 url = "/g/gid/token",
             ),
             // an alias for gid2/token2
             Manga.create().copy(
                 id = 3,
-                favorite = true,
+                favoriteAt = 1L,
                 source = EXH_SOURCE_ID,
                 url = "/g/gid3/token3",
             ),
             // add this one to library
             Manga.create().copy(
                 id = 3,
-                favorite = true,
+                favoriteAt = 1L,
                 source = EXH_SOURCE_ID,
                 url = "/g/gid4/token4",
             ),

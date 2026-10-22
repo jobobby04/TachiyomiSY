@@ -298,7 +298,7 @@ class MangaRepositoryImpl(
     }
 
     override suspend fun getReadMangaNotInLibraryView(): List<LibraryManga> {
-        return getLibraryQuery(driver, "M.favorite_at IS NULL AND C.readCount != 0")
+        return getLibraryQuery(driver, "M.user_favorite_at IS NULL AND C.readCount != 0")
             .awaitAsList()
             .map(mangaMapper::mapLibraryView)
     }

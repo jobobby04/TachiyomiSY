@@ -34,4 +34,5 @@ WHERE user_reader_flags = -1;
 
 addAllMangaInDatabaseToLibrary:
 UPDATE manga
-SET user_favorite_at = strftime('%s', 'now');
+SET user_favorite_at = CAST(strftime('%s', 'now') AS INTEGER) * 1000
+WHERE user_favorite_at IS NULL;
