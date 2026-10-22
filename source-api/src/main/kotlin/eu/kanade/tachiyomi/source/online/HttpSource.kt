@@ -42,7 +42,6 @@ abstract class HttpSource : CatalogueSource {
             network.context,
             network.preferences,
             network.delegateSourcePreferences,
-            network.isDebugBuild,
         ) {
             override val client: OkHttpClient
                 get() = delegate?.networkHttpClient ?: network.client

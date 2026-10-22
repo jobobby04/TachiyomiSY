@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
 import exh.pref.DelegateSourcePreferences
 import kotlinx.coroutines.CoroutineScope
 import mihon.core.metro.AppCoroutineScope
-import mihon.core.metro.IsDebugBuild
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -27,8 +26,6 @@ open /* SY <-- */ class NetworkHelper(
     val context: Context,
     val preferences: NetworkPreferences,
     val delegateSourcePreferences: DelegateSourcePreferences,
-    @IsDebugBuild
-    val isDebugBuild: Boolean,
     // SY <--
 ) {
 
@@ -50,7 +47,7 @@ open /* SY <-- */ class NetworkHelper(
             .addInterceptor(UncaughtExceptionInterceptor())
             .addInterceptor(UserAgentInterceptor(::defaultUserAgentProvider))
 
-        if (isDebugBuild) {
+        if (preferences.verboseLogging.get()) {
             val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.HEADERS
                 if (preferences.redactSensitiveHeaders.get()) {
