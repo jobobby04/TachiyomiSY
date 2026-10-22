@@ -139,11 +139,8 @@ class UpdatesQuery(
                         chapter.state_date_fetch AS datefetch,
                         excluded_scanlator.scanlator AS excludedScanlator
                     FROM manga
-                    LEFT JOIN (
-                        SELECT merged.manga_id, merged.merge_id
-                        FROM merged
-                        GROUP BY merged.merge_id
-                    ) AS ME
+                    -- Every entry the merge holds, not just one of them
+                    JOIN merged AS ME
                         ON ME.merge_id = manga.id
                     JOIN chapter
                         ON ME.manga_id = chapter.manga_id
