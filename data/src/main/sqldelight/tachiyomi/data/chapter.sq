@@ -82,6 +82,11 @@ AND (
     OR ES.scanlator IS NULL
 );
 
+getChapterSummaryByMangaId:
+SELECT count(*) AS total, max(remote_chapter_number) AS latestChapterNumber
+FROM chapter
+WHERE manga_id = :mangaId;
+
 getScanlatorsByMangaId:
 SELECT DISTINCT remote_scanlator
 FROM chapter
@@ -177,11 +182,6 @@ SELECT
     state_last_modified_at, state_version, state_is_syncing
 FROM chapter
 WHERE remote_url = :remoteUrl;
-
-getChapterSummaryByMangaId:
-SELECT count(*) AS total, coalesce(max(remote_chapter_number), 0) AS latestChapterNumber
-FROM chapter
-WHERE manga_id = :mangaId;
 
 getMergedChaptersByMangaId:
 SELECT
