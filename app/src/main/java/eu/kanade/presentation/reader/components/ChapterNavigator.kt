@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -211,9 +212,17 @@ fun HorizontalChapterNavigator(
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // SY -->
-                        Text(text = currentPageText)
-                        // SY <--
+                        Box(contentAlignment = Alignment.CenterEnd) {
+                            // SY -->
+                            Text(text = currentPageText)
+                            // Taking up full length so the slider doesn't shift when 'currentPage' length changes,
+                            // including the double page form
+                            Text(
+                                text = if ('-' in currentPageText) "$totalPages-$totalPages" else totalPages.toString(),
+                                color = Color.Transparent,
+                            )
+                            // SY <--
+                        }
 
                         Slider(
                             state = state,
