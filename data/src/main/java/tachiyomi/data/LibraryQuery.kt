@@ -135,12 +135,7 @@ class LibraryQuery(
                 coalesce(MC.categories, '0') AS categories
             FROM manga M
             LEFT JOIN (
-                SELECT merged.manga_id,merged.merge_id
-                FROM merged
-                GROUP BY merged.merge_id
-            ) as ME
-            ON ME.merge_id = M.id
-            LEFT JOIN (
+                -- Only the chapters of merged entries can belong to a merge
                 SELECT
                     ME.merge_id,
                     count(*) AS total,
@@ -152,12 +147,12 @@ class LibraryQuery(
                 LEFT JOIN excluded_scanlator
                 ON chapter.manga_id = excluded_scanlator.manga_id
                 AND chapter.remote_scanlator = excluded_scanlator.scanlator
-                LEFT JOIN merged as ME
+                JOIN merged AS ME
                 ON ME.manga_id = chapter.manga_id
                 WHERE excluded_scanlator.scanlator IS NULL
                 GROUP BY ME.merge_id
             ) AS C
-            ON ME.merge_id = C.merge_id
+            ON C.merge_id = M.id
             LEFT JOIN (
                 SELECT manga_id, group_concat(category_id) AS categories
                 FROM manga_category
