@@ -12,6 +12,9 @@ DROP VIEW libraryView;
 DROP VIEW updatesView;
 
 DROP TRIGGER update_last_favorited_at_mangas;
+-- The sync version trigger compares favorite, which is about to be dropped; SQLite rejects dropping a column a
+-- trigger still names, so it goes first and comes back comparing favorite_at
+DROP TRIGGER update_manga_version;
 DROP INDEX library_favorite_index;
 
 ALTER TABLE mangas ADD COLUMN favorite_at INTEGER;
@@ -23,6 +26,16 @@ WHERE favorite = 1;
 ALTER TABLE mangas DROP COLUMN favorite;
 ALTER TABLE mangas DROP COLUMN date_added;
 ALTER TABLE mangas DROP COLUMN favorite_modified_at;
+
+CREATE TRIGGER update_manga_version AFTER UPDATE ON mangas
+BEGIN
+    UPDATE mangas SET version = version + 1
+    WHERE _id = new._id AND new.is_syncing = 0 AND (
+        new.url != old.url OR
+        new.description != old.description OR
+        new.favorite_at != old.favorite_at
+    );
+END;
 
 CREATE INDEX library_favorite_at_index ON mangas(favorite_at) WHERE favorite_at IS NOT NULL;
 
