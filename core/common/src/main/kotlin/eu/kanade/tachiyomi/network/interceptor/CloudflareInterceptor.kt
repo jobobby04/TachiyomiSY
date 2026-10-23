@@ -14,6 +14,7 @@ import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import eu.kanade.tachiyomi.network.AndroidCookieJar
+import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.util.system.isOutdated
 import eu.kanade.tachiyomi.util.system.toWebViewHeaders
 import eu.kanade.tachiyomi.util.system.toast
@@ -36,6 +37,9 @@ import kotlin.concurrent.write
 class CloudflareInterceptor(
     private val context: Context,
     private val cookieManager: AndroidCookieJar,
+    // SY -->
+    private val preferences: NetworkPreferences,
+    // SY <--
     scope: CoroutineScope,
     defaultUserAgentProvider: () -> String,
 ) : WebViewInterceptor(context, scope, defaultUserAgentProvider) {
@@ -55,6 +59,13 @@ class CloudflareInterceptor(
     """.trimIndent()
 
     override fun shouldIntercept(response: Response): Boolean {
+        // SY -->
+        // Check if FlareSolverr is enabled if it's enabled we don't need to bypass Cloudflare through WebView
+        if (preferences.enableFlareSolverr.get()) {
+            return false
+        }
+        // SY <--
+
         // Check if Cloudflare anti-bot is on
         // Checking the cf-mitigated header is the official way to detect a Cloudflare challenge:
         // https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/detect-response/
@@ -264,7 +275,7 @@ class CloudflareInterceptor(
                 context.toast(MR.strings.information_webview_outdated, Toast.LENGTH_LONG)
             }
 
-            throw CloudflareBypassException()
+            throw CloudflareBypassException(/* SY --> */"Error resolving with WebView"/* SY <-- */)
         }
     }
 }
@@ -274,7 +285,13 @@ private fun HttpUrl.origin(): String {
     return if (port == HttpUrl.defaultPort(scheme)) "$scheme://$host" else "$scheme://$host:$port"
 }
 
-private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
+// SY -->
+val ERROR_CODES = listOf(403, 503)
+val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
+
+// SY <--
 private val COOKIE_NAMES = listOf("cf_clearance")
 
-private class CloudflareBypassException : Exception()
+// SY -->
+class CloudflareBypassException(message: String, cause: Throwable? = null) : Exception(message, cause)
+// SY <--
