@@ -338,13 +338,13 @@ object SettingsAdvancedScreen : SearchableSettings {
                 Preference.PreferenceItem.EditTextPreference(
                     preference = flareSolverrUrlPref,
                     title = stringResource(SYMR.strings.pref_flare_solverr_url),
-                    enabled = enableFlareSolverr,
+                    visible = enableFlareSolverr,
                     subtitle = stringResource(SYMR.strings.pref_flare_solverr_url_summary),
                     onValueChanged = { it.trim().toHttpUrlOrNull() != null },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(SYMR.strings.pref_test_flare_solverr_and_update_user_agent),
-                    enabled = enableFlareSolverr,
+                    visible = enableFlareSolverr,
                     subtitle = stringResource(SYMR.strings.pref_test_flare_solverr_and_update_user_agent_summary),
                     onClick = {
                         scope.launch {
