@@ -247,17 +247,16 @@ class SyncChaptersWithSource(
 
         // SY -->
         val tombstoneKey = { chapter: Chapter -> chapterTombstoneKey(manga.source, manga.url, chapter.url) }
+        syncPreferences.rememberDeletedChapters(removedChapters.map(tombstoneKey))
         // SY <--
-        if (removedChapters.isNotEmpty()) {
-            // SY -->
-            syncPreferences.rememberDeletedChapters(removedChapters.map(tombstoneKey))
-            // SY <--
-        }
         val added = chapterRepository.updateFromRemote(
             removedIds = removedChapters.map { it.id },
             added = chaptersToAdd,
             updated = updatedChapters,
         )
+        // SY -->
+        syncPreferences.forgetDeletedChapters(added.map(tombstoneKey))
+        // SY <--
         val excludedScanlators = getExcludedScanlators.await(manga.id).toHashSet()
 
         // A first fetch lists the back catalogue, and chapters coming back under a deleted number were out already
@@ -266,12 +265,6 @@ class SyncChaptersWithSource(
                 chapter.scanlator !in excludedScanlators &&
                     !(chapter.isRecognizedNumber && chapter.chapterNumber in deletedChapterNumbers)
             }
-
-        if (added.isNotEmpty()) {
-            // SY -->
-            syncPreferences.forgetDeletedChapters(added.map(tombstoneKey))
-            // SY <--
-        }
 
         // Set this manga as updated since chapters were changed
         // Note that last_update actually represents last time the chapter list changed at all
