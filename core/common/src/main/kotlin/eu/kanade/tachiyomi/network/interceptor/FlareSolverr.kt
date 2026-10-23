@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit
 object FlareSolverr {
     private val network: NetworkHelper by injectLazy()
     private val json: Json by injectLazy()
-    private val preferences: NetworkPreferences by injectLazy()
+    private val preferences: NetworkPreferences get() = network.preferences
     private val jsonMediaType = "application/json".toMediaType()
     private val mutex = Mutex()
 
