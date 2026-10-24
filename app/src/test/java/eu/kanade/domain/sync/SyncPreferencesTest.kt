@@ -1,5 +1,6 @@
 package eu.kanade.domain.sync
 
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import tachiyomi.core.common.preference.InMemoryPreferenceStore
@@ -12,7 +13,7 @@ class SyncPreferencesTest {
     )
 
     @Test
-    fun `deleted chapters stay pending until a re-add forgets them`() {
+    fun `deleted chapters stay pending until a re-add forgets them`() = runTest {
         val prefs = syncPreferences(syncService = 1)
 
         prefs.rememberDeletedChapters(listOf("a", "b"))
@@ -22,7 +23,7 @@ class SyncPreferencesTest {
     }
 
     @Test
-    fun `deleted chapters are not tracked while sync is off`() {
+    fun `deleted chapters are not tracked while sync is off`() = runTest {
         val prefs = syncPreferences(syncService = 0)
 
         prefs.rememberDeletedChapters(listOf("a"))
@@ -31,7 +32,7 @@ class SyncPreferencesTest {
     }
 
     @Test
-    fun `deleted chapters are not tracked for google drive`() {
+    fun `deleted chapters are not tracked for google drive`() = runTest {
         val prefs = syncPreferences(syncService = 2)
 
         prefs.rememberDeletedChapters(listOf("a"))
@@ -40,7 +41,7 @@ class SyncPreferencesTest {
     }
 
     @Test
-    fun `deleted categories are not tracked for google drive`() {
+    fun `deleted categories are not tracked for google drive`() = runTest {
         val prefs = syncPreferences(syncService = 2)
 
         prefs.rememberDeletedCategory(7)

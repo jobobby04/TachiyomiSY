@@ -6,6 +6,8 @@ import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.sync.models.SyncSettings
 import eu.kanade.tachiyomi.data.sync.SyncManager
 import eu.kanade.tachiyomi.data.sync.models.SyncTriggerOptions
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import java.util.UUID
@@ -46,6 +48,7 @@ class SyncPreferences(
         Preference.appStateKey("sync_pending_deleted_chapter_keys"),
         emptySet(),
     )
+    private val tombstoneMutex = Mutex()
 
     val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
     val syncService: Preference<Int> = preferenceStore.getInt("sync_service", 0)
@@ -82,25 +85,25 @@ class SyncPreferences(
     /**
      * Remembers a deleted category so the next SyncYomi v2 request can send it as a tombstone.
      */
-    @Synchronized
-    fun rememberDeletedCategory(uid: Long) {
+    suspend fun rememberDeletedCategory(uid: Long) {
         if (uid == 0L || !isSyncYomiEnabled()) return
-        pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() + uid.toString())
+        tombstoneMutex.withLock {
+            pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() + uid.toString())
+        }
     }
 
-    @Synchronized
-    fun forgetDeletedCategories(uids: Collection<String>) {
+    suspend fun forgetDeletedCategories(uids: Collection<String>) = tombstoneMutex.withLock {
         pendingDeletedCategoryUids.set(pendingDeletedCategoryUids.get() - uids.toSet())
     }
 
-    @Synchronized
-    fun rememberDeletedChapters(keys: Collection<String>) {
+    suspend fun rememberDeletedChapters(keys: Collection<String>) {
         if (keys.isEmpty() || !isSyncYomiEnabled()) return
-        pendingDeletedChapterKeys.set(pendingDeletedChapterKeys.get() + keys)
+        tombstoneMutex.withLock {
+            pendingDeletedChapterKeys.set(pendingDeletedChapterKeys.get() + keys)
+        }
     }
 
-    @Synchronized
-    fun forgetDeletedChapters(keys: Collection<String>) {
+    suspend fun forgetDeletedChapters(keys: Collection<String>) = tombstoneMutex.withLock {
         val pending = pendingDeletedChapterKeys.get()
         val remaining = pending - keys.toSet()
         if (remaining.size != pending.size) pendingDeletedChapterKeys.set(remaining)
