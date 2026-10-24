@@ -4,11 +4,13 @@ import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.comick.dto.ComickDetailResult
 import eu.kanade.tachiyomi.data.track.comick.dto.ComickLibraryEntry
 import eu.kanade.tachiyomi.data.track.comick.dto.ComickOAuth
 import eu.kanade.tachiyomi.data.track.comick.dto.ComickSearchResult
 import eu.kanade.tachiyomi.data.track.comick.dto.ComickTitleLookupResult
 import eu.kanade.tachiyomi.data.track.comick.dto.ComickUser
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.GET
@@ -216,6 +218,40 @@ class ComickApi(
             }
         }
     }
+
+    // SY ->
+    suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata = withContext(Dispatchers.IO) {
+        val hid = track.remoteId.toHid()
+
+        val titleUrl = "$RESOURCE_URL/titles".toUri().buildUpon()
+            .appendPath(hid)
+            .build()
+        val titleItem = with(json) {
+            authClient.newCall(GET(titleUrl.toString()))
+                .awaitSuccess()
+                .parseAs<ComickTitleLookupResult>()
+                .data
+        }
+
+        val detailUrl = "$API_BASE_URL/v1.0/comic/".toUri().buildUpon()
+            .appendPath(titleItem.slug)
+            .build()
+        val detailResult = with(json) {
+            client.newCall(GET(detailUrl.toString()))
+                .awaitSuccess()
+                .parseAs<ComickDetailResult>()
+        }
+
+        TrackMangaMetadata(
+            remoteId = titleItem.hid.asHidToLong(),
+            title = titleItem.title,
+            thumbnailUrl = titleItem.coverUrl,
+            description = titleItem.description,
+            authors = detailResult.authors?.joinToString(separator = ", ") { it.name },
+            artists = detailResult.artists?.joinToString(separator = ", ") { it.name },
+        )
+    }
+    // <- SY
 
     suspend fun getCurrentUser(): ComickUser {
         return withContext(Dispatchers.IO) {
