@@ -4,10 +4,12 @@ import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.hikka.dto.HKManga
+import eu.kanade.tachiyomi.data.track.hikka.dto.HKMangaMetadata
 import eu.kanade.tachiyomi.data.track.hikka.dto.HKMangaPagination
 import eu.kanade.tachiyomi.data.track.hikka.dto.HKOAuth
 import eu.kanade.tachiyomi.data.track.hikka.dto.HKRead
 import eu.kanade.tachiyomi.data.track.hikka.dto.HKUser
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.GET
@@ -119,6 +121,31 @@ class HikkaApi(
             }
         }
     }
+
+    // SY ->
+    suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
+        return withContext(Dispatchers.IO) {
+            val slug = track.remoteUrl.split("/")[4]
+            val url = "$BASE_API_URL/manga/$slug"
+
+            with(json) {
+                authClient.newCall(GET(url))
+                    .awaitSuccess()
+                    .parseAs<HKMangaMetadata>()
+                    .let {
+                        TrackMangaMetadata(
+                            remoteId = stringToNumber(it.slug),
+                            title = it.titleUa ?: it.titleEn ?: it.titleOriginal,
+                            thumbnailUrl = it.image,
+                            description = it.synopsisUa ?: it.synopsisEn,
+                            authors = it.authors.getNamesByRole("story"),
+                            artists = it.authors.getNamesByRole("art"),
+                        )
+                    }
+            }
+        }
+    }
+    // <- SY
 
     suspend fun getRead(track: Track): HKRead? {
         return withContext(Dispatchers.IO) {
