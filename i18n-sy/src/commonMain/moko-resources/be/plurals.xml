@@ -24,24 +24,6 @@
         <item quantity="many">%1$d тэгаў у спісе сартавання. Яны дадаюць магчымасць сартаваць бібліятэку так, каб творы з больш прыярытэтнымі тэгамі ішлі першымі</item>
         <item quantity="other">%1$d тэгаў у спісе сартавання. Яны дадаюць магчымасць сартаваць бібліятэку так, каб творы з больш прыярытэтнымі тэгамі ішлі першымі</item>
     </plurals>
-    <plurals name="migrate_entry">
-        <item quantity="one">Перанесці %1$d%2$s твор?</item>
-        <item quantity="few">Перанесці %1$d%2$s творы?</item>
-        <item quantity="many">Перанесці %1$d%2$s твораў?</item>
-        <item quantity="other">Перанесці %1$d%2$s твораў?</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">Скапіяваць %1$d%2$s твор?</item>
-        <item quantity="few">Скапіяваць %1$d%2$s творы?</item>
-        <item quantity="many">Скапіяваць %1$d%2$s твораў?</item>
-        <item quantity="other">Скапіяваць %1$d%2$s твораў?</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d твор перанесен</item>
-        <item quantity="few">%d творы перанесены</item>
-        <item quantity="many">%d твораў перанесена</item>
-        <item quantity="other">%d твораў перанесена</item>
-    </plurals>
     <plurals name="num_pages">
         <item quantity="one">%1$d старонка</item>
         <item quantity="few">%1$d старонкі</item>

@@ -20,11 +20,6 @@
         <item quantity="few">%d vremena zaključavanja</item>
         <item quantity="other">%d vremena zaključavanja</item>
     </plurals>
-    <plurals name="migrate_entry">
-        <item quantity="one">Premjestiti %1$d%2$s unos?</item>
-        <item quantity="few">Premjestiti %1$d%2$s unosa?</item>
-        <item quantity="other">Premjestiti %1$d%2$s unosa?</item>
-    </plurals>
     <plurals name="eh_retry_toast">
         <item quantity="one">Ponovni pokušaj %1$d neuspjele stranice…</item>
         <item quantity="few">Ponovni pokušaj %1$d neuspjele stranice…</item>
@@ -34,16 +29,6 @@
         <item quantity="one">%1$d oznaka na popisu za razvrstavanje. Ovo dodaje opciju u biblioteci za razvrstavanje prema popisu oznaka temeljenom na prioritetu, što znači da će se unosi razvrstati na način da daju prioritet onima s oznakama koje želiš</item>
         <item quantity="few">%1$d oznake na popisu za razvrstavanje. Ovo dodaje opciju u biblioteci za razvrstavanje prema popisu oznaka temeljenom na prioritetu, što znači da će se unosi razvrstati na način da daju prioritet onima s oznakama koje želiš</item>
         <item quantity="other">%1$d oznaka na popisu za razvrstavanje. Ovo dodaje opciju u biblioteci za razvrstavanje prema popisu oznaka temeljenom na prioritetu, što znači da će se unosi razvrstati na način da daju prioritet onima s oznakama koje želiš</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">Kopirati %1$d%2$s unos?</item>
-        <item quantity="few">Kopirati %1$d%2$s unosa?</item>
-        <item quantity="other">Kopirati %1$d%2$s unosa?</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d unos je premješten</item>
-        <item quantity="few">%d unosa su premještena</item>
-        <item quantity="other">%d unosa je premješteno</item>
     </plurals>
     <plurals name="humanize_day">
         <item quantity="one">Prije %1$d dan</item>

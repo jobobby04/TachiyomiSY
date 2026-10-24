@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="action_skip_entry">Non migrare</string>
-    <string name="action_search_manually">Cerca manualmente</string>
-    <string name="action_migrate_now">Migra ora</string>
-    <string name="action_copy_now">Copia ora</string>
     <string name="entry_type_webtoon">Webtoon</string>
     <string name="entry_type_comic">Fumetto</string>
     <string name="entry_type_manhua">Manhua</string>
     <string name="pref_category_mangadex">MangaDex</string>
     <string name="pref_category_fork">Impostazioni dei Fork</string>
-    <string name="action_start_reading">Inizia a leggere</string>
     <string name="action_clean_titles">Titoli puliti</string>
     <string name="changelog_version">Versione %1$s</string>
     <string name="pref_mangadex_summary">Accesso MangaDex, sincronizzazione dei seguiti</string>
@@ -111,9 +106,6 @@
     <string name="pref_category_navbar">Menù di navigazione</string>
     <string name="pref_sorting_settings">Impostazioni di ordinamento</string>
     <string name="library_group_updates_global">Lancia sempre gli aggiornamenti globali</string>
-    <string name="pref_mark_read_dupe_chapters_summary">Marca i capitoli duplicati come letti dopo la lettura</string>
-    <string name="pref_library_mark_duplicate_chapters">Marca i nuovi capitoli duplicati come letti</string>
-    <string name="pref_library_mark_duplicate_chapters_summary">Marca automaticamente i nuovi capitoli come letti se sono stati letti in precedenza</string>
     <string name="update_30min">Ogni 30 minuti</string>
     <string name="update_1hour">Ogni ora</string>
     <string name="pref_hide_feed">Nascondi menù dei feed</string>
@@ -129,11 +121,9 @@
     <string name="pref_sync_now">Sincronizza ora</string>
     <string name="sync_in_progress">La sincronizzazione è già in corso</string>
     <string name="enable_source_blacklist">Abilita la blacklist delle sorgenti</string>
-    <string name="pref_mark_read_dupe_chapters">Segna i capitoli duplicati come letti</string>
     <string name="eh_settings_configuration_failed_message">È successo un errore durante il processo di configurazione: %1$s</string>
     <string name="time_between_batches_12_hours">12 ore</string>
     <string name="custom_igneous_cookie_message">Alcuni utenti non possono accedere ad ExHentai in un modo normale, devono passare un valore di cookie specifico, questa opzione è per quegli utenti.</string>
-    <string name="label_sync">Sincronizza</string>
     <string name="label_triggers">Triggers</string>
     <string name="sync_error">Sincronizzazione della libreria fallita</string>
     <string name="open_debug_menu_summary"><![CDATA[NON TOCCARE QUESTO MENÙ SE NON SAI QUELLO CHE STAI FACENDO! <font color=\'red\'>PUÒ CORROMPERE LA TUA LIBRERIA!</font>]]></string>
@@ -141,7 +131,6 @@
     <string name="toggle_hentai_features">Abilita funzionalità integrate degli hentai</string>
     <string name="open_debug_menu">Apri il menù di debug</string>
     <string name="update_3hour">Ogni 3 ore</string>
-    <string name="all_read_entries">Tutte le voci lette</string>
     <string name="sync_state_reset">Reset dello stato di sincronizzazione</string>
     <string name="pref_sync_service">Servizio</string>
     <string name="pref_sync_now_subtitle">Inizia la sincronizzazione immediata dei tuoi dati</string>
@@ -152,12 +141,6 @@
     <string name="google_drive">Google Drive</string>
     <string name="aes_256">AES 256</string>
     <string name="aes_128">AES 128</string>
-    <string name="reader_preload_amount_4_pages">4 Pagine</string>
-    <string name="reader_preload_amount_6_pages">6 Pagine</string>
-    <string name="reader_preload_amount_8_pages">8 Pagine</string>
-    <string name="reader_preload_amount_10_pages">10 Pagine</string>
-    <string name="reader_preload_amount_12_pages">12 Pagine</string>
-    <string name="reader_preload_amount_14_pages">14 Pagine</string>
     <string name="sunday">Domenica</string>
     <string name="saturday">Sabato</string>
     <string name="artist">Artista</string>
@@ -168,7 +151,6 @@
     <string name="friday">Venerdì</string>
     <string name="author">Autore</string>
     <string name="syncyomi">SyncYomi</string>
-    <string name="error_before_sync_gdrive">Errore prima della sincronizzazione: %s</string>
     <string name="biometric_lock_end_time">Inserisci l\'orario di fine</string>
     <string name="similar_titles">Titoli simili</string>
     <string name="anime_planet_id">Id Anime planet</string>
@@ -177,7 +159,6 @@
     <string name="anilist_id">Id Anilist</string>
     <string name="translated">Tradotto</string>
     <string name="language_translated">%1$s TR</string>
-    <string name="is_visible">Visibile: %1$s</string>
     <string name="relation_adapted_from">Adattato da</string>
     <string name="rating9">Fantastico</string>
     <string name="eh_autoscroll_freq_invalid">Frequenza non valida</string>
@@ -186,16 +167,8 @@
     <string name="center_margin_double_and_wide_page">Aggiungi a entrambi</string>
     <string name="az_recommends">Visualizza Suggerimenti</string>
     <string name="merge">Unisci</string>
-    <string name="title_hint">Titolo: %1$s</string>
-    <string name="description_hint">Descrizione: %1$s</string>
-    <string name="author_hint">Autore: %1$s</string>
-    <string name="artist_hint">Artista: %1$s</string>
     <string name="action_edit_tags">Modifica etichette</string>
     <string name="ext_redundant">Ridondante</string>
-    <string name="latest_">Ultimo: %1$s</string>
-    <string name="no_alternatives_found">Nessuna Alternativa Trovata</string>
-    <string name="stop_migrating">Fermare la migrazione?</string>
-    <string name="action_stop">Stop</string>
     <string name="favorites_sync_sync_error">Errore di sincronizzazione!</string>
     <string name="favorites_sync_unknown_error">Errore sconosciuto: %1$s</string>
     <string name="favorites_sync_reset">Sei sicuro?</string>
@@ -216,8 +189,6 @@
     <string name="relation_shared_universe">Universo condiviso</string>
     <string name="relation_sequel">Sequel</string>
     <string name="relation_spin_off">Spin-off</string>
-    <string name="reader_preload_amount_16_pages">16 Pagine</string>
-    <string name="reader_preload_amount_20_pages">20 Pagine</string>
     <string name="eh_retry_all">Ritenta tutto</string>
     <string name="action_save_first_page">Salva la prima pagina</string>
     <string name="action_save_second_page">Salva la seconda pagina</string>
@@ -291,7 +262,6 @@
     <string name="bandwidth_hero">Bandwidth Hero (necessita di un server proxy Bandwidth Hero)</string>
     <string name="bandwidth_data_saver_server">Server Proxy Bandwidth Hero Proxy</string>
     <string name="data_saver_server_summary">Inserisci l\'url del proxy server Bandwidth Hero</string>
-    <string name="clear_db_exclude_read">Mantieni entità con capitoli letti</string>
     <string name="put_recommends_in_overflow_summary">Inserisci il pulsante Raccomandazioni nel menu Overflow invece che nella pagina iniziale</string>
     <string name="put_merge_in_overflow">Unisci in overflow</string>
     <string name="put_merge_in_overflow_summary">Inserisci il pulsante di unione nel menu di overflow invece che nella pagina iniziale</string>
@@ -299,7 +269,6 @@
     <string name="pref_hide_history_button">Visualizza cronologia nella barra di navigazione</string>
     <string name="pref_show_bottom_bar_labels">Visualizza sempre le etichette nella barra di navigazione</string>
     <string name="pref_hide_updates_button">Visualizza aggiornamenti nella barra di navigazione</string>
-    <string name="pref_skip_pre_migration_summary">Utilizza le ultime preferenze e fonti salvate per eseguire la migrazione di massa</string>
     <string name="library_group_updates_all_but_ungrouped">Avviare aggiornamenti globali solo per i non raggruppati, aggiornamento di categorie per gli altri</string>
     <string name="rating8">Ottimo</string>
     <string name="rating4">Scarso</string>
@@ -322,7 +291,6 @@
     <string name="custom_entry_info">Informazioni sulla voce personalizzata (custom entry)</string>
     <string name="pref_sync_api_key_summ">Inserire la chiave API per sincronizzare la tua libreria</string>
     <string name="pref_sync_service_category">Sincronizza</string>
-    <string name="error_uploading_sync_data">Errore durante il caricamento dei dati di sincronizzazione su Google Drive</string>
     <string name="pref_purge_confirmation_title">Eliminazione confermata</string>
     <string name="pref_purge_confirmation_message">L\'eliminazione dei dati di sincronizzazione cancellerà definitivamente tutti i dati di sincronizzazione da Google Drive. Sei sicuro di voler continuare?</string>
     <string name="pref_sync_options">Crea trigger di sincronizzazione</string>
@@ -335,7 +303,6 @@
     <string name="pref_source_source_filtering_summery">Filtra le fonti che sono in categorie, facendo in modo che le fonti non vengano inserite nella lingua se sono in una categoria</string>
     <string name="google_drive_login_failed">Impossibile accedere a Google Drive: %s</string>
     <string name="google_drive_not_signed_in">Non hai effettuato l\'accesso a Google Drive</string>
-    <string name="error_deleting_google_drive_lock_file">Errore durante l\'eliminazione del file di blocco di Google Drive</string>
     <string name="biometric_lock_start_time">Inserisci l\'orario di inizio</string>
     <string name="delete_time_range">Elimina intervallo di tempo</string>
     <string name="encrypt_database_subtitle">È necessario riavviare l\'applicazione affinché abbia effetto</string>
