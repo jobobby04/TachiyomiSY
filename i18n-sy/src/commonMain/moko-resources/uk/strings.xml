@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="watched_tags_summary">Відкриває веб-перегляд на вашу сторінку переглянутих тегів E/ExHentai</string>
-    <string name="action_migrate_now">Мігрувати зараз</string>
     <string name="eh_image_quality_2400">2400x</string>
     <string name="please_login">Будь ласка, увійдіть!</string>
     <string name="show_updater_statistics">Показати статистику оновлень</string>
@@ -9,7 +8,6 @@
     <string name="enable_exhentai">Увімкнути ExHentai</string>
     <string name="changelog_version">Версія %1$s</string>
     <string name="pref_enhanced_e_hentai_view">Покращений перегляд E/ExHentai</string>
-    <string name="action_search_manually">Пошук вручну</string>
     <string name="pref_mangadex_summary">MangaDex логін, синхронізація галереї</string>
     <string name="ignore_sync_errors_summary">Не переривати синхронізацію одразу, якщо під час неї виникають помилки. Помилки все одно відображатимуться після завершення синхронізації. У деяких випадках може призвести до втрати вибраного. Корисно під час синхронізації великих бібліотек.</string>
     <string name="use_original_images_off">Наразі використовується ресемплінг зображень</string>
@@ -18,10 +16,7 @@
     <string name="requires_login">Потрібен логін</string>
     <string name="watched_list_default">Стан фільтра списку спостереження за замовчуванням</string>
     <string name="use_hentai_at_home_option_2">Тільки клієнти портів за замовчуванням</string>
-    <string name="action_skip_entry">Не мігрувати</string>
-    <string name="action_copy_now">Скопіювати зараз</string>
     <string name="action_clean_titles">Очистити назви</string>
-    <string name="action_start_reading">Почати читати</string>
     <string name="action_edit_info">Редагувати дані</string>
     <string name="entry_type_manhwa">Манхва</string>
     <string name="entry_type_manhua">Маньхва</string>
@@ -125,7 +120,6 @@
     <string name="wsrv">wsrv.nl</string>
     <string name="bandwidth_data_saver_server">Проксі-сервер Bandwidth Hero</string>
     <string name="data_saver_server_summary">Введіть адресу проксі-сервера Bandwidth Hero тут</string>
-    <string name="clear_db_exclude_read">Зберегти записи з прочитаними розділами</string>
     <string name="log_extra">Екстра</string>
     <string name="log_minimal">Мінімальний</string>
     <string name="log_extreme">Екстрім</string>
@@ -144,10 +138,6 @@
     <string name="data_saver_image_format_summary_off">Розмір файлу Jpeg значно менший, ніж Webp (тобто зберігається більше даних), але при цьому зображення втрачають більшу якість.\nНаразі стискається в Webp</string>
     <string name="toggle_expand_search_filters">Розгорнути всі фільтри пошуку за замовчуванням</string>
     <string name="pref_tracker_resolve_using_source_metadata">Вибирати записи за метаданими джерела</string>
-    <string name="pref_mark_read_dupe_chapters">Позначити повторювані розділи як прочитані</string>
-    <string name="pref_mark_read_dupe_chapters_summary">Після закінчення читання позначає повторювані розділи як прочитані</string>
-    <string name="pref_library_mark_duplicate_chapters">Позначати нові дублікати розділів як прочитані</string>
-    <string name="pref_library_mark_duplicate_chapters_summary">Автоматично позначати нові розділи як прочитані, якщо їх уже прочитали раніше</string>
     <string name="update_30min">Кожні 30 хвилин</string>
     <string name="update_1hour">Щогодини</string>
     <string name="update_3hour">Кожні 3 години</string>
@@ -160,13 +150,9 @@
     <string name="encryption_type">Тип шифрування</string>
     <string name="standard_zip_encryption">Стандартне шифрування zip (швидке, але ненадійне)</string>
     <string name="page_downloading">Завантаження сторінок</string>
-    <string name="download_threads">Потоки завантаження</string>
-    <string name="download_threads_summary">Вищі значення здатні значно пришвидшити завантаження зображень, але також можуть спровокувати бан. Рекомендоване значення - 2 або 3. Поточне значення: %s</string>
-    <string name="skip_queue_on_retry">Пропускати чергу повторної спроби</string>
     <string name="reader_bottom_buttons_summary">Налаштовує, які кнопки показуватимуться в нижній частині читалки</string>
     <string name="pref_clear_page_preview_cache">Очистити кеш сторінок</string>
     <string name="pref_tracker_resolve_using_source_metadata_summary">Автоматично вибирає відповідну назву, якщо джерело надає посилання на трекери. Наразі підтримується MangaDex</string>
-    <string name="label_sync">Синхронізація</string>
     <string name="label_triggers">Сценарії</string>
     <string name="pref_sync_now_group_title">Дії синхронізації</string>
     <string name="pref_sync_now">Синхронізувати зараз</string>
@@ -190,22 +176,9 @@
     <string name="biometric_lock_days">Дні біометричних блокувань</string>
     <string name="biometric_lock_days_summary">Дні, протягом яких застосунок буде заблоковано</string>
     <string name="delete_cbz_archive_password">Видалити пароль для CBZ архіву</string>
-    <string name="aggressively_load_pages">Агресивне завантаження сторінок</string>
-    <string name="aggressively_load_pages_summary">Повільно завантажує весь розділ під час читання замість того, щоб просто довантажувати сторінки, які ви переглядаєте.</string>
-    <string name="skip_queue_on_retry_summary">Типово, якщо натиснути кнопку повторити завантаження, програма чекатиме, доки завантажувач завершить завантажувати останню сторінку, а потім перейде до сторінки, на якій стався збій. Увімкнення цієї опції змусить програму почати перезавантаження невдалої сторінки, щойно ви натиснете кнопку.</string>
-    <string name="reader_preload_amount">Кількість перезавантажених сторінок</string>
     <string name="reader_cache_size">Розмір кешу читалки</string>
     <string name="reader_cache_size_summary">Кількість зображень збережених на пристрої під час читання. Вищі значення забезпечать більш плавне читання, але збільшать використання дискового простору</string>
     <string name="preserve_reading_position">Зберігати позицію читання для прочитаних розділів</string>
-    <string name="reader_preload_amount_4_pages">4 сторінки</string>
-    <string name="reader_preload_amount_6_pages">6 сторінок</string>
-    <string name="reader_preload_amount_8_pages">8 сторінок</string>
-    <string name="reader_preload_amount_10_pages">10 сторінок</string>
-    <string name="reader_preload_amount_12_pages">12 сторінок</string>
-    <string name="reader_preload_amount_14_pages">14 сторінок</string>
-    <string name="reader_preload_amount_16_pages">16 сторінок</string>
-    <string name="reader_preload_amount_20_pages">20 сторінок</string>
-    <string name="reader_preload_amount_summary">Кількість попередньо завантажених сторінок під час читання. Вищі значення забезпечать більш плавне читання, але ціною більшого використання кешу, тому рекомендується збільшити виділений обсяг кешу за вищих значень</string>
     <string name="auto_webtoon_mode">Автоматично визначити webtoon</string>
     <string name="auto_webtoon_mode_summary">Автоматично використовує довгу смугу, якщо запис імовірно є webtoon</string>
     <string name="tap_scroll_page">Натисніть для прокручування сторінки</string>
@@ -234,9 +207,9 @@
     <string name="pref_hide_history_button">Вкладка «Історія» на панелі навігації</string>
     <string name="pref_show_bottom_bar_labels">Назви вкладок на панелі навігації</string>
     <string name="pref_sorting_settings">Налаштування сортування</string>
-    <string name="pref_skip_pre_migration_summary">Використати останні збережені передміграційні налаштування та джерела для масового перенесення</string>
     <string name="library_group_updates">Оновлення бібліотеки для динамічних категорій</string>
     <string name="library_group_updates_global">Завжди запускати глобальні оновлення</string>
     <string name="library_group_updates_all_but_ungrouped">Глобальні оновлення тільки для групи «Не групувати». Інші групи використовують оновлення категорій</string>
     <string name="library_group_updates_all">Постійно запускати оновлення категорій</string>
+    <string name="pref_include_chapter_url_hash_desc">Додати перші шість символів хеша MD5 з URL-адреси розділу до назви файлу або папки розділу.</string>
 </resources>

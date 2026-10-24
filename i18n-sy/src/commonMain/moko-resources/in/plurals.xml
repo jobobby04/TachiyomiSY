@@ -18,22 +18,9 @@
         <item quantity="one">Ada %1$d tagar dalam daftar penyortiran. Ini menambahkan opsi di perpustakaan untuk mengurutkan berdasarkan daftar tagar berdasarkan prioritas, yang berarti manga akan diurutkan dengan cara memprioritaskan sesuai dengan tagar yang Anda inginkan</item>
         <item quantity="other">Ada %1$d tagar dalam daftar penyortiran. Ini menambahkan opsi di perpustakaan untuk mengurutkan berdasarkan daftar tagar berdasarkan prioritas, yang berarti manga akan diurutkan dengan cara memprioritaskan sesuai dengan tagar yang Anda inginkan</item>
     </plurals>
-    <plurals name="migrate_entry">
-        <item quantity="one">Pindahkan %1$d%2$s manga?</item>
-        <item quantity="other">Pindahkan %1$d%2$s manga?</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">Salin %1$d%2$s manga?</item>
-        <item quantity="other">Salin %1$d%2$s manga?</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d manga dipindahkan</item>
-        <item quantity="other">%d manga dipindahkan</item>
-    </plurals>
     <!-- Extra gallery info -->
     <plurals name="num_pages">
-        <item quantity="one">%1$d page</item>
-        <item quantity="other">%1$d pages</item>
+        <item quantity="other">%1$d halaman</item>
     </plurals>
     <!-- Enhanced E/ExHentai Browse View -->
     <plurals name="browse_language_and_pages">

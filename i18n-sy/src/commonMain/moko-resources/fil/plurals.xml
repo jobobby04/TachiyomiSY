@@ -24,18 +24,6 @@
         <item quantity="one">%1$d na tag sa listahan ng pagso-sort. Ito ay nagdaragdag ng opsyon sa aklatan upang mag-sort batay sa isang listahan ng mga tag na may priyoridad, ibig sabihin, ang mga entry ay iaayos upang unahin ang mga may tag na gusto mo</item>
         <item quantity="other">%1$d na mga tag sa listahan ng pagso-sort. Ito ay nagdaragdag ng opsyon sa aklatan upang mag-sort batay sa isang listahan ng mga tag na may priyoridad, ibig sabihin, ang mga entry ay iaayos upang unahin ang mga may tag na gusto mo</item>
     </plurals>
-    <plurals name="migrate_entry">
-        <item quantity="one">Maglipat ng %1$d%2$s na entry?</item>
-        <item quantity="other">Maglipat ng %1$d%2$s na mga entry?</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">Kopyahin ang %1$d%2$s na entry?</item>
-        <item quantity="other">Kopyahin ang %1$d%2$s na mga entry?</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d na entry ang nailipat</item>
-        <item quantity="other">%d na mga entry ang nailipat</item>
-    </plurals>
     <plurals name="num_pages">
         <item quantity="one">%1$d na pahina</item>
         <item quantity="other">%1$d na mga pahina</item>

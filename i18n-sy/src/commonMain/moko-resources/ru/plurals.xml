@@ -24,24 +24,6 @@
         <item quantity="many">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам, основанному на приоритете. Это означает, что будут отображатся только те серии, которые имеют добавленные тэги</item>
         <item quantity="other">%1$d тэгов в списке сортировки. Это добавляет в библиотеку возможность сортировки по тэгам, основанному на приоритете. Это означает, что будут отображатся только те серии, которые имеют добавленные тэги</item>
     </plurals>
-    <plurals name="migrate_entry">
-        <item quantity="one">Перенести %1$d%2$s серию?</item>
-        <item quantity="few">Перенести %1$d%2$s серии?</item>
-        <item quantity="many">Перенести %1$d%2$s серий?</item>
-        <item quantity="other">Перенести %1$d%2$s серий?</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">Копировать %1$d%2$s серию?</item>
-        <item quantity="few">Копировать %1$d%2$s серии?</item>
-        <item quantity="many">Копировать %1$d%2$s серий?</item>
-        <item quantity="other">Копировать %1$d%2$s серий?</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d серию перемещена</item>
-        <item quantity="few">%d серии перемещены</item>
-        <item quantity="many">%d серий перемещено</item>
-        <item quantity="other">%d серий перемещено</item>
-    </plurals>
     <!-- Extra gallery info -->
     <plurals name="num_pages">
         <item quantity="one">%1$d страница</item>

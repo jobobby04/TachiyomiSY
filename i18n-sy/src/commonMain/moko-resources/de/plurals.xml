@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <plurals name="migrate_entry">
-        <item quantity="one">%1$d%2$s Eintrag migrieren?</item>
-        <item quantity="other">%1$d%2$s Einträge migrieren?</item>
-    </plurals>
     <plurals name="eh_retry_toast">
         <item quantity="one">%1$d fehlgeschlagene Seite wird wiederholt…</item>
         <item quantity="other">%1$d fehlgeschlagene Seiten werden wiederholt…</item>
@@ -19,14 +15,6 @@
     <plurals name="num_lock_times">
         <item quantity="one">%d Sperrzeit</item>
         <item quantity="other">%d Sperrzeiten</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">%1$d%2$s Eintrag kopieren?</item>
-        <item quantity="other">%1$d%2$s Einträge kopieren?</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d Eintrag migriert</item>
-        <item quantity="other">%d Einträge migriert</item>
     </plurals>
     <plurals name="num_pages">
         <item quantity="one">%1$d Seite</item>
