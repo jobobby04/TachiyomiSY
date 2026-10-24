@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Actions -->
-    <string name="action_skip_entry">Ne pas migrer</string>
-    <string name="action_search_manually">Rechercher manuellement</string>
-    <string name="action_migrate_now">Migrer maintenant</string>
-    <string name="action_copy_now">Copier maintenant</string>
     <string name="action_clean_titles">Nettoyer les titres</string>
-    <string name="action_start_reading">Commencer à lire</string>
     <string name="action_edit_info">Modifier les informations</string>
     <!-- Manga Type -->
     <string name="entry_type_manhwa">Manhwa</string>
@@ -141,7 +135,6 @@
     <string name="put_recommends_in_overflow_summary">Placer le bouton de recommandations dans le menu de débordement plutôt que sur la page des séries</string>
     <!-- Library settings -->
     <string name="pref_sorting_settings">Paramètres de tri</string>
-    <string name="pref_skip_pre_migration_summary">Utilisez les dernières préférences et sources de pré-migration enregistrées pour migrer en masse</string>
     <string name="library_group_updates">Mises à jour des catégories dynamiques de la bibliothèque</string>
     <string name="library_group_updates_global">Toujours lancer des mises à jour globales</string>
     <string name="library_group_updates_all_but_ungrouped">Lancer des mises à jour globales uniquement pour les entrées non regroupées, lancer des mises à jour par catégorie pour les autres</string>
@@ -158,29 +151,11 @@
     <string name="biometric_lock_time_conflicts">Un temps de verrouillage entre en conflit avec celui qui existe déjà !</string>
     <string name="biometric_lock_start_time">Entrez l\'heure de début</string>
     <string name="biometric_lock_end_time">Entrez l\'heure de fin</string>
-    <!-- Reader Settings -->
-<!--        <string name="download_threads">Download threads</string>-->
-    <string name="download_threads_summary">Des valeurs plus élevées peuvent accélérer considérablement le téléchargement des images, mais peuvent également déclencher des Bannissement. La valeur recommandée est 2 ou 3. La valeur actuelle est : %s</string>
-    <string name="aggressively_load_pages">Charger les pages de manière agressive</string>
-    <string name="aggressively_load_pages_summary">Téléchargez lentement le chapitre entier pendant la lecture au lieu de simplement charger les pages que vous consultez.</string>
-    <string name="skip_queue_on_retry">Ignorer la file d\'attente lors d\'une nouvelle tentative</string>
-    <string name="skip_queue_on_retry_summary">Normalement, le fait d\'appuyer sur le bouton Réessayer en cas d\'échec du téléchargement attendra que le téléchargeur ait fini de télécharger la dernière page avant de recommencer à télécharger la page ayant échoué. L\'activation de cette option forcera le téléchargeur à recommencer le téléchargement de la page qui a échoué dès que vous appuyez sur le bouton Réessayer..</string>
-    <string name="reader_preload_amount">Montant de la précharge du lecteur</string>
-    <string name="reader_preload_amount_4_pages">4 Pages</string>
-    <string name="reader_preload_amount_6_pages">6 Pages</string>
-    <string name="reader_preload_amount_8_pages">8 Pages</string>
-    <string name="reader_preload_amount_10_pages">10 Pages</string>
-    <string name="reader_preload_amount_12_pages">12 Pages</string>
-    <string name="reader_preload_amount_14_pages">14 Pages</string>
-    <string name="reader_preload_amount_16_pages">16 Pages</string>
-    <string name="reader_preload_amount_20_pages">20 Pages</string>
-    <string name="reader_preload_amount_summary">Le nombre de pages à précharger lors de la lecture. Des valeurs plus élevées se traduiront par une expérience de lecture plus fluide, au prix d\'une utilisation plus élevée du cache, il est recommandé d\'augmenter la quantité de cache que vous allouez lorsque vous utilisez des valeurs plus grandes</string>
     <string name="reader_cache_size">Taille du cache du lecteur</string>
     <string name="reader_cache_size_summary">La quantité d\'images à enregistrer sur l\'appareil lors de la lecture. Des valeurs plus élevées se traduiront par une expérience de lecture plus fluide, au prix d\'une utilisation plus élevée de l\'espace disque</string>
     <string name="preserve_reading_position">Conserver la position de lecture sur la série lue</string>
     <string name="auto_webtoon_mode">Mode Webtoon automatique</string>
     <string name="auto_webtoon_mode_summary">Utilisez le mode Webtoon automatique pour les séries détectés comme susceptibles d\'utiliser le format de bande longue</string>
-    <string name="enable_zoom_out">Activer le zoom arrière</string>
     <string name="tap_scroll_page">Appuyez sur faire défiler par page</string>
     <!--    <string name="tap_scroll_page_summary">Tapping will scroll by page instead of screen size when this option is enabled</string>-->
 
@@ -210,8 +185,6 @@
     <string name="saved_searches">Recherches sauvegardées</string>
     <string name="save_search">Enregistrer la requête de recherche actuelle ?</string>
     <string name="save_search_hint">Mon nom de recherche</string>
-    <string name="save_search_failed_to_load">Échec du chargement des recherches enregistrées !</string>
-    <string name="save_search_failed_to_load_message">Une erreur s\'est produite lors du chargement de vos recherches enregistrées.</string>
     <string name="save_search_delete">Supprimer la requête de recherche enregistrée ?</string>
     <string name="save_search_delete_message">Voulez-vous vraiment supprimer votre requête de recherche enregistrée : \'%1$s\' ?</string>
     <!-- Source Categories -->
@@ -227,26 +200,7 @@
     <!-- Extension section -->
     <string name="ext_redundant">Redondante</string>
     <string name="redundant_extension_message">Cette extension est redondante et ne sera pas utilisée dans cette version de Tachiyomi.</string>
-    <!-- Migration -->
-    <string name="select_sources">Sélectionnez les sources</string>
-    <string name="select_none">Ne rien sélectionner</string>
     <string name="migration">Migration</string>
-    <string name="skip_pre_migration">Ignorer la pré-migration</string>
-    <string name="pre_migration_skip_toast">Pour afficher à nouveau cet écran, allez dans Paramètres -&gt; Bibliothèque.</string>
-    <string name="use_intelligent_search">Titre de la recherche + mots-clés du titre</string>
-    <string name="data_to_include_in_migration">Données à inclure dans la migration</string>
-    <string name="include_extra_search_parameter">Inclure un paramètre de recherche supplémentaire lors de la recherche</string>
-    <string name="use_most_chapters">Utiliser la source avec le plus de chapitres (plus lent)</string>
-    <string name="use_first_source">Utiliser la première source avec une alternative</string>
-    <string name="skip_this_step_next_time">Passer cette étape la prochaine fois</string>
-    <string name="search_parameter">Paramètres de recherche (par ex. langue : anglais)</string>
-    <string name="latest_">Dernière : %1$s</string>
-    <string name="migrating_to">Migrer vers</string>
-    <string name="match_pinned_sources">Faire correspondre les sources épinglées</string>
-    <string name="match_enabled_sources">Faire correspondre les sources activées</string>
-    <string name="no_chapters_found_for_migration">Aucun chapitre trouvé, cette série ne peut pas être utilisée pour la migration</string>
-    <string name="no_alternatives_found">Aucune alternative trouvée</string>
-    <string name="stop_migrating">Arrêter la migration ?</string>
     <!-- Library -->
     <!-- Library Sheet -->
     <string name="lewd">Obscène</string>
@@ -286,7 +240,6 @@
     <string name="favorites_sync_failed_to_add_to_local">Échec de l\'ajout de la galerie à la base de données locale :</string>
     <string name="favorites_sync_failed_to_add_to_local_error">\'%1$s\' %2$s</string>
     <string name="favorites_sync_failed_to_add_to_local_unknown_type">\'%1$s\' (%2$s) n\'est pas une galerie valide !</string>
-    <string name="favorites_sync_waiting_for_start">En attente du démarrage de la synchronisation</string>
     <string name="favorites_sync_gallery_in_multiple_categories">La galerie : %1$s appartient à plus d\'une catégorie (%2$s) !</string>
     <string name="favorites_sync_initializing">Initialisation de la synchronisation</string>
     <string name="favorites_sync_processing_throttle">%1$s\n\nLa synchronisation est actuellement en train de ralentir (pour éviter d\'être bannie d\'ExHentai) et peut prendre du temps à se terminer.</string>
@@ -315,7 +268,6 @@
     <string name="gallery_adder_source_uri_must_match">Erreur de vérification de correspondance d\'URI source !</string>
     <string name="gallery_adder_uri_map_to_gallery_error">Erreur de mappage de l\'URI source vers la galerie !</string>
     <string name="gallery_adder_uri_clean_error">Erreur de nettoyage de l\'URI source !</string>
-    <string name="gallery_adder_chapter_fetch_error">Échec de la mise à jour des chapitres pour la galerie : %1$s !</string>
     <string name="gallery_adder_could_not_add_gallery">Impossible d\'ajouter une galerie (url : %1$s) !</string>
     <!-- Intercept Activity -->
     <string name="launching_app">Lancement de l\'application…</string>
@@ -374,8 +326,6 @@
     <string name="japanese_title">Titre japonais</string>
     <string name="english_title">Titre anglais</string>
     <string name="short_title">Titre court</string>
-    <string name="cover_image_file_type">Type de fichier d\'image de couverture</string>
-    <string name="thumbnail_image_file_type">Type de fichier d\'image miniature</string>
     <string name="url">Url</string>
     <string name="uploader_capital">Uploader en majuscule</string>
     <string name="uploader">Uploader</string>
@@ -400,11 +350,6 @@
     <string name="download_merged_entry">Activer le téléchargement de nouveaux chapitres</string>
     <string name="download_merged_entry_desc">Activer ou désactiver cette option désactivera ou activera les téléchargements des chapitres pour cette série</string>
     <string name="merged_references_invalid">Références de fusion non valides</string>
-    <string name="merged_chapter_updates_error">Erreur de basculement des mises à jour de chapitre</string>
-    <string name="merged_toggle_download_chapters_error">Erreur de basculement des chapitres de téléchargement</string>
-    <string name="allow_deduplication">Autoriser la déduplication :</string>
-    <string name="deduplication_mode">Mode de déduplication :</string>
-    <string name="deduplication_entry_info">Info de la série :</string>
     <!-- MangaDex -->
     <string name="md_follows_unfollowed">Désabonné</string>
     <string name="mangadex_sync_follows_to_library">Synchronise les séries MangaDex dans votre bibliothèque</string>
@@ -430,9 +375,6 @@
     <string name="recheck_login_status">Revérifier le statut de la connexion</string>
     <string name="alternative_login_page">Page de connexion alternative</string>
     <string name="skip_page_restyling">Ignorer la refonte de la page</string>
-    <string name="pref_library_mark_duplicate_chapters_summary">Marquer automatiquement les nouveaux chapitres comme lus s’ils ont déjà été lus</string>
-    <string name="pref_library_mark_duplicate_chapters">Marquer les nouveaux chapitres en double comme lus</string>
-    <string name="pref_mark_read_dupe_chapters_summary">Marquer les chapitres en double comme lus après la lecture</string>
     <string name="pref_sync_host_summ">Saisissez l’adresse de l’hôte pour synchroniser votre bibliothèque</string>
     <string name="google_drive_not_signed_in">Pas connecté à Google Drive</string>
     <string name="syncyomi">SyncYomi</string>
@@ -446,7 +388,6 @@
     <string name="update_30min">Toutes les 30 minutes</string>
     <string name="update_1hour">Toutes les heures</string>
     <string name="custom_entry_info">Informations des séries personnalisées</string>
-    <string name="label_sync">Synchroniser</string>
     <string name="sync_error">Synchronisation des bibliothèques échoué</string>
     <string name="sync_complete">Synchronisation des bibliothèques complétée</string>
     <string name="pref_sync_host">Hôte</string>
@@ -461,8 +402,6 @@
     <string name="pref_google_drive_sign_in">Connexion</string>
     <string name="google_drive_login_success">Connecté à Google Drive</string>
     <string name="google_drive_login_failed">Impossible de se connecter à Google Drive : %s</string>
-    <string name="error_uploading_sync_data">Erreur lors du téléversement des données de synchronisation sur Google Drive</string>
-    <string name="pref_mark_read_dupe_chapters">Marquer les chapitres en double comme lus</string>
     <string name="pref_archive_reader_mode_summary">La manière dont les images contenues dans les archives, telles que CBZ ou CBR, sont chargées</string>
     <string name="reset_info">Réinitialiser les informations</string>
     <string name="too_many_in_feed">Trop de sources dans votre flux, vous ne pouvez pas en ajouter plus de 10</string>
@@ -489,10 +428,8 @@
     <string name="encrypt_database">Chiffrer la base de données</string>
     <string name="encrypt_database_subtitle">Le redémarrage de l\'application est nécessaire pour prendre effet</string>
     <string name="password_protect_downloads">Téléchargements protégés par mot de passe</string>
-    <string name="wrong_cbz_archive_password">Mauvais mot de passe pour l\'archive CBZ</string>
     <string name="aes_256">AES 256</string>
     <string name="aes_128">AES 128</string>
-    <string name="download_threads">Téléchargement des threads</string>
     <string name="reader_bottom_buttons">Boutons du bas du lecteur</string>
     <string name="eh_boost_page_downloading">Cette page est déjà en cours de téléchargement !</string>
     <string name="eh_autoscroll_freq_invalid">Fréquence non valide</string>
@@ -527,7 +464,6 @@
     <string name="pref_smooth_scroll">Défilement automatique fluide</string>
     <string name="eh_boost_page_invalid">Cette page ne peut pas être boostée (page invalide) !</string>
     <string name="shift_double_pages">Décaler d\'une page</string>
-    <string name="title_hint">Titre : %1$s</string>
     <string name="could_not_find_entry">Impossible de trouver la série dans la source !</string>
     <string name="save_search_invalid">Recherche sauvegardée invalide, les filtres ont changé</string>
     <string name="biometric_lock_days_summary">Jours de verrouillage de l\'application</string>
@@ -539,8 +475,6 @@
     <string name="failed_merge">Échec de la fusion de la série : %1$s</string>
     <string name="biometric_lock_days">Jours de verrouillage biométrique</string>
     <string name="bandwidth_data_saver_server">Serveur Proxy Bandwidth Hero</string>
-    <string name="error_deleting_google_drive_lock_file">Erreur lors de la suppression du fichier verrouillé de Google Drive</string>
-    <string name="all_read_entries">Toutes les séries lues</string>
     <string name="invert_double_pages">Inverser les doubles pages</string>
     <string name="set_cbz_zip_password">Définir le mot de passe de l\'archive CBZ</string>
     <string name="eh_boost_invalid_loader">Cette page ne peut pas être boostée (chargeur de page invalide) !</string>
@@ -549,7 +483,6 @@
     <string name="google_drive_sync_data_purged">Données de synchronisation supprimées de Google Drive</string>
     <string name="delete_time_range">Supprimer un intervalle de temps</string>
     <string name="delete_cbz_archive_password">Supprimer le mot de passe de l\'archive CBZ</string>
-    <string name="clear_db_exclude_read">Conserver les séries avec des chapitres lus</string>
     <string name="sunday">Dimanche</string>
     <string name="eh_boost_boosted">Page actuelle boostée !</string>
     <string name="pref_show_bottom_bar_labels">Toujours afficher les étiquettes de navigation</string>
@@ -572,7 +505,6 @@
     <string name="pref_source_source_filtering">Filtrer les sources par catégories</string>
     <string name="pref_source_source_filtering_summery">Filtrer les sources qui sont dans des catégories, de sorte que les sources ne soient pas placées sous la langue si elles sont dans une catégorie</string>
     <string name="google_drive_sync_data_purge_error">Erreur de purge des données de synchronisation de Google Drive, Essayez de vous connecter à nouveau.</string>
-    <string name="error_before_sync_gdrive">Erreur avant la synchronisation : %s</string>
     <string name="pref_purge_confirmation_title">Confirmation de la purge</string>
     <string name="sync_on_chapter_open">Synchronisation à l\'ouverture du chapitre</string>
     <string name="pref_sync_options">Créer des déclencheurs de synchronisation</string>
@@ -585,22 +517,15 @@
     <string name="archive_mode_cache_to_disk">Copier sur le disque</string>
     <string name="pref_archive_reader_mode">Mode lecteur d\'archives</string>
     <string name="entry_merged">Série fusionnée !</string>
-    <string name="description_hint">Description : %1$s</string>
     <string name="merged_already">Cette série est déjà fusionnée avec la série actuelle !</string>
-    <string name="author_hint">Auteur : %1$s</string>
-    <string name="artist_hint">Artiste : %1$s</string>
     <string name="merge_duplicate">Cette série fusionnée est un doublon !</string>
-    <string name="thumbnail_url_hint">Url de la vignette : %1$s</string>
     <string name="action_copy_first_page">Copier la première page</string>
     <string name="automatic_search_error">Erreur lors de la recherche automatique !</string>
     <string name="save_search_invalid_name">Nom de la recherche sauvegardée invalide</string>
     <string name="eh_boost_page_errored">La page n\'a pas pu être chargée, appuyez plutôt sur le bouton Réessayer !</string>
     <string name="data_saver_exclude">Exclure de l\'économiseur de données</string>
     <string name="password_protect_downloads_summary">Chiffre les téléchargements d\'archives CBZ avec le mot de passe donné.\nAVERTISSEMENT : LES DONNÉES CONTENUES DANS LES ARCHIVES SERONT PERDUES À JAMAIS SI VOUS OUBLIEZ LE MOT DE PASSE</string>
-    <string name="hide_not_found_entries">Masquer les séries non trouvées</string>
-    <string name="only_show_updated_entries">Afficher uniquement les séries avec de nouveaux chapitres</string>
     <string name="favorites_sync_conformation_message">Êtes-vous sûr de vouloir synchroniser vos favoris avec E-Hentai ?</string>
-    <string name="is_visible">Visible : %1$s</string>
     <string name="language_translated">%1$s TR</string>
     <string name="relation_based_on">Basé sur</string>
     <string name="relation_alternate_version">Version alternative</string>
@@ -609,7 +534,6 @@
     <string name="favorites_sync_unable_to_add_to_remote">Impossible d\'ajouter une galerie au serveur distant : \'%1$s\' (GID : %2$s) !</string>
     <string name="relation_main_story">Histoire principale</string>
     <string name="delete_tag">Supprimer le tag</string>
-    <string name="dedupe_most_chapters">Afficher la source avec le plus grand nombre de chapitres</string>
     <string name="relation_similar">Similaire</string>
     <string name="relation_side_story">Histoire parallèle</string>
     <string name="relation_sequel">Suite</string>
@@ -617,19 +541,14 @@
     <string name="relation_adapted_from">Adapté de</string>
     <string name="relation_shared_universe">Univers partagé</string>
     <string name="relation_monochrome">Monochrome</string>
-    <string name="no_dedupe">Pas de déduplication</string>
     <string name="relation_spin_off">Spin-off</string>
     <string name="no_valid_entry">Aucune série valide n\'a été sélectionnée</string>
-    <string name="action_stop">Stop</string>
-    <string name="skipping_">(saut de %1$d)</string>
     <string name="gallery_adder_could_not_identify_chapter">Impossible d\'identifier le chapitre (url : %1$s) !</string>
     <string name="page_previews">Aperçu des pages</string>
     <string name="more_previews">Plus d\'aperçus</string>
     <string name="pref_clear_page_preview_cache">Effacer le cache de l\'aperçu de la page</string>
     <string name="page_preview_page_go_to">Aller à</string>
     <string name="translated">Traduit</string>
-    <string name="dedupe_priority">Déduplication par priorité</string>
-    <string name="dedupe_highest_chapter">Afficher la source dont le numéro de chapitre est le plus élevé</string>
     <string name="relation_doujinshi">Doujinshi</string>
     <string name="relation_same_franchise">Même franchise</string>
     <string name="relation_alternate_story">Histoire alternative</string>
@@ -647,11 +566,7 @@
     <string name="scan_qr_code">Scannez un QR code</string>
     <string name="encrypt_database_message"><![CDATA[<font color=\'red\'> L'ACTIVER CRÉERA UNE NOUVELLE BASE DE DONNÉES. SUIVEZ CES ÉTAPES POUR CONSERVER VOS DONNÉES<br>1. PARAMÈTRES -> DONNÉES ET STOCKAGE -> CRÉER UNE SAUVEGARDE<br>2. PARAMÈTRES DE L'APPAREIL -> APPLICATION -> MIHON -> EFFACER LES DONNÉES<br>3. OUVRIR L'APPLICATION ET ACTIVER CETTE OPTION<br>4. PARAMÈTRES DE L'APPAREIL -> APPLICATION -> MIHON -> FORCER L'ARRÊT<br>5. PARAMÈTRES -> DONNÉES ET STOCKAGE -> RESTAURER UNE SAUVEGARDE</font>]]></string>
     <string name="pref_crop_borders_pager">Rogner les bordures Pagé</string>
-    <string name="rec_search">Rechercher des recommandations similaire</string>
     <string name="rec_hide_library_entries">Masquer les séries déjà présentes dans votre bibliothèque</string>
-    <string name="rec_services_to_search">Services de recommandation pour la recherche</string>
-    <string name="rec_group_source">Recommandations de sources</string>
-    <string name="rec_group_tracker">Recommandations du service de suivi</string>
     <string name="rec_common_recommendations">Recommandations communes</string>
     <string name="rec_search_short">Trouver des recommandations</string>
     <string name="rec_no_results">Aucune recommandation trouvée</string>
@@ -662,7 +577,6 @@
     <string name="rec_initializing">Initialisation</string>
     <string name="mangadex_push_favorites_to_mangadex_summary">Synchronise toutes les séries non suivies par MdList vers MangaDex en tant que lecture en cours.</string>
     <string name="similar_titles">Titres similaires</string>
-    <string name="select_scanlators">Groupes de scantrad à afficher</string>
     <string name="pref_include_chapter_url_hash">Inclure le hash de l\'URL du chapitre</string>
     <string name="pref_include_chapter_url_hash_desc">Ajoutez les six premiers caractères du hachage MD5 de l\'URL du chapitre au nom du fichier ou du dossier du chapitre.</string>
     <string name="filename">Nom du fichier</string>

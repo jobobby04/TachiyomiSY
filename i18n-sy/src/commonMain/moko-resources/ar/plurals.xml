@@ -16,22 +16,6 @@
         <item quantity="many">إعادة تحميل %1$d صفحة…</item>
         <item quantity="other">إعادة تحميل %1$d صفحة…</item>
     </plurals>
-    <plurals name="copy_entry">
-        <item quantity="zero">نسخ ٠ إدخال؟</item>
-        <item quantity="one">نسخ إدخال واحد؟</item>
-        <item quantity="two">نسخ إدخالان؟</item>
-        <item quantity="few">نسخ %1$d%2$s إدخالات؟</item>
-        <item quantity="many">نسخ %1$d%2$s إدخال؟</item>
-        <item quantity="other">نسخ %1$d%2$s إدخال؟</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="zero">تم نقل %d ادخال</item>
-        <item quantity="one">تم نقل %d ادخال</item>
-        <item quantity="two">تم نقل %d ادخال</item>
-        <item quantity="few">تم نقل %d ادخالات</item>
-        <item quantity="many">تم نقل %d ادخال</item>
-        <item quantity="other">تم نقل %d ادخال</item>
-    </plurals>
     <plurals name="humanize_hour">
         <item quantity="zero">الآن</item>
         <item quantity="one">منذُ ساعة</item>
@@ -95,14 +79,6 @@
         <item quantity="few">%d ‬أوقات إغلاق</item>
         <item quantity="many">%d ‬وقت إغلاق</item>
         <item quantity="other">%d ‬وقت إغلاق</item>
-    </plurals>
-    <plurals name="migrate_entry">
-        <item quantity="zero">ترحيل ‫ المدخل؟</item>
-        <item quantity="one">نقل مدخل؟</item>
-        <item quantity="two">نقل مدخلان؟</item>
-        <item quantity="few">نقل %1$d%2$s مدخل؟</item>
-        <item quantity="many">نقل %1$d%2$s مدخل؟</item>
-        <item quantity="other">نقل %1$d%2$s مدخل؟</item>
     </plurals>
     <plurals name="humanize_month">
         <item quantity="zero">%1$d شهر مضى</item>

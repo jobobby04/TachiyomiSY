@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <plurals name="migrate_entry">
-        <item quantity="one">%1$d%2$s girdi taşınsın mı?</item>
-        <item quantity="other">%1$d%2$s girdi taşınsın mı?</item>
-    </plurals>
     <plurals name="humanize_month">
         <item quantity="one">%1$d ay önce</item>
         <item quantity="other">%1$d ay önce</item>
@@ -37,16 +33,8 @@
         <item quantity="other">%2$s, %1$d sayfa</item>
     </plurals>
     <plurals name="cleanup_done">
-        <item quantity="one">Temizleme tamamlandı. %d klasör kaldırıldı</item>
-        <item quantity="other">Temizleme tamamlandı. %d klasörleri kaldırıldı</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d girdi taşındı</item>
-        <item quantity="other">%d girdi taşındı</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">%1$d%2$s girdi kopyalansın mı?</item>
-        <item quantity="other">%1$d%2$s girdi kopyalansın mı?</item>
+        <item quantity="one">Temizleme bitti. %d klasör kaldırıldı</item>
+        <item quantity="other">Temizleme bitti. %d klasör kaldırıldı</item>
     </plurals>
     <plurals name="humanize_minute">
         <item quantity="one">%1$d dakika önce</item>
@@ -67,5 +55,17 @@
     <plurals name="humanize_second">
         <item quantity="one">%1$d saniye önce</item>
         <item quantity="other">%1$d saniye önce</item>
+    </plurals>
+    <plurals name="num_favorites">
+        <item quantity="one">%1$s favori</item>
+        <item quantity="other">%1$s favori</item>
+    </plurals>
+    <plurals name="num_views">
+        <item quantity="one">%1$s görüntüleme</item>
+        <item quantity="other">%1$s görüntüleme</item>
+    </plurals>
+    <plurals name="rec_selected_entries">
+        <item quantity="one">Seçili %d girdi için</item>
+        <item quantity="other">Seçili %d girdi için</item>
     </plurals>
 </resources>
