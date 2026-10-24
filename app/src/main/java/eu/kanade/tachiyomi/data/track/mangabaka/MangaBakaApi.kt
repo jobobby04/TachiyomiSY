@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.data.track.mangabaka.dto.MangaBakaOAuth
 import eu.kanade.tachiyomi.data.track.mangabaka.dto.MangaBakaSearchResult
 import eu.kanade.tachiyomi.data.track.mangabaka.dto.MangaBakaUserProfile
 import eu.kanade.tachiyomi.data.track.mangabaka.dto.MangaBakaUserProfileResponse
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.GET
@@ -234,6 +235,32 @@ class MangaBakaApi(
             }
         }
     }
+
+    // SY ->
+    suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
+        return withContext(Dispatchers.IO) {
+            val url = "$API_BASE_URL/v1/series".toUri().buildUpon()
+                .appendPath(track.remoteId.toString())
+                .build()
+            with(json) {
+                authClient.newCall(GET(url.toString()))
+                    .awaitSuccess()
+                    .parseAs<MangaBakaItemResult>()
+                    .data
+                    .let {
+                        TrackMangaMetadata(
+                            remoteId = it.id,
+                            title = it.chooseBestTitle(),
+                            thumbnailUrl = it.cover.raw.url,
+                            description = it.description,
+                            authors = it.authors?.joinToString(separator = ", "),
+                            artists = it.artists?.joinToString(separator = ", "),
+                        )
+                    }
+            }
+        }
+    }
+    // <- SY
 
     suspend fun getCurrentUser(): MangaBakaUserProfile {
         return withContext(Dispatchers.IO) {
