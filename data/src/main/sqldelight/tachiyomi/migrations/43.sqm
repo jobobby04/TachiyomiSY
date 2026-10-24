@@ -425,6 +425,9 @@ CREATE INDEX manga_category_category_id_index ON manga_category(category_id);
 -- the real name; renaming a table into place makes SQLite rewrite its stored definition,
 -- leaving it spelled differently from the same table on a fresh install. The views were
 -- dropped at the top of this migration, so nothing refers to the name being moved.
+-- Migration 14 moved the table aside under the same name and never dropped it, so a database
+-- that went through it still holds that copy, which is stale and would block the rename.
+DROP TABLE IF EXISTS history_temp;
 ALTER TABLE history RENAME TO history_temp;
 
 CREATE TABLE history(
