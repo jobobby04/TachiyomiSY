@@ -185,11 +185,6 @@ fun ExhUtils(
                             fontFamily = FontFamily.SansSerif,
                             style = MaterialTheme.typography.labelLarge,
                         )
-                        Text(
-                            text = stringResource(SYMR.strings.eh_autoscroll_gestures_summary),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
                     }
                     Switch(
                         checked = autoScrollGesturesEnabled,
@@ -225,11 +220,6 @@ fun ExhUtils(
                             fontSize = 13.sp,
                             fontFamily = FontFamily.SansSerif,
                             style = MaterialTheme.typography.labelLarge,
-                        )
-                        Text(
-                            text = stringResource(SYMR.strings.eh_autoscroll_gesture_toasts_summary),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelSmall,
                         )
                     }
                     Switch(
