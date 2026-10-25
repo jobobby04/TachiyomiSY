@@ -86,6 +86,8 @@ class WebtoonViewer(
      * Currently active item. It can be a chapter page or a chapter transition.
      */
     var currentPage: Any? = null
+
+    // SY -->
     private var autoScrollEnabled = false
     private var autoScrollPaused = false
     private var autoScrollHasRuntimeSpeedOverride = false
@@ -95,6 +97,7 @@ class WebtoonViewer(
     private var autoScrollUiBlocked = false
     private var autoScrollGesturesEnabled = true
     private var autoScrollGestureToastsEnabled = true
+    // SY <--
 
     private val threshold: Int by lazy { readerPreferences.readerHideThreshold.get().threshold }
 
@@ -161,6 +164,7 @@ class WebtoonViewer(
             }
             false
         }
+        // SY -->
         recycler.autoScrollTogglePauseListener = ::toggleAutoScrollPause
         recycler.autoScrollActivateListener = ::startAutoScrollFromGesture
         recycler.autoScrollStopListener = ::stopAutoScroll
@@ -168,6 +172,7 @@ class WebtoonViewer(
         recycler.autoScrollInteractionListener = {
             interruptAutoScrollDelay = true
         }
+        // SY <--
 
         config.imagePropertyChangedListener = {
             recycler.sidePaddingPercent = config.sidePadding
@@ -227,10 +232,13 @@ class WebtoonViewer(
      */
     override fun destroy() {
         super.destroy()
+        // SY -->
         autoScrollToast?.cancel()
+        // SY <--
         scope.cancel()
     }
 
+    // SY -->
     fun syncAutoScrollSettings(enabled: Boolean, interval: Duration, forceInterval: Boolean = false) {
         val intervalMillis =
             interval.inWholeMilliseconds
@@ -310,6 +318,7 @@ class WebtoonViewer(
         interruptAutoScrollDelay = false
         return shouldInterrupt
     }
+    // SY <--
 
     /**
      * Called from the RecyclerView listener when a [page] is marked as active. It notifies the
@@ -506,6 +515,7 @@ class WebtoonViewer(
         )
     }
 
+    // SY -->
     private fun toggleAutoScrollPause() {
         if (!autoScrollEnabled) return
 
@@ -595,13 +605,17 @@ class WebtoonViewer(
             !autoScrollEnabled &&
             readerPreferences.autoscrollInterval.get() > 0f
     }
+    // SY <--
 }
 
 // Double the cache size to reduce rebinds/recycles incurred by the extra layout space on scroll direction changes
 private const val RECYCLER_VIEW_CACHE_SIZE = 4
+
+// SY -->
 private const val AUTO_SCROLL_POLL_DELAY_MILLIS = 100L
 private const val DEFAULT_AUTO_SCROLL_INTERVAL_MILLIS = 3_000L
 private const val MIN_AUTO_SCROLL_INTERVAL_MILLIS = 250L
 private const val MAX_AUTO_SCROLL_INTERVAL_MILLIS = 9_999_000L
 private const val AUTO_SCROLL_SPEED_UP_FACTOR = 0.9
 private const val AUTO_SCROLL_SPEED_DOWN_FACTOR = 1.1
+// SY <--

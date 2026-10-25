@@ -61,6 +61,8 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 
     var tapListener: ((MotionEvent) -> Unit)? = null
     var longTapListener: ((MotionEvent) -> Boolean)? = null
+
+    // SY -->
     var autoScrollTogglePauseListener: (() -> Unit)? = null
     var autoScrollActivateListener: (() -> Unit)? = null
     var autoScrollStopListener: (() -> Unit)? = null
@@ -80,6 +82,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
                 detector.resetAutoScrollActivationGestureState()
             }
         }
+    // SY <--
 
     private var isManuallyScrolling = false
     private var tapDuringManualScroll = false
@@ -96,6 +99,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(e: MotionEvent): Boolean {
+        // SY -->
         if (autoScrollGestureModeEnabled && detector.handleAutoScrollTouchEvent(e)) {
             return true
         }
@@ -103,6 +107,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
         if (autoScrollActivationGestureEnabled) {
             detector.trackAutoScrollActivationTouchEvent(e)
         }
+        // SY <--
 
         if (e.actionMasked == MotionEvent.ACTION_DOWN) {
             tapDuringManualScroll = isManuallyScrolling
@@ -112,6 +117,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
         return super.onTouchEvent(e)
     }
 
+    // SY -->
     fun isAutoScrollGestureModeEnabled(): Boolean {
         return autoScrollGestureModeEnabled
     }
@@ -119,6 +125,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
     fun isAutoScrollGestureInProgress(): Boolean {
         return autoScrollGestureModeEnabled && detector.isAutoScrollGestureInProgress()
     }
+    // SY <--
 
     override fun onScrolled(dx: Int, dy: Int) {
         super.onScrolled(dx, dy)
@@ -320,12 +327,18 @@ class WebtoonRecyclerView @JvmOverloads constructor(
         private var downX = 0
         private var downY = 0
         private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+
+        // SY -->
         private val tapTimeout = ViewConfiguration.getLongPressTimeout().toLong()
         private val autoScrollSpeedStep = resources.displayMetrics.density * 24f
         private val autoScrollStopThreshold = touchSlop * 4
+
+        // SY <--
         private var isZoomDragging = false
         var isDoubleTapping = false
         var isQuickScaling = false
+
+        // SY -->
         private var autoScrollPointerActive = false
         private var autoScrollStartX = 0f
         private var autoScrollStartY = 0f
@@ -513,6 +526,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 
             return true
         }
+        // SY <--
 
         override fun onTouchEvent(ev: MotionEvent): Boolean {
             val action = ev.actionMasked
@@ -590,6 +604,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
             return super.onTouchEvent(ev)
         }
 
+        // SY -->
         private fun averageY(event: MotionEvent): Float {
             var total = 0f
             for (index in 0 until event.pointerCount) {
@@ -597,15 +612,18 @@ class WebtoonRecyclerView @JvmOverloads constructor(
             }
             return total / event.pointerCount
         }
+        // SY <--
     }
 }
 
+// SY -->
 private enum class AutoScrollGestureMode {
     NONE,
     SPEED,
     MOVE,
     STOP,
 }
+// SY <--
 
 private const val ANIMATOR_DURATION_TIME = 200
 private const val MIN_RATE = 0.5f
