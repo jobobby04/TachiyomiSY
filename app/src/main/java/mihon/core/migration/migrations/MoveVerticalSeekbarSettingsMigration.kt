@@ -1,19 +1,29 @@
 package mihon.core.migration.migrations
 
-import android.app.Application
+import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
-import tachiyomi.core.common.util.lang.withIOContext
 
-class MoveVerticalSeekbarSettingsMigration : Migration {
+/**
+ * SY-specific file
+ */
+@Inject
+@ContributesIntoSet(AppScope::class)
+class MoveVerticalSeekbarSettingsMigration(
+    private val context: Context,
+    private val readerPreferences: ReaderPreferences,
+) : Migration {
     override val version: Float = 77f
 
-    override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
-        val context = migrationContext.get<Application>() ?: return@withIOContext false
-        val readerPreferences = migrationContext.get<ReaderPreferences>() ?: return@withIOContext false
+    override suspend fun invoke(migrationContext: MigrationContext): Boolean = withContext(Dispatchers.IO) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         prefs.edit {
             val forceHorzSeekbar = prefs.getBoolean("pref_force_horz_seekbar", false)
@@ -34,6 +44,6 @@ class MoveVerticalSeekbarSettingsMigration : Migration {
             remove("pref_left_handed_vertical_seekbar")
         }
 
-        return@withIOContext true
+        return@withContext true
     }
 }

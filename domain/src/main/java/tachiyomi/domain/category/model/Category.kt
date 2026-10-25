@@ -7,9 +7,11 @@ data class Category(
     val name: String,
     val order: Long,
     val flags: Long,
+    // SY -->
     val version: Long = 0,
     val uid: Long = 0,
     val lastModifiedAt: Long = 0,
+    // SY <--
 ) : Serializable {
 
     val isSystemCategory: Boolean = id == UNCATEGORIZED_ID

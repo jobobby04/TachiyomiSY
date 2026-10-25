@@ -2,30 +2,33 @@ package exh.md
 
 import android.net.Uri
 import androidx.lifecycle.lifecycleScope
+import dev.zacsweers.metro.Inject
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.ui.setting.track.BaseOAuthLoginActivity
 import exh.md.utils.MdUtil
-import kotlinx.coroutines.flow.first
-import tachiyomi.core.common.util.lang.launchIO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+/**
+ * SY-specific file
+ */
 class MangaDexLoginActivity : BaseOAuthLoginActivity() {
+
+    @Inject private lateinit var sourceManager: SourceManager
+
+    @Inject private lateinit var sourcePreferences: SourcePreferences
 
     override fun handleResult(uri: Uri) {
         val code = uri.getQueryParameter("code")
         if (code != null) {
-            lifecycleScope.launchIO {
-                val sourceManager = Injekt.get<SourceManager>()
-                sourceManager.isInitialized.first { it }
-                MdUtil.getEnabledMangaDex(sourceManager = sourceManager)?.login(code)
+            lifecycleScope.launch(Dispatchers.IO) {
+                MdUtil.getEnabledMangaDex(sourcePreferences, sourceManager)?.login(code)
                 returnToSettings()
             }
         } else {
-            lifecycleScope.launchIO {
-                val sourceManager = Injekt.get<SourceManager>()
-                sourceManager.isInitialized.first { it }
-                MdUtil.getEnabledMangaDex(sourceManager = sourceManager)?.logout()
+            lifecycleScope.launch(Dispatchers.IO) {
+                MdUtil.getEnabledMangaDex(sourcePreferences, sourceManager)?.logout()
                 returnToSettings()
             }
         }

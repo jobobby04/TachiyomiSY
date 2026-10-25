@@ -1,5 +1,8 @@
 package exh.util
 
+/**
+ * SY-specific file
+ */
 infix fun <T : Comparable<T>> T.over(other: T) = this > other
 
 infix fun <T : Comparable<T>> T.overEq(other: T) = this >= other

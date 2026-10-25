@@ -5,9 +5,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.category.SourceCategoryScreen
 import eu.kanade.presentation.category.components.CategoryCreateDialog
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
@@ -19,15 +19,18 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
 
+/**
+ * SY-specific file
+ */
 class SourceCategoryScreen : Screen() {
 
     @Composable
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { SourceCategoryScreenModel() }
+        val viewModel = metroViewModel<SourceCategoryViewModel>()
 
-        val state by screenModel.state.collectAsState()
+        val state by viewModel.state.collectAsState()
 
         if (state is SourceCategoryScreenState.Loading) {
             LoadingScreen()
@@ -38,9 +41,9 @@ class SourceCategoryScreen : Screen() {
 
         SourceCategoryScreen(
             state = successState,
-            onClickCreate = { screenModel.showDialog(SourceCategoryDialog.Create) },
-            onClickRename = { screenModel.showDialog(SourceCategoryDialog.Rename(it)) },
-            onClickDelete = { screenModel.showDialog(SourceCategoryDialog.Delete(it)) },
+            onClickCreate = { viewModel.showDialog(SourceCategoryDialog.Create) },
+            onClickRename = { viewModel.showDialog(SourceCategoryDialog.Rename(it)) },
+            onClickDelete = { viewModel.showDialog(SourceCategoryDialog.Delete(it)) },
             navigateUp = navigator::pop,
         )
 
@@ -48,8 +51,8 @@ class SourceCategoryScreen : Screen() {
             null -> {}
             SourceCategoryDialog.Create -> {
                 CategoryCreateDialog(
-                    onDismissRequest = screenModel::dismissDialog,
-                    onCreate = { screenModel.createCategory(it) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    onCreate = { viewModel.createCategory(it) },
                     // SY -->
                     categories = successState.categories,
                     title = stringResource(MR.strings.action_add_category),
@@ -58,8 +61,8 @@ class SourceCategoryScreen : Screen() {
             }
             is SourceCategoryDialog.Rename -> {
                 CategoryRenameDialog(
-                    onDismissRequest = screenModel::dismissDialog,
-                    onRename = { screenModel.renameCategory(dialog.category, it) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    onRename = { viewModel.renameCategory(dialog.category, it) },
                     // SY -->
                     categories = successState.categories,
                     category = dialog.category,
@@ -68,8 +71,8 @@ class SourceCategoryScreen : Screen() {
             }
             is SourceCategoryDialog.Delete -> {
                 CategoryDeleteDialog(
-                    onDismissRequest = screenModel::dismissDialog,
-                    onDelete = { screenModel.deleteCategory(dialog.category) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    onDelete = { viewModel.deleteCategory(dialog.category) },
                     // SY -->
                     title = stringResource(MR.strings.delete_category),
                     text = stringResource(MR.strings.delete_category_confirmation, dialog.category),
@@ -79,7 +82,7 @@ class SourceCategoryScreen : Screen() {
         }
 
         LaunchedEffect(Unit) {
-            screenModel.events.collectLatest { event ->
+            viewModel.events.collectLatest { event ->
                 if (event is SourceCategoryEvent.LocalizedMessage) {
                     context.toast(event.stringRes)
                 }

@@ -2,6 +2,9 @@ package exh.md.utils
 
 import java.util.Locale
 
+/**
+ * SY-specific file
+ */
 enum class FollowStatus(val long: Long) {
     UNFOLLOWED(0L),
     READING(1L),

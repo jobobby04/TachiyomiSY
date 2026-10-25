@@ -1,79 +1,88 @@
 package eu.kanade.tachiyomi.data.backup.restore.restorers
 
-import app.cash.sqldelight.async.coroutines.awaitAsOne
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
-import tachiyomi.data.Database
 import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.model.NewCategory
+import tachiyomi.domain.category.repository.CategoryRepository
 import tachiyomi.domain.library.service.LibraryPreferences
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@AssistedInject
 class CategoriesRestorer(
-    private val database: Database = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
+// SY -->
+    @Assisted private val isSync: Boolean,
+    private val categoryRepository: CategoryRepository,
+    // SY <--
+    private val getCategories: GetCategories,
+    private val libraryPreferences: LibraryPreferences,
 ) {
+    // SY -->
+    @AssistedFactory
+    fun interface Factory {
+        fun create(isSync: Boolean): CategoriesRestorer
+    }
+    // SY <--
 
     suspend operator fun invoke(backupCategories: List<BackupCategory>) {
-        if (backupCategories.isNotEmpty()) {
-            val dbCategories = getCategories.await()
+        if (backupCategories.isEmpty()) return
+
+        val dbCategories = getCategories.await()
+
+        // SY -->
+        if (isSync) {
             val dbCategoriesByName = dbCategories.associateBy { it.name }
-            // SY -->
-            val dbCategoriesByUid = dbCategories.associateBy { it.uid } // Map by UID
-            // SY <--
+            val dbCategoriesByUid = dbCategories.associateBy { it.uid }
 
-            var nextOrder = dbCategories.maxOfOrNull { it.order }?.plus(1) ?: 0
-
-            val categories = backupCategories
-                .sortedBy { it.order }
-                // SY -->
-                .map { backupCategory ->
-                    var dbCategory = if (backupCategory.uid != 0L) {
-                        dbCategoriesByUid[backupCategory.uid]
-                    } else {
-                        null
-                    }
-
-                    if (dbCategory == null) {
-                        dbCategory = dbCategoriesByName[backupCategory.name]
-                    }
-
-                    if (dbCategory != null) {
-                        database.categoriesQueries.update(
-                            name = backupCategory.name,
-                            order = backupCategory.order,
-                            flags = backupCategory.flags,
-                            version = backupCategory.version,
-                            uid = if (backupCategory.uid != 0L) backupCategory.uid else dbCategory.uid,
-                            last_modified_at = backupCategory.lastModifiedAt,
-                            isSyncing = 1,
-                            categoryId = dbCategory.id,
-                        )
-                        return@map dbCategory
-                    }
-
-                    val order = nextOrder++
-                    database.categoriesQueries.insert(
-                        backupCategory.name,
-                        order,
-                        backupCategory.flags,
-                        backupCategory.version,
-                        backupCategory.uid,
-                        backupCategory.lastModifiedAt,
-                    ).awaitAsOne()
-                        .let { id -> backupCategory.toCategory(id).copy(order = order) }
+            backupCategories.sortedBy { it.order }.forEach { backupCategory ->
+                var dbCategory = if (backupCategory.uid != 0L) {
+                    dbCategoriesByUid[backupCategory.uid]
+                } else {
+                    null
                 }
-            // SY <--
 
-            // SY -->
-            database.categoriesQueries.resetIsSyncing()
-            // SY <--
+                if (dbCategory == null) {
+                    dbCategory = dbCategoriesByName[backupCategory.name]
+                }
 
-            libraryPreferences.categorizedDisplaySettings.set(
-                (dbCategories + categories)
-                    .distinctBy { it.flags }
-                    .size > 1,
-            )
+                if (dbCategory != null) {
+                    categoryRepository.updateSync(
+                        name = backupCategory.name,
+                        order = backupCategory.order,
+                        flags = backupCategory.flags,
+                        version = backupCategory.version,
+                        uid = if (backupCategory.uid != 0L) backupCategory.uid else dbCategory.uid,
+                        lastModifiedAt = backupCategory.lastModifiedAt,
+                        categoryId = dbCategory.id,
+                    )
+                } else {
+                    categoryRepository.insertWithSync(
+                        name = backupCategory.name,
+                        order = backupCategory.order,
+                        flags = backupCategory.flags,
+                        version = backupCategory.version,
+                        uid = backupCategory.uid,
+                        lastModifiedAt = backupCategory.lastModifiedAt,
+                    )
+                }
+            }
+            categoryRepository.resetIsSyncing()
+            return
         }
+        // SY <--
+
+        val dbCategoryNames = dbCategories.mapTo(HashSet()) { it.name }
+
+        val newCategories = backupCategories
+            .filter { it.name !in dbCategoryNames }
+            .sortedBy { it.order }
+        categoryRepository.insertAll(newCategories.map { NewCategory(name = it.name, flags = it.flags) })
+
+        val flags = buildSet {
+            dbCategories.mapTo(this) { it.flags }
+            newCategories.mapTo(this) { it.flags }
+        }
+        libraryPreferences.categorizedDisplaySettings.set(flags.size > 1)
     }
 }

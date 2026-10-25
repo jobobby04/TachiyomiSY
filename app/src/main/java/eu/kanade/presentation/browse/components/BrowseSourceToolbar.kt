@@ -1,10 +1,5 @@
 package eu.kanade.presentation.browse.components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.automirrored.outlined.Help
-import androidx.compose.material.icons.filled.ViewModule
-import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -21,6 +16,13 @@ import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.Source
 import exh.source.anyIs
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredroundedfilled.ViewList
+import mihon.icons.materialsymbols.rounded.Public
+import mihon.icons.materialsymbols.roundedfilled.ViewCompact
+import mihon.icons.materialsymbols.roundedfilled.ViewModule
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.automirroredroundedfilled.Help
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -31,7 +33,7 @@ fun BrowseSourceToolbar(
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
     source: Source?,
-    displayMode: LibraryDisplayMode?,
+    displayMode: /* SY --> */ LibraryDisplayMode? /* SY <-- */,
     onDisplayModeChange: (LibraryDisplayMode) -> Unit,
     navigateUp: () -> Unit,
     onWebViewClick: () -> Unit,
@@ -43,7 +45,7 @@ fun BrowseSourceToolbar(
     // Avoid capturing unstable source in actions lambda
     val title = source?.name
     val isLocalSource = source is LocalSource
-    val isConfigurableSource = source?.anyIs<ConfigurableSource>() == true
+    val isConfigurableSource = /* SY --> */ source?.anyIs<ConfigurableSource>() == true /* SY <-- */
 
     var selectingDisplayMode by remember { mutableStateOf(false) }
 
@@ -57,14 +59,17 @@ fun BrowseSourceToolbar(
         actions = {
             AppBarActions(
                 actions = buildList {
+                    // SY -->
                     if (displayMode != null) {
                         add(
                             AppBar.Action(
                                 title = stringResource(MR.strings.action_display_mode),
-                                icon = if (displayMode == LibraryDisplayMode.List) {
-                                    Icons.AutoMirrored.Filled.ViewList
-                                } else {
-                                    Icons.Filled.ViewModule
+                                icon = when (displayMode) {
+                                    LibraryDisplayMode.List -> MaterialSymbols.AutoMirroredRoundedFilled.ViewList
+                                    LibraryDisplayMode.ComfortableGrid -> MaterialSymbols.RoundedFilled.ViewModule
+                                    LibraryDisplayMode.CompactGrid,
+                                    LibraryDisplayMode.CoverOnlyGrid,
+                                    -> MaterialSymbols.RoundedFilled.ViewCompact
                                 },
                                 onClick = { selectingDisplayMode = true },
                             ),
@@ -82,7 +87,7 @@ fun BrowseSourceToolbar(
                             add(
                                 AppBar.Action(
                                     title = stringResource(MR.strings.label_help),
-                                    icon = Icons.AutoMirrored.Outlined.Help,
+                                    icon = SYMaterialSymbols.AutoMirroredRoundedFilled.Help,
                                     onClick = onHelpClick,
                                 ),
                             )
@@ -91,7 +96,7 @@ fun BrowseSourceToolbar(
                         if (isConfigurableSource && displayMode != null) {
                             add(
                                 AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_web_view),
+                                    title = stringResource(MR.strings.action_open_in_web_view),
                                     onClick = onWebViewClick,
                                 ),
                             )
@@ -99,7 +104,7 @@ fun BrowseSourceToolbar(
                             add(
                                 AppBar.Action(
                                     title = stringResource(MR.strings.action_web_view),
-                                    icon = Icons.Outlined.Public,
+                                    icon = MaterialSymbols.Rounded.Public,
                                     onClick = onWebViewClick,
                                 ),
                             )

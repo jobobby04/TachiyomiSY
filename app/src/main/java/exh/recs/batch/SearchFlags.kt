@@ -1,5 +1,8 @@
 package exh.recs.batch
 
+/**
+ * SY-specific file
+ */
 object SearchFlags {
 
     const val INCLUDE_SOURCES = 0b00001

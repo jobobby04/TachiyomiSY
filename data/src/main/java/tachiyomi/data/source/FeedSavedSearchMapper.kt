@@ -2,6 +2,9 @@ package tachiyomi.data.source
 
 import tachiyomi.domain.source.model.FeedSavedSearch
 
+/**
+ * SY-specific file
+ */
 object FeedSavedSearchMapper {
     fun map(
         id: Long,

@@ -50,7 +50,7 @@ internal fun LibraryList(
                     mangaId = manga.id,
                     sourceId = manga.source,
                     isMangaFavorite = manga.favorite,
-                    ogUrl = manga.thumbnailUrl,
+                    /* SY --> */ ogUrl /* SY <-- */ = manga.thumbnailUrl,
                     lastModified = manga.coverLastModified,
                 ),
                 badge = {

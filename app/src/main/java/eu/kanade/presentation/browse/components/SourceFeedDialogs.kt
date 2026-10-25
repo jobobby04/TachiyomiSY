@@ -8,6 +8,9 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun SourceFeedAddDialog(
     onDismissRequest: () -> Unit,

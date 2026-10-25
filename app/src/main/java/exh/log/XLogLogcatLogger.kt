@@ -4,6 +4,9 @@ import com.elvishew.xlog.XLog
 import logcat.LogPriority
 import logcat.LogcatLogger
 
+/**
+ * SY-specific file
+ */
 class XLogLogcatLogger : LogcatLogger {
 
     override fun log(priority: LogPriority, tag: String, message: String) {

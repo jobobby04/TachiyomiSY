@@ -14,6 +14,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import com.elvishew.xlog.Logger
 import com.elvishew.xlog.XLog
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
 import eu.kanade.tachiyomi.data.library.LibraryUpdateNotifier
 import eu.kanade.tachiyomi.data.notification.Notifications
@@ -22,6 +23,7 @@ import eu.kanade.tachiyomi.util.system.isConnectedToWifi
 import eu.kanade.tachiyomi.util.system.setForegroundSafely
 import eu.kanade.tachiyomi.util.system.workManager
 import exh.debug.DebugToggles
+import exh.debug.isEnabled
 import exh.eh.EHentaiUpdateWorkerConstants.UPDATES_PER_ITERATION
 import exh.log.xLog
 import exh.metadata.metadata.EHentaiSearchMetadata
@@ -31,7 +33,11 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
+import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
+import mihon.core.metro.metroGraph
 import mihon.domain.source.interactor.UpdateMangaFromRemote
+import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 import tachiyomi.domain.chapter.model.Chapter
@@ -43,30 +49,46 @@ import tachiyomi.domain.manga.interactor.GetFlatMetadataById
 import tachiyomi.domain.manga.interactor.InsertFlatMetadata
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.days
 
+/**
+ * SY-specific file
+ */
 class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
-    private val exhPreferences: ExhPreferences by injectLazy()
-    private val libraryPreferences: LibraryPreferences by injectLazy()
-    private val sourceManager: SourceManager by injectLazy()
-    private val updateHelper: EHentaiUpdateHelper by injectLazy()
-    private val logger: Logger by lazy { xLog() }
-    private val updateMangaFromRemote: UpdateMangaFromRemote by injectLazy()
-    private val syncChaptersWithSource: SyncChaptersWithSource by injectLazy()
-    private val getChaptersByMangaId: GetChaptersByMangaId by injectLazy()
-    private val getFlatMetadataById: GetFlatMetadataById by injectLazy()
-    private val insertFlatMetadata: InsertFlatMetadata by injectLazy()
-    private val getExhFavoriteMangaWithMetadata: GetExhFavoriteMangaWithMetadata by injectLazy()
+    private val graph: AppGraph = context.metroGraph()
 
-    private val updateNotifier by lazy { EHentaiUpdateNotifier(context) }
-    private val libraryUpdateNotifier by lazy { LibraryUpdateNotifier(context) }
+    @Inject private lateinit var exhPreferences: ExhPreferences
+
+    @Inject private lateinit var libraryPreferences: LibraryPreferences
+
+    @Inject private lateinit var sourceManager: SourceManager
+
+    @Inject private lateinit var updateHelper: EHentaiUpdateHelper
+    private val logger: Logger by lazy { xLog() }
+
+    @Inject private lateinit var updateMangaFromRemote: UpdateMangaFromRemote
+
+    @Inject private lateinit var syncChaptersWithSource: SyncChaptersWithSource
+
+    @Inject private lateinit var getChaptersByMangaId: GetChaptersByMangaId
+
+    @Inject private lateinit var getFlatMetadataById: GetFlatMetadataById
+
+    @Inject private lateinit var insertFlatMetadata: InsertFlatMetadata
+
+    @Inject private lateinit var getExhFavoriteMangaWithMetadata: GetExhFavoriteMangaWithMetadata
+
+    @Inject private lateinit var updateNotifier: EHentaiUpdateNotifier
+
+    @Inject private lateinit var libraryUpdateNotifier: LibraryUpdateNotifier
+
+    @Inject private lateinit var preferenceStore: PreferenceStore
 
     override suspend fun doWork(): Result {
+        graph.inject(this)
+
         return try {
             if (requiresWifiConnection(exhPreferences) && !context.isConnectedToWifi()) {
                 Result.success() // retry again later
@@ -114,14 +136,14 @@ class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerPara
             if (raisedMeta.aged ||
                 (
                     curTime - raisedMeta.lastUpdateCheck < MIN_BACKGROUND_UPDATE_FREQ &&
-                        DebugToggles.RESTRICT_EXH_GALLERY_UPDATE_CHECK_FREQUENCY.enabled
+                        DebugToggles.RESTRICT_EXH_GALLERY_UPDATE_CHECK_FREQUENCY.isEnabled(preferenceStore)
                     )
             ) {
                 return@mapNotNull null
             }
 
             val chapter = getChaptersByMangaId.await(manga.id).minByOrNull {
-                it.dateUpload
+                it.dateUpload?.toEpochMilliseconds() ?: 0L
             }
 
             UpdateEntry(manga, raisedMeta, chapter)
@@ -278,7 +300,7 @@ class EHentaiUpdateWorker(private val context: Context, workerParams: WorkerPara
         }
 
         fun scheduleBackground(context: Context, prefInterval: Int? = null, prefRestrictions: Set<String>? = null) {
-            val exhPreferences = Injekt.get<ExhPreferences>()
+            val exhPreferences = context.appGraph.exhPreferences
             val interval = prefInterval ?: exhPreferences.exhAutoUpdateFrequency.get()
             if (interval > 0) {
                 val restrictions = prefRestrictions ?: exhPreferences.exhAutoUpdateRequirements.get()

@@ -1,9 +1,14 @@
 package eu.kanade.domain.manga.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import tachiyomi.domain.library.service.LibraryPreferences
 
+/**
+ * SY-specific file
+ */
+@Inject
 class GetSortTag(private val preferences: LibraryPreferences) {
 
     fun subscribe(): Flow<List<String>> {

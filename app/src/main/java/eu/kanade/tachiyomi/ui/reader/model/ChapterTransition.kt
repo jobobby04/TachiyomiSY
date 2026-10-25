@@ -1,6 +1,6 @@
 package eu.kanade.tachiyomi.ui.reader.model
 
-sealed class ChapterTransition : ReaderItem {
+sealed class ChapterTransition /* SY --> */ : ReaderItem/* SY <-- */ {
 
     abstract val from: ReaderChapter
     abstract val to: ReaderChapter?

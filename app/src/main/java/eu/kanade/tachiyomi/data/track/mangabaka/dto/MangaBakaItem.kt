@@ -52,6 +52,9 @@ data class MangaBakaItem(
 
 @Serializable
 data class MangaBakaCover(
+    // SY ->
+    val raw: MangaBakaRawCover,
+    // <- SY
     val x250: MangaBakaScaledCover,
 )
 
@@ -59,6 +62,13 @@ data class MangaBakaCover(
 data class MangaBakaScaledCover(
     val x1: String?,
 )
+
+// SY ->
+@Serializable
+data class MangaBakaRawCover(
+    val url: String?,
+)
+// <- SY
 
 @Serializable
 data class MangaBakaPublishData(

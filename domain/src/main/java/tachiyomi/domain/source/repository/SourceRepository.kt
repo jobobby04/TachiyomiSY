@@ -8,7 +8,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.Source
 import tachiyomi.domain.source.model.SourceWithCount
 
-typealias SourcePagingSource = PagingSource<Long, /*SY --> */ Pair<Manga, RaisedSearchMetadata?>/*SY <-- */>
+typealias SourcePagingSource = PagingSource<Long, /* SY --> */Pair<Manga, RaisedSearchMetadata?>/* SY <-- */>
 
 interface SourceRepository {
 

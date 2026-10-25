@@ -1,7 +1,5 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
-    alias(mihonx.plugins.kotlin.multiplatform)
+    alias(mihonx.plugins.android.library)
     alias(mihonx.plugins.spotless)
 
     alias(libs.plugins.kotlin.serialization)
@@ -9,49 +7,30 @@ plugins {
     id("com.github.ben-manes.versions")
 }
 
-kotlin {
-    @Suppress("UnstableApiUsage")
-    android {
-        namespace = "eu.kanade.tachiyomi.source"
-        optimization {
-            consumerKeepRules.apply {
-                publish = true
-                file("consumer-proguard.pro")
-            }
-        }
+android {
+    namespace = "eu.kanade.tachiyomi.source"
 
-        // TODO(antsy): Remove when https://youtrack.jetbrains.com/issue/KT-83319 is resolved
-        withHostTest { }
+    defaultConfig {
+        consumerProguardFiles("consumer-proguard.pro")
     }
+}
 
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    dependencies {
-        api(libs.kotlinx.serialization.json)
-        api(libs.injekt)
-        api(libs.rxJava)
-        api(libs.jsoup)
+dependencies {
+    implementation(projects.core.common)
 
-        implementation(platform(libs.androidx.compose.bom))
-        implementation(libs.androidx.compose.runtime)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.injekt)
+    implementation(libs.rxJava)
+    implementation(libs.jsoup)
 
-        // SY -->
-        api(projects.i18n)
-        api(projects.i18nSy)
-        api(libs.kotlin.reflect)
-        // SY <--
-    }
+    implementation(libs.androidx.preference)
 
-    sourceSets {
-        androidMain {
-            dependencies {
-                implementation(projects.core.common)
-                api(libs.androidx.preference)
-            }
-        }
-    }
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.runtime)
 
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
+    // SY -->
+    implementation(projects.i18n)
+    implementation(projects.i18nSy)
+    implementation(libs.kotlin.reflect)
+    // SY <--
 }

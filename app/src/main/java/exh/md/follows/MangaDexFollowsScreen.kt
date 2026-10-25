@@ -10,41 +10,46 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.components.BrowseSourceSimpleToolbar
 import eu.kanade.presentation.browse.components.RemoveMangaDialog
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
+import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceViewModel
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
-import exh.ui.ifSourcesLoaded
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import mihon.feature.migration.dialog.MigrateMangaDialog
 import mihon.presentation.core.util.collectAsLazyPagingItems
-import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
 
+/**
+ * SY-specific file
+ */
 class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
 
     @Composable
     override fun Content() {
-        if (!ifSourcesLoaded()) {
-            LoadingScreen()
-            return
-        }
-
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
-        val screenModel = rememberScreenModel { MangaDexFollowsScreenModel(sourceId) }
-        val state by screenModel.state.collectAsState()
+        val viewModel = assistedMetroViewModel<MangaDexFollowsViewModel, MangaDexFollowsViewModel.Factory> {
+            create(sourceId = sourceId)
+        }
+        val state by viewModel.state.collectAsState()
+
+        if (state.source == null) {
+            LoadingScreen()
+            return
+        }
 
         val snackbarHostState = remember { SnackbarHostState() }
 
@@ -52,8 +57,8 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
             topBar = { scrollBehavior ->
                 BrowseSourceSimpleToolbar(
                     title = stringResource(SYMR.strings.mangadex_follows),
-                    displayMode = screenModel.displayMode,
-                    onDisplayModeChange = { screenModel.displayMode = it },
+                    displayMode = viewModel.displayMode,
+                    onDisplayModeChange = { viewModel.displayMode = it },
                     navigateUp = navigator::pop,
                     scrollBehavior = scrollBehavior,
                 )
@@ -63,13 +68,13 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
             },
         ) { paddingValues ->
             BrowseSourceContent(
-                source = screenModel.source,
-                mangaList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
-                columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
+                source = state.source,
+                mangaList = viewModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
+                columns = viewModel.getColumnsPreference(LocalConfiguration.current.orientation),
                 // SY -->
-                ehentaiBrowseDisplayMode = screenModel.ehentaiBrowseDisplayMode,
+                ehentaiBrowseDisplayMode = viewModel.ehentaiBrowseDisplayMode,
                 // SY <--
-                displayMode = screenModel.displayMode,
+                displayMode = viewModel.displayMode,
                 snackbarHostState = snackbarHostState,
                 contentPadding = paddingValues,
                 onWebViewClick = null,
@@ -77,17 +82,17 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
                 onLocalSourceHelpClick = null,
                 onMangaClick = { navigator.push(MangaScreen(it.id, true)) },
                 onMangaLongClick = { manga ->
-                    scope.launchIO {
-                        val duplicateManga = screenModel.getDuplicateLibraryManga(manga)
+                    scope.launch(Dispatchers.IO) {
+                        val duplicateManga = viewModel.getDuplicateLibraryManga(manga)
                         when {
-                            manga.favorite -> screenModel.setDialog(BrowseSourceScreenModel.Dialog.RemoveManga(manga))
-                            duplicateManga.isNotEmpty() -> screenModel.setDialog(
-                                BrowseSourceScreenModel.Dialog.AddDuplicateManga(
+                            manga.favorite -> viewModel.setDialog(BrowseSourceViewModel.Dialog.RemoveManga(manga))
+                            duplicateManga.isNotEmpty() -> viewModel.setDialog(
+                                BrowseSourceViewModel.Dialog.AddDuplicateManga(
                                     manga,
                                     duplicateManga,
                                 ),
                             )
-                            else -> screenModel.addFavorite(manga)
+                            else -> viewModel.addFavorite(manga)
                         }
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     }
@@ -95,9 +100,9 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
             )
         }
 
-        val onDismissRequest = { screenModel.setDialog(null) }
+        val onDismissRequest = { viewModel.setDialog(null) }
         when (val dialog = state.dialog) {
-            is BrowseSourceScreenModel.Dialog.Migrate -> {
+            is BrowseSourceViewModel.Dialog.Migrate -> {
                 MigrateMangaDialog(
                     current = dialog.current,
                     target = dialog.target,
@@ -106,25 +111,25 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
                     onDismissRequest = onDismissRequest,
                 )
             }
-            is BrowseSourceScreenModel.Dialog.AddDuplicateManga -> {
+            is BrowseSourceViewModel.Dialog.AddDuplicateManga -> {
                 DuplicateMangaDialog(
                     duplicates = dialog.duplicates,
                     onDismissRequest = onDismissRequest,
-                    onConfirm = { screenModel.addFavorite(dialog.manga) },
+                    onConfirm = { viewModel.addFavorite(dialog.manga) },
                     onOpenManga = { navigator.push(MangaScreen(it.id)) },
-                    onMigrate = { screenModel.setDialog(BrowseSourceScreenModel.Dialog.Migrate(dialog.manga, it)) },
+                    onMigrate = { viewModel.setDialog(BrowseSourceViewModel.Dialog.Migrate(dialog.manga, it)) },
                 )
             }
-            is BrowseSourceScreenModel.Dialog.RemoveManga -> {
+            is BrowseSourceViewModel.Dialog.RemoveManga -> {
                 RemoveMangaDialog(
                     onDismissRequest = onDismissRequest,
                     onConfirm = {
-                        screenModel.changeMangaFavorite(dialog.manga)
+                        viewModel.changeMangaFavorite(dialog.manga)
                     },
                     mangaToRemove = dialog.manga,
                 )
             }
-            is BrowseSourceScreenModel.Dialog.ChangeMangaCategory -> {
+            is BrowseSourceViewModel.Dialog.ChangeMangaCategory -> {
                 ChangeCategoryDialog(
                     initialSelection = dialog.initialSelection,
                     onDismissRequest = onDismissRequest,
@@ -132,8 +137,8 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
                         navigator.push(CategoryScreen())
                     },
                     onConfirm = { include, _ ->
-                        screenModel.changeMangaFavorite(dialog.manga)
-                        screenModel.moveMangaToCategories(dialog.manga, include)
+                        viewModel.changeMangaFavorite(dialog.manga)
+                        viewModel.moveMangaToCategories(dialog.manga, include)
                     },
                 )
             }

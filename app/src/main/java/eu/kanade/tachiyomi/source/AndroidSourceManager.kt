@@ -1,20 +1,25 @@
 package eu.kanade.tachiyomi.source
 
-import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.EHentai
+import eu.kanade.tachiyomi.source.online.all.Hitomi
 import eu.kanade.tachiyomi.source.online.all.Lanraragi
 import eu.kanade.tachiyomi.source.online.all.MangaDex
 import eu.kanade.tachiyomi.source.online.all.MergedSource
 import eu.kanade.tachiyomi.source.online.all.NHentai
+import eu.kanade.tachiyomi.source.online.all.Pururin
 import eu.kanade.tachiyomi.source.online.english.EightMuses
-import eu.kanade.tachiyomi.source.online.english.HBrowse
-import eu.kanade.tachiyomi.source.online.english.Pururin
-import eu.kanade.tachiyomi.source.online.english.Tsumino
+import eu.kanade.tachiyomi.source.online.english.HentaiNexus
+import eu.kanade.tachiyomi.source.online.english.NineHentai
 import exh.log.xLogD
+import exh.pref.DelegateSourcePreferences
 import exh.source.BlacklistedSources
 import exh.source.DelegatedHttpSource
 import exh.source.EH_SOURCE_ID
@@ -22,132 +27,125 @@ import exh.source.EIGHTMUSES_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
 import exh.source.EnhancedHttpSource
 import exh.source.ExhPreferences
-import exh.source.HBROWSE_SOURCE_ID
+import exh.source.HENTAINEXUS_SOURCE_ID
 import exh.source.MERGED_SOURCE_ID
-import exh.source.PURURIN_SOURCE_ID
-import exh.source.TSUMINO_SOURCE_ID
+import exh.source.NINEHENTAI_SOURCE_ID
 import exh.source.handleSourceLibrary
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import mihon.core.metro.AppCoroutineScope
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.repository.StubSourceRepository
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.LocalSource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class AndroidSourceManager(
-    private val context: Context,
+    @AppCoroutineScope private val scope: CoroutineScope,
     private val extensionManager: ExtensionManager,
     private val sourceRepository: StubSourceRepository,
+    private val localSource: LocalSource,
+    private val downloadManager: Lazy<DownloadManager>,
+    // SY -->
+    private val mergedSourceFactory: MergedSource.Factory,
+    private val ehentaiFactory: EHentai.Factory,
+    private val delegateSourcePreferences: DelegateSourcePreferences,
+    private val pururinFactory: Pururin.Factory,
+    private val mangaDexFactory: MangaDex.Factory,
+    private val eightMusesFactory: EightMuses.Factory,
+    private val nHentaiFactory: NHentai.Factory,
+    private val hitomiFactory: Hitomi.Factory,
+    private val lanraragiFactory: Lanraragi.Factory,
+    private val hentaiNexusFactory: HentaiNexus.Factory,
+    private val nineHentaiFactory: NineHentai.Factory,
+    private val exhPreferences: ExhPreferences,
+    private val sourcePreferences: SourcePreferences,
+    // SY <--
 ) : SourceManager {
 
-    private val _isInitialized = MutableStateFlow(false)
-    override val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
-
-    private val downloadManager: DownloadManager by injectLazy()
-
-    private val scope = CoroutineScope(Job() + Dispatchers.IO)
-
-    private val sourcesMapFlow = MutableStateFlow(ConcurrentHashMap<Long, Source>())
+    /**
+     * Null until the extensions have loaded, so that nothing observes the empty seed value.
+     */
+    private val sourcesMapFlow = MutableStateFlow<Map<Long, Source>?>(null)
 
     private val stubSourcesMap = ConcurrentHashMap<Long, StubSource>()
 
-    override val sources: Flow<List<Source>> = sourcesMapFlow.map { it.values.toList() }
-
-    // SY -->
-    private val exhPreferences: ExhPreferences by injectLazy()
-    private val sourcePreferences: SourcePreferences by injectLazy()
-    // SY <--
+    override val sources: Flow<List<Source>> = sourcesMapFlow
+        .filterNotNull()
+        .map { it.values.toList() }
 
     init {
         scope.launch {
-            extensionManager.installedExtensionsFlow
+            extensionManager.loadedExtensionsFlow
                 // SY -->
                 .combine(exhPreferences.enableExhentai.changes()) { extensions, enableExhentai ->
                     extensions to enableExhentai
                 }
                 // SY <--
                 .collectLatest { (extensions, enableExhentai) ->
-                    val mutableMap: ConcurrentHashMap<Long, Source> = ConcurrentHashMap<Long, Source>(
-                        mapOf(
-                            LocalSource.ID to LocalSource(
-                                context,
-                                Injekt.get(),
-                                Injekt.get(),
-                                // SY -->
-                                sourcePreferences.allowLocalSourceHiddenFolders::get,
-                                // SY <--
-                            ),
-                        ),
+                    val mutableMap = ConcurrentHashMap<Long, Source>(
+                        mapOf(LocalSource.ID to localSource),
                     )
 
                     mutableMap.apply {
                         // SY -->
-                        put(EH_SOURCE_ID, EHentai(EH_SOURCE_ID, false, context))
+                        put(EH_SOURCE_ID, ehentaiFactory.create(EH_SOURCE_ID, false))
                         if (enableExhentai) {
-                            put(EXH_SOURCE_ID, EHentai(EXH_SOURCE_ID, true, context))
+                            put(EXH_SOURCE_ID, ehentaiFactory.create(EXH_SOURCE_ID, true))
                         }
-                        put(MERGED_SOURCE_ID, MergedSource())
+                        put(MERGED_SOURCE_ID, mergedSourceFactory.create(this@AndroidSourceManager))
                         // SY <--
                     }
 
                     extensions.forEach { extension ->
-                        extension.sources.mapNotNull { it.toInternalSource() }.forEach {
+                        extension.sources/* SY --> */.mapNotNull { it.toInternalSource() } /* SY <-- */.forEach {
                             mutableMap[it.id] = it
                             registerStubSource(StubSource.from(it))
                         }
                     }
                     sourcesMapFlow.value = mutableMap
-                    _isInitialized.value = true
                 }
         }
 
         scope.launch {
             sourceRepository.subscribeAll()
                 .collectLatest { sources ->
-                    val mutableMap = stubSourcesMap.toMutableMap()
                     sources.forEach {
-                        mutableMap[it.id] = it
+                        stubSourcesMap[it.id] = it
                     }
                 }
         }
     }
 
     private fun Source.toInternalSource(): Source? {
-        // EXH -->
+        // SY -->
         val sourceQName = this::class.qualifiedName
-        val factories = DELEGATED_SOURCES.entries
-            .filter { it.value.factory }
-            .map { it.value.originalSourceQualifiedClassName }
-        val delegate = if (sourceQName != null) {
-            val matched = factories.find { sourceQName.startsWith(it) }
-            if (matched != null) {
-                DELEGATED_SOURCES[matched]
-            } else {
-                DELEGATED_SOURCES[sourceQName]
-            }
-        } else {
-            null
+        val delegate = DELEGATED_SOURCES.firstOrNull { delegated ->
+            id in delegated.sourceIds ||
+                (
+                    sourceQName != null && (
+                        sourceQName == delegated.originalSourceQualifiedClassName ||
+                            (delegated.factory && sourceQName.startsWith(delegated.originalSourceQualifiedClassName))
+                        )
+                    )
         }
         val newSource = if (this is HttpSource && delegate != null) {
             xLogD("Delegating source: %s -> %s!", sourceQName, delegate.newSourceClass.qualifiedName)
             val enhancedSource = EnhancedHttpSource(
                 this,
-                delegate.newSourceClass.constructors.find { it.parameters.size == 2 }!!.call(this, context),
+                createDelegatedSource(delegate.newSourceClass, this),
+                delegateSourcePreferences,
             )
 
             currentDelegatedSources[enhancedSource.originalSource.id] = DelegatedSource(
@@ -173,45 +171,63 @@ class AndroidSourceManager(
         } else {
             newSource
         }
-        // EXH <--
+        // SY <--
     }
 
-    override fun get(sourceKey: Long): Source? {
-        return sourcesMapFlow.value[sourceKey]
+    // SY -->
+    private fun createDelegatedSource(kClass: KClass<*>, delegate: HttpSource): DelegatedHttpSource = when (kClass) {
+        Pururin::class -> pururinFactory.create(delegate)
+        MangaDex::class -> mangaDexFactory.create(delegate)
+        EightMuses::class -> eightMusesFactory.create(delegate)
+        NHentai::class -> nHentaiFactory.create(delegate)
+        Hitomi::class -> hitomiFactory.create(delegate)
+        Lanraragi::class -> lanraragiFactory.create(delegate)
+        HentaiNexus::class -> hentaiNexusFactory.create(delegate)
+        NineHentai::class -> nineHentaiFactory.create(delegate)
+        else -> error("No delegated source factory for $kClass")
+    }
+    // SY <--
+
+    /**
+     * Awaits the extensions to have loaded before returning the sources.
+     */
+    private suspend fun sourcesMap(): Map<Long, Source> = sourcesMapFlow.filterNotNull().first()
+
+    override suspend fun get(sourceKey: Long): Source? {
+        return sourcesMap()[sourceKey]
     }
 
-    override fun getOrStub(sourceKey: Long): Source {
-        return sourcesMapFlow.value[sourceKey] ?: stubSourcesMap.getOrPut(sourceKey) {
-            runBlocking { createStubSource(sourceKey) }
+    override suspend fun getOrStub(sourceKey: Long): Source {
+        return sourcesMap()[sourceKey] ?: stubSourcesMap.getOrPut(sourceKey) {
+            createStubSource(sourceKey)
         }
     }
 
-    override fun getAll() = sourcesMapFlow.value.values.toList()
+    override suspend fun getAll(): List<Source> {
+        return sourcesMap().values.toList()
+    }
 
-    override fun getOnlineSources() = sourcesMapFlow.value.values.filterIsInstance<HttpSource>()
+    override suspend fun getOnlineSources(): List<HttpSource> {
+        return sourcesMap().values.filterIsInstance<HttpSource>()
+    }
 
-    override fun getStubSources(): List<StubSource> {
+    override suspend fun getStubSources(): List<StubSource> {
         val onlineSourceIds = getOnlineSources().map { it.id }
         return stubSourcesMap.values.filterNot { it.id in onlineSourceIds }
     }
 
     // SY -->
-    override fun getVisibleOnlineSources() = sourcesMapFlow.value.values
+    override suspend fun getVisibleOnlineSources() = sourcesMap().values
         .filterIsInstance<HttpSource>()
         .filter {
             it.id !in BlacklistedSources.HIDDEN_SOURCES
         }
 
-    override fun getVisibleSources() = sourcesMapFlow.value.values
+    override suspend fun getVisibleSources() = sourcesMap().values
         .filter {
             it.id !in BlacklistedSources.HIDDEN_SOURCES
         }
 
-    fun getDelegatedCatalogueSources() = sourcesMapFlow.value.values
-        .filterIsInstance<EnhancedHttpSource>()
-        .mapNotNull { enhancedHttpSource ->
-            enhancedHttpSource.enhancedSource as? DelegatedHttpSource
-        }
     // SY <--
 
     private fun registerStubSource(source: StubSource) {
@@ -220,7 +236,7 @@ class AndroidSourceManager(
             if (dbSource == source) return@launch
             sourceRepository.upsertStubSource(source.id, source.lang, source.name)
             if (dbSource != null) {
-                downloadManager.renameSource(dbSource, source)
+                downloadManager.value.renameSource(dbSource, source)
             }
         }
     }
@@ -242,28 +258,16 @@ class AndroidSourceManager(
         val DELEGATED_SOURCES = listOf(
             DelegatedSource(
                 "Pururin",
-                PURURIN_SOURCE_ID,
-                "eu.kanade.tachiyomi.extension.en.pururin.Pururin",
+                fillInSourceId,
+                "eu.kanade.tachiyomi.extension.all.pururin.Pururin",
                 Pururin::class,
-            ),
-            DelegatedSource(
-                "Tsumino",
-                TSUMINO_SOURCE_ID,
-                "eu.kanade.tachiyomi.extension.en.tsumino.Tsumino",
-                Tsumino::class,
             ),
             DelegatedSource(
                 "MangaDex",
                 fillInSourceId,
-                "eu.kanade.tachiyomi.extension.all.mangadex",
+                "eu.kanade.tachiyomi.extension.all.mangadex.MangaDex",
                 MangaDex::class,
                 true,
-            ),
-            DelegatedSource(
-                "HBrowse",
-                HBROWSE_SOURCE_ID,
-                "eu.kanade.tachiyomi.extension.en.hbrowse.HBrowse",
-                HBrowse::class,
             ),
             DelegatedSource(
                 "8Muses",
@@ -276,6 +280,12 @@ class AndroidSourceManager(
                 fillInSourceId,
                 "eu.kanade.tachiyomi.extension.all.nhentai.NHentai",
                 NHentai::class,
+            ),
+            DelegatedSource(
+                "Hitomi",
+                Hitomi.HITOMI_SOURCE_IDS,
+                "eu.kanade.tachiyomi.extension.all.hitomi.Hitomi",
+                Hitomi::class,
                 true,
             ),
             DelegatedSource(
@@ -283,20 +293,45 @@ class AndroidSourceManager(
                 fillInSourceId,
                 "eu.kanade.tachiyomi.extension.all.lanraragi.LANraragi",
                 Lanraragi::class,
-                true,
             ),
-        ).associateBy { it.originalSourceQualifiedClassName }
+            DelegatedSource(
+                "HentaiNexus",
+                HENTAINEXUS_SOURCE_ID,
+                "eu.kanade.tachiyomi.extension.en.hentainexus.HentaiNexus",
+                HentaiNexus::class,
+            ),
+            DelegatedSource(
+                "NineHentai",
+                NINEHENTAI_SOURCE_ID,
+                "eu.kanade.tachiyomi.extension.en.ninehentai.NineHentai",
+                NineHentai::class,
+            ),
+        )
 
         val currentDelegatedSources: MutableMap<Long, DelegatedSource> =
             ListenMutableMap(mutableMapOf(), ::handleSourceLibrary)
 
         data class DelegatedSource(
             val sourceName: String,
-            val sourceId: Long,
+            val sourceIds: List<Long>,
             val originalSourceQualifiedClassName: String,
             val newSourceClass: KClass<out DelegatedHttpSource>,
             val factory: Boolean = false,
-        )
+        ) {
+            constructor(
+                sourceName: String,
+                sourceId: Long,
+                originalSourceQualifiedClassName: String,
+                newSourceClass: KClass<out DelegatedHttpSource>,
+                factory: Boolean = false,
+            ) : this(
+                sourceName,
+                listOf(sourceId),
+                originalSourceQualifiedClassName,
+                newSourceClass,
+                factory,
+            )
+        }
     }
 
     private class ListenMutableMap<K, V>(

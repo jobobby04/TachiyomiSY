@@ -6,145 +6,213 @@ import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import exh.source.MERGED_SOURCE_ID
 import tachiyomi.view.LibraryView
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+/**
+ * SY-specific file
+ */
 private val mapper = { cursor: SqlCursor ->
     LibraryView(
-        _id = cursor.getLong(0)!!,
-        source = cursor.getLong(1)!!,
-        url = cursor.getString(2)!!,
-        artist = cursor.getString(3),
-        author = cursor.getString(4),
-        description = cursor.getString(5),
-        genre = cursor.getString(6)?.let(StringListColumnAdapter::decode),
-        title = cursor.getString(7)!!,
-        status = cursor.getLong(8)!!,
-        thumbnail_url = cursor.getString(9),
-        favorite = cursor.getLong(10)!! == 1L,
-        last_update = cursor.getLong(11),
-        next_update = cursor.getLong(12),
-        initialized = cursor.getLong(13)!! == 1L,
-        viewer = cursor.getLong(14)!!,
-        chapter_flags = cursor.getLong(15)!!,
-        cover_last_modified = cursor.getLong(16)!!,
-        date_added = cursor.getLong(17)!!,
-        filtered_scanlators = null,
-        update_strategy = UpdateStrategyColumnAdapter.decode(cursor.getLong(19)!!),
-        calculate_interval = cursor.getLong(20)!!,
-        last_modified_at = cursor.getLong(21)!!,
-        favorite_modified_at = cursor.getLong(22),
-        version = cursor.getLong(23)!!,
-        is_syncing = cursor.getLong(24)!!,
-        notes = cursor.getString(25)!!,
-        memo = MemoColumnAdapter.decode(cursor.getBytes(26)!!),
-        totalCount = cursor.getLong(27)!!,
-        readCount = cursor.getDouble(28)!!,
-        latestUpload = cursor.getLong(29)!!,
-        chapterFetchedAt = cursor.getLong(30)!!,
-        lastRead = cursor.getLong(31)!!,
-        bookmarkCount = cursor.getDouble(32)!!,
-        categories = cursor.getString(33)!!,
+        id = cursor.getLong(0)!!,
+        source_id = cursor.getLong(1)!!,
+        remote_url = cursor.getString(2)!!,
+        remote_title = cursor.getString(3)!!,
+        remote_author = cursor.getString(4),
+        remote_artist = cursor.getString(5),
+        remote_description = cursor.getString(6),
+        remote_genre = cursor.getString(7)?.let(StringListColumnAdapter::decode),
+        remote_status = cursor.getLong(8)!!,
+        remote_cover = cursor.getString(9),
+        remote_update_strategy = UpdateStrategyColumnAdapter.decode(cursor.getLong(10)!!),
+        remote_memo = MemoColumnAdapter.decode(cursor.getBytes(11)!!),
+        // Entries read outside the library have no favorite time, which the view's type cannot hold
+        user_favorite_at = InstantColumnAdapter.decode(cursor.getLong(12) ?: 0L),
+        user_notes = cursor.getString(13)!!,
+        user_reader_flags = cursor.getLong(14)!!,
+        user_chapter_flags = cursor.getLong(15)!!,
+        state_chapter_last_update = cursor.getLong(16)?.let(InstantColumnAdapter::decode),
+        state_chapter_next_update = cursor.getLong(17)?.let(InstantColumnAdapter::decode),
+        state_chapter_fetch_interval = cursor.getLong(18)!!,
+        state_cover_last_modified = cursor.getLong(19)?.let(InstantColumnAdapter::decode),
+        state_initialized = cursor.getLong(20)!! == 1L,
+        state_last_modified_at = cursor.getLong(21)!!,
+        state_version = cursor.getLong(22)!!,
+        state_is_syncing = cursor.getLong(23)!!,
+        user_title = cursor.getString(24),
+        user_author = cursor.getString(25),
+        user_artist = cursor.getString(26),
+        user_thumbnail_url = cursor.getString(27),
+        user_description = cursor.getString(28),
+        user_genre = cursor.getString(29)?.let(StringListColumnAdapter::decode),
+        user_status = cursor.getLong(30),
+        totalCount = cursor.getLong(31)!!,
+        readCount = cursor.getDouble(32)!!,
+        latestUpload = cursor.getLong(33)?.let(InstantColumnAdapter::decode),
+        chapterFetchedAt = cursor.getLong(34)?.let(InstantColumnAdapter::decode),
+        lastRead = cursor.getLong(35)?.let(InstantColumnAdapter::decode),
+        bookmarkCount = cursor.getDouble(36)!!,
+        categories = cursor.getString(37)!!,
     )
 }
 
-fun getLibraryQuery(condition: String = "M.favorite = 1"): LibraryQuery {
+fun getLibraryQuery(driver: SqlDriver, condition: String = "M.user_favorite_at IS NOT NULL"): LibraryQuery {
     return LibraryQuery(
-        Injekt.get<SqlDriver>(),
+        driver,
         condition,
     )
 }
 
 class LibraryQuery(
     val driver: SqlDriver,
-    val condition: String = "M.favorite = 1",
+    val condition: String = "M.user_favorite_at IS NOT NULL",
 ) : ExecutableQuery<LibraryView>(mapper) {
 
     override fun <R> execute(mapper: (SqlCursor) -> QueryResult<R>): QueryResult<R> {
         return driver.executeQuery(
             null,
             """
+            WITH merged_base AS MATERIALIZED (
+                SELECT
+                    chapter.id,
+                    chapter.manga_id,
+                    chapter.remote_chapter_number,
+                    chapter.remote_date_upload,
+                    chapter.state_date_fetch,
+                    chapter.user_read,
+                    chapter.user_bookmark,
+                    ME.merge_id,
+                    ME.chapter_priority,
+                    coalesce(SELF.chapter_sort_mode, 0) AS sort_mode
+                FROM chapter
+                LEFT JOIN excluded_scanlator
+                ON chapter.manga_id = excluded_scanlator.manga_id
+                AND chapter.remote_scanlator = excluded_scanlator.scanlator
+                JOIN merged AS ME
+                ON ME.manga_id = chapter.manga_id
+                LEFT JOIN merged AS SELF
+                ON SELF.merge_id = ME.merge_id
+                AND SELF.manga_source = $MERGED_SOURCE_ID
+                WHERE excluded_scanlator.scanlator IS NULL
+            )
             SELECT
                 M.*,
                 coalesce(C.total, 0) AS totalCount,
                 coalesce(C.readCount, 0) AS readCount,
-                coalesce(C.latestUpload, 0) AS latestUpload,
-                coalesce(C.fetchedAt, 0) AS chapterFetchedAt,
-                coalesce(C.lastRead, 0) AS lastRead,
+                C.latestUpload AS latestUpload,
+                C.fetchedAt AS chapterFetchedAt,
+                -- Joining history to every chapter is the slowest part of the query, and only entries with excluded
+                -- scanlators need the chapters to leave theirs out
+                CASE WHEN EXISTS (SELECT 0 FROM excluded_scanlator WHERE excluded_scanlator.manga_id = M.id)
+                THEN (
+                    SELECT max(history.read_at)
+                    FROM history
+                    JOIN chapter
+                    ON chapter.id = history.chapter_id
+                    WHERE history.manga_id = M.id
+                    AND NOT EXISTS (
+                        SELECT 0 FROM excluded_scanlator
+                        WHERE excluded_scanlator.manga_id = M.id
+                        AND excluded_scanlator.scanlator = chapter.remote_scanlator
+                    )
+                )
+                ELSE (SELECT max(history.read_at) FROM history WHERE history.manga_id = M.id)
+                END AS lastRead,
                 coalesce(C.bookmarkCount, 0) AS bookmarkCount,
                 coalesce(MC.categories, '0') AS categories
-            FROM mangas M
+            FROM manga M
             LEFT JOIN (
                 SELECT
-                    chapters.manga_id,
+                    chapter.manga_id,
                     count(*) AS total,
-                    sum(read) AS readCount,
-                    coalesce(max(chapters.date_upload), 0) AS latestUpload,
-                    coalesce(max(history.last_read), 0) AS lastRead,
-                    coalesce(max(chapters.date_fetch), 0) AS fetchedAt,
-                    sum(chapters.bookmark) AS bookmarkCount
-                FROM chapters
-                LEFT JOIN excluded_scanlators
-                ON chapters.manga_id = excluded_scanlators.manga_id
-                AND chapters.scanlator = excluded_scanlators.scanlator
-                LEFT JOIN history
-                ON chapters._id = history.chapter_id
-                WHERE excluded_scanlators.scanlator IS NULL
-                GROUP BY chapters.manga_id
+                    sum(user_read) AS readCount,
+                    max(chapter.remote_date_upload) AS latestUpload,
+                    max(chapter.state_date_fetch) AS fetchedAt,
+                    sum(chapter.user_bookmark) AS bookmarkCount
+                FROM chapter
+                LEFT JOIN excluded_scanlator
+                ON chapter.manga_id = excluded_scanlator.manga_id
+                AND chapter.remote_scanlator = excluded_scanlator.scanlator
+                WHERE excluded_scanlator.scanlator IS NULL
+                GROUP BY chapter.manga_id
             ) AS C
-            ON M._id = C.manga_id
+            ON M.id = C.manga_id
             LEFT JOIN (
                 SELECT manga_id, group_concat(category_id) AS categories
-                FROM mangas_categories
+                FROM manga_category
                 GROUP BY manga_id
             ) AS MC
-            ON MC.manga_id = M._id
-            WHERE $condition AND M.source <> $MERGED_SOURCE_ID
+            ON MC.manga_id = M.id
+            WHERE $condition AND M.source_id <> $MERGED_SOURCE_ID
             UNION
             SELECT
                 M.*,
                 coalesce(C.total, 0) AS totalCount,
                 coalesce(C.readCount, 0) AS readCount,
-                coalesce(C.latestUpload, 0) AS latestUpload,
-                coalesce(C.fetchedAt, 0) AS chapterFetchedAt,
-                coalesce(C.lastRead, 0) AS lastRead,
+                C.latestUpload AS latestUpload,
+                C.fetchedAt AS chapterFetchedAt,
+                -- The history of the merged entries, read by entry rather than joined to every chapter
+                (
+                    SELECT max(history.read_at)
+                    FROM history
+                    JOIN chapter
+                    ON chapter.id = history.chapter_id
+                    WHERE history.manga_id IN (SELECT merged.manga_id FROM merged WHERE merged.merge_id = M.id)
+                    AND NOT EXISTS (
+                        SELECT 0 FROM excluded_scanlator
+                        WHERE excluded_scanlator.manga_id = chapter.manga_id
+                        AND excluded_scanlator.scanlator = chapter.remote_scanlator
+                    )
+                ) AS lastRead,
                 coalesce(C.bookmarkCount, 0) AS bookmarkCount,
                 coalesce(MC.categories, '0') AS categories
-            FROM mangas M
-            LEFT JOIN (
-                SELECT merged.manga_id,merged.merge_id
-                FROM merged
-                GROUP BY merged.merge_id
-            ) as ME
-            ON ME.merge_id = M._id
+            FROM manga M
             LEFT JOIN (
                 SELECT
-                    ME.merge_id,
+                    base.merge_id,
                     count(*) AS total,
-                    sum(read) AS readCount,
-                    coalesce(max(chapters.date_upload), 0) AS latestUpload,
-                    coalesce(max(history.last_read), 0) AS lastRead,
-                    coalesce(max(chapters.date_fetch), 0) AS fetchedAt,
-                    sum(chapters.bookmark) AS bookmarkCount
-                FROM chapters
-                LEFT JOIN excluded_scanlators
-                ON chapters.manga_id = excluded_scanlators.manga_id
-                AND chapters.scanlator = excluded_scanlators.scanlator
-                LEFT JOIN history
-                ON chapters._id = history.chapter_id
-                LEFT JOIN merged as ME
-                ON ME.manga_id = chapters.manga_id
-                WHERE excluded_scanlators.scanlator IS NULL
-                GROUP BY ME.merge_id
+                    sum(base.user_read) AS readCount,
+                    max(base.remote_date_upload) AS latestUpload,
+                    max(base.state_date_fetch) AS fetchedAt,
+                    sum(base.user_bookmark) AS bookmarkCount
+                FROM merged_base AS base
+                WHERE base.sort_mode IN (0, 1)
+                OR (base.sort_mode = 2 AND (
+                    base.remote_chapter_number < 0
+                    OR NOT EXISTS (
+                        SELECT 1 FROM merged_base AS base2
+                        WHERE base2.merge_id = base.merge_id
+                        AND base2.remote_chapter_number = base.remote_chapter_number
+                        AND base2.manga_id != base.manga_id
+                        AND (
+                            base2.chapter_priority < base.chapter_priority
+                            OR (base2.chapter_priority = base.chapter_priority AND base2.manga_id < base.manga_id)
+                        )
+                    )
+                ))
+                OR (base.sort_mode = 3 AND base.manga_id = (
+                    SELECT base2.manga_id FROM merged_base AS base2
+                    WHERE base2.merge_id = base.merge_id
+                    GROUP BY base2.manga_id
+                    ORDER BY count(*) DESC, base2.manga_id
+                    LIMIT 1
+                ))
+                OR (base.sort_mode = 4 AND base.manga_id = (
+                    SELECT base2.manga_id FROM merged_base AS base2
+                    WHERE base2.merge_id = base.merge_id
+                    AND base2.remote_chapter_number >= 0
+                    GROUP BY base2.manga_id
+                    ORDER BY max(base2.remote_chapter_number) DESC, base2.manga_id
+                    LIMIT 1
+                ))
+                GROUP BY base.merge_id
             ) AS C
-            ON ME.merge_id = C.merge_id
+            ON C.merge_id = M.id
             LEFT JOIN (
                 SELECT manga_id, group_concat(category_id) AS categories
-                FROM mangas_categories
+                FROM manga_category
                 GROUP BY manga_id
             ) AS MC
-            ON MC.manga_id = M._id
-            WHERE $condition AND M.source = $MERGED_SOURCE_ID;
+            ON MC.manga_id = M.id
+            WHERE $condition AND M.source_id = $MERGED_SOURCE_ID;
             """.trimIndent(),
             mapper,
             parameters = 0,

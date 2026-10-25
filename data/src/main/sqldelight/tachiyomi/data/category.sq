@@ -1,0 +1,142 @@
+CREATE TABLE category(
+    id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    `order` INTEGER NOT NULL UNIQUE,
+    flags INTEGER NOT NULL,
+    -- SY -->
+    state_version INTEGER NOT NULL DEFAULT 0,
+    state_uid INTEGER NOT NULL DEFAULT 0,
+    state_last_modified_at INTEGER NOT NULL DEFAULT 0,
+    state_is_syncing INTEGER NOT NULL DEFAULT 0
+    -- SY <--
+);
+
+-- Insert system category
+INSERT OR IGNORE INTO category(id, name, `order`, flags) VALUES (0, "", -1, 0);
+-- Disallow deletion of default category
+CREATE TRIGGER IF NOT EXISTS system_category_delete_trigger BEFORE DELETE
+ON category
+BEGIN SELECT CASE
+    WHEN old.id <= 0 THEN
+        RAISE(ABORT, "System category can't be deleted")
+    END;
+END;
+
+-- SY -->
+CREATE TRIGGER update_category_version AFTER UPDATE ON category
+WHEN new.state_is_syncing = 0 AND (
+    new.name != old.name OR
+    new.`order` != old.`order` OR
+    new.flags != old.flags
+)
+BEGIN
+    UPDATE category
+    SET state_version = state_version + 1,
+        state_last_modified_at = strftime('%s', 'now')
+    WHERE id = new.id;
+END;
+
+CREATE TRIGGER insert_category_uid AFTER INSERT ON category
+BEGIN
+    UPDATE category
+    SET state_uid = CASE WHEN state_uid = 0 THEN abs(random()) ELSE state_uid END,
+        state_last_modified_at = CASE WHEN state_last_modified_at = 0 THEN strftime('%s', 'now') ELSE state_last_modified_at END
+    WHERE id = new.id;
+END;
+-- SY <--
+
+getCategory:
+SELECT id, name, `order`, flags,
+-- SY -->
+state_version, state_uid, state_last_modified_at, state_is_syncing
+-- SY <--
+FROM category
+WHERE id = :id;
+
+getCategories:
+SELECT id, name, `order`, flags,
+-- SY -->
+state_version, state_uid, state_last_modified_at, state_is_syncing
+-- SY <--
+FROM category
+ORDER BY `order`;
+
+getCategoriesByMangaId:
+SELECT C.id, C.name, C.`order`, C.flags,
+-- SY -->
+C.state_version, C.state_uid, C.state_last_modified_at, C.state_is_syncing
+-- SY <--
+FROM category C
+JOIN manga_category MC
+ON C.id = MC.category_id
+WHERE MC.manga_id = :mangaId
+ORDER BY C.`order`;
+
+getCategoriesByMangaIds:
+SELECT MC.manga_id, C.id, C.name, C.`order`, C.flags,
+-- SY -->
+C.state_version, C.state_uid, C.state_last_modified_at, C.state_is_syncing
+-- SY <--
+FROM category C
+JOIN manga_category MC
+ON C.id = MC.category_id
+WHERE MC.manga_id IN :mangaIds
+ORDER BY MC.manga_id, C.`order`;
+
+insert:
+-- The position is taken inside the insert, so two categories created at once cannot claim the same one
+INSERT INTO category(name, `order`, flags)
+SELECT :name, coalesce(max(`order`), -1) + 1, :flags
+FROM category;
+
+delete:
+DELETE FROM category
+WHERE id = :id;
+
+updateName:
+UPDATE category
+SET name = :name
+WHERE id = :id;
+
+getUserCategoryIds:
+SELECT id
+FROM category
+WHERE id > 0
+ORDER BY `order`;
+
+updateOrder:
+UPDATE category
+SET `order` = :order
+WHERE id = :id;
+
+updateFlags:
+UPDATE category
+SET flags = :flags
+WHERE id = :id;
+
+updateAllFlags:
+UPDATE category
+SET flags = :flags;
+
+-- SY -->
+insertWithOrder:
+INSERT INTO category(name, `order`, flags, state_version, state_uid, state_last_modified_at)
+VALUES (:name, :order, :flags, :stateVersion, :stateUid, :stateLastModifiedAt)
+RETURNING id;
+
+updateSync:
+UPDATE category SET
+    name = :name,
+    `order` = :order,
+    flags = :flags,
+    state_version = :stateVersion,
+    state_uid = :stateUid,
+    state_last_modified_at = :stateLastModifiedAt,
+    state_is_syncing = 1
+WHERE id = :id;
+
+resetIsSyncing:
+UPDATE category
+SET state_is_syncing = 0
+WHERE state_is_syncing = 1;
+-- SY <--

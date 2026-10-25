@@ -28,6 +28,8 @@ import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
 /**
+ * SY-specific file
+ *
  * In memory Int -> Obj lookup table implementation that
  * automatically persists itself to disk atomically and asynchronously.
  *

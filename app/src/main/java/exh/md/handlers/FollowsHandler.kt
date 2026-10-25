@@ -14,9 +14,13 @@ import exh.md.utils.asMdMap
 import exh.md.utils.mdListCall
 import exh.metadata.metadata.MangaDexSearchMetadata
 import exh.util.under
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import tachiyomi.core.common.util.lang.withIOContext
+import kotlinx.coroutines.withContext
 
+/**
+ * SY-specific file
+ */
 class FollowsHandler(
     private val lang: String,
     private val service: MangaDexAuthService,
@@ -26,11 +30,11 @@ class FollowsHandler(
      * fetch follows page
      */
     suspend fun fetchFollows(page: Int): MetadataMangasPage {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val follows = service.userFollowList(MdUtil.mangaLimit * page)
 
             if (follows.data.isEmpty()) {
-                return@withIOContext MetadataMangasPage(emptyList(), false, emptyList())
+                return@withContext MetadataMangasPage(emptyList(), false, emptyList())
             }
 
             val hasMoreResults = follows.limit + follows.offset under follows.total
@@ -66,7 +70,7 @@ class FollowsHandler(
      * Change the status of a manga
      */
     suspend fun updateFollowStatus(mangaId: String, followStatus: FollowStatus): Boolean {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val status = when (followStatus == FollowStatus.UNFOLLOWED) {
                 true -> null
                 false -> followStatus.toDex()
@@ -85,7 +89,7 @@ class FollowsHandler(
 
     /*suspend fun updateReadingProgress(track: Track): Boolean {
         return true
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val mangaID = getMangaId(track.tracking_url)
             val formBody = FormBody.Builder()
                 .add("volume", "0")
@@ -102,10 +106,10 @@ class FollowsHandler(
             }
             result.exceptionOrNull()?.let {
                 if (it is EOFException) {
-                    return@withIOContext true
+                    return@withContext true
                 } else {
                     XLog.e("error updating reading progress", it)
-                    return@withIOContext false
+                    return@withContext false
                 }
             }
             result.isSuccess
@@ -113,7 +117,7 @@ class FollowsHandler(
     }*/
 
     suspend fun updateRating(track: Track): Boolean {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val mangaId = MdUtil.getMangaId(track.tracking_url)
             val result = runCatching {
                 if (track.score == 0.0) {
@@ -130,7 +134,7 @@ class FollowsHandler(
      * fetch all manga from all possible pages
      */
     suspend fun fetchAllFollows(): List<Pair<SManga, MangaDexSearchMetadata>> {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val results = async {
                 mdListCall {
                     service.userFollowList(it)
@@ -144,7 +148,7 @@ class FollowsHandler(
     }
 
     suspend fun fetchTrackingInfo(url: String): Track {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val mangaId = MdUtil.getMangaId(url)
             val followStatusDef = async {
                 FollowStatus.fromDex(service.readingStatusForManga(mangaId).status)

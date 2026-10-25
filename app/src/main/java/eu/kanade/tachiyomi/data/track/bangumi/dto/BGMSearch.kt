@@ -30,7 +30,7 @@ data class BGMSubject(
     val infobox: List<Infobox> = emptyList(),
     // SY <--
 ) {
-    fun toTrackSearch(trackId: Long): TrackSearch = TrackSearch.create(trackId).apply {
+    fun toTrackSearch(trackerId: Long): TrackSearch = TrackSearch.create(trackerId).apply {
         remote_id = this@BGMSubject.id
         title = nameCn.ifBlank { name }
         cover_url = images?.common.orEmpty()

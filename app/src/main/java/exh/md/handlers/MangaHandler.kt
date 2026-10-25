@@ -12,10 +12,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import rx.Observable
 import tachiyomi.core.common.util.lang.runAsObservable
-import tachiyomi.core.common.util.lang.withIOContext
 
+/**
+ * SY-specific file
+ */
 class MangaHandler(
     private val lang: String,
     private val service: MangaDexService,
@@ -92,7 +95,7 @@ class MangaHandler(
     }
 
     suspend fun getChapterList(manga: SManga, blockedGroups: String, blockedUploaders: String): List<SChapter> {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val results = mdListCall {
                 service.viewChapters(
                     MdUtil.getMangaId(manga.url),
@@ -117,13 +120,13 @@ class MangaHandler(
     }
 
     suspend fun fetchRandomMangaId(): String {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             service.randomManga().data.id
         }
     }
 
     suspend fun getMangaFromChapterId(chapterId: String): String? {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             apiMangaParser.chapterParseForMangaId(service.viewChapter(chapterId))
         }
     }
@@ -137,7 +140,7 @@ class MangaHandler(
         finalChapterInDesc: Boolean,
         preferExtensionLangTitle: Boolean,
     ): SManga {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val mangaId = MdUtil.getMangaId(track.tracking_url)
             val response = service.viewManga(mangaId)
             val coverFileName = if (tryUsingFirstVolumeCover) {

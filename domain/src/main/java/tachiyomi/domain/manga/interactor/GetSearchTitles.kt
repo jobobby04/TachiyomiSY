@@ -1,8 +1,13 @@
 package tachiyomi.domain.manga.interactor
 
+import dev.zacsweers.metro.Inject
 import exh.metadata.sql.models.SearchTitle
 import tachiyomi.domain.manga.repository.MangaMetadataRepository
 
+/**
+ * SY-specific file
+ */
+@Inject
 class GetSearchTitles(
     private val mangaMetadataRepository: MangaMetadataRepository,
 ) {

@@ -1,5 +1,6 @@
 package tachiyomi.domain.manga.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import exh.metadata.metadata.base.FlatMetadata
 import kotlinx.coroutines.flow.Flow
@@ -8,6 +9,10 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.repository.MangaMetadataRepository
 
+/**
+ * SY-specific file
+ */
+@Inject
 class GetFlatMetadataById(
     private val mangaMetadataRepository: MangaMetadataRepository,
 ) : MetadataSource.GetFlatMetadataById {

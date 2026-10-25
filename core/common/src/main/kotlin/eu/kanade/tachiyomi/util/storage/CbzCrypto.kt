@@ -9,10 +9,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import mihon.core.common.archive.ArchiveReader
-import tachiyomi.core.common.util.system.ImageUtil
-import uy.kohesive.injekt.injectLazy
-import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -24,16 +20,18 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
-// SY -->
 /**
+ * SY-specific file
  * object used to En/Decrypt and Base64 en/decode
  * passwords before storing
  * them in Shared Preferences
  */
-object CbzCrypto {
-    const val DATABASE_NAME = "tachiyomiEncrypted.db"
-    private const val DEFAULT_COVER_NAME = "cover.jpg"
-    private val securityPreferences: SecurityPreferences by injectLazy()
+class CbzCrypto(private val securityPreferences: SecurityPreferences) {
+    companion object {
+        const val DATABASE_NAME = "tachiyomiEncrypted.db"
+        const val DEFAULT_COVER_NAME = "cover.jpg"
+    }
+
     private val keyStore = KeyStore.getInstance(Keystore).apply {
         load(null)
     }
@@ -197,15 +195,6 @@ object CbzCrypto {
         }
         return String(bytes).contains(DEFAULT_COVER_NAME, ignoreCase = true)
     }
-
-    fun ArchiveReader.getCoverStream(): BufferedInputStream? {
-        this.getInputStream(DEFAULT_COVER_NAME)?.let { stream ->
-            if (ImageUtil.isImage(DEFAULT_COVER_NAME) { stream }) {
-                return this.getInputStream(DEFAULT_COVER_NAME)?.buffered()
-            }
-        }
-        return null
-    }
 }
 
 private const val BufferSize = 2048
@@ -228,4 +217,3 @@ private class ByteArrayOutputStreamPassword : ByteArrayOutputStream() {
         this.buf.fill('#'.code.toByte())
     }
 }
-// SY <--

@@ -17,39 +17,36 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.models.Backup
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
 import logcat.logcat
+import okio.buffer
+import okio.gzip
+import okio.sink
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
 
-class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: SyncPreferences) : SyncService(
+/**
+ * SY-specific file
+ */
+class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: SyncPreferences, private val protoBuf: ProtoBuf) : SyncService(
     context,
     json,
     syncPreferences,
 ) {
-    constructor(context: Context) : this(
-        context,
-        Json {
-            encodeDefaults = true
-            ignoreUnknownKeys = true
-        },
-        Injekt.get<SyncPreferences>(),
-    )
 
     enum class DeleteSyncDataStatus {
         NOT_INITIALIZED,
@@ -62,11 +59,9 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
 
     private val remoteFileName = "${appName}_sync.proto.gz"
 
-    private val googleDriveService = GoogleDriveService(context)
+    private val googleDriveService = GoogleDriveService(context, syncPreferences)
 
-    private val protoBuf: ProtoBuf = Injekt.get()
-
-    override suspend fun doSync(syncData: SyncData): Backup? {
+    override suspend fun doSync(syncData: SyncData, full: Boolean): SyncResult {
         beforeSync()
 
         try {
@@ -85,20 +80,20 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
                 // check if the last sync was done by the same device if so overwrite the remote data with the local data
                 return if (lastSyncDeviceId == localDeviceId) {
                     pushSyncData(syncData)
-                    syncData.backup
+                    SyncResult(syncData.backup, changed = false, protocolV2 = false)
                 } else {
                     // Merge the local and remote sync data
                     val mergedSyncData = mergeSyncData(syncData, remoteSData)
                     pushSyncData(mergedSyncData)
-                    mergedSyncData.backup
+                    SyncResult(mergedSyncData.backup, changed = true, protocolV2 = false)
                 }
             }
 
             pushSyncData(syncData)
-            return syncData.backup
+            return SyncResult(syncData.backup, changed = false, protocolV2 = false)
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, "SyncService") { "Error syncing: ${e.message}" }
-            return null
+            return SyncResult(null, changed = false, protocolV2 = false)
         }
     }
 
@@ -121,12 +116,10 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
 
         try {
             drive.files().get(gdriveFileId).executeMediaAsInputStream().use { inputStream ->
-                GZIPInputStream(inputStream).use { gzipInputStream ->
-                    val byteArray = gzipInputStream.readBytes()
-                    val backup = protoBuf.decodeFromByteArray(Backup.serializer(), byteArray)
-                    val deviceId = fileList[0].appProperties["deviceId"] ?: ""
-                    return SyncData(deviceId = deviceId, backup = backup)
-                }
+                val byteArray = inputStream.source().gzip().buffer().use { it.readByteArray() }
+                val backup = protoBuf.decodeFromByteArray(Backup.serializer(), byteArray)
+                val deviceId = fileList[0].appProperties["deviceId"] ?: ""
+                return SyncData(deviceId = deviceId, backup = backup)
             }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, throwable = e) { "Error downloading file" }
@@ -141,18 +134,16 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
         val fileList = getAppDataFileList(drive)
         val backup = syncData.backup ?: return
 
-        val byteArray = protoBuf.encodeToByteArray(Backup.serializer(), backup)
-        if (byteArray.isEmpty()) {
+        val body = BackupRequestBody(backup, protoBuf, gzip = true)
+        if (body.metaBytes.isEmpty() && backup.backupManga.isEmpty()) {
             throw IllegalStateException(context.stringResource(MR.strings.empty_backup_error))
         }
 
         PipedOutputStream().use { pos ->
             PipedInputStream(pos).use { pis ->
-                withIOContext {
+                withContext(Dispatchers.IO) {
                     launch {
-                        GZIPOutputStream(pos).use { gzipOutputStream ->
-                            gzipOutputStream.write(byteArray)
-                        }
+                        pos.sink().buffer().use { body.writeTo(it) }
                     }
 
                     val mediaContent = InputStreamContent("application/octet-stream", pis)
@@ -216,7 +207,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
         }
         googleDriveService.refreshToken()
 
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             try {
                 val appDataFileList = getAppDataFileList(drive)
 
@@ -243,12 +234,12 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
     }
 }
 
-class GoogleDriveService(private val context: Context) {
+@Inject
+class GoogleDriveService(private val context: Context, private val syncPreferences: SyncPreferences) {
     var driveService: Drive? = null
     companion object {
         const val REDIRECT_URI = "eu.kanade.google.oauth:/oauth2redirect"
     }
-    private val syncPreferences = Injekt.get<SyncPreferences>()
 
     init {
         initGoogleDriveService()
@@ -311,7 +302,7 @@ class GoogleDriveService(private val context: Context) {
             .setApprovalPrompt("force")
             .build()
     }
-    internal suspend fun refreshToken() = withIOContext {
+    internal suspend fun refreshToken() = withContext(Dispatchers.IO) {
         val refreshToken = syncPreferences.googleDriveRefreshToken.get()
 
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()

@@ -2,12 +2,7 @@
 <resources>
 
     <!-- Actions -->
-    <string name="action_skip_entry">Don\'t migrate</string>
-    <string name="action_search_manually">Search manually</string>
-    <string name="action_migrate_now">Migrate now</string>
-    <string name="action_copy_now">Copy now</string>
     <string name="action_clean_titles">Clean titles</string>
-    <string name="action_start_reading">Start reading</string>
     <string name="action_edit_info">Edit info</string>
 
     <!-- Entry Type -->
@@ -152,7 +147,6 @@
     <string name="wsrv">wsrv.nl</string>
     <string name="bandwidth_data_saver_server">Bandwidth Hero Proxy Server</string>
     <string name="data_saver_server_summary">Put Bandwidth Hero Proxy server url here</string>
-    <string name="clear_db_exclude_read">Keep entries with read chapters</string>
     <string name="pref_include_chapter_url_hash">Include chapter URL hash</string>
     <string name="pref_include_chapter_url_hash_desc">Append the first six characters of the chapter URL's MD5 hash to the chapter file or folder name.</string>
 
@@ -184,15 +178,10 @@
 
     <!-- Library settings -->
     <string name="pref_sorting_settings">Sorting Settings</string>
-    <string name="pref_skip_pre_migration_summary">Use last saved pre-migration preferences and sources to mass migrate</string>
     <string name="library_group_updates">Library dynamic category updates</string>
     <string name="library_group_updates_global">Always launch global updates</string>
     <string name="library_group_updates_all_but_ungrouped">Launch global updates only for ungrouped, category updates for others</string>
     <string name="library_group_updates_all">Launch category updates all the time</string>
-    <string name="pref_mark_read_dupe_chapters">Mark duplicate chapters as read</string>
-    <string name="pref_mark_read_dupe_chapters_summary">Mark duplicate chapters as read after reading</string>
-    <string name="pref_library_mark_duplicate_chapters">Mark new duplicate chapters as read</string>
-    <string name="pref_library_mark_duplicate_chapters_summary">Automatically mark new chapters as read if it has been read before</string>
     <string name="update_30min">Every 30 minutes</string>
     <string name="update_1hour">Every hour</string>
     <string name="update_3hour">Every 3 hours</string>
@@ -210,8 +199,6 @@
 
     <!-- Backup settings -->
     <string name="custom_entry_info">Custom entry info</string>
-    <string name="all_read_entries">All read entries</string>
-    <string name="label_sync">Sync</string>
     <string name="label_triggers">Triggers</string>
 
     <!-- Sync settings -->
@@ -242,9 +229,6 @@
     <string name="google_drive_login_success">Logged in to Google Drive</string>
     <string name="google_drive_login_failed">Failed to log in to Google Drive: %s</string>
     <string name="google_drive_not_signed_in">Not signed in to Google Drive</string>
-    <string name="error_uploading_sync_data">Error uploading sync data to Google Drive</string>
-    <string name="error_deleting_google_drive_lock_file">Error Deleting Google Drive Lock File</string>
-    <string name="error_before_sync_gdrive">Error before sync: %s</string>
     <string name="pref_purge_confirmation_title">Purge confirmation</string>
     <string name="pref_purge_confirmation_message">Purging sync data will delete all your sync data from Google Drive. Are you sure you want to continue?</string>
     <string name="pref_sync_options">Create sync triggers</string>
@@ -283,7 +267,6 @@
     <string name="password_protect_downloads_summary">Encrypts CBZ archive downloads with the given password.\nWARNING: DATA INSIDE THE ARCHIVES WILL BE LOST FOREVER IF YOU FORGET THE PASSWORD</string>
     <string name="delete_cbz_archive_password">Delete CBZ archive password</string>
     <string name="cbz_archive_password">CBZ archive password</string>
-    <string name="wrong_cbz_archive_password">Wrong CBZ archive password</string>
     <string name="encryption_type">Encryption type</string>
     <string name="aes_256">AES 256</string>
     <string name="aes_128">AES 128</string>
@@ -291,28 +274,11 @@
 
     <!-- Reader Settings -->
     <string name="page_downloading">Page Downloading</string>
-    <string name="download_threads">Download threads</string>
-    <string name="download_threads_summary">Higher values can speed up image downloading significantly, but can also trigger bans. Recommended value is 2 or 3. Current value is: %s</string>
-    <string name="aggressively_load_pages">Aggressively load pages</string>
-    <string name="aggressively_load_pages_summary">Slowly download the entire chapter while reading instead of just loading the pages you are viewing.</string>
-    <string name="skip_queue_on_retry">Skip queue on retry</string>
-    <string name="skip_queue_on_retry_summary">Normally, pressing the retry button on a failed download will wait until the downloader has finished downloading the last page before beginning to re-download the failed page. Enabling this will force the downloader to begin re-downloading the failed page as soon as you press the retry button.</string>
-    <string name="reader_preload_amount">Page Preload amount</string>
-    <string name="reader_preload_amount_4_pages">4 Pages</string>
-    <string name="reader_preload_amount_6_pages">6 Pages</string>
-    <string name="reader_preload_amount_8_pages">8 Pages</string>
-    <string name="reader_preload_amount_10_pages">10 Pages</string>
-    <string name="reader_preload_amount_12_pages">12 Pages</string>
-    <string name="reader_preload_amount_14_pages">14 Pages</string>
-    <string name="reader_preload_amount_16_pages">16 Pages</string>
-    <string name="reader_preload_amount_20_pages">20 Pages</string>
-    <string name="reader_preload_amount_summary">The amount of pages to preload when reading. Higher values will result in a smoother reading experience, at the cost of higher cache usage, it is recommended to increase the amount of cache you allocate when using larger values</string>
     <string name="reader_cache_size">Reader cache size</string>
     <string name="reader_cache_size_summary">The amount of images to save on device while reading. Higher values will result in a smoother reading experience, at the cost of higher disk space usage</string>
     <string name="preserve_reading_position">Preserve reading position on read entries</string>
     <string name="auto_webtoon_mode">Auto Webtoon Mode</string>
     <string name="auto_webtoon_mode_summary">Use auto webtoon mode for entries that are detected to likely use the long strip format</string>
-    <string name="enable_zoom_out">Enable zoom out</string>
     <string name="tap_scroll_page">Tap scroll by page</string>
     <string name="tap_scroll_page_summary">Tapping will scroll by page instead of screen size when this option is enabled</string>
     <string name="reader_bottom_buttons">Reader Bottom Buttons</string>
@@ -401,20 +367,19 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="merge_unknown_entry">Unknown entry ID: %1$d</string>
     <string name="merged_already">This entry is already merged with the current entry!</string>
     <string name="merge_duplicate">This merged entry is a duplicate!</string>
+    <string name="remove_merged_entries">Remove entries from the library</string>
 
     <!-- Entry Info Edit -->
-    <string name="reset_tags">Reset Tags</string>
+    <string name="reset_tags">Reset tags</string>
     <string name="add_tags">Add Tags</string>
-    <string name="reset_info">Reset Info</string>
-    <string name="title_hint">Title: %1$s</string>
-    <string name="description_hint">Description: %1$s</string>
-    <string name="author_hint">Author: %1$s</string>
-    <string name="artist_hint">Artist: %1$s</string>
-    <string name="thumbnail_url_hint">Thumbnail Url: %1$s</string>
+    <string name="reset_info">Reset info</string>
     <string name="multi_tags_comma_separated">Enter tag(s), seperated by commas.</string>
     <string name="select_tracker">Select a tracker</string>
     <string name="entry_not_tracked">Entry is not tracked.</string>
     <string name="fill_from_tracker">Fill from tracker</string>
+    <string name="entry_description">Description</string>
+    <string name="entry_tags">Tags</string>
+    <string name="source_value_hint">Source: %1$s</string>
 
     <!-- Browse -->
     <!-- Sources Tab -->
@@ -431,8 +396,6 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="saved_searches">Saved Searches</string>
     <string name="save_search">Save current search query?</string>
     <string name="save_search_hint">My search name</string>
-    <string name="save_search_failed_to_load">Failed to load saved searches!</string>
-    <string name="save_search_failed_to_load_message">An error occurred while loading your saved searches.</string>
     <string name="save_search_delete">Delete saved search query?</string>
     <string name="save_search_delete_message">Are you sure you wish to delete your saved search query: \'%1$s\'?</string>
     <string name="save_search_invalid">Saved search invalid, filters have changed</string>
@@ -450,7 +413,7 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="feed_add">Add %1$s to feed?</string>
 
     <!-- Sort by tags -->
-    <string name="add_tag">Add Tag</string>
+    <string name="add_tag">Add tag</string>
     <string name="pref_tag_sorting">Tag sorting tags</string>
     <string name="tag_sorting">Tag sorting</string>
     <string name="action_add_tags_message">Read this! Tags must be exact, there are no partial matches, you cannot do netorare to filter out female:netorare or similar!\nThe style for namespace tags is\n\"female: sole female\"\nwithout quotes!\nAdding multiple variants of the same tag is supported, so feel free to do \"tag: netorare\" for NHentai and \"female: netorare\" for E-Hentai!</string>
@@ -465,36 +428,13 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="redundant_extension_message">This extension is redundant and will not be used inside this version of Tachiyomi.</string>
 
     <!-- Migration -->
-    <string name="select_sources">Select sources</string>
-    <string name="select_none">Select none</string>
     <string name="migration">Migration</string>
-    <string name="skip_pre_migration">Skip pre-migration</string>
-    <string name="pre_migration_skip_toast">To show this screen again, go to Settings -> Library.</string>
-    <string name="use_intelligent_search">Search title + keywords of title</string>
-    <string name="data_to_include_in_migration">Data to include in migration</string>
-    <string name="include_extra_search_parameter">Include extra search parameter when searching</string>
-    <string name="use_most_chapters">Use source with the most chapters (slower)</string>
-    <string name="use_first_source">Use first source with alternative</string>
-    <string name="skip_this_step_next_time">Skip this step next time</string>
-    <string name="hide_not_found_entries">Hide not found entries</string>
-    <string name="only_show_updated_entries">Only show entries with new chapters</string>
-    <string name="search_parameter">Search parameter (e.g. language:english)</string>
-    <string name="latest_">Latest: %1$s</string>
-    <string name="migrating_to">migrating to</string>
-    <string name="match_pinned_sources">Match pinned sources</string>
-    <string name="match_enabled_sources">Match enabled sources</string>
-    <string name="no_chapters_found_for_migration">No chapters found, this entry cannot be used for migration</string>
-    <string name="no_alternatives_found">No Alternatives Found</string>
-    <string name="stop_migrating">Stop migrating?</string>
-    <string name="action_stop">Stop</string>
-    <string name="skipping_">(skipping %1$d)</string>
 
     <!-- Bulk recommendation search -->
-    <string name="rec_search">Find common recommendations</string>
-    <string name="rec_hide_library_entries">Hide results already in your library</string>
-    <string name="rec_services_to_search">Recommendation services to search</string>
-    <string name="rec_group_source">Source recommendations</string>
-    <string name="rec_group_tracker">Tracker recommendations</string>
+    <string name="rec_hide_library_entries">Hide entries in library</string>
+    <string name="rec_search_in">Search in</string>
+    <string name="rec_sources_summary">Each entry\'s own source</string>
+    <string name="rec_trackers_summary">Your logged-in tracking services</string>
     <string name="rec_common_recommendations">Common recommendations</string>
     <string name="rec_search_short">Find recommendations</string>
     <string name="rec_no_results">No recommendations found</string>
@@ -549,7 +489,6 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="favorites_sync_failed_to_add_to_local">Failed to add gallery to local database: </string>
     <string name="favorites_sync_failed_to_add_to_local_error">\'%1$s\' %2$s</string>
     <string name="favorites_sync_failed_to_add_to_local_unknown_type">\'%1$s\' (%2$s) is not a valid gallery!</string>
-    <string name="favorites_sync_waiting_for_start">Waiting for sync to start</string>
     <string name="favorites_sync_gallery_in_multiple_categories">The gallery: %1$s is in more than one category (%2$s)!</string>
     <string name="favorites_sync_initializing">Initializing sync</string>
     <string name="favorites_sync_processing_throttle">%1$s\n\nSync is currently throttling (to avoid being banned from ExHentai) and may take a long time to complete.</string>
@@ -584,7 +523,6 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="gallery_adder_uri_map_to_gallery_error">Source URI map-to-gallery error!</string>
     <string name="gallery_adder_uri_map_to_chapter_error">Source URI map-to-chapter error!</string>
     <string name="gallery_adder_uri_clean_error">Source URI clean error!</string>
-    <string name="gallery_adder_chapter_fetch_error">Failed to update chapters for gallery: %1$s!</string>
     <string name="gallery_adder_could_not_add_gallery">Could not add gallery (url: %1$s)!</string>
     <string name="gallery_adder_could_not_identify_chapter">Could not identify chapter (url: %1$s)!</string>
 
@@ -633,7 +571,7 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="id">Id</string>
     <string name="token">Token</string>
     <string name="is_exhentai_gallery">is Exhentai gallery</string>
-    <string name="thumbnail_url">Thumbnail url</string>
+    <string name="thumbnail_url">Thumbnail URL</string>
     <string name="genre">Genre</string>
     <string name="date_posted">Date posted</string>
     <string name="page_count">Page count</string>
@@ -643,6 +581,8 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="gallery_size">Gallery size</string>
     <string name="total_favorites">Total favorites</string>
     <string name="total_ratings">Total ratings</string>
+    <string name="total_views">Total views</string>
+    <string name="total_downloads">Total downloads</string>
     <string name="average_rating">Average rating</string>
     <string name="aged">Aged</string>
     <string name="last_update_check">Last update check</string>
@@ -654,8 +594,6 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="japanese_title">Japanese Title</string>
     <string name="english_title">English Title</string>
     <string name="short_title">Short Title</string>
-    <string name="cover_image_file_type">Cover image file type</string>
-    <string name="thumbnail_image_file_type">Thumbnail image file type</string>
     <string name="url">Url</string>
     <string name="uploader_capital">Uploader Capitalized</string>
     <string name="uploader">Uploader</string>
@@ -676,8 +614,8 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="base_url">Base url</string>
 
     <!-- Extra gallery info -->
-    <string name="is_visible">Visible: %1$s</string>
     <string name="language_translated">%1$s TR</string>
+    <string name="disowned">Disowned</string>
 
     <!-- Merged entry -->
     <string name="merge_settings">Merge settings</string>
@@ -689,15 +627,17 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="download_merged_entry">Toggle new chapter downloads</string>
     <string name="download_merged_entry_desc">Toggling this will disable or enable chapter downloads for this merged entry</string>
     <string name="merged_references_invalid">Merged references invalid</string>
-    <string name="merged_chapter_updates_error">Toggle chapter updates error</string>
-    <string name="merged_toggle_download_chapters_error">Toggle download chapters error</string>
-    <string name="allow_deduplication">Allow deduplication:</string>
-    <string name="deduplication_mode">Dedupe mode:</string>
-    <string name="deduplication_entry_info">Info entry:</string>
-    <string name="no_dedupe">No dedupe</string>
-    <string name="dedupe_priority">Dedupe by priority</string>
-    <string name="dedupe_most_chapters">Show source with most chapters</string>
-    <string name="dedupe_highest_chapter">Show source with highest chapter number</string>
+    <string name="merge_duplicate_chapters">Duplicate chapters</string>
+    <string name="merge_dedupe_keep_all">Keep all</string>
+    <string name="merge_dedupe_priority">Priority</string>
+    <string name="merge_dedupe_most">Most</string>
+    <string name="merge_dedupe_highest">Highest</string>
+    <string name="merge_dedupe_keep_all_summary">Show every chapter from every entry.</string>
+    <string name="merge_dedupe_priority_summary">Show each chapter once, from the highest entry below that has it.</string>
+    <string name="merge_dedupe_most_summary">Show only the chapters of the entry with the most chapters.</string>
+    <string name="merge_dedupe_highest_summary">Show only the chapters of the entry with the highest chapter number.</string>
+    <string name="merge_info_source">Info source</string>
+    <string name="merge_drag_to_set_priority">Drag to set priority</string>
 
     <!-- MangaDex -->
     <string name="md_follows_unfollowed">Unfollowed</string>
@@ -716,7 +656,6 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="final_chapter">Final chapter</string>
 
     <!-- Scanlator filters -->
-    <string name="select_scanlators">Scanlator groups to show</string>
 
     <!-- Similar -->
     <string name="similar">Similar to %1$s</string>

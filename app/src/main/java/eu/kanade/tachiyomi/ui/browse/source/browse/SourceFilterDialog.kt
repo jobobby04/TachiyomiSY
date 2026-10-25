@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.roundedfilled.Save
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.source.model.EXHSavedSearch
 import tachiyomi.i18n.MR
@@ -76,7 +76,7 @@ fun SourceFilterDialog(
                     // SY -->
                     IconButton(onClick = onSave) {
                         Icon(
-                            Icons.Default.Save,
+                            SYMaterialSymbols.RoundedFilled.Save,
                             contentDescription = stringResource(MR.strings.action_save),
                             tint = MaterialTheme.colorScheme.onBackground,
                         )
@@ -92,6 +92,7 @@ fun SourceFilterDialog(
                 HorizontalDivider()
             }
 
+            // SY -->
             if (openMangaDexRandom != null && openMangaDexFollows != null) {
                 item {
                     MangaDexFilterHeader(
@@ -108,6 +109,7 @@ fun SourceFilterDialog(
                     onSavedSearchPress = onSavedSearchPress,
                 )
             }
+            // SY <--
 
             items(filters) {
                 FilterItem(it, updateFilters /* SY --> */, startExpanded /* SY <-- */)
@@ -230,7 +232,7 @@ private fun Int.toTriStateFilter(): TriState {
         Filter.TriState.STATE_IGNORE -> TriState.DISABLED
         Filter.TriState.STATE_INCLUDE -> TriState.ENABLED_IS
         Filter.TriState.STATE_EXCLUDE -> TriState.ENABLED_NOT
-        else -> throw IllegalStateException("Unknown TriState state: $this")
+        else -> TriState.DISABLED
     }
 }
 

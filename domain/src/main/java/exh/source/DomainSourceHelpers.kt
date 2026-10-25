@@ -3,19 +3,25 @@ package exh.source
 import eu.kanade.tachiyomi.source.Source
 import tachiyomi.domain.manga.model.Manga
 
+/**
+ * SY-specific file
+ */
 // Used to speed up isLewdSource
 var metadataDelegatedSourceIds: List<Long> = emptyList()
 
-var nHentaiSourceIds: List<Long> = emptyList()
+var nHentaiSourceIds: Set<Long> = emptySet()
 
-var lanraragiSourceIds: List<Long> = emptyList()
+var hitomiSourceIds: Set<Long> = emptySet()
 
-var mangaDexSourceIds: List<Long> = emptyList()
+var pururinSourceIds: Set<Long> = emptySet()
+
+var lanraragiSourceIds: Set<Long> = emptySet()
+
+var mangaDexSourceIds: Set<Long> = emptySet()
 
 var LIBRARY_UPDATE_EXCLUDED_SOURCES = listOf(
     EH_SOURCE_ID,
     EXH_SOURCE_ID,
-    PURURIN_SOURCE_ID,
 )
 
 // This method MUST be fast!
@@ -39,18 +45,6 @@ inline fun <reified T : Source> Source.getMainSource(): T? = if (this is Enhance
     this.source() as? T
 } else {
     this as? T
-}
-
-fun Source.getOriginalSource(): Source = if (this is EnhancedHttpSource) {
-    this.originalSource
-} else {
-    this
-}
-
-fun Source.getEnhancedSource(): Source = if (this is EnhancedHttpSource) {
-    this.enhancedSource
-} else {
-    this
 }
 
 inline fun <reified T> Source.anyIs(): Boolean {

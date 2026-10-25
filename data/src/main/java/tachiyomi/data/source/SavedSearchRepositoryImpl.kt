@@ -9,50 +9,55 @@ import tachiyomi.data.subscribeToList
 import tachiyomi.domain.source.model.SavedSearch
 import tachiyomi.domain.source.repository.SavedSearchRepository
 
+/**
+ * SY-specific file
+ */
 class SavedSearchRepositoryImpl(
     private val database: Database,
 ) : SavedSearchRepository {
 
     override suspend fun getById(savedSearchId: Long): SavedSearch? {
         return database.saved_searchQueries
-            .selectById(savedSearchId, SavedSearchMapper::map)
+            .selectById(id = savedSearchId, mapper = SavedSearchMapper::map)
             .awaitAsOneOrNull()
     }
 
     override suspend fun getBySourceId(sourceId: Long): List<SavedSearch> {
         return database.saved_searchQueries
-            .selectBySource(sourceId, SavedSearchMapper::map)
+            .selectBySource(sourceId = sourceId, mapper = SavedSearchMapper::map)
             .awaitAsList()
     }
 
     override fun getBySourceIdAsFlow(sourceId: Long): Flow<List<SavedSearch>> {
         return database.saved_searchQueries
-            .selectBySource(sourceId, SavedSearchMapper::map)
+            .selectBySource(sourceId = sourceId, mapper = SavedSearchMapper::map)
             .subscribeToList()
     }
 
     override suspend fun delete(savedSearchId: Long) {
         database.saved_searchQueries
-            .deleteById(savedSearchId)
+            .deleteById(id = savedSearchId)
     }
 
     override suspend fun insert(savedSearch: SavedSearch): Long {
-        return database.saved_searchQueries.insertReturningId(
-            savedSearch.source,
-            savedSearch.name,
-            savedSearch.query,
-            savedSearch.filtersJson,
-        ).awaitAsOne()
+        return database.transactionWithResult {
+            database.saved_searchQueries.insertReturningId(
+                source = savedSearch.source,
+                name = savedSearch.name,
+                query = savedSearch.query,
+                filtersJson = savedSearch.filtersJson,
+            ).awaitAsOne()
+        }
     }
 
     override suspend fun insertAll(savedSearch: List<SavedSearch>) {
         database.transaction {
             savedSearch.forEach {
                 database.saved_searchQueries.insert(
-                    it.source,
-                    it.name,
-                    it.query,
-                    it.filtersJson,
+                    source = it.source,
+                    name = it.name,
+                    query = it.query,
+                    filtersJson = it.filtersJson,
                 )
             }
         }

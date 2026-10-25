@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.zacsweers.metro.Inject
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.online.UrlImportableSource
@@ -28,30 +29,40 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.view.setComposeContent
 import exh.GalleryAddEvent
 import exh.GalleryAdder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import mihon.app.di.AppGraph
+import mihon.core.metro.metroGraph
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.core.common.util.lang.launchIO
-import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.Scaffold
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+/**
+ * SY-specific file
+ */
 class InterceptActivity : BaseActivity() {
+    private val graph: AppGraph by lazy { metroGraph() }
+
+    @Inject private lateinit var sourceManager: SourceManager
+
+    @Inject private lateinit var galleryAdder: GalleryAdder
+
     private var statusJob: Job? = null
 
     private val status: MutableStateFlow<InterceptResult> = MutableStateFlow(InterceptResult.Idle)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        graph.inject(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(
                 Activity.OVERRIDE_TRANSITION_OPEN,
@@ -112,9 +123,8 @@ class InterceptActivity : BaseActivity() {
 
     private fun processLink() {
         if (Intent.ACTION_VIEW == intent.action) {
-            lifecycleScope.launchIO {
+            lifecycleScope.launch(Dispatchers.IO) {
                 // wait for sources to load
-                Injekt.get<SourceManager>().isInitialized.first { it }
                 loadGallery(intent.dataString!!)
             }
         }
@@ -173,20 +183,18 @@ class InterceptActivity : BaseActivity() {
         }
     }
 
-    private val galleryAdder = GalleryAdder()
-
     suspend fun loadGallery(gallery: String) {
         // Do not load gallery if already loading
         if (status.value is InterceptResult.Idle) {
             status.value = InterceptResult.Loading
             val sources = galleryAdder.pickSource(gallery)
             if (sources.size > 1) {
-                withUIContext {
+                withContext(Dispatchers.Main) {
                     MaterialAlertDialogBuilder(this@InterceptActivity)
                         .setTitle(MR.strings.label_sources.getString(this@InterceptActivity))
                         .setSingleChoiceItems(sources.map { it.toString() }.toTypedArray(), 0) { dialog, index ->
                             dialog.dismiss()
-                            lifecycleScope.launchIO {
+                            lifecycleScope.launch(Dispatchers.IO) {
                                 loadGalleryEnd(gallery, sources[index])
                             }
                         }

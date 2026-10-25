@@ -33,7 +33,9 @@ class MyAnimeListInterceptor(private val myanimelist: MyAnimeList) : Interceptor
         val authRequest = originalRequest.newBuilder()
             .addHeader("Authorization", "Bearer ${oauth!!.accessToken}")
             // TODO(antsy): Add back custom user agent when they stop blocking us for no apparent reason
+            // SY -->
             // .header("User-Agent", "TachiyomiSY v${BuildConfig.VERSION_NAME} (${BuildConfig.APPLICATION_ID})")
+            // SY <--
             .build()
 
         return chain.proceed(authRequest)
@@ -72,10 +74,7 @@ class MyAnimeListInterceptor(private val myanimelist: MyAnimeList) : Interceptor
             }
         }
             .getOrNull()
-            ?.also {
-                this.oauth = it
-                myanimelist.saveOAuth(it)
-            }
+            ?.also { setAuth(it) }
             ?: throw MALTokenRefreshFailed()
     }
 }

@@ -2,39 +2,28 @@ package tachiyomi.domain.release.interactor
 
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import tachiyomi.core.common.preference.Preference
-import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.domain.release.model.Release
 import tachiyomi.domain.release.service.ReleaseService
-import java.time.Instant
 
 class GetApplicationReleaseTest {
 
-    lateinit var getApplicationRelease: GetApplicationRelease
-    lateinit var releaseService: ReleaseService
-    lateinit var preference: Preference<Long>
+    private lateinit var getApplicationRelease: GetApplicationRelease
+    private lateinit var releaseService: ReleaseService
 
     @BeforeEach
     fun beforeEach() {
-        val preferenceStore = mockk<PreferenceStore>()
-        preference = mockk()
-        every { preferenceStore.getLong(any(), any()) } returns preference
         releaseService = mockk()
 
-        getApplicationRelease = GetApplicationRelease(releaseService, preferenceStore)
+        getApplicationRelease = GetApplicationRelease(releaseService)
     }
 
+    // SY -->
     @Test
     fun `When has update but is preview expect new update`() = runTest {
-        every { preference.get() } returns 0
-        every { preference.set(any()) }.answers { }
-
         val release = Release(
             "200",
             "info",
@@ -61,9 +50,6 @@ class GetApplicationReleaseTest {
 
     @Test
     fun `When has update expect new update`() = runTest {
-        every { preference.get() } returns 0
-        every { preference.set(any()) }.answers { }
-
         val release = Release(
             "v2.0.0",
             "info",
@@ -90,9 +76,6 @@ class GetApplicationReleaseTest {
 
     @Test
     fun `When has no update expect no new update`() = runTest {
-        every { preference.get() } returns 0
-        every { preference.set(any()) }.answers { }
-
         val release = Release(
             "v1.0.0",
             "info",
@@ -117,9 +100,6 @@ class GetApplicationReleaseTest {
 
     @Test
     fun `When now is before three days expect no new update`() = runTest {
-        every { preference.get() } returns Instant.now().toEpochMilli()
-        every { preference.set(any()) }.answers { }
-
         val release = Release(
             "v1.0.0",
             "info",
@@ -139,7 +119,7 @@ class GetApplicationReleaseTest {
             ),
         )
 
-        coVerify(exactly = 0) { releaseService.latest(any()) }
         result shouldBe GetApplicationRelease.Result.NoNewUpdate
     }
+    // SY <--
 }

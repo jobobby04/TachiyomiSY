@@ -10,6 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import tachiyomi.presentation.core.components.material.padding
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun SourceCategoryContent(
     categories: List<String>,

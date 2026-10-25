@@ -50,8 +50,10 @@ fun ReaderAppBars(
     chapterTitle: String?,
     navigateUp: () -> Unit,
     onClickTopAppBar: () -> Unit,
+    // SY -->
     // bookmarked: Boolean,
     // onToggleBookmarked: () -> Unit,
+    // SY <--
     onOpenInWebView: (() -> Unit)?,
     onOpenInBrowser: (() -> Unit)?,
     onShare: (() -> Unit)?,
@@ -179,6 +181,7 @@ fun ReaderAppBars(
                                 contentAlignment = Alignment.BottomCenter,
                             ) {
                                 ChapterNavigator(
+                                    modifier = Modifier.fillMaxHeight(verticalNavigatorHeight),
                                     type = chapterNavigatorType,
                                     onNextChapter = onNextChapter,
                                     enabledNext = enabledNext,

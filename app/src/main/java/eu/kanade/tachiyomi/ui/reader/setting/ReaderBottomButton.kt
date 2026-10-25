@@ -4,6 +4,9 @@ import dev.icerock.moko.resources.StringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 
+/**
+ * SY-specific file
+ */
 enum class ReaderBottomButton(val value: String, val stringRes: StringResource) {
     ViewChapters("vc", MR.strings.action_view_chapters),
     WebView("wb", MR.strings.action_open_in_web_view),

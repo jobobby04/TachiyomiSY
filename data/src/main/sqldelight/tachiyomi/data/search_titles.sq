@@ -5,7 +5,7 @@ CREATE TABLE search_titles (
     manga_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     type INTEGER NOT NULL,
-    FOREIGN KEY(manga_id) REFERENCES mangas (_id)
+    FOREIGN KEY(manga_id) REFERENCES manga (id)
     ON DELETE CASCADE
 );
 
@@ -13,17 +13,17 @@ CREATE INDEX search_titles_manga_id_index ON search_titles(manga_id);
 CREATE INDEX search_titles_title_index ON search_titles(title);
 
 selectByMangaId:
-SELECT * FROM search_titles
-WHERE manga_id = ?;
+SELECT _id, manga_id, title, type
+FROM search_titles
+WHERE manga_id = :mangaId;
 
 deleteByManga:
-DELETE FROM search_titles WHERE manga_id = ?;
+DELETE FROM search_titles
+WHERE manga_id = :mangaId;
 
 insert:
-INSERT INTO search_titles (manga_id, title, type) VALUES (?, ?, ?);
-
-insertItem:
-INSERT INTO search_titles (_id, manga_id, title, type) VALUES ?;
+INSERT INTO search_titles(manga_id, title, type)
+VALUES (:mangaId, :title, :type);
 
 deleteAll:
 DELETE FROM search_titles;

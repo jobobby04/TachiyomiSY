@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+/**
+ * SY-specific file
+ */
 @Serializable
 data class PagePreview(
     val index: Int,

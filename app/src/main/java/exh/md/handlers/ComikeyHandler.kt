@@ -15,6 +15,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
+/**
+ * SY-specific file
+ */
 class ComikeyHandler(cloudflareClient: OkHttpClient, userAgent: String) {
     val baseUrl = "https://comikey.com"
     private val apiUrl = "$baseUrl/sapi"

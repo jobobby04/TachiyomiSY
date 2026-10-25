@@ -35,12 +35,22 @@ rootProject.name = "TachiyomiSY"
 include(":app")
 include(":baseline-profile")
 include(":core-metadata")
+include(":core:archive")
 include(":core:common")
+include(":core:metro")
 include(":data")
 include(":domain")
 include(":i18n")
 // SY -->
 include(":i18n-sy")
+// SY <--
+include(":icons:custom-material-symbols")
+include(":icons:material-symbols")
+include(":icons:simple-icons")
+// SY -->
+include(":icons-sy:brands")
+include(":icons-sy:custom-material-symbols")
+include(":icons-sy:material-symbols")
 // SY <--
 include(":presentation-core")
 include(":presentation-widget")

@@ -5,9 +5,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.category.components.CategoryCreateDialog
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
 import eu.kanade.presentation.util.Screen
@@ -17,14 +17,17 @@ import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
 
+/**
+ * SY-specific file
+ */
 class SortTagScreen : Screen() {
     @Composable
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { SortTagScreenModel() }
+        val viewModel = metroViewModel<SortTagViewModel>()
 
-        val state by screenModel.state.collectAsState()
+        val state by viewModel.state.collectAsState()
 
         if (state is SortTagScreenState.Loading) {
             LoadingScreen()
@@ -35,10 +38,10 @@ class SortTagScreen : Screen() {
 
         eu.kanade.presentation.category.SortTagScreen(
             state = successState,
-            onClickCreate = { screenModel.showDialog(SortTagDialog.Create) },
-            onClickDelete = { screenModel.showDialog(SortTagDialog.Delete(it)) },
-            onClickMoveUp = screenModel::moveUp,
-            onClickMoveDown = screenModel::moveDown,
+            onClickCreate = { viewModel.showDialog(SortTagDialog.Create) },
+            onClickDelete = { viewModel.showDialog(SortTagDialog.Delete(it)) },
+            onClickMoveUp = viewModel::moveUp,
+            onClickMoveDown = viewModel::moveDown,
             navigateUp = navigator::pop,
         )
 
@@ -46,8 +49,8 @@ class SortTagScreen : Screen() {
             null -> {}
             SortTagDialog.Create -> {
                 CategoryCreateDialog(
-                    onDismissRequest = screenModel::dismissDialog,
-                    onCreate = { screenModel.createTag(it) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    onCreate = { viewModel.createTag(it) },
                     categories = successState.tags,
                     title = stringResource(SYMR.strings.add_tag),
                     extraMessage = stringResource(SYMR.strings.action_add_tags_message),
@@ -56,8 +59,8 @@ class SortTagScreen : Screen() {
             }
             is SortTagDialog.Delete -> {
                 CategoryDeleteDialog(
-                    onDismissRequest = screenModel::dismissDialog,
-                    onDelete = { screenModel.delete(dialog.tag) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    onDelete = { viewModel.delete(dialog.tag) },
                     title = stringResource(SYMR.strings.delete_tag),
                     text = stringResource(SYMR.strings.delete_tag_confirmation, dialog.tag),
                 )
@@ -65,7 +68,7 @@ class SortTagScreen : Screen() {
         }
 
         LaunchedEffect(Unit) {
-            screenModel.events.collectLatest { event ->
+            viewModel.events.collectLatest { event ->
                 if (event is SortTagEvent.LocalizedMessage) {
                     context.toast(event.stringRes)
                 }

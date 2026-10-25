@@ -12,14 +12,16 @@ data class GithubRelease(
     @SerialName("tag_name") val version: String,
     @SerialName("body") val info: String,
     @SerialName("html_url") val releaseLink: String,
-    @SerialName("assets") val assets: List<GitHubAssets>,
+    @SerialName("assets") val assets: List</* SY --> */GitHubAssets/* SY <-- */>,
 )
 
 /**
  * Assets class containing download url.
  */
 @Serializable
+// SY -->
 data class GitHubAssets(@SerialName("browser_download_url") val downloadLink: String)
+// SY <--
 
 /**
  * Regular expression that matches a mention to a valid GitHub username, like it's
@@ -31,6 +33,7 @@ data class GitHubAssets(@SerialName("browser_download_url") val downloadLink: St
  *
  * Reference: https://stackoverflow.com/a/30281147
  */
+// SY -->
 val gitHubUsernameMentionRegex =
     """\B@([a-z0-9](?:-(?=[a-z0-9])|[a-z0-9]){0,38}(?<=[a-z0-9]))""".toRegex(
         RegexOption.IGNORE_CASE,
@@ -46,3 +49,4 @@ val releaseMapper: (GithubRelease) -> Release = {
         it.assets.map(GitHubAssets::downloadLink),
     )
 }
+// SY <--

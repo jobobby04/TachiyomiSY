@@ -1,5 +1,8 @@
 package tachiyomi.domain.manga.model
 
+/**
+ * SY-specific file
+ */
 data class MergedMangaReference(
     // Tag identifier, unique
     val id: Long,

@@ -2,24 +2,33 @@ package tachiyomi.data.category
 
 import tachiyomi.domain.category.model.Category
 
+/**
+ * SY-specific file
+ */
 object CategoryMapper {
     fun mapCategory(
         id: Long,
         name: String,
         order: Long,
         flags: Long,
-        version: Long,
-        uid: Long,
-        lastModifiedAt: Long,
+        // SY -->
+        stateVersion: Long,
+        stateUid: Long,
+        stateLastModifiedAt: Long,
+        @Suppress("UNUSED_PARAMETER")
+        stateIsSyncing: Long,
+        // SY <--
     ): Category {
         return Category(
             id = id,
             name = name,
             order = order,
             flags = flags,
-            version = version,
-            uid = uid,
-            lastModifiedAt = lastModifiedAt,
+            // SY -->
+            version = stateVersion,
+            uid = stateUid,
+            lastModifiedAt = stateLastModifiedAt,
+            // SY <--
         )
     }
 }

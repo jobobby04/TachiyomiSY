@@ -1,5 +1,6 @@
 package eu.kanade.domain.source.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.source.model.FilterList
 import exh.log.xLogE
 import exh.util.nullIfBlank
@@ -7,15 +8,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
-import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.source.interactor.GetSavedSearchById
 import tachiyomi.domain.source.interactor.GetSavedSearchBySourceId
 import tachiyomi.domain.source.model.EXHSavedSearch
 import tachiyomi.domain.source.model.SavedSearch
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 
+/**
+ * SY-specific file
+ */
+@Inject
 class GetExhSavedSearch(
     private val getSavedSearchById: GetSavedSearchById,
     private val getSavedSearchBySourceId: GetSavedSearchBySourceId,
@@ -24,11 +29,11 @@ class GetExhSavedSearch(
 
     suspend fun awaitOne(savedSearchId: Long, getFilterList: () -> FilterList): EXHSavedSearch? {
         val search = getSavedSearchById.awaitOrNull(savedSearchId) ?: return null
-        return withIOContext { loadSearch(search, getFilterList) }
+        return withContext(Dispatchers.IO) { loadSearch(search, getFilterList) }
     }
 
     suspend fun await(sourceId: Long, getFilterList: () -> FilterList): List<EXHSavedSearch> {
-        return withIOContext { loadSearches(getSavedSearchBySourceId.await(sourceId), getFilterList) }
+        return withContext(Dispatchers.IO) { loadSearches(getSavedSearchBySourceId.await(sourceId), getFilterList) }
     }
 
     fun subscribe(sourceId: Long, getFilterList: () -> FilterList): Flow<List<EXHSavedSearch>> {

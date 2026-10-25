@@ -5,10 +5,14 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.annotation.StringRes
 import androidx.core.net.toUri
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.domain.source.service.SourcePreferences
+import eu.kanade.tachiyomi.data.track.TrackerManager
+import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.model.SManga
 import exh.log.xLog
+import exh.pref.DelegateSourcePreferences
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.TrackerRecommendationPagingSource
 import exh.smartsearch.SmartLibrarySearchEngine
@@ -26,6 +30,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import mihon.domain.manga.model.toDomainManga
 import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.library.model.LibraryManga
@@ -35,18 +40,27 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.model.Track
-import uy.kohesive.injekt.injectLazy
 import java.io.Serializable
 import java.util.Collections
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-class RecommendationSearchHelper(val context: Context) {
-    private val getLibraryManga: GetLibraryManga by injectLazy()
-    private val getTracks: GetTracks by injectLazy()
-    private val networkToLocalManga: NetworkToLocalManga by injectLazy()
-    private val sourceManager: SourceManager by injectLazy()
-    private val preferences: SourcePreferences by injectLazy()
+/**
+ * SY-specific file
+ */
+@Inject
+class RecommendationSearchHelper(
+    val context: Context,
+    private val getLibraryManga: GetLibraryManga,
+    private val getTracks: GetTracks,
+    private val networkToLocalManga: NetworkToLocalManga,
+    private val sourceManager: SourceManager,
+    private val preferences: SourcePreferences,
+    private val trackerManager: TrackerManager,
+    private val networkHelper: NetworkHelper,
+    private val json: Json,
+    private val delegateSourcePreferences: DelegateSourcePreferences,
+) {
 
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null
@@ -102,6 +116,12 @@ class RecommendationSearchHelper(val context: Context) {
                 val jobs = RecommendationPagingSource.createSources(
                     sourceManga,
                     sourceManager.getOrStub(sourceManga.source),
+                    networkToLocalManga,
+                    getTracks,
+                    trackerManager,
+                    networkHelper.client,
+                    json,
+                    delegateSourcePreferences,
                 ).mapNotNull { source ->
                     // Apply source filters
                     if (source is TrackerRecommendationPagingSource && !SearchFlags.hasIncludeTrackers(flags)) {
@@ -117,7 +137,7 @@ class RecommendationSearchHelper(val context: Context) {
                         val recSourceId = source::class.qualifiedName!!
 
                         try {
-                            val page = source.requestNextPage(1)
+                            val page = source.requestNextPage(null, 1)
 
                             // Try to filter out mangas that are already in the library
                             val mangas = page.mangas

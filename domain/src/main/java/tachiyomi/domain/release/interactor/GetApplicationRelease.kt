@@ -1,33 +1,15 @@
 package tachiyomi.domain.release.interactor
 
-import tachiyomi.core.common.preference.Preference
-import tachiyomi.core.common.preference.PreferenceStore
+import dev.zacsweers.metro.Inject
 import tachiyomi.domain.release.model.Release
 import tachiyomi.domain.release.service.ReleaseService
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
+@Inject
 class GetApplicationRelease(
     private val service: ReleaseService,
-    private val preferenceStore: PreferenceStore,
 ) {
-
-    private val lastChecked: Preference<Long> by lazy {
-        preferenceStore.getLong(Preference.appStateKey("last_app_check"), 0)
-    }
-
     suspend fun await(arguments: Arguments): Result {
-        val now = Instant.now()
-
-        // Limit checks to once every 3 days at most
-        val nextCheckTime = Instant.ofEpochMilli(lastChecked.get()).plus(3, ChronoUnit.DAYS)
-        if (!arguments.forceCheck && now.isBefore(nextCheckTime)) {
-            return Result.NoNewUpdate
-        }
-
-        val release = service.latest(arguments.repository)
-
-        lastChecked.set(now.toEpochMilli())
+        /* SY --> */val release = service.latest(arguments.repository)/* SY <-- */
 
         // Check if latest version is different from current version
         // SY -->
@@ -74,7 +56,9 @@ class GetApplicationRelease(
     // SY <--
 
     data class Arguments(
+        // SY -->
         val isPreview: Boolean,
+        // SY <--
         val commitCount: Int,
         val versionName: String,
         val repository: String,

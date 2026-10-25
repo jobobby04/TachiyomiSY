@@ -1,5 +1,8 @@
 package tachiyomi.domain.library.service
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.TriState
@@ -10,6 +13,8 @@ import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.domain.library.model.LibrarySort
 import tachiyomi.domain.manga.model.Manga
 
+@Inject
+@SingleIn(AppScope::class)
 class LibraryPreferences(
     private val preferenceStore: PreferenceStore,
 ) {
@@ -199,6 +204,11 @@ class LibraryPreferences(
 
     val autoClearChapterCache: Preference<Boolean> = preferenceStore.getBoolean("auto_clear_chapter_cache", false)
 
+    val hideMissingChapters: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_hide_missing_chapter_indicators",
+        false,
+    )
+
     // endregion
 
     // region Swipe Actions
@@ -217,6 +227,10 @@ class LibraryPreferences(
 
     val disallowNonAsciiFilenames: Preference<Boolean> = preferenceStore.getBoolean(
         "disallow_non_ascii_filenames",
+        false,
+    )
+    val enableChapterNameHash: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_enable_chapter_name_hash",
         false,
     )
 

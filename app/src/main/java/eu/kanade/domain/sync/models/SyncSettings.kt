@@ -1,5 +1,8 @@
 package eu.kanade.domain.sync.models
 
+/**
+ * SY-specific file
+ */
 data class SyncSettings(
     val libraryEntries: Boolean = true,
     val categories: Boolean = true,

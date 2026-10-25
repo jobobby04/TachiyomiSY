@@ -4,6 +4,9 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
 import java.time.format.DateTimeFormatter
 
+/**
+ * SY-specific file
+ */
 data class ReaderChapterItem(
     val chapter: Chapter,
     val manga: Manga,

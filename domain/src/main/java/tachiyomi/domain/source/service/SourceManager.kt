@@ -3,29 +3,26 @@ package tachiyomi.domain.source.service
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import tachiyomi.domain.source.model.StubSource
 
 interface SourceManager {
 
-    val isInitialized: StateFlow<Boolean>
-
     val sources: Flow<List<Source>>
 
-    fun get(sourceKey: Long): Source?
+    suspend fun get(sourceKey: Long): Source?
 
-    fun getOrStub(sourceKey: Long): Source
+    suspend fun getOrStub(sourceKey: Long): Source
 
-    fun getAll(): List<Source>
+    suspend fun getAll(): List<Source>
 
-    fun getOnlineSources(): List<HttpSource>
+    suspend fun getOnlineSources(): List<HttpSource>
 
     // SY -->
 
-    fun getVisibleOnlineSources(): List<HttpSource>
+    suspend fun getVisibleOnlineSources(): List<HttpSource>
 
-    fun getVisibleSources(): List<Source>
+    suspend fun getVisibleSources(): List<Source>
     // SY <--
 
-    fun getStubSources(): List<StubSource>
+    suspend fun getStubSources(): List<StubSource>
 }

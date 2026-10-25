@@ -3,6 +3,9 @@ package eu.kanade.tachiyomi.source.online.all
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.newCachelessCallWithProgress
@@ -17,6 +20,7 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.NamespaceSource
 import eu.kanade.tachiyomi.source.online.UrlImportableSource
+import exh.GalleryAdder
 import exh.metadata.metadata.NHentaiSearchMetadata
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.metadata.metadata.base.RaisedTag
@@ -24,6 +28,8 @@ import exh.source.DelegatedHttpSource
 import exh.util.trimOrNull
 import exh.util.urlImportFetchSearchManga
 import exh.util.urlImportFetchSearchMangaSuspend
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -31,17 +37,31 @@ import okhttp3.CacheControl
 import okhttp3.Response
 import rx.Observable
 import tachiyomi.core.common.util.lang.runAsObservable
-import tachiyomi.core.common.util.lang.withIOContext
 
-class NHentai(delegate: HttpSource, val context: Context) :
+/**
+ * SY-specific file
+ */
+@AssistedInject
+class NHentai(
+    @Assisted delegate: HttpSource,
+    val context: Context,
+    override val getMangaId: MetadataSource.GetMangaId,
+    override val insertFlatMetadata: MetadataSource.InsertFlatMetadata,
+    override val getFlatMetadataById: MetadataSource.GetFlatMetadataById,
+    private val galleryAdder: GalleryAdder,
+) :
     DelegatedHttpSource(delegate),
     MetadataSource<NHentaiSearchMetadata, Response>,
     UrlImportableSource,
     NamespaceSource,
     PagePreviewSource {
+    @AssistedFactory
+    fun interface Factory {
+        fun create(delegate: HttpSource): NHentai
+    }
+
     override val metaClass = NHentaiSearchMetadata::class
     override fun newMetaInstance() = NHentaiSearchMetadata()
-    override val lang = delegate.lang
 
     private val sourcePreferences: SharedPreferences by lazy {
         context.getSharedPreferences("source_$id", 0x0000)
@@ -56,16 +76,18 @@ class NHentai(delegate: HttpSource, val context: Context) :
     // Support direct URL importing
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getSearchManga"))
     override fun fetchSearchManga(page: Int, query: String, filters: FilterList) =
-        urlImportFetchSearchManga(context, query) {
+        urlImportFetchSearchManga(context, galleryAdder, query) {
             @Suppress("DEPRECATION")
             super<DelegatedHttpSource>.fetchSearchManga(page, query, filters)
         }
 
     override suspend fun getSearchManga(page: Int, query: String, filters: FilterList): MangasPage {
-        return urlImportFetchSearchMangaSuspend(context, query) {
+        return urlImportFetchSearchMangaSuspend(context, galleryAdder, query) {
             super<DelegatedHttpSource>.getSearchManga(page, query, filters)
         }
     }
+
+    override val overridesMangaDetails = true
 
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
@@ -206,7 +228,7 @@ class NHentai(delegate: HttpSource, val context: Context) :
     suspend fun getNhConfig() {
         try {
             val response =
-                withIOContext { client.newCall(GET("https://nhentai.net/api/v2/config", headers)).awaitSuccess() }
+                withContext(Dispatchers.IO) { client.newCall(GET("https://nhentai.net/api/v2/config", headers)).awaitSuccess() }
             val body = response.body.string()
             nhConfig = jsonParser.decodeFromString<JsonConfig>(body)
         } catch (_: Exception) {

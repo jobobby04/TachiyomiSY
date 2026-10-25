@@ -8,8 +8,6 @@ import android.provider.Settings
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -31,18 +29,15 @@ import androidx.core.text.HtmlCompat
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.extension.interactor.TrustExtension
-import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.source.service.SourcePreferences.DataSaver
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.advanced.ClearDatabaseScreen
 import eu.kanade.presentation.more.settings.screen.debug.DebugInfoScreen
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.core.security.SecurityPreferences
-import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
-import eu.kanade.tachiyomi.network.NetworkHelper
+import eu.kanade.tachiyomi.data.library.LibraryUpdateWorker
+import eu.kanade.tachiyomi.data.library.MetadataUpdateWorker
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.network.PREF_DOH_360
 import eu.kanade.tachiyomi.network.PREF_DOH_ADGUARD
@@ -58,46 +53,36 @@ import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.network.PREF_DOH_SHECAN
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
-import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.isDebugBuildType
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import eu.kanade.tachiyomi.util.system.isShizukuInstalled
 import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.setDefaultSettings
 import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.util.system.workManager
 import exh.debug.SettingsDebugScreen
 import exh.log.EHLogLevel
-import exh.pref.DelegateSourcePreferences
 import exh.source.BlacklistedSources
 import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
-import exh.source.ExhPreferences
 import exh.util.toAnnotatedString
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import okhttp3.Headers
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.core.common.util.lang.launchNonCancellable
-import tachiyomi.core.common.util.lang.withUIContext
-import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
-import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.manga.interactor.GetAllManga
-import tachiyomi.domain.manga.interactor.ResetViewerFlags
-import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 
 object SettingsAdvancedScreen : SearchableSettings {
@@ -112,10 +97,11 @@ object SettingsAdvancedScreen : SearchableSettings {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val basePreferences = remember { Injekt.get<BasePreferences>() }
-        val networkPreferences = remember { Injekt.get<NetworkPreferences>() }
-        val libraryPreferences = remember { Injekt.get<LibraryPreferences>() }
-        val downloadPreferences = remember { Injekt.get<DownloadPreferences>() }
+        val graph = remember { context.appGraph }
+        val basePreferences = remember { graph.basePreferences }
+        val networkPreferences = remember { graph.networkPreferences }
+        val libraryPreferences = remember { graph.libraryPreferences }
+        val crashLogUtil = remember { graph.crashLogUtil }
 
         return listOf(
             Preference.PreferenceItem.TextPreference(
@@ -123,7 +109,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                 subtitle = stringResource(MR.strings.pref_dump_crash_logs_summary),
                 onClick = {
                     scope.launch {
-                        CrashLogUtil(context).dumpLogs()
+                        crashLogUtil.dumpLogs()
                     }
                 },
             ),
@@ -136,6 +122,19 @@ object SettingsAdvancedScreen : SearchableSettings {
                     true
                 },
             ), SY <-- */
+            Preference.PreferenceItem.SwitchPreference(
+                preference = networkPreferences.redactSensitiveHeaders,
+                title = stringResource(MR.strings.pref_redact_sensitive_headers),
+                subtitle = stringResource(MR.strings.pref_redact_sensitive_headers_summary),
+                onValueChanged = {
+                    context.toast(MR.strings.requires_app_restart)
+                    true
+                },
+                // SY -->
+                // Headers are only logged in debug builds
+                visible = BuildConfig.DEBUG,
+                // SY <--
+            ),
             Preference.PreferenceItem.TextPreference(
                 title = stringResource(MR.strings.pref_debug_info),
                 onClick = { navigator.push(DebugInfoScreen()) },
@@ -147,18 +146,9 @@ object SettingsAdvancedScreen : SearchableSettings {
             Preference.PreferenceItem.TextPreference(
                 title = stringResource(MR.strings.pref_manage_notifications),
                 onClick = {
-                    // SY -->
-                    val intent = Intent().apply {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        } else {
-                            setAction("android.settings.APP_NOTIFICATION_SETTINGS")
-                            putExtra("app_package", context.packageName)
-                            putExtra("app_uid", context.applicationInfo.uid)
-                        }
+                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                     }
-                    // SY <--
                     context.startActivity(intent)
                 },
             ),
@@ -166,7 +156,6 @@ object SettingsAdvancedScreen : SearchableSettings {
             getDataGroup(),
             getNetworkGroup(networkPreferences = networkPreferences),
             getLibraryGroup(libraryPreferences = libraryPreferences),
-            getDownloadsGroup(downloadPreferences = downloadPreferences),
             getReaderGroup(basePreferences = basePreferences),
             getExtensionsGroup(basePreferences = basePreferences),
             // SY -->
@@ -228,7 +217,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_invalidate_download_cache),
                     subtitle = stringResource(MR.strings.pref_invalidate_download_cache_summary),
                     onClick = {
-                        Injekt.get<DownloadCache>().invalidateCache()
+                        context.appGraph.downloadCache.invalidateCache()
                         context.toast(MR.strings.download_cache_invalidated)
                     },
                 ),
@@ -246,7 +235,8 @@ object SettingsAdvancedScreen : SearchableSettings {
         networkPreferences: NetworkPreferences,
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
-        val networkHelper = remember { Injekt.get<NetworkHelper>() }
+        val networkHelper = remember { context.appGraph.networkHelper }
+        val scope = rememberCoroutineScope()
 
         val userAgentPref = networkPreferences.defaultUserAgent
         val userAgent by userAgentPref.collectAsState()
@@ -273,10 +263,12 @@ object SettingsAdvancedScreen : SearchableSettings {
                                 clearSslPreferences()
                             }
                             WebStorage.getInstance().deleteAllData()
-                            context.applicationInfo?.dataDir?.let {
-                                File("$it/app_webview/").deleteRecursively()
+                            scope.launch(Dispatchers.IO) {
+                                context.applicationInfo?.dataDir?.let {
+                                    File("$it/app_webview/").deleteRecursively()
+                                }
+                                withContext(Dispatchers.Main) { context.toast(MR.strings.webview_data_deleted) }
                             }
-                            context.toast(MR.strings.webview_data_deleted)
                         } catch (e: Throwable) {
                             logcat(LogPriority.ERROR, e)
                             context.toast(MR.strings.cache_delete_error)
@@ -323,7 +315,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_reset_user_agent_string),
-                    enabled = remember(userAgent) { userAgent != userAgentPref.defaultValue() },
+                    visible = remember(userAgent) { userAgent != userAgentPref.defaultValue() },
                     onClick = {
                         userAgentPref.delete()
                         context.toast(MR.strings.requires_app_restart)
@@ -337,30 +329,28 @@ object SettingsAdvancedScreen : SearchableSettings {
     private fun getLibraryGroup(
         libraryPreferences: LibraryPreferences,
     ): Preference.PreferenceGroup {
-        val scope = rememberCoroutineScope()
         val context = LocalContext.current
+        val scope = rememberCoroutineScope()
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_library),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_refresh_library_covers),
-                    onClick = { LibraryUpdateJob.startNow(context, target = LibraryUpdateJob.Target.COVERS) },
+                    onClick = { scope.launch { MetadataUpdateWorker.startNow(context.workManager) } },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_reset_viewer_flags),
                     subtitle = stringResource(MR.strings.pref_reset_viewer_flags_summary),
                     onClick = {
-                        scope.launchNonCancellable {
-                            val success = Injekt.get<ResetViewerFlags>().await()
-                            withUIContext {
-                                val message = if (success) {
-                                    MR.strings.pref_reset_viewer_flags_success
-                                } else {
-                                    MR.strings.pref_reset_viewer_flags_error
-                                }
-                                context.toast(message)
+                        /* SY --> */ context.appGraph.appScope.launch /* SY <-- */ {
+                            val success = context.appGraph.resetViewerFlags.await()
+                            val message = if (success) {
+                                MR.strings.pref_reset_viewer_flags_success
+                            } else {
+                                MR.strings.pref_reset_viewer_flags_error
                             }
+                            /* SY --> */ withContext(Dispatchers.Main) { context.toast(message) } /* SY <-- */
                         }
                     },
                 ),
@@ -374,75 +364,26 @@ object SettingsAdvancedScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_disallow_non_ascii_filenames),
                     subtitle = stringResource(MR.strings.pref_disallow_non_ascii_filenames_details),
                 ),
-            ),
-        )
-    }
-
-    // SY ->
-    @Composable
-    private fun getDownloadsGroup(
-        downloadPreferences: DownloadPreferences,
-    ): Preference.PreferenceGroup {
-        return Preference.PreferenceGroup(
-            title = stringResource(MR.strings.pref_category_downloads),
-            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = downloadPreferences.includeChapterUrlHash,
-                    title = stringResource(SYMR.strings.pref_include_chapter_url_hash),
-                    subtitle = stringResource(SYMR.strings.pref_include_chapter_url_hash_desc),
+                    preference = libraryPreferences.enableChapterNameHash,
+                    title = stringResource(MR.strings.pref_enable_chapter_name_hash),
+                    subtitle = stringResource(MR.strings.pref_enable_chapter_name_hash_details),
                 ),
             ),
         )
     }
-    // <- SY
 
     @Composable
     private fun getReaderGroup(
         basePreferences: BasePreferences,
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
-        val chooseColorProfile = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.OpenDocument(),
-        ) { uri ->
-            uri?.let {
-                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                context.contentResolver.takePersistableUriPermission(uri, flags)
-                basePreferences.displayProfile.set(uri.toString())
-            }
-        }
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_reader),
             preferenceItems = listOf(
-                Preference.PreferenceItem.ListPreference(
-                    preference = basePreferences.hardwareBitmapThreshold,
-                    entries = GLUtil.CUSTOM_TEXTURE_LIMIT_OPTIONS
-                        .mapIndexed { index, option ->
-                            val display = if (index == 0) {
-                                stringResource(MR.strings.pref_hardware_bitmap_threshold_default, option)
-                            } else {
-                                option.toString()
-                            }
-                            option to display
-                        }
-                        .toMap(),
-                    title = stringResource(MR.strings.pref_hardware_bitmap_threshold),
-                    subtitleProvider = { value, options ->
-                        stringResource(MR.strings.pref_hardware_bitmap_threshold_summary, options[value].orEmpty())
-                    },
-                    enabled = !ImageUtil.HARDWARE_BITMAP_UNSUPPORTED &&
-                        GLUtil.DEVICE_TEXTURE_LIMIT > GLUtil.SAFE_TEXTURE_LIMIT,
-                ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = basePreferences.alwaysDecodeLongStripWithSSIV,
-                    title = stringResource(MR.strings.pref_always_decode_long_strip_with_ssiv_2),
-                    subtitle = stringResource(MR.strings.pref_always_decode_long_strip_with_ssiv_summary),
-                ),
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(MR.strings.pref_display_profile),
-                    subtitle = basePreferences.displayProfile.get(),
-                    onClick = {
-                        chooseColorProfile.launch(arrayOf("*/*"))
-                    },
+                    preference = basePreferences.highQualityRenderer,
+                    title = stringResource(MR.strings.pref_high_quality_renderer),
                 ),
             ),
         )
@@ -456,7 +397,7 @@ object SettingsAdvancedScreen : SearchableSettings {
         val uriHandler = LocalUriHandler.current
         val extensionInstallerPref = basePreferences.extensionInstaller
         var shizukuMissing by rememberSaveable { mutableStateOf(false) }
-        val trustExtension = remember { Injekt.get<TrustExtension>() }
+        val trustExtension = remember { context.appGraph.trustExtension }
 
         if (shizukuMissing) {
             val dismiss = { shizukuMissing = false }
@@ -489,7 +430,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                     entries = extensionInstallerPref.entries
                         .filter {
                             // TODO: allow private option in stable versions once URL handling is more fleshed out
-                            if (isPreviewBuildType || isDebugBuildType) {
+                            if (/* SY --> */ isPreviewBuildType || isDebugBuildType /* SY <-- */) {
                                 true
                             } else {
                                 it != BasePreferences.ExtensionInstaller.PRIVATE
@@ -510,10 +451,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.ext_revoke_trust),
-                    onClick = {
-                        trustExtension.revokeAll()
-                        context.toast(MR.strings.requires_app_restart)
-                    },
+                    onClick = { trustExtension.revokeAll() },
                 ),
             ),
         )
@@ -575,7 +513,6 @@ object SettingsAdvancedScreen : SearchableSettings {
 
     @Composable
     private fun getDownloaderGroup(): Preference.PreferenceGroup {
-        val scope = rememberCoroutineScope()
         val context = LocalContext.current
         var dialogOpen by remember { mutableStateOf(false) }
         if (dialogOpen) {
@@ -585,11 +522,11 @@ object SettingsAdvancedScreen : SearchableSettings {
                     dialogOpen = false
                     if (job?.isActive == true) return@CleanupDownloadsDialog
                     context.toast(SYMR.strings.starting_cleanup)
-                    job = scope.launchNonCancellable {
-                        val mangaList = Injekt.get<GetAllManga>().await()
-                        val downloadManager: DownloadManager = Injekt.get()
+                    job = context.appGraph.appScope.launch {
+                        val mangaList = context.appGraph.getAllManga.await()
+                        val downloadManager: DownloadManager = context.appGraph.downloadManager
                         var foldersCleared = 0
-                        Injekt.get<SourceManager>().getOnlineSources().forEach { source ->
+                        context.appGraph.sourceManager.getOnlineSources().forEach { source ->
                             val mangaFolders = downloadManager.getMangaFolders(source)
                             val sourceManga = mangaList
                                 .asSequence()
@@ -610,7 +547,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                                         )
                                     mangaFolder.delete()
                                 } else {
-                                    val chapterList = Injekt.get<GetChaptersByMangaId>().await(manga.id)
+                                    val chapterList = context.appGraph.getChaptersByMangaId.await(manga.id)
                                     foldersCleared += downloadManager.cleanupChapters(
                                         chapterList,
                                         manga,
@@ -621,7 +558,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                                 }
                             }
                         }
-                        withUIContext {
+                        withContext(Dispatchers.Main) {
                             val cleanupString =
                                 if (foldersCleared == 0) {
                                     context.stringResource(SYMR.strings.no_folders_to_cleanup)
@@ -652,7 +589,8 @@ object SettingsAdvancedScreen : SearchableSettings {
 
     @Composable
     private fun getDataSaverGroup(): Preference.PreferenceGroup {
-        val sourcePreferences = remember { Injekt.get<SourcePreferences>() }
+        val context = LocalContext.current
+        val sourcePreferences = remember { context.appGraph.sourcePreferences }
         val dataSaver by sourcePreferences.dataSaver.collectAsState()
         return Preference.PreferenceGroup(
             title = stringResource(SYMR.strings.data_saver),
@@ -671,22 +609,22 @@ object SettingsAdvancedScreen : SearchableSettings {
                     preference = sourcePreferences.dataSaverServer,
                     title = stringResource(SYMR.strings.bandwidth_data_saver_server),
                     subtitle = stringResource(SYMR.strings.data_saver_server_summary),
-                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                    visible = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverDownloader,
                     title = stringResource(SYMR.strings.data_saver_downloader),
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverIgnoreJpeg,
                     title = stringResource(SYMR.strings.data_saver_ignore_jpeg),
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverIgnoreGif,
                     title = stringResource(SYMR.strings.data_saver_ignore_gif),
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = sourcePreferences.dataSaverImageQuality,
@@ -702,7 +640,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                         "90%",
                         "95%",
                     ).associateBy { it.trimEnd('%').toInt() },
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 kotlin.run {
                     val dataSaverImageFormatJpeg by sourcePreferences.dataSaverImageFormatJpeg
@@ -715,13 +653,13 @@ object SettingsAdvancedScreen : SearchableSettings {
                         } else {
                             stringResource(SYMR.strings.data_saver_image_format_summary_off)
                         },
-                        enabled = dataSaver != DataSaver.NONE,
+                        visible = dataSaver != DataSaver.NONE,
                     )
                 },
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverColorBW,
                     title = stringResource(SYMR.strings.data_saver_color_bw),
-                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                    visible = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
             ),
         )
@@ -731,10 +669,10 @@ object SettingsAdvancedScreen : SearchableSettings {
     private fun getDeveloperToolsGroup(): Preference.PreferenceGroup {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val sourcePreferences = remember { Injekt.get<SourcePreferences>() }
-        val exhPreferences = remember { Injekt.get<ExhPreferences>() }
-        val delegateSourcePreferences = remember { Injekt.get<DelegateSourcePreferences>() }
-        val securityPreferences = remember { Injekt.get<SecurityPreferences>() }
+        val sourcePreferences = remember { context.appGraph.sourcePreferences }
+        val exhPreferences = remember { context.appGraph.exhPreferences }
+        val delegateSourcePreferences = remember { context.appGraph.delegateSourcePreferences }
+        val securityPreferences = remember { context.appGraph.securityPreferences }
         return Preference.PreferenceGroup(
             title = stringResource(SYMR.strings.developer_tools),
             preferenceItems = listOf(
@@ -759,7 +697,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                     subtitle = stringResource(
                         SYMR.strings.toggle_delegated_sources_summary,
                         stringResource(MR.strings.app_name),
-                        AndroidSourceManager.DELEGATED_SOURCES.values.map { it.sourceName }.distinct()
+                        AndroidSourceManager.DELEGATED_SOURCES.map { it.sourceName }.distinct()
                             .joinToString(),
                     ),
                 ),

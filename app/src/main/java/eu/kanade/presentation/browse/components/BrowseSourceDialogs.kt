@@ -52,6 +52,7 @@ fun RemoveMangaDialog(
     )
 }
 
+// SY -->
 @Composable
 fun SavedSearchDeleteDialog(
     onDismissRequest: () -> Unit,
@@ -133,3 +134,4 @@ fun SavedSearchCreateDialog(
         },
     )
 }
+// SY <--

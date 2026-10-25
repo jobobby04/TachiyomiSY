@@ -1,5 +1,8 @@
 package tachiyomi.domain.manga.model
 
+/**
+ * SY-specific file
+ */
 data class MergeMangaSettingsUpdate(
     val id: Long,
     var isInfoManga: Boolean?,

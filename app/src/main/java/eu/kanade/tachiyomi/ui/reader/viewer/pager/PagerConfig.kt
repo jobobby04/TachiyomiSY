@@ -15,8 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 /**
  * Configuration used by pager viewers.
@@ -24,7 +22,7 @@ import uy.kohesive.injekt.api.get
 class PagerConfig(
     private val viewer: PagerViewer,
     scope: CoroutineScope,
-    readerPreferences: ReaderPreferences = Injekt.get(),
+    readerPreferences: ReaderPreferences,
 ) : ViewerConfig(readerPreferences, scope) {
 
     var theme = readerPreferences.readerTheme.get()
@@ -35,7 +33,9 @@ class PagerConfig(
 
     var dualPageSplitChangedListener: ((Boolean) -> Unit)? = null
 
+    // SY -->
     var reloadChapterListener: ((Boolean) -> Unit)? = null
+    // SY <--
 
     var imageScaleType = 1
         private set
@@ -216,6 +216,7 @@ class PagerConfig(
         navigationModeChangedListener?.invoke()
     }
 
+    // SY -->
     object CenterMarginType {
         const val NONE = 0
         const val DOUBLE_PAGE_CENTER_MARGIN = 1
@@ -236,4 +237,5 @@ class PagerConfig(
             else -> Color.WHITE
         }
     }
+    // SY <--
 }

@@ -7,26 +7,31 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import androidx.core.app.ActivityCompat
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.domain.ui.model.TabletUiMode
 import eu.kanade.domain.ui.model.ThemeMode
+import eu.kanade.domain.ui.model.TimeFormat
 import eu.kanade.domain.ui.model.setAppCompatDelegateThemeMode
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.appearance.AppLanguageScreen
 import eu.kanade.presentation.more.settings.widget.AppThemeModePreferenceWidget
 import eu.kanade.presentation.more.settings.widget.AppThemePreferenceWidget
+import eu.kanade.presentation.util.rememberIs24HourSystem
 import eu.kanade.tachiyomi.util.system.toast
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import java.time.LocalDate
+import kotlin.time.Clock
 
 object SettingsAppearanceScreen : SearchableSettings {
 
@@ -36,7 +41,8 @@ object SettingsAppearanceScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val uiPreferences = remember { Injekt.get<UiPreferences>() }
+        val context = LocalContext.current
+        val uiPreferences = remember { context.appGraph.uiPreferences }
 
         return listOf(
             getThemeGroup(uiPreferences = uiPreferences),
@@ -88,7 +94,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                 Preference.PreferenceItem.SwitchPreference(
                     preference = amoledPref,
                     title = stringResource(MR.strings.pref_dark_theme_pure_black),
-                    enabled = themeMode != ThemeMode.LIGHT,
+                    visible = themeMode != ThemeMode.LIGHT,
                     onValueChanged = {
                         (context as? Activity)?.let { ActivityCompat.recreate(it) }
                         true
@@ -104,12 +110,14 @@ object SettingsAppearanceScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
+        val locale = LocalLocale.current
+        val is24HourSystem = rememberIs24HourSystem()
 
-        val now = remember { LocalDate.now() }
+        val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toJavaLocalDateTime() }
 
         val dateFormat by uiPreferences.dateFormat.collectAsState()
-        val formattedNow = remember(dateFormat) {
-            UiPreferences.dateFormat(dateFormat).format(now)
+        val formattedDateNow = remember(dateFormat) {
+            UiPreferences.dateFormat(dateFormat, locale.platformLocale).format(now)
         }
 
         return Preference.PreferenceGroup(
@@ -133,10 +141,23 @@ object SettingsAppearanceScreen : SearchableSettings {
                     preference = uiPreferences.dateFormat,
                     entries = DateFormats
                         .associateWith {
-                            val formattedDate = UiPreferences.dateFormat(it).format(now)
+                            val formattedDate = UiPreferences.dateFormat(it, locale.platformLocale).format(now)
                             "${it.ifEmpty { stringResource(MR.strings.label_default) }} ($formattedDate)"
                         },
                     title = stringResource(MR.strings.pref_date_format),
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = uiPreferences.timeFormat,
+                    entries = TimeFormat.entries
+                        .associateWith {
+                            val formattedTime = UiPreferences.timeFormat(
+                                it,
+                                locale.platformLocale,
+                                is24HourSystem,
+                            ).format(now)
+                            "${stringResource(it.titleRes)} ($formattedTime)"
+                        },
+                    title = stringResource(MR.strings.pref_time_format),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = uiPreferences.relativeTime,
@@ -144,7 +165,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                     subtitle = stringResource(
                         MR.strings.pref_relative_format_summary,
                         stringResource(MR.strings.relative_time_today),
-                        formattedNow,
+                        formattedDateNow,
                     ),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
@@ -158,8 +179,6 @@ object SettingsAppearanceScreen : SearchableSettings {
     // SY -->
     @Composable
     fun getForkGroup(uiPreferences: UiPreferences): Preference.PreferenceGroup {
-        val previewsRowCount by uiPreferences.previewsRowCount.collectAsState()
-
         return Preference.PreferenceGroup(
             stringResource(SYMR.strings.pref_category_fork),
             preferenceItems = listOf(
@@ -178,22 +197,16 @@ object SettingsAppearanceScreen : SearchableSettings {
                     subtitle = stringResource(SYMR.strings.put_merge_in_overflow_summary),
                 ),
                 Preference.PreferenceItem.SliderPreference(
-                    value = previewsRowCount,
+                    preference = uiPreferences.previewsRowCount,
                     title = stringResource(SYMR.strings.pref_previews_row_count),
-                    subtitle = if (previewsRowCount > 0) {
-                        pluralStringResource(
-                            SYMR.plurals.row_count,
-                            previewsRowCount,
-                            previewsRowCount,
-                        )
-                    } else {
-                        stringResource(MR.strings.disabled)
+                    valueText = {
+                        if (it > 0) {
+                            pluralStringResource(SYMR.plurals.row_count, it, it)
+                        } else {
+                            stringResource(MR.strings.disabled)
+                        }
                     },
                     valueRange = 0..10,
-                    onValueChanged = {
-                        uiPreferences.previewsRowCount.set(it)
-                        true
-                    },
                 ),
             ),
         )

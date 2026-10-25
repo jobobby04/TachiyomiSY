@@ -4,6 +4,8 @@ import android.net.Uri
 import eu.kanade.tachiyomi.source.model.Filter
 
 /**
+ * SY-specific file
+ *
  * UriGroup
  */
 open class UriGroup<V>(name: String, state: List<V>) : Filter.Group<V>(name, state), UriFilter {

@@ -2,6 +2,9 @@ package eu.kanade.tachiyomi.source.online.all
 
 import android.content.Context
 import android.net.Uri
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.newCachelessCallWithProgress
@@ -34,14 +37,28 @@ import java.time.Instant
 import java.time.ZoneOffset
 import kotlin.time.Duration.Companion.milliseconds
 
-class Lanraragi(delegate: HttpSource, val context: Context) :
+/**
+ * SY-specific file
+ */
+@AssistedInject
+class Lanraragi(
+    @Assisted delegate: HttpSource,
+    val context: Context,
+    override val getMangaId: MetadataSource.GetMangaId,
+    override val insertFlatMetadata: MetadataSource.InsertFlatMetadata,
+    override val getFlatMetadataById: MetadataSource.GetFlatMetadataById,
+) :
     DelegatedHttpSource(delegate),
     MetadataSource<LanraragiSearchMetadata, Response>,
     NamespaceSource,
     PagePreviewSource {
+    @AssistedFactory
+    fun interface Factory {
+        fun create(delegate: HttpSource): Lanraragi
+    }
+
     override val metaClass = LanraragiSearchMetadata::class
     override fun newMetaInstance() = LanraragiSearchMetadata()
-    override val lang = delegate.lang
 
     private fun getApiUriBuilder(path: String): Uri.Builder {
         return LanraragiSearchMetadata.getApiUriBuilder(baseUrl, path)
@@ -49,10 +66,6 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
 
     private fun getReaderId(url: String): String {
         return READER_ID_REGEX.find(url)?.groupValues?.get(1) ?: ""
-    }
-
-    private fun getThumbnailId(url: String): String {
-        return THUMBNAIL_ID_REGEX.find(url)?.groupValues?.get(1) ?: ""
     }
 
     // Helper
@@ -76,10 +89,12 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
         return GET(uri.toString(), headers)
     }
 
+    override val overridesMangaDetails = true
+
     @Deprecated("Use the 1.x API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
         return runAsObservable {
-            val response = client.newCall(mangaDetailsRequest(manga)).awaitSuccess()
+            val response = client.newCall(customMangaDetailsRequest(manga)).awaitSuccess()
             parseToManga(manga, response)
         }
     }
@@ -140,7 +155,6 @@ class Lanraragi(delegate: HttpSource, val context: Context) :
     @Serializable
     data class Archive(
         val arcid: String,
-        val isnew: String,
         val tags: String?,
         val summary: String?,
         val title: String,

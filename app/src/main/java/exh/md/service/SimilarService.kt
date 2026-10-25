@@ -7,6 +7,9 @@ import exh.md.dto.SimilarMangaDto
 import exh.md.utils.MdUtil
 import okhttp3.OkHttpClient
 
+/**
+ * SY-specific file
+ */
 class SimilarService(
     private val client: OkHttpClient,
 ) {

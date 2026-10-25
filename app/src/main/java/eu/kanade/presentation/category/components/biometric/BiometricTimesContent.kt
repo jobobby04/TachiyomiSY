@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import eu.kanade.tachiyomi.ui.category.biometric.TimeRangeItem
 import tachiyomi.presentation.core.components.material.padding
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun BiometricTimesContent(
     timeRanges: List<TimeRangeItem>,

@@ -7,6 +7,9 @@ import rx.Producer
 import rx.Subscription
 import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * SY-specific file
+ */
 fun Call.asObservableWithAsyncStacktrace(): Observable<Pair<Exception, Response>> {
     // Record stacktrace at creation time for easier debugging
     //   asObservable is involved in a lot of crashes so this is worth the performance hit

@@ -8,6 +8,9 @@ import exh.metadata.sql.models.SearchTitle
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.manga.model.Manga
 
+/**
+ * SY-specific file
+ */
 interface MangaMetadataRepository {
     suspend fun getMetadataById(id: Long): SearchMetadata?
 

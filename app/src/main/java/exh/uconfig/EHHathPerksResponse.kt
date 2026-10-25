@@ -1,5 +1,8 @@
 package exh.uconfig
 
+/**
+ * SY-specific file
+ */
 class EHHathPerksResponse {
     var moreThumbs = false
     var thumbsUp = false

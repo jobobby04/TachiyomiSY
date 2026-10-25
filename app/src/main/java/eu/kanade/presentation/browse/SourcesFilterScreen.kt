@@ -11,8 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import eu.kanade.presentation.browse.components.BaseSourceItem
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.more.settings.widget.SwitchPreferenceWidget
-import eu.kanade.presentation.util.animateItemFastScroll
-import eu.kanade.tachiyomi.ui.browse.source.SourcesFilterScreenModel
+import eu.kanade.tachiyomi.ui.browse.source.SourcesFilterViewModel
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import tachiyomi.domain.source.model.Source
 import tachiyomi.i18n.MR
@@ -25,7 +24,7 @@ import tachiyomi.presentation.core.screens.EmptyScreen
 @Composable
 fun SourcesFilterScreen(
     navigateUp: () -> Unit,
-    state: SourcesFilterScreenModel.State.Success,
+    state: SourcesFilterViewModel.State.Success,
     onClickLanguage: (String) -> Unit,
     onClickSource: (Source) -> Unit,
     // SY -->
@@ -63,7 +62,7 @@ fun SourcesFilterScreen(
 @Composable
 private fun SourcesFilterContent(
     contentPadding: PaddingValues,
-    state: SourcesFilterScreenModel.State.Success,
+    state: SourcesFilterViewModel.State.Success,
     onClickLanguage: (String) -> Unit,
     onClickSource: (Source) -> Unit,
     // SY -->
@@ -80,7 +79,7 @@ private fun SourcesFilterContent(
                 contentType = "source-filter-header",
             ) {
                 SourcesFilterHeader(
-                    modifier = Modifier.animateItemFastScroll(),
+                    modifier = Modifier.animateItem(),
                     language = language,
                     enabled = enabled,
                     onClickItem = onClickLanguage,
@@ -110,7 +109,7 @@ private fun SourcesFilterContent(
                     contentType = { "source-filter-item" },
                 ) { source ->
                     SourcesFilterItem(
-                        modifier = Modifier.animateItemFastScroll(),
+                        modifier = Modifier.animateItem(),
                         source = source,
                         enabled = "${source.id}" !in state.disabledSources,
                         onClickItem = onClickSource,

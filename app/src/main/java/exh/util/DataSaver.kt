@@ -10,6 +10,9 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import okhttp3.Response
 import tachiyomi.core.common.preference.Preference
 
+/**
+ * SY-specific file
+ */
 interface DataSaver {
 
     fun compress(imageUrl: String): String

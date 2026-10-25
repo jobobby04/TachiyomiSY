@@ -24,11 +24,12 @@ import okio.Path.Companion.toOkioPath
 import okio.Source
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.IOException
 
 /**
+ * SY-specific file
+ *
  * A [Fetcher] that fetches page preview image for [PagePreview] object.
  *
  * Disk caching is handled by [PagePreviewCache], otherwise
@@ -42,7 +43,7 @@ class PagePreviewFetcher(
     private val isInCache: () -> Boolean,
     private val writeToCache: (Source) -> Unit,
     private val diskCacheKeyLazy: Lazy<String>,
-    private val sourceLazy: Lazy<PagePreviewSource?>,
+    private val getSource: suspend () -> PagePreviewSource?,
     private val callFactoryLazy: Lazy<Call.Factory>,
     private val imageLoader: ImageLoader,
 ) : Fetcher {
@@ -125,9 +126,10 @@ class PagePreviewFetcher(
     }
 
     private suspend fun executeNetworkRequest(): Response {
-        val response = sourceLazy.value?.fetchPreviewImage(
+        val source = getSource()
+        val response = source?.fetchPreviewImage(
             page.getPagePreviewInfo(), getCacheControl(),
-        ) ?: callFactoryLazy.value.newCall(newRequest()).await()
+        ) ?: callFactoryLazy.value.newCall(newRequest(source)).await()
         if (!response.isSuccessful && response.code != HTTP_NOT_MODIFIED) {
             response.close()
             throw IOException(response.message)
@@ -148,11 +150,11 @@ class PagePreviewFetcher(
         }
     }
 
-    private fun newRequest(): Request {
+    private fun newRequest(source: PagePreviewSource?): Request {
         val request = Request.Builder().apply {
             url(page.imageUrl)
 
-            val sourceHeaders = (sourceLazy.value as? HttpSource)?.headers
+            val sourceHeaders = (source as? HttpSource)?.headers
             if (sourceHeaders != null) {
                 headers(sourceHeaders)
             }
@@ -237,10 +239,9 @@ class PagePreviewFetcher(
 
     class Factory(
         private val callFactoryLazy: Lazy<Call.Factory>,
+        private val pagePreviewCache: PagePreviewCache,
+        private val sourceManager: SourceManager,
     ) : Fetcher.Factory<PagePreview> {
-
-        private val pagePreviewCache: PagePreviewCache by injectLazy()
-        private val sourceManager: SourceManager by injectLazy()
 
         override fun create(data: PagePreview, options: Options, imageLoader: ImageLoader): Fetcher {
             return PagePreviewFetcher(
@@ -250,7 +251,7 @@ class PagePreviewFetcher(
                 isInCache = { pagePreviewCache.isImageInCache(data.imageUrl) },
                 writeToCache = { pagePreviewCache.putImageToCache(data.imageUrl, it) },
                 diskCacheKeyLazy = lazy { imageLoader.components.key(data, options)!! },
-                sourceLazy = lazy { sourceManager.get(data.source)?.getMainSource<PagePreviewSource>() },
+                getSource = { sourceManager.get(data.source)?.getMainSource<PagePreviewSource>() },
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
             )

@@ -7,7 +7,6 @@ import eu.kanade.tachiyomi.network.parseAs
 import exh.md.dto.MangaListDto
 import exh.md.dto.RatingDto
 import exh.md.dto.RatingResponseDto
-import exh.md.dto.ReadChapterDto
 import exh.md.dto.ReadingStatusDto
 import exh.md.dto.ReadingStatusMapDto
 import exh.md.dto.ResultDto
@@ -20,6 +19,9 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
+/**
+ * SY-specific file
+ */
 class MangaDexAuthService(
     private val client: OkHttpClient,
     private val headers: Headers,
@@ -42,18 +44,6 @@ class MangaDexAuthService(
             client.newCall(
                 GET(
                     "${MdApi.manga}/$mangaId/status",
-                    headers,
-                    CacheControl.FORCE_NETWORK,
-                ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
-    suspend fun readChaptersForManga(mangaId: String): ReadChapterDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                GET(
-                    "${MdApi.manga}/$mangaId/read",
                     headers,
                     CacheControl.FORCE_NETWORK,
                 ),
@@ -85,43 +75,6 @@ class MangaDexAuthService(
                     headers,
                     cache = CacheControl.FORCE_NETWORK,
                 ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
-    suspend fun readingStatusByType(status: String): ReadingStatusMapDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                GET(
-                    "${MdApi.readingStatusForAllManga}?status=$status",
-                    headers,
-                    cache = CacheControl.FORCE_NETWORK,
-                ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
-    suspend fun markChapterRead(chapterId: String): ResultDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                POST(
-                    "${MdApi.chapter}/$chapterId/read",
-                    headers,
-                    cache = CacheControl.FORCE_NETWORK,
-                ),
-            ).awaitSuccess().parseAs()
-        }
-    }
-
-    suspend fun markChapterUnRead(chapterId: String): ResultDto {
-        return with(MdUtil.jsonParser) {
-            client.newCall(
-                Request.Builder()
-                    .url("${MdApi.chapter}/$chapterId/read")
-                    .delete()
-                    .headers(headers)
-                    .cacheControl(CacheControl.FORCE_NETWORK)
-                    .build(),
             ).awaitSuccess().parseAs()
         }
     }

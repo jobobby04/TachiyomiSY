@@ -4,16 +4,13 @@ import android.annotation.SuppressLint
 import androidx.compose.runtime.Immutable
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import mihon.core.common.extensions.EMPTY
 import tachiyomi.core.common.preference.TriState
-import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
-import uy.kohesive.injekt.injectLazy
 import java.io.ObjectStreamException
-import java.time.Instant
+import kotlin.time.Instant
 import java.io.Serializable as JavaSerializable
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -22,14 +19,13 @@ import java.io.Serializable as JavaSerializable
 data class Manga(
     val id: Long,
     val source: Long,
-    val favorite: Boolean,
-    val lastUpdate: Long,
-    val nextUpdate: Long,
+    val lastUpdate: Instant?,
+    val nextUpdate: Instant?,
     val fetchInterval: Int,
-    val dateAdded: Long,
+    val favoriteAt: Instant?,
     val viewerFlags: Long,
     val chapterFlags: Long,
-    val coverLastModified: Long,
+    val coverLastModified: Instant?,
     val url: String,
     // SY -->
     val ogTitle: String,
@@ -42,47 +38,51 @@ data class Manga(
     // SY <--
     val updateStrategy: UpdateStrategy,
     val initialized: Boolean,
+    // SY -->
     val lastModifiedAt: Long,
-    val favoriteModifiedAt: Long?,
     val version: Long,
+    // SY <--
     val notes: String,
     val memo: JsonObject,
+    // SY -->
+    val userTitle: String? = null,
+    val userAuthor: String? = null,
+    val userArtist: String? = null,
+    val userThumbnailUrl: String? = null,
+    val userDescription: String? = null,
+    val userGenre: List<String>? = null,
+    val userStatus: Long? = null,
+    // SY <--
 ) : JavaSerializable {
 
-    // SY -->
-    @Contextual
-    private val customMangaInfo = if (favorite) {
-        getCustomMangaInfo.get(id)
-    } else {
-        null
-    }
+    val favorite: Boolean
+        get() = favoriteAt != null
 
+    // SY -->
     val title: String
-        get() = customMangaInfo?.title ?: ogTitle
+        get() = userTitle ?: ogTitle
 
     val author: String?
-        get() = customMangaInfo?.author ?: ogAuthor
+        get() = userAuthor ?: ogAuthor
 
     val artist: String?
-        get() = customMangaInfo?.artist ?: ogArtist
+        get() = userArtist ?: ogArtist
 
     val thumbnailUrl: String?
-        get() = customMangaInfo?.thumbnailUrl ?: ogThumbnailUrl
+        get() = userThumbnailUrl ?: ogThumbnailUrl
 
     val description: String?
-        get() = customMangaInfo?.description ?: ogDescription
+        get() = userDescription ?: ogDescription
 
     val genre: List<String>?
-        get() = customMangaInfo?.genre ?: ogGenre
+        get() = userGenre ?: ogGenre
 
     val status: Long
-        get() = customMangaInfo?.status ?: ogStatus
+        get() = userStatus ?: ogStatus
     // SY <--
 
     val expectedNextUpdate: Instant?
-        get() = nextUpdate
-            .takeIf { status != SManga.COMPLETED.toLong() }
-            ?.let { Instant.ofEpochMilli(it) }
+        get() = nextUpdate?.takeIf { status != SManga.COMPLETED.toLong() }
 
     val sorting: Long
         get() = chapterFlags and CHAPTER_SORTING_MASK
@@ -147,21 +147,25 @@ data class Manga(
         const val CHAPTER_DISPLAY_NUMBER = 0x00100000L
         const val CHAPTER_DISPLAY_MASK = 0x00100000L
 
+        /**
+         * [favoriteAt] of an entry added to the library before the time it was added was recorded.
+         */
+        val UNKNOWN_FAVORITE_AT = Instant.fromEpochMilliseconds(0)
+
         fun create() = Manga(
             id = -1L,
             url = "",
-            // Sy -->
+            // SY -->
             ogTitle = "",
             // SY <--
             source = -1L,
-            favorite = false,
-            lastUpdate = 0L,
-            nextUpdate = 0L,
+            lastUpdate = null,
+            nextUpdate = null,
             fetchInterval = 0,
-            dateAdded = 0L,
+            favoriteAt = null,
             viewerFlags = 0L,
             chapterFlags = 0L,
-            coverLastModified = 0L,
+            coverLastModified = null,
             // SY -->
             ogArtist = null,
             ogAuthor = null,
@@ -172,16 +176,13 @@ data class Manga(
             // SY <--
             updateStrategy = UpdateStrategy.ALWAYS_UPDATE,
             initialized = false,
+            // SY -->
             lastModifiedAt = 0L,
-            favoriteModifiedAt = null,
             version = 0L,
+            // SY <--
             notes = "",
             memo = JsonObject.EMPTY,
         )
-
-        // SY -->
-        private val getCustomMangaInfo: GetCustomMangaInfo by injectLazy()
-        // SY <--
     }
 
     @Throws(ObjectStreamException::class)

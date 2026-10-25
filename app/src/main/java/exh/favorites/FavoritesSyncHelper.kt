@@ -3,6 +3,7 @@ package exh.favorites
 import android.content.Context
 import android.net.wifi.WifiManager
 import android.os.PowerManager
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.await
@@ -24,49 +25,46 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import okhttp3.FormBody
 import okhttp3.Request
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.domain.category.interactor.CreateCategoryWithName
 import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.interactor.RenameCategory
+import tachiyomi.domain.category.interactor.ReorderCategory
 import tachiyomi.domain.category.interactor.SetMangaCategories
-import tachiyomi.domain.category.interactor.UpdateCategory
 import tachiyomi.domain.category.model.Category
-import tachiyomi.domain.category.model.CategoryUpdate
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.FavoriteEntry
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * SY-specific file
+ */
 // TODO only apply database changes after sync
-class FavoritesSyncHelper(val context: Context) {
-    private val getLibraryManga: GetLibraryManga by injectLazy()
-    private val getCategories: GetCategories by injectLazy()
-    private val getManga: GetManga by injectLazy()
-    private val updateManga: UpdateManga by injectLazy()
-    private val setMangaCategories: SetMangaCategories by injectLazy()
-    private val createCategoryWithName: CreateCategoryWithName by injectLazy()
-    private val updateCategory: UpdateCategory by injectLazy()
-
-    private val exhPreferences: ExhPreferences by injectLazy()
-
-    private val exh by lazy {
-        Injekt.get<SourceManager>().get(EXH_SOURCE_ID) as? EHentai
-            ?: EHentai(0, true, context)
-    }
-
-    private val storage by lazy { LocalFavoritesStorage() }
-
-    private val galleryAdder by lazy { GalleryAdder() }
+@Inject
+class FavoritesSyncHelper(
+    val context: Context,
+    private val getLibraryManga: GetLibraryManga,
+    private val getCategories: GetCategories,
+    private val getManga: GetManga,
+    private val updateManga: UpdateManga,
+    private val setMangaCategories: SetMangaCategories,
+    private val createCategoryWithName: CreateCategoryWithName,
+    private val reorderCategory: ReorderCategory,
+    private val renameCategory: RenameCategory,
+    private val exhPreferences: ExhPreferences,
+    private val sourceManager: SourceManager,
+    private val ehentaiFactory: EHentai.Factory,
+    private val galleryAdder: GalleryAdder,
+    private val storage: LocalFavoritesStorage,
+) {
 
     private val throttleManager by lazy { ThrottleManager() }
 
@@ -89,6 +87,9 @@ class FavoritesSyncHelper(val context: Context) {
     }
 
     private suspend fun beginSync() {
+        val exh = sourceManager.get(EXH_SOURCE_ID) as? EHentai
+            ?: ehentaiFactory.create(0, true)
+
         // Check if logged in
         if (!exhPreferences.enableExhentai.get()) {
             status.value = FavoritesSyncStatus.SyncError.NotLoggedInSyncError
@@ -150,15 +151,15 @@ class FavoritesSyncHelper(val context: Context) {
             applyRemoteCategories(favorites.second)
 
             // Apply change sets
-            applyChangeSetToLocal(errorList, remoteChanges)
+            applyChangeSetToLocal(exh, errorList, remoteChanges)
             if (localChanges != null) {
-                applyChangeSetToRemote(errorList, localChanges)
+                applyChangeSetToRemote(exh, errorList, localChanges)
             }
 
             status.value = FavoritesSyncStatus.Processing.CleaningUp
             storage.snapshotEntries()
 
-            withUIContext {
+            withContext(Dispatchers.Main) {
                 context.toast(SYMR.strings.favorites_sync_complete)
             }
         } catch (e: IgnoredException) {
@@ -204,22 +205,22 @@ class FavoritesSyncHelper(val context: Context) {
             }
 
             // Ensure consistent ordering and naming
-            if (local.name != remote || local.order != index.toLong()) {
-                val result = updateCategory.await(
-                    CategoryUpdate(
-                        id = local.id,
-                        order = index.toLong().takeIf { it != local.order },
-                        name = remote.takeIf { it != local.name },
-                    ),
-                )
-                if (result is UpdateCategory.Result.Error) {
+            if (local.order != index.toLong()) {
+                val result = reorderCategory.await(local, index)
+                if (result is ReorderCategory.Result.InternalError) {
+                    throw result.error
+                }
+            }
+            if (local.name != remote) {
+                val result = renameCategory.await(local, remote)
+                if (result is RenameCategory.Result.InternalError) {
                     throw result.error
                 }
             }
         }
     }
 
-    private suspend fun addGalleryRemote(errorList: MutableList<FavoritesSyncStatus.SyncError.GallerySyncError>, gallery: FavoriteEntry) {
+    private suspend fun addGalleryRemote(exh: EHentai, errorList: MutableList<FavoritesSyncStatus.SyncError.GallerySyncError>, gallery: FavoriteEntry) {
         val url = "${exh.baseUrl}/gallerypopups.php?gid=${gallery.gid}&t=${gallery.token}&act=addfav"
 
         val request = POST(
@@ -232,7 +233,7 @@ class FavoritesSyncHelper(val context: Context) {
                 .build(),
         )
 
-        if (!explicitlyRetryExhRequest(10, request)) {
+        if (!explicitlyRetryExhRequest(exh, 10, request)) {
             val error = FavoritesSyncStatus.SyncError.GallerySyncError.UnableToAddGalleryToRemote(
                 gallery.title,
                 gallery.gid,
@@ -247,12 +248,12 @@ class FavoritesSyncHelper(val context: Context) {
         }
     }
 
-    private suspend fun explicitlyRetryExhRequest(retryCount: Int, request: Request): Boolean {
+    private suspend fun explicitlyRetryExhRequest(exh: EHentai, retryCount: Int, request: Request): Boolean {
         var success = false
 
         for (i in 1..retryCount) {
             try {
-                val resp = withIOContext { exh.client.newCall(request).await() }
+                val resp = withContext(Dispatchers.IO) { exh.client.newCall(request).await() }
 
                 if (resp.isSuccessful) {
                     success = true
@@ -267,6 +268,7 @@ class FavoritesSyncHelper(val context: Context) {
     }
 
     private suspend fun applyChangeSetToRemote(
+        exh: EHentai,
         errorList: MutableList<FavoritesSyncStatus.SyncError.GallerySyncError>,
         changeSet: ChangeSet,
     ) {
@@ -288,7 +290,7 @@ class FavoritesSyncHelper(val context: Context) {
                 body = formBody.build(),
             )
 
-            if (!explicitlyRetryExhRequest(10, request)) {
+            if (!explicitlyRetryExhRequest(exh, 10, request)) {
                 if (exhPreferences.exhLenientSync.get()) {
                     errorList += FavoritesSyncStatus.SyncError.GallerySyncError.UnableToDeleteFromRemote
                 } else {
@@ -310,11 +312,12 @@ class FavoritesSyncHelper(val context: Context) {
 
             throttleManager.throttle()
 
-            addGalleryRemote(errorList, it)
+            addGalleryRemote(exh, errorList, it)
         }
     }
 
     private suspend fun applyChangeSetToLocal(
+        exh: EHentai,
         errorList: MutableList<FavoritesSyncStatus.SyncError.GallerySyncError>,
         changeSet: ChangeSet,
     ) {
@@ -466,28 +469,47 @@ sealed class FavoritesSyncStatus {
 
     @Serializable
     sealed class Processing : FavoritesSyncStatus() {
+        @Serializable
         data object VerifyingLibrary : Processing()
+
+        @Serializable
         data object DownloadingFavorites : Processing()
+
+        @Serializable
         data object CalculatingRemoteChanges : Processing()
+
+        @Serializable
         data object CalculatingLocalChanges : Processing()
+
+        @Serializable
         data object SyncingCategoryNames : Processing()
+
+        @Serializable
         data class RemovingRemoteGalleries(val galleryCount: Int) : Processing()
+
+        @Serializable
         data class AddingGalleryToRemote(
             val index: Int,
             val total: Int,
             val isThrottling: Boolean,
             val title: String,
         ) : Processing()
+
+        @Serializable
         data class RemovingGalleryFromLocal(
             val index: Int,
             val total: Int,
         ) : Processing()
+
+        @Serializable
         data class AddingGalleryToLocal(
             val index: Int,
             val total: Int,
             val isThrottling: Boolean,
             val title: String,
         ) : Processing()
+
+        @Serializable
         data object CleaningUp : Processing()
     }
 

@@ -1,5 +1,6 @@
 package exh.debug
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -55,16 +56,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mihon.app.di.appGraph
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.topSmallPaddingValues
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.util.plus
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.util.Locale
 import kotlin.reflect.KFunction
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredFunctions
 
+/**
+ * SY-specific file
+ */
 class SettingsDebugScreen : Screen() {
 
     data class DebugToggle(val name: String, val pref: PreferenceMutableState<Boolean>, val default: Boolean)
@@ -76,6 +83,8 @@ class SettingsDebugScreen : Screen() {
         DisposableEffect(Unit) {
             onDispose { navigator.pop() }
         }
+        val debugFunctions = remember { Injekt.get<Context>().appGraph.debugFunctions }
+        val preferenceStore = remember { Injekt.get<Context>().appGraph.preferenceStore }
         val functions by produceState<List<Pair<KFunction<*>, String>>?>(initialValue = null) {
             value = withContext(Dispatchers.Default) {
                 DebugFunctions::class.declaredFunctions.filter {
@@ -89,7 +98,7 @@ class SettingsDebugScreen : Screen() {
         }
         val toggles by produceState(initialValue = emptyList()) {
             value = withContext(Dispatchers.Default) {
-                DebugToggles.entries.map { DebugToggle(it.name, it.asPref(scope), it.default) }
+                DebugToggles.entries.map { DebugToggle(it.name, it.asPref(preferenceStore, scope), it.default) }
             }
         }
         Scaffold(
@@ -103,7 +112,7 @@ class SettingsDebugScreen : Screen() {
             Crossfade(functions == null, label = "debug_functions") {
                 when (it) {
                     true -> LoadingScreen()
-                    false -> FunctionList(paddingValues, functions.orEmpty(), toggles, scope)
+                    false -> FunctionList(paddingValues, debugFunctions, functions.orEmpty(), toggles, scope)
                 }
             }
         }
@@ -112,6 +121,7 @@ class SettingsDebugScreen : Screen() {
     @Composable
     fun FunctionList(
         paddingValues: PaddingValues,
+        debugFunctions: DebugFunctions,
         functions: List<Pair<KFunction<*>, String>>,
         toggles: List<DebugToggle>,
         scope: CoroutineScope,
@@ -140,7 +150,7 @@ class SettingsDebugScreen : Screen() {
                             scope.launch(Dispatchers.Default) {
                                 val text = try {
                                     running = true
-                                    "Function returned result:\n\n${func.call(DebugFunctions)}"
+                                    "Function returned result:\n\n${func.call(debugFunctions)}"
                                 } catch (e: Exception) {
                                     "Function threw exception:\n\n${Log.getStackTraceString(e)}"
                                 } finally {

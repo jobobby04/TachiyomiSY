@@ -5,6 +5,9 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
+/**
+ * SY-specific file
+ */
 fun OkHttpClient.Builder.maybeInjectEHLogger(): OkHttpClient.Builder {
     if (EHLogLevel.shouldLog(EHLogLevel.EXTREME)) {
         val xlogBorder = XLog.tag("||EH-NETWORK-JSON").build()

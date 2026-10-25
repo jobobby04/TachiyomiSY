@@ -2,6 +2,7 @@ package exh
 
 import android.content.Context
 import androidx.core.net.toUri
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.source.online.UrlImportableSource
@@ -17,30 +18,37 @@ import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import kotlin.time.Clock
 
+/**
+ * SY-specific file
+ */
+@Inject
 class GalleryAdder(
-    private val getManga: GetManga = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
-    private val updateMangaFromRemote: UpdateMangaFromRemote = Injekt.get(),
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
-    private val getChapter: GetChapter = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
+    private val getManga: GetManga,
+    private val updateManga: UpdateManga,
+    private val updateMangaFromRemote: UpdateMangaFromRemote,
+    private val networkToLocalManga: NetworkToLocalManga,
+    private val getChapter: GetChapter,
+    private val sourceManager: SourceManager,
+    private val sourcePreferences: SourcePreferences,
 ) {
 
-    private val filters: Pair<Set<String>, Set<Long>> = Injekt.get<SourcePreferences>().run {
-        enabledLanguages.get() to disabledSources.get().map { it.toLong() }.toSet()
-    }
+    private val filters: Pair<Set<String>, Set<Long>>
+        get() = sourcePreferences.run {
+            enabledLanguages.get() to disabledSources.get().map { it.toLong() }.toSet()
+        }
 
     private val Pair<Set<String>, Set<Long>>.enabledLangs
         get() = first
     private val Pair<Set<String>, Set<Long>>.disabledSources
         get() = second
 
-    private val logger = xLogStack()
+    private val logger by lazy {
+        xLogStack()
+    }
 
-    fun pickSource(url: String): List<UrlImportableSource> {
+    suspend fun pickSource(url: String): List<UrlImportableSource> {
         val uri = url.toUri()
         return sourceManager.getVisibleSources()
             .mapNotNull { it.getMainSource<UrlImportableSource>() }
@@ -155,7 +163,7 @@ class GalleryAdder(
 
             if (fav) {
                 updateManga.awaitUpdateFavorite(manga.id, true)
-                manga = manga.copy(favorite = true)
+                manga = manga.copy(favoriteAt = Clock.System.now())
             }
 
             return if (cleanedChapterUrl != null) {

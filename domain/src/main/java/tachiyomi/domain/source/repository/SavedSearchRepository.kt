@@ -3,6 +3,9 @@ package tachiyomi.domain.source.repository
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.source.model.SavedSearch
 
+/**
+ * SY-specific file
+ */
 interface SavedSearchRepository {
 
     suspend fun getById(savedSearchId: Long): SavedSearch?

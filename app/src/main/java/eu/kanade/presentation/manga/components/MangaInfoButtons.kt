@@ -11,6 +11,9 @@ import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.Button
 import tachiyomi.presentation.core.i18n.stringResource
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun MangaInfoButtons(
     showRecommendsButton: Boolean,

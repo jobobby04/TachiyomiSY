@@ -2,6 +2,9 @@ package tachiyomi.data.manga
 
 import tachiyomi.domain.manga.model.MergedMangaReference
 
+/**
+ * SY-specific file
+ */
 object MergedMangaMapper {
     fun map(
         id: Long,
