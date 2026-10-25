@@ -1,20 +1,26 @@
 package mihon.core.migration.migrations
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import tachiyomi.core.common.preference.PreferenceStore
-import tachiyomi.core.common.util.lang.withIOContext
 
-class VerticalNavigatorMigration : Migration {
-    override val version: Float = 79f
+@Inject
+@ContributesIntoSet(AppScope::class)
+class VerticalNavigatorMigration(
+    private val preferenceStore: PreferenceStore,
+    private val readerPreferences: ReaderPreferences,
+) : Migration {
+    override val version: Float = /* SY --> */79f/* SY <-- */
 
-    override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
-        val preferenceStore = migrationContext.get<PreferenceStore>() ?: return@withIOContext false
-        val readerPreferences = migrationContext.get<ReaderPreferences>() ?: return@withIOContext false
-
-        if (migrationContext.previousVersion == 78) {
+    override suspend fun invoke(migrationContext: MigrationContext): Boolean = withContext(Dispatchers.IO) {
+        if (migrationContext.previousVersion == /* SY --> */78/* SY <-- */) {
             val oldVerticalNavigator = preferenceStore.getBoolean("pref_webtoon_vertical_navigator", true)
             if (oldVerticalNavigator.get()) {
                 readerPreferences.verticalNavigator.set(setOf(ReadingMode.WEBTOON, ReadingMode.CONTINUOUS_VERTICAL))
@@ -28,6 +34,6 @@ class VerticalNavigatorMigration : Migration {
             oldVerticalNavigatorOnLeft.delete()
         }
 
-        return@withIOContext true
+        return@withContext true
     }
 }

@@ -1,5 +1,8 @@
 package exh.source
 
+/**
+ * SY-specific file
+ */
 object BlacklistedSources {
     val EHENTAI_EXT_SOURCES = longArrayOf(
         8100626124886895451,

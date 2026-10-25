@@ -2,7 +2,6 @@ package exh.recs.sources
 
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.network.GET
-import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.source.Source
@@ -16,19 +15,24 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
 import tachiyomi.data.source.NoResultsException
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 
+/**
+ * SY-specific file
+ */
 fun Source.isComickSource() = name == "Comick"
 
 class ComickPagingSource(
     manga: Manga,
     private val comickSource: Source,
-) : RecommendationPagingSource(manga, comickSource) {
+    networkToLocalManga: NetworkToLocalManga,
+    private val client: OkHttpClient,
+    private val json: Json,
+) : RecommendationPagingSource(manga, { comickSource }, networkToLocalManga) {
 
     override val name: String
         get() = "Comick"
@@ -39,11 +43,9 @@ class ComickPagingSource(
     override val associatedSourceId: Long
         get() = comickSource.id
 
-    private val client by lazy { Injekt.get<NetworkHelper>().client }
-    private val json by injectLazy<Json>()
     private val thumbnailBaseUrl = "https://meo.comick.pictures/"
 
-    override suspend fun requestNextPage(currentPage: Int): MangasPage {
+    override suspend fun requestNextPage(source: Source?, currentPage: Int): MangasPage {
         val mangasPage = coroutineScope {
             val headers = Headers.Builder().apply {
                 add("Referer", "api.comick.fun/")

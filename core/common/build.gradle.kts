@@ -2,6 +2,7 @@ plugins {
     alias(mihonx.plugins.android.library)
     alias(mihonx.plugins.spotless)
 
+    alias(libs.plugins.metro)
     alias(libs.plugins.kotlin.serialization)
 
     id("com.github.ben-manes.versions")
@@ -21,6 +22,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(projects.core.metro)
     implementation(projects.i18n)
     // SY -->
     implementation(projects.i18nSy)
@@ -36,6 +38,8 @@ dependencies {
     api(libs.okhttp.dnsOverHttps)
     api(libs.okio)
 
+    api(libs.apollo)
+
     implementation(libs.image.decoder)
 
     implementation(libs.unifile)
@@ -46,6 +50,7 @@ dependencies {
     api(libs.kotlinx.serialization.jsonOkio)
 
     api(libs.androidx.preference)
+    implementation(libs.androidx.webkit)
 
     implementation(libs.jsoup)
 
@@ -58,9 +63,10 @@ dependencies {
     testImplementation(libs.bundles.test)
     testRuntimeOnly(libs.junit.platform.launcher)
 
+    implementation(libs.metro.runtime)
+
     // SY -->
     implementation(sylibs.xlog)
     implementation(libs.injekt)
-    implementation(sylibs.exifinterface)
     // SY <--
 }

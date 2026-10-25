@@ -47,6 +47,8 @@ When creating a fork, remember to:
     - Change the `applicationId` in [`build.gradle.kts`](/app/build.gradle.kts)
 
 
+
+# SY Information
 ### Supporting Cloud Sync - Google Drive Implementation
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create a new project
@@ -62,3 +64,54 @@ When creating a fork, remember to:
 12. To get the SHA-1 key, run `keytool -printcert -jarfile app-standard-universal-release.apk` on your apk, and copy the listed SHA-1
 13. Expand advanced settings, and enable Custom URL scheme
 14. After that just download the json, name it to `client_secrets.json` and put it in `app/src/main/assets/`
+
+
+## SY code markers
+
+TachiyomiSY is a fork of [Mihon](https://github.com/mihonapp/mihon). Upstream commits are brought in by **cherry-picking**, so all SY-specific code must be wrapped in markers to survive merge conflicts.
+
+**Any code not present in upstream Mihon** — new features, fields, branches, dependencies, whole files — must be marked. This applies to code outside of imports.
+
+### Block markers (entire lines are SY-specific)
+
+```kotlin
+// SY -->
+val historyUpdates = mutableListOf<HistoryUpdate>()
+// SY <--
+```
+
+### Inline markers (part of a line is SY-specific)
+
+```kotlin
+private val /* SY --> */ newName /* SY <-- */: Test
+restoreRepository.restoreManga(entries, /* SY --> */ isSync /* SY <-- */) { ... }
+```
+
+### Rules
+
+- **Be as narrow as possible.** Mark only the SY-specific token, parameter, or statement — not the surrounding Mihon code. If only one argument in a call is SY-specific, mark that argument, not the whole call.
+- **Indentation.** Block markers must be indented to match the code they surround — not left-aligned to column zero.
+- **Language-aware comments.** Use the comment syntax of the language: `//` for Kotlin, `/* */` for inline Kotlin, `--` for SQL, `#` for shell/Python, `<!-- -->` for XML/HTML.
+
+### SY-specific files
+
+Whole files with no upstream Mihon counterpart do **not** use inline markers. Instead, place a file marker directly below the imports (after the last `import`, or after `package` if there are no imports), separated by a blank line:
+
+```kotlin
+import foo.bar
+
+/**
+ * SY-specific file
+ */
+class Baz { ... }
+```
+
+**Existing KDoc.** If the first declaration already has a KDoc, merge the marker into it as the first content line. Two adjacent KDoc blocks trigger a ktlint `dangling toplevel KDoc` error:
+
+```kotlin
+/**
+ * SY-specific file
+ * Existing description of the class.
+ */
+class Baz { ... }
+```

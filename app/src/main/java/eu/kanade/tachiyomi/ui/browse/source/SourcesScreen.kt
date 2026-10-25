@@ -7,6 +7,9 @@ import eu.kanade.presentation.browse.BrowseTabWrapper
 import eu.kanade.presentation.util.Screen
 import java.io.Serializable
 
+/**
+ * SY-specific file
+ */
 class SourcesScreen(private val smartSearchConfig: SmartSearchConfig?) : Screen() {
     @Composable
     override fun Content() {

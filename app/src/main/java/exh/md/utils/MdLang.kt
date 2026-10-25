@@ -1,5 +1,8 @@
 package exh.md.utils
 
+/**
+ * SY-specific file
+ */
 @Suppress("unused")
 enum class MdLang(val lang: String, val extLang: String = lang) {
     ENGLISH("en"),

@@ -10,7 +10,7 @@ CREATE TABLE merged(
     merge_url TEXT NOT NULL,
     manga_id INTEGER,
     manga_url TEXT NOT NULL,
-    COL_MANGA_SOURCE INTEGER NOT NULL,
+    manga_source INTEGER NOT NULL,
     FOREIGN KEY(manga_id) REFERENCES mangas (_id)
     ON DELETE SET NULL,
     FOREIGN KEY(merge_id) REFERENCES mangas (_id)

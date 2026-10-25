@@ -18,22 +18,18 @@
         <item quantity="one">%1$d tag in sorting list. This adds a option in the library to sort by a priority based tag list, which means entries will be sorted in a way to prioritise the ones with the tags you want</item>
         <item quantity="other">%1$d tags in sorting list. This adds a option in the library to sort by a priority based tag list, which means entries will be sorted in a way to prioritise the ones with the tags you want</item>
     </plurals>
-    <plurals name="migrate_entry">
-        <item quantity="one">Migrate %1$d%2$s entry?</item>
-        <item quantity="other">Migrate %1$d%2$s entries?</item>
-    </plurals>
-    <plurals name="copy_entry">
-        <item quantity="one">Copy %1$d%2$s entry?</item>
-        <item quantity="other">Copy %1$d%2$s entries?</item>
-    </plurals>
-    <plurals name="entry_migrated">
-        <item quantity="one">%d entry migrated</item>
-        <item quantity="other">%d entries migrated</item>
-    </plurals>
     <!-- Extra gallery info -->
     <plurals name="num_pages">
         <item quantity="one">%1$d page</item>
         <item quantity="other">%1$d pages</item>
+    </plurals>
+    <plurals name="num_favorites">
+        <item quantity="one">%1$s favorite</item>
+        <item quantity="other">%1$s favorites</item>
+    </plurals>
+    <plurals name="num_views">
+        <item quantity="one">%1$s view</item>
+        <item quantity="other">%1$s views</item>
     </plurals>
 
     <!-- Enhanced E/ExHentai Browse View -->
@@ -76,5 +72,9 @@
     <plurals name="row_count">
         <item quantity="one">%d row</item>
         <item quantity="other">%d rows</item>
+    </plurals>
+    <plurals name="rec_selected_entries">
+        <item quantity="one">For %d selected entry</item>
+        <item quantity="other">For %d selected entries</item>
     </plurals>
 </resources>

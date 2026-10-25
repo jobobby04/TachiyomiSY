@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
@@ -16,13 +16,14 @@ import exh.recs.RecommendsScreen.Args.SingleSourceManga
 import exh.recs.batch.RankedSearchResults
 import exh.recs.components.RecommendsScreen
 import exh.recs.sources.StaticResultPagingSource
-import exh.ui.ifSourcesLoaded
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.screens.LoadingScreen
 import java.io.Serializable
 
+/**
+ * SY-specific file
+ */
 class RecommendsScreen(private val args: Args) : Screen() {
 
     sealed interface Args : Serializable {
@@ -32,16 +33,13 @@ class RecommendsScreen(private val args: Args) : Screen() {
 
     @Composable
     override fun Content() {
-        if (!ifSourcesLoaded()) {
-            LoadingScreen()
-            return
-        }
-
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { RecommendsScreenModel(args) }
-        val state by screenModel.state.collectAsState()
+        val viewModel = assistedMetroViewModel<RecommendsViewModel, RecommendsViewModel.Factory> {
+            create(args = args)
+        }
+        val state by viewModel.state.collectAsState()
 
         val onClickItem = { manga: Manga ->
             navigator.push(
@@ -67,7 +65,7 @@ class RecommendsScreen(private val args: Args) : Screen() {
             },
             state = state,
             navigateUp = navigator::pop,
-            getManga = @Composable { manga: Manga -> screenModel.getManga(manga) },
+            getManga = @Composable { manga: Manga -> viewModel.getManga(manga) },
             onClickSource = { pagingSource ->
                 // Pass class name of paging source as screens need to be serializable
                 navigator.push(

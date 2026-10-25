@@ -6,14 +6,14 @@ import mihon.domain.extension.model.ExtensionStore
 
 @Serializable
 class BackupExtensionStore(
-    @ProtoNumber(1) var indexUrl: String,
-    @ProtoNumber(2) var name: String,
-    @ProtoNumber(3) var badgeLabel: String?,
-    @ProtoNumber(5) var signingKey: String,
-    @ProtoNumber(4) var contactWebsite: String,
-    @ProtoNumber(6) var contactDiscord: String?,
-    @ProtoNumber(7) var isLegacy: Boolean?,
-    @ProtoNumber(8) var extensionListUrl: String?,
+    @ProtoNumber(1) var indexUrl: String /* SY --> */ = "" /* SY <-- */,
+    @ProtoNumber(2) var name: String /* SY --> */ = "" /* SY <-- */,
+    @ProtoNumber(3) var badgeLabel: String? /* SY --> */ = null /* SY <-- */,
+    @ProtoNumber(5) var signingKey: String /* SY --> */ = "" /* SY <-- */,
+    @ProtoNumber(4) var contactWebsite: String /* SY --> */ = "" /* SY <-- */,
+    @ProtoNumber(6) var contactDiscord: String? /* SY --> */ = null /* SY <-- */,
+    @ProtoNumber(7) var isLegacy: Boolean? /* SY --> */ = null /* SY <-- */,
+    @ProtoNumber(8) var extensionListUrl: String? /* SY --> */ = null /* SY <-- */,
 )
 
 val backupExtensionStoreMapper = { store: ExtensionStore ->

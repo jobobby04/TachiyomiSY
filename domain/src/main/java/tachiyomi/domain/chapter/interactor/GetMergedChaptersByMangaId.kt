@@ -1,9 +1,12 @@
 package tachiyomi.domain.chapter.interactor
 
+import dev.zacsweers.metro.Inject
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.model.Chapter
@@ -11,6 +14,10 @@ import tachiyomi.domain.chapter.repository.ChapterRepository
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.model.MergedMangaReference
 
+/**
+ * SY-specific file
+ */
+@Inject
 class GetMergedChaptersByMangaId(
     private val chapterRepository: ChapterRepository,
     private val getMergedReferencesById: GetMergedReferencesById,
@@ -21,11 +28,14 @@ class GetMergedChaptersByMangaId(
         dedupe: Boolean = true,
         applyScanlatorFilter: Boolean = false,
     ): List<Chapter> {
-        return transformMergedChapters(
-            getMergedReferencesById.await(mangaId),
-            getFromDatabase(mangaId, applyScanlatorFilter),
-            dedupe,
-        )
+        return try {
+            val sortMode = if (dedupe) sortModeOf(getMergedReferencesById.await(mangaId)) else MergedMangaReference.CHAPTER_SORT_NONE
+            val chapters = chapterRepository.getDedupedMergedChapters(mangaId, sortMode, applyScanlatorFilter)
+            applyPriorityOrder(chapters, dedupe, sortMode)
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e)
+            emptyList()
+        }
     }
 
     suspend fun subscribe(
@@ -33,103 +43,48 @@ class GetMergedChaptersByMangaId(
         dedupe: Boolean = true,
         applyScanlatorFilter: Boolean = false,
     ): Flow<List<Chapter>> {
-        return try {
-            chapterRepository.getMergedChapterByMangaIdAsFlow(mangaId, applyScanlatorFilter)
-                .combine(getMergedReferencesById.subscribe(mangaId)) { chapters, references ->
-                    transformMergedChapters(references, chapters, dedupe)
-                }
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e)
-            flowOf(emptyList())
-        }
-    }
-
-    private suspend fun getFromDatabase(
-        mangaId: Long,
-        applyScanlatorFilter: Boolean = false,
-    ): List<Chapter> {
-        return try {
-            chapterRepository.getMergedChapterByMangaId(mangaId, applyScanlatorFilter)
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e)
-            emptyList()
-        }
-    }
-
-    private fun transformMergedChapters(
-        mangaReferences: List<MergedMangaReference>,
-        chapterList: List<Chapter>,
-        dedupe: Boolean,
-    ): List<Chapter> {
-        return if (dedupe) dedupeChapterList(mangaReferences, chapterList) else chapterList
-    }
-
-    private fun dedupeChapterList(
-        mangaReferences: List<MergedMangaReference>,
-        chapterList: List<Chapter>,
-    ): List<Chapter> {
-        return when (mangaReferences.firstOrNull { it.mangaSourceId == MERGED_SOURCE_ID }?.chapterSortMode) {
-            MergedMangaReference.CHAPTER_SORT_NO_DEDUPE, MergedMangaReference.CHAPTER_SORT_NONE -> chapterList
-            MergedMangaReference.CHAPTER_SORT_PRIORITY -> dedupeByPriority(mangaReferences, chapterList)
-            MergedMangaReference.CHAPTER_SORT_MOST_CHAPTERS -> {
-                findSourceWithMostChapters(chapterList)?.let { mangaId ->
-                    chapterList.filter { it.mangaId == mangaId }
-                } ?: chapterList
+        return getMergedReferencesById.subscribe(mangaId)
+            .map { references -> if (dedupe) sortModeOf(references) else MergedMangaReference.CHAPTER_SORT_NONE }
+            .distinctUntilChanged()
+            .flatMapLatest { sortMode ->
+                chapterRepository.getDedupedMergedChaptersAsFlow(mangaId, sortMode, applyScanlatorFilter)
+                    .map { chapters -> applyPriorityOrder(chapters, dedupe, sortMode) }
             }
-            MergedMangaReference.CHAPTER_SORT_HIGHEST_CHAPTER_NUMBER -> {
-                findSourceWithHighestChapterNumber(chapterList)?.let { mangaId ->
-                    chapterList.filter { it.mangaId == mangaId }
-                } ?: chapterList
+            .catch { e ->
+                logcat(LogPriority.ERROR, e)
+                emit(emptyList())
             }
-            else -> chapterList
-        }
     }
 
-    private fun findSourceWithMostChapters(chapterList: List<Chapter>): Long? {
-        return chapterList.groupBy { it.mangaId }.maxByOrNull { it.value.size }?.key
-    }
+    private fun sortModeOf(references: List<MergedMangaReference>): Int =
+        references.firstOrNull { it.mangaSourceId == MERGED_SOURCE_ID }
+            ?.chapterSortMode
+            ?: MergedMangaReference.CHAPTER_SORT_NONE
 
-    private fun findSourceWithHighestChapterNumber(chapterList: List<Chapter>): Long? {
-        return chapterList.maxByOrNull { it.chapterNumber }?.mangaId
-    }
-
-    private fun dedupeByPriority(
-        mangaReferences: List<MergedMangaReference>,
-        chapterList: List<Chapter>,
-    ): List<Chapter> {
-        val sortedChapterList = mutableListOf<Chapter>()
-
-        var existingChapterIndex: Int
-        chapterList.groupBy { it.mangaId }
-            .entries
-            .sortedBy { (mangaId) ->
-                mangaReferences.find { it.mangaId == mangaId }?.chapterPriority ?: Int.MAX_VALUE
-            }
-            .forEach { (_, chapters) ->
-                existingChapterIndex = -1
-                chapters.forEach { chapter ->
-                    val oldChapterIndex = existingChapterIndex
-                    if (chapter.isRecognizedNumber) {
-                        existingChapterIndex = sortedChapterList.indexOfFirst {
-                            // check if the chapter is not already there
-                            it.isRecognizedNumber &&
-                                it.chapterNumber == chapter.chapterNumber &&
-                                // allow multiple chapters of the same number from the same source
-                                it.mangaId != chapter.mangaId
-                        }
-                        if (existingChapterIndex == -1) {
-                            sortedChapterList.add(oldChapterIndex + 1, chapter)
-                            existingChapterIndex = oldChapterIndex + 1
-                        }
+    private fun applyPriorityOrder(chapters: List<Chapter>, dedupe: Boolean, sortMode: Int): List<Chapter> {
+        return if (!dedupe || sortMode != MergedMangaReference.CHAPTER_SORT_PRIORITY) {
+            chapters
+        } else {
+            // Orders by chapter number; an unrecognized chapter stays after the number preceding it in its own source.
+            val keyed = chapters.groupBy { it.mangaId }.flatMap { (_, sourceChapters) ->
+                var anchor = Double.NEGATIVE_INFINITY
+                var sinceAnchor = 0
+                sourceChapters.sortedBy { it.sourceOrder }.map { chapter ->
+                    val key = if (chapter.isRecognizedNumber) {
+                        anchor = chapter.chapterNumber
+                        sinceAnchor = 0
+                        chapter.chapterNumber to 0
                     } else {
-                        sortedChapterList.add(oldChapterIndex + 1, chapter)
-                        existingChapterIndex = oldChapterIndex + 1
+                        anchor to (1 + sinceAnchor++)
                     }
+                    chapter to key
                 }
             }
-
-        return sortedChapterList.mapIndexed { index, chapter ->
-            chapter.copy(sourceOrder = index.toLong())
+            keyed
+                .sortedWith(compareBy({ it.second.first }, { it.second.second }))
+                .map { it.first }
+                .reversed()
+                .mapIndexed { index, chapter -> chapter.copy(sourceOrder = index.toLong()) }
         }
     }
 }

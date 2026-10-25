@@ -26,9 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import tachiyomi.i18n.MR
@@ -39,12 +39,15 @@ import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.plus
 
+/**
+ * SY-specific file
+ */
 class BatchAddScreen : Screen() {
 
     @Composable
     override fun Content() {
-        val screenModel = rememberScreenModel { BatchAddScreenModel() }
-        val state by screenModel.state.collectAsState()
+        val viewModel = metroViewModel<BatchAddViewModel>()
+        val state by viewModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
 
@@ -57,8 +60,8 @@ class BatchAddScreen : Screen() {
                 )
             },
         ) { paddingValues ->
-            when (state.state) {
-                BatchAddScreenModel.State.INPUT -> {
+            when (state.addingState) {
+                BatchAddViewModel.AddingState.INPUT -> {
                     Column(
                         Modifier
                             .padding(paddingValues)
@@ -69,7 +72,7 @@ class BatchAddScreen : Screen() {
                         Spacer(Modifier.height(8.dp))
                         TextField(
                             value = state.galleries,
-                            onValueChange = screenModel::updateGalleries,
+                            onValueChange = viewModel::updateGalleries,
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
@@ -83,13 +86,13 @@ class BatchAddScreen : Screen() {
                         Spacer(Modifier.height(8.dp))
                         Button(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { screenModel.addGalleries(context) },
+                            onClick = { viewModel.addGalleries(context) },
                         ) {
                             Text(text = stringResource(SYMR.strings.eh_batch_add_button))
                         }
                     }
                 }
-                BatchAddScreenModel.State.PROGRESS -> {
+                BatchAddViewModel.AddingState.PROGRESS -> {
                     LazyColumn(
                         contentPadding = paddingValues + PaddingValues(MaterialTheme.padding.medium),
                     ) {
@@ -140,7 +143,7 @@ class BatchAddScreen : Screen() {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Button(
                                         modifier = Modifier.fillMaxWidth(),
-                                        onClick = screenModel::finish,
+                                        onClick = viewModel::finish,
                                     ) {
                                         Text(text = stringResource(SYMR.strings.eh_batch_add_finish))
                                     }
@@ -152,9 +155,9 @@ class BatchAddScreen : Screen() {
             }
         }
 
-        val onDismissRequest = screenModel::dismissDialog
+        val onDismissRequest = viewModel::dismissDialog
         when (state.dialog) {
-            BatchAddScreenModel.Dialog.NoGalleriesSpecified -> AlertDialog(
+            BatchAddViewModel.Dialog.NoGalleriesSpecified -> AlertDialog(
                 onDismissRequest = onDismissRequest,
                 confirmButton = {
                     TextButton(onClick = onDismissRequest) {

@@ -2,6 +2,9 @@ package exh.md.dto
 
 import kotlinx.serialization.Serializable
 
+/**
+ * SY-specific file
+ */
 @Serializable
 data class ChapterListDto(
     override val limit: Int,

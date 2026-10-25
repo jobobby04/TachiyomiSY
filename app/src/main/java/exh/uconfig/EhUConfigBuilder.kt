@@ -1,12 +1,17 @@
 package exh.uconfig
 
+import dev.zacsweers.metro.Inject
 import exh.source.ExhPreferences
 import okhttp3.FormBody
-import uy.kohesive.injekt.injectLazy
 import java.util.Locale
 
-class EhUConfigBuilder {
-    private val exhPreferences: ExhPreferences by injectLazy()
+/**
+ * SY-specific file
+ */
+@Inject
+class EhUConfigBuilder(
+    private val exhPreferences: ExhPreferences,
+) {
 
     fun build(hathPerks: EHHathPerksResponse): FormBody {
         val configItems = mutableListOf<ConfigItem>()

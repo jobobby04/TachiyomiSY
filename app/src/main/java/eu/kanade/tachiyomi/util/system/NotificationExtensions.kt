@@ -12,7 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.NotificationManagerCompat.NotificationWithIdAndTag
 import androidx.core.content.PermissionChecker
 import androidx.core.content.getSystemService
-import eu.kanade.tachiyomi.R
+import tachiyomi.presentation.core.R
 
 val Context.notificationManager: NotificationManager
     get() = getSystemService()!!

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
@@ -16,19 +17,20 @@ import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.displayablePath
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.injectLazy
 import java.io.File
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
+import mihon.icons.materialsymbols.R as MaterialSymbolsR
 
-class BackupNotifier(private val context: Context) {
-
-    private val preferences: SecurityPreferences by injectLazy()
-
+@Inject
+class BackupNotifier(
+    private val context: Context,
+    private val preferences: SecurityPreferences,
+) {
     private val progressNotificationBuilder = context.notificationBuilder(
         Notifications.CHANNEL_BACKUP_RESTORE_PROGRESS,
     ) {
         setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-        setSmallIcon(R.drawable.ic_tachi)
+        setSmallIcon(R.drawable.ic_mihon)
         setAutoCancel(false)
         setOngoing(true)
         setOnlyAlertOnce(true)
@@ -38,7 +40,7 @@ class BackupNotifier(private val context: Context) {
         Notifications.CHANNEL_BACKUP_RESTORE_COMPLETE,
     ) {
         setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-        setSmallIcon(R.drawable.ic_tachi)
+        setSmallIcon(R.drawable.ic_mihon)
         setAutoCancel(false)
     }
 
@@ -78,7 +80,7 @@ class BackupNotifier(private val context: Context) {
 
             clearActions()
             addAction(
-                R.drawable.ic_share_24dp,
+                MaterialSymbolsR.drawable.rounded_share,
                 context.stringResource(MR.strings.action_share),
                 NotificationReceiver.shareBackupPendingActivity(context, file.uri),
             )
@@ -87,6 +89,7 @@ class BackupNotifier(private val context: Context) {
         }
     }
 
+    /* SY --> */ @Synchronized /* SY <-- */
     fun showRestoreProgress(
         content: String = "",
         progress: Int = 0,
@@ -110,7 +113,7 @@ class BackupNotifier(private val context: Context) {
 
             clearActions()
             addAction(
-                R.drawable.ic_close_24dp,
+                MaterialSymbolsR.drawable.rounded_close,
                 context.stringResource(MR.strings.action_cancel),
                 NotificationReceiver.cancelRestorePendingBroadcast(context, Notifications.ID_RESTORE_PROGRESS),
             )
@@ -149,10 +152,8 @@ class BackupNotifier(private val context: Context) {
 
         val timeString = context.stringResource(
             MR.strings.restore_duration,
-            TimeUnit.MILLISECONDS.toMinutes(time),
-            TimeUnit.MILLISECONDS.toSeconds(time) - TimeUnit.MINUTES.toSeconds(
-                TimeUnit.MILLISECONDS.toMinutes(time),
-            ),
+            time.milliseconds.inWholeMinutes,
+            time.milliseconds.inWholeSeconds - (time.milliseconds.inWholeMinutes * 60),
         )
 
         with(completeNotificationBuilder) {
@@ -174,7 +175,7 @@ class BackupNotifier(private val context: Context) {
                 val errorLogIntent = NotificationReceiver.openErrorLogPendingActivity(context, uri)
                 setContentIntent(errorLogIntent)
                 addAction(
-                    R.drawable.ic_folder_24dp,
+                    MaterialSymbolsR.drawable.rounded_filled_folder,
                     context.stringResource(MR.strings.action_show_errors),
                     errorLogIntent,
                 )

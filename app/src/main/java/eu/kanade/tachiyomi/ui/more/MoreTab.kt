@@ -1,26 +1,30 @@
 package eu.kanade.tachiyomi.ui.more
 
 import androidx.compose.animation.graphics.res.animatedVectorResource
-import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.more.MoreScreen
 import eu.kanade.presentation.util.Tab
+import eu.kanade.presentation.util.rememberAnimatedVectorPainter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
@@ -35,11 +39,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import tachiyomi.core.common.util.lang.launchIO
+import kotlinx.coroutines.launch
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 data object MoreTab : Tab {
 
@@ -47,11 +49,12 @@ data object MoreTab : Tab {
         @Composable
         get() {
             val isSelected = LocalTabNavigator.current.current.key == key
-            val image = AnimatedImageVector.animatedVectorResource(R.drawable.anim_more_enter)
+            val enter = AnimatedImageVector.animatedVectorResource(R.drawable.animated_more_enter)
+            val exit = AnimatedImageVector.animatedVectorResource(R.drawable.animated_more_exit)
             return TabOptions(
                 index = 4u,
                 title = stringResource(MR.strings.label_more),
-                icon = rememberAnimatedVectorPainter(image, isSelected),
+                icon = rememberAnimatedVectorPainter(enter, exit, isSelected),
             )
         }
 
@@ -61,19 +64,21 @@ data object MoreTab : Tab {
 
     @Composable
     override fun Content() {
+        // SY -->
         val context = LocalContext.current
+        // SY <--
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { MoreScreenModel() }
-        val downloadQueueState by screenModel.downloadQueueState.collectAsState()
+        val viewModel = metroViewModel<MoreViewModel>()
+        val downloadQueueState by viewModel.downloadQueueState.collectAsState()
         MoreScreen(
             downloadQueueStateProvider = { downloadQueueState },
-            downloadedOnly = screenModel.downloadedOnly,
-            onDownloadedOnlyChange = { screenModel.downloadedOnly = it },
-            incognitoMode = screenModel.incognitoMode,
-            onIncognitoModeChange = { screenModel.incognitoMode = it },
+            downloadedOnly = viewModel.downloadedOnly,
+            onDownloadedOnlyChange = { viewModel.downloadedOnly = it },
+            incognitoMode = viewModel.incognitoMode,
+            onIncognitoModeChange = { viewModel.incognitoMode = it },
             // SY -->
-            showNavUpdates = screenModel.showNavUpdates,
-            showNavHistory = screenModel.showNavHistory,
+            showNavUpdates = viewModel.showNavUpdates,
+            showNavHistory = viewModel.showNavHistory,
             // SY <--
             onClickDownloadQueue = { navigator.push(DownloadQueueScreen) },
             onClickCategories = { navigator.push(CategoryScreen()) },
@@ -90,20 +95,23 @@ data object MoreTab : Tab {
     }
 }
 
-private class MoreScreenModel(
-    private val downloadManager: DownloadManager = Injekt.get(),
-    preferences: BasePreferences = Injekt.get(),
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
+class MoreViewModel(
+    private val downloadManager: DownloadManager,
+    preferences: BasePreferences,
     // SY -->
-    uiPreferences: UiPreferences = Injekt.get(),
+    uiPreferences: UiPreferences,
     // SY <--
-) : ScreenModel {
+) : ViewModel() {
 
-    var downloadedOnly by preferences.downloadedOnly.asState(screenModelScope)
-    var incognitoMode by preferences.incognitoMode.asState(screenModelScope)
+    var downloadedOnly by preferences.downloadedOnly.asState(viewModelScope)
+    var incognitoMode by preferences.incognitoMode.asState(viewModelScope)
 
     // SY -->
-    val showNavUpdates by uiPreferences.showNavUpdates.asState(screenModelScope)
-    val showNavHistory by uiPreferences.showNavHistory.asState(screenModelScope)
+    val showNavUpdates by uiPreferences.showNavUpdates.asState(viewModelScope)
+    val showNavHistory by uiPreferences.showNavHistory.asState(viewModelScope)
     // SY <--
 
     private var _downloadQueueState: MutableStateFlow<DownloadQueueState> = MutableStateFlow(DownloadQueueState.Stopped)
@@ -111,7 +119,7 @@ private class MoreScreenModel(
 
     init {
         // Handle running/paused status change and queue progress updating
-        screenModelScope.launchIO {
+        viewModelScope.launch {
             combine(
                 downloadManager.isDownloaderRunning,
                 downloadManager.queueState,

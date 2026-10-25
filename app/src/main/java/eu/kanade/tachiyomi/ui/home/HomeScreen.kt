@@ -2,22 +2,18 @@ package eu.kanade.tachiyomi.ui.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -26,9 +22,11 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -36,8 +34,6 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import eu.kanade.core.preference.asState
-import eu.kanade.domain.source.service.SourcePreferences
-import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.util.Screen
 import eu.kanade.presentation.util.isTabletUi
 import eu.kanade.tachiyomi.ui.browse.BrowseTab
@@ -52,16 +48,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import mihon.app.di.appGraph
 import soup.compose.material.motion.animation.materialFadeThroughIn
 import soup.compose.material.motion.animation.materialFadeThroughOut
-import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
-import tachiyomi.presentation.core.components.material.NavigationBar
-import tachiyomi.presentation.core.components.material.NavigationRail
-import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.pluralStringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 object HomeScreen : Screen() {
 
@@ -89,8 +80,9 @@ object HomeScreen : Screen() {
 
         // SY -->
         val scope = rememberCoroutineScope()
+        val uiPreferences = LocalContext.current.appGraph.uiPreferences
         val alwaysShowLabel by remember {
-            Injekt.get<UiPreferences>().bottomBarLabels.asState(scope)
+            uiPreferences.bottomBarLabels.asState(scope)
         }
         // SY <--
 
@@ -100,60 +92,52 @@ object HomeScreen : Screen() {
         ) { tabNavigator ->
             // Provide usable navigator to content screen
             CompositionLocalProvider(LocalNavigator provides navigator) {
-                Scaffold(
-                    startBar = {
-                        if (isTabletUi()) {
-                            NavigationRail {
-                                TABS
-                                    // SY -->
-                                    .fastFilter { it.isEnabled() }
-                                    // SY <--
-                                    .fastForEach {
-                                        NavigationRailItem(it/* SY --> */, alwaysShowLabel/* SY <-- */)
-                                    }
-                            }
+                val tabletUi = isTabletUi()
+                val navigationSuiteType = if (tabletUi) {
+                    NavigationSuiteType.NavigationRail
+                } else {
+                    NavigationSuiteType.NavigationBar
+                }
+                val navigationSuiteState = rememberNavigationSuiteScaffoldState()
+                LaunchedEffect(navigationSuiteState, tabletUi) {
+                    if (tabletUi) navigationSuiteState.show()
+                    showBottomNavEvent.receiveAsFlow().collectLatest { show ->
+                        if (tabletUi || show) {
+                            navigationSuiteState.show()
+                        } else {
+                            navigationSuiteState.hide()
                         }
+                    }
+                }
+
+                NavigationSuiteScaffold(
+                    navigationSuiteType = navigationSuiteType,
+                    state = navigationSuiteState,
+                    navigationSuiteColors = NavigationSuiteDefaults.colors(
+                        navigationRailContainerColor = MaterialTheme.colorScheme
+                            .surfaceColorAtElevation(3.dp),
+                    ),
+                    navigationItemVerticalArrangement = Arrangement.Center,
+                    navigationItems = {
+                        TABS
+                            // SY -->
+                            .fastFilter { it.isEnabled() }
+                            // SY <--
+                            .fastForEach { NavigationSuiteItem(it, navigationSuiteType, /* SY --> */ alwaysShowLabel /* SY <-- */) }
                     },
-                    bottomBar = {
-                        if (!isTabletUi()) {
-                            val bottomNavVisible by produceState(initialValue = true) {
-                                showBottomNavEvent.receiveAsFlow().collectLatest { value = it }
-                            }
-                            AnimatedVisibility(
-                                visible = bottomNavVisible,
-                                enter = expandVertically(),
-                                exit = shrinkVertically(),
-                            ) {
-                                NavigationBar {
-                                    TABS
-                                        // SY -->
-                                        .fastFilter { it.isEnabled() }
-                                        // SY <--
-                                        .fastForEach {
-                                            NavigationBarItem(it/* SY --> */, alwaysShowLabel/* SY <-- */)
-                                        }
-                                }
-                            }
-                        }
-                    },
-                    contentWindowInsets = WindowInsets(0),
-                ) { contentPadding ->
-                    Box(
-                        modifier = Modifier
-                            .padding(contentPadding)
-                            .consumeWindowInsets(contentPadding),
+                ) {
+                    AnimatedContent(
+                        targetState = tabNavigator.current,
+                        transitionSpec = {
+                            materialFadeThroughIn(
+                                initialScale = 1f,
+                                durationMillis = TabFadeDuration,
+                            ) togetherWith materialFadeThroughOut(durationMillis = TabFadeDuration)
+                        },
+                        label = "tabContent",
                     ) {
-                        AnimatedContent(
-                            targetState = tabNavigator.current,
-                            transitionSpec = {
-                                materialFadeThroughIn(initialScale = 1f, durationMillis = TabFadeDuration) togetherWith
-                                    materialFadeThroughOut(durationMillis = TabFadeDuration)
-                            },
-                            label = "tabContent",
-                        ) {
-                            tabNavigator.saveableState(key = "currentTab", it) {
-                                it.Content()
-                            }
+                        tabNavigator.saveableState(key = "currentTab", it) {
+                            it.Content()
                         }
                     }
                 }
@@ -199,15 +183,19 @@ object HomeScreen : Screen() {
     }
 
     @Composable
-    private fun RowScope.NavigationBarItem(
-        tab: eu.kanade.presentation.util.Tab, /* SY --> */
-        alwaysShowLabel: Boolean, /* SY <-- */
+    private fun NavigationSuiteItem(
+        tab: eu.kanade.presentation.util.Tab,
+        navigationSuiteType: NavigationSuiteType,
+        // SY -->
+        alwaysShowLabel: Boolean,
+        // SY <--
     ) {
         val tabNavigator = LocalTabNavigator.current
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val selected = tabNavigator.current::class == tab::class
-        NavigationBarItem(
+        NavigationSuiteItem(
+            navigationSuiteType = navigationSuiteType,
             selected = selected,
             onClick = {
                 if (!selected) {
@@ -216,102 +204,79 @@ object HomeScreen : Screen() {
                     scope.launch { tab.onReselect(navigator) }
                 }
             },
-            icon = { NavigationIconItem(tab) },
-            label = {
-                Text(
-                    text = tab.options.title,
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+            icon = {
+                Icon(
+                    painter = tab.options.icon!!,
+                    contentDescription = tab.options.title,
                 )
             },
-            alwaysShowLabel = /* SY --> */alwaysShowLabel, /* SY <-- */
+            label = {
+                // SY -->
+                if (alwaysShowLabel || selected) {
+                    // SY <--
+                    Text(
+                        text = tab.options.title,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    // SY -->
+                }
+                // SY <--
+            },
+            badge = tabBadge(tab),
         )
     }
 
     @Composable
-    fun NavigationRailItem(tab: eu.kanade.presentation.util.Tab/* SY --> */, alwaysShowLabel: Boolean/* SY <-- */) {
-        val tabNavigator = LocalTabNavigator.current
-        val navigator = LocalNavigator.currentOrThrow
-        val scope = rememberCoroutineScope()
-        val selected = tabNavigator.current::class == tab::class
-        NavigationRailItem(
-            selected = selected,
-            onClick = {
-                if (!selected) {
-                    tabNavigator.current = tab
-                } else {
-                    scope.launch { tab.onReselect(navigator) }
+    private fun tabBadge(tab: eu.kanade.presentation.util.Tab): (@Composable () -> Unit)? {
+        val context = LocalContext.current
+        val count by produceState(initialValue = 0, tab) {
+            val graph = context.appGraph
+            when (tab) {
+                is UpdatesTab -> {
+                    combine(
+                        graph.libraryPreferences.newShowUpdatesCount.changes(),
+                        graph.libraryPreferences.newUpdatesCount.changes(),
+                    ) { show, count ->
+                        if (show) count else 0
+                    }
+                        .collectLatest { value = it }
                 }
-            },
-            icon = { NavigationIconItem(tab) },
-            label = {
+
+                is BrowseTab -> {
+                    graph.sourcePreferences.extensionUpdatesCount.changes()
+                        .collectLatest { value = it }
+                }
+
+                else -> value = 0
+            }
+        }
+        if (count <= 0) return null
+        return {
+            Badge {
+                val desc = when (tab) {
+                    is UpdatesTab -> pluralStringResource(
+                        MR.plurals.notification_chapters_generic,
+                        count = count,
+                        count,
+                    )
+
+                    is BrowseTab -> pluralStringResource(
+                        MR.plurals.update_check_notification_ext_updates,
+                        count = count,
+                        count,
+                    )
+
+                    else -> null
+                }
                 Text(
-                    text = tab.options.title,
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    text = count.toString(),
+                    modifier = Modifier.semantics {
+                        if (desc != null) contentDescription = desc
+                    },
                 )
-            },
-            alwaysShowLabel = /* SY --> */alwaysShowLabel, /* SY <-- */
-        )
-    }
-
-    @Composable
-    private fun NavigationIconItem(tab: eu.kanade.presentation.util.Tab) {
-        BadgedBox(
-            badge = {
-                when {
-                    tab is UpdatesTab -> {
-                        val count by produceState(initialValue = 0) {
-                            val pref = Injekt.get<LibraryPreferences>()
-                            combine(
-                                pref.newShowUpdatesCount.changes(),
-                                pref.newUpdatesCount.changes(),
-                            ) { show, count -> if (show) count else 0 }
-                                .collectLatest { value = it }
-                        }
-                        if (count > 0) {
-                            Badge {
-                                val desc = pluralStringResource(
-                                    MR.plurals.notification_chapters_generic,
-                                    count = count,
-                                    count,
-                                )
-                                Text(
-                                    text = count.toString(),
-                                    modifier = Modifier.semantics { contentDescription = desc },
-                                )
-                            }
-                        }
-                    }
-
-                    BrowseTab::class.isInstance(tab) -> {
-                        val count by produceState(initialValue = 0) {
-                            Injekt.get<SourcePreferences>().extensionUpdatesCount.changes()
-                                .collectLatest { value = it }
-                        }
-                        if (count > 0) {
-                            Badge {
-                                val desc = pluralStringResource(
-                                    MR.plurals.update_check_notification_ext_updates,
-                                    count = count,
-                                    count,
-                                )
-                                Text(
-                                    text = count.toString(),
-                                    modifier = Modifier.semantics { contentDescription = desc },
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-        ) {
-            Icon(
-                painter = tab.options.icon!!,
-                contentDescription = tab.options.title,
-            )
+            }
         }
     }
 

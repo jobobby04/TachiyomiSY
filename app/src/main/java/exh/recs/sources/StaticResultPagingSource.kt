@@ -1,21 +1,27 @@
 package exh.recs.sources
 
 import dev.icerock.moko.resources.StringResource
+import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.MetadataMangasPage
 import exh.metadata.metadata.RankedSearchMetadata
 import exh.recs.batch.RankedSearchResults
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 
+/**
+ * SY-specific file
+ */
 class StaticResultPagingSource(
     val data: RankedSearchResults,
-) : RecommendationPagingSource(Manga.create()) {
+    networkToLocalManga: NetworkToLocalManga,
+) : RecommendationPagingSource(Manga.create(), null, networkToLocalManga) {
 
     override val name: String get() = data.recSourceName
     override val category: StringResource get() = StringResource(data.recSourceCategoryResId)
     override val associatedSourceId: Long? get() = data.recAssociatedSourceId
 
-    override suspend fun requestNextPage(currentPage: Int): MangasPage =
+    override suspend fun requestNextPage(source: Source?, currentPage: Int): MangasPage =
         // Use virtual paging to improve performance for large lists
         data.results
             .entries

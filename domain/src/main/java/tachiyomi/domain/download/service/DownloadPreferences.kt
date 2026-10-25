@@ -1,8 +1,13 @@
 package tachiyomi.domain.download.service
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 
+@Inject
+@SingleIn(AppScope::class)
 class DownloadPreferences(
     preferenceStore: PreferenceStore,
 ) {
@@ -13,8 +18,6 @@ class DownloadPreferences(
     )
 
     val saveChaptersAsCBZ: Preference<Boolean> = preferenceStore.getBoolean("save_chapter_as_cbz", true)
-
-    val splitTallImages: Preference<Boolean> = preferenceStore.getBoolean("split_tall_images", true)
 
     val autoDownloadWhileReading: Preference<Int> = preferenceStore.getInt("auto_download_while_reading", 0)
 
@@ -52,10 +55,6 @@ class DownloadPreferences(
     val parallelSourceLimit: Preference<Int> = preferenceStore.getInt("download_parallel_source_limit", 5)
 
     val parallelPageLimit: Preference<Int> = preferenceStore.getInt("download_parallel_page_limit", 5)
-
-    // SY -->
-    val includeChapterUrlHash: Preference<Boolean> = preferenceStore.getBoolean("download_include_chapter_url_hash", true)
-    // SY <--
 
     companion object {
         private const val REMOVE_EXCLUDE_CATEGORIES_PREF_KEY = "remove_exclude_categories"

@@ -15,9 +15,11 @@ open class ReaderPage(
     // SY <--
     var stream: (() -> InputStream)? = null,
 
-) : Page(index, url, imageUrl, null), ReaderItem {
+) : Page(index, url, imageUrl, null)/* SY --> */, ReaderItem/* SY <-- */ {
 
     open lateinit var chapter: ReaderChapter
+
+    // SY -->
 
     /** Value to check if a page is too wide to be doubled up */
     var fullPage: Boolean = false
@@ -25,4 +27,9 @@ open class ReaderPage(
             field = value
             if (value) shiftedPage = false
         }
+    // SY <--
+
+    /** Set by a viewer before the download; filled during [Page.State.DownloadImage]. */
+    @Volatile
+    var downloadStream: DownloadStream? = null
 }

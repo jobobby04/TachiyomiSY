@@ -14,7 +14,7 @@ Features of Mihon(original) include:
 * Online reading from a variety of sources
 * Local reading of downloaded content
 * A configurable reader with multiple viewers, reading directions and other settings.
-* Tracker support: [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.app/), [MangaUpdates](https://mangaupdates.com), [Shikimori](https://shikimori.one), [Bangumi](https://bgm.tv/) and [Hikka](https://hikka.io/) support.
+* Tracker support: [MangaBaka](https://mangabaka.org), [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.app/), [MangaUpdates](https://mangaupdates.com), [Shikimori](https://shikimori.one), [Bangumi](https://bgm.tv/), and [Hikka](https://hikka.io/) support.
 * Categories to organize your library
 * Light and dark themes
 * Schedule updating your library for new chapters
@@ -56,9 +56,11 @@ Custom sources:
 
 Additional features for some extensions, features include custom description, opening in app, batch add to library, and a bunch of other things based on the source:
 * 8Muses (EroMuse)
-* HBrowse
+* HentaiNexus
+* Hitomi.la
 * Mangadex
 * NHentai
+* NineHentai
 * Puruin
 * LANraragi
 

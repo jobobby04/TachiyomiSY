@@ -9,8 +9,12 @@ import exh.md.service.SimilarService
 import exh.md.utils.MangaDexRelation
 import exh.md.utils.MdUtil
 import exh.metadata.metadata.MangaDexSearchMetadata
-import tachiyomi.core.common.util.lang.withIOContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
+/**
+ * SY-specific file
+ */
 class SimilarHandler(
     private val lang: String,
     private val service: MangaDexService,
@@ -18,7 +22,7 @@ class SimilarHandler(
 ) {
 
     suspend fun getSimilar(manga: SManga): MetadataMangasPage {
-        val similarDto = withIOContext { similarService.getSimilarManga(MdUtil.getMangaId(manga.url)) }
+        val similarDto = withContext(Dispatchers.IO) { similarService.getSimilarManga(MdUtil.getMangaId(manga.url)) }
         return similarDtoToMangaListPage(similarDto)
     }
 
@@ -42,7 +46,7 @@ class SimilarHandler(
     }
 
     suspend fun getRelated(manga: SManga): MetadataMangasPage {
-        val relatedListDto = withIOContext { service.relatedManga(MdUtil.getMangaId(manga.url)) }
+        val relatedListDto = withContext(Dispatchers.IO) { service.relatedManga(MdUtil.getMangaId(manga.url)) }
         return relatedDtoToMangaListPage(relatedListDto)
     }
 

@@ -1,11 +1,16 @@
 package tachiyomi.domain.source.interactor
 
+import dev.zacsweers.metro.Inject
 import logcat.LogPriority
 import logcat.asLog
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.model.SavedSearch
 import tachiyomi.domain.source.repository.SavedSearchRepository
 
+/**
+ * SY-specific file
+ */
+@Inject
 class InsertSavedSearch(
     private val savedSearchRepository: SavedSearchRepository,
 ) {

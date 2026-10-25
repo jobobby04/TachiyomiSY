@@ -4,11 +4,12 @@ import exh.source.isEhBasedManga
 import exh.source.nHentaiSourceIds
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
-fun Manga.isLewd(): Boolean {
-    val sourceName = Injekt.get<SourceManager>().get(source)?.name
+/**
+ * SY-specific file
+ */
+suspend fun Manga.isLewd(sourceManager: SourceManager): Boolean {
+    val sourceName = sourceManager.get(source)?.name
 
     if (isEhBasedManga() || source in nHentaiSourceIds) {
         return genre.orEmpty().none { tag -> isNonHentaiTag(tag) }
@@ -40,6 +41,7 @@ private fun isHentaiSource(source: String): Boolean {
         source.contains("hentai cafe", true) ||
         source.contains("hentai2read", true) ||
         source.contains("hentaifox", true) ||
+        source.contains("hitomi.la", true) ||
         source.contains("hentainexus", true) ||
         source.contains("manhwahentai.me", true) ||
         source.contains("milftoon", true) ||
@@ -48,9 +50,7 @@ private fun isHentaiSource(source: String): Boolean {
         source.contains("ninehentai", true) ||
         source.contains("pururin", true) ||
         source.contains("simply hentai", true) ||
-        source.contains("tsumino", true) ||
         source.contains("8muses", true) ||
-        source.contains("hbrowse", true) ||
         source.contains("nhentai", true) ||
         source.contains("erofus", true) ||
         source.contains("luscious", true) ||

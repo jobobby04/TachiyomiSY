@@ -62,9 +62,10 @@ private suspend fun <T> Observable<T>.awaitOne(): T = suspendCancellableCoroutin
     )
 }
 
-internal fun <T> CancellableContinuation<T>.unsubscribeOnCancellation(sub: Subscription) =
+/* SY --> */internal/* SY <-- */ fun <T> CancellableContinuation<T>.unsubscribeOnCancellation(sub: Subscription) =
     invokeOnCancellation { sub.unsubscribe() }
 
+// SY -->
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 fun <T> runAsObservable(
     backpressureMode: Emitter.BackpressureMode = Emitter.BackpressureMode.NONE,
@@ -90,3 +91,4 @@ fun <T> runAsObservable(
         backpressureMode,
     )
 }
+// SY <--

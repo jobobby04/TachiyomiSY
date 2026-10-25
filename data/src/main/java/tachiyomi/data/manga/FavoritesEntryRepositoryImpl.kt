@@ -8,6 +8,9 @@ import tachiyomi.domain.manga.model.FavoriteEntry
 import tachiyomi.domain.manga.model.FavoriteEntryAlternative
 import tachiyomi.domain.manga.repository.FavoritesEntryRepository
 
+/**
+ * SY-specific file
+ */
 class FavoritesEntryRepositoryImpl(
     private val database: Database,
 ) : FavoritesEntryRepository {

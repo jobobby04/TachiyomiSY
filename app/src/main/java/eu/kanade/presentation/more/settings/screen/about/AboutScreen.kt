@@ -1,14 +1,14 @@
 package eu.kanade.presentation.more.settings.screen.about
 
 import android.content.Context
+import android.text.format.DateFormat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,19 +28,30 @@ import eu.kanade.presentation.more.LogoHeader
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.presentation.util.LocalBackPress
 import eu.kanade.presentation.util.Screen
+import eu.kanade.presentation.util.rememberIs24HourSystem
 import eu.kanade.tachiyomi.BuildConfig
-import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
 import eu.kanade.tachiyomi.ui.more.NewUpdateScreen
-import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.lang.toDateTimestampString
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import eu.kanade.tachiyomi.util.system.toast
 import exh.syDebugVersion
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import logcat.LogPriority
-import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.core.common.util.lang.withUIContext
+import mihon.app.di.appGraph
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Public
+import mihon.icons.simpleicons.Discord
+import mihon.icons.simpleicons.Facebook
+import mihon.icons.simpleicons.Github
+import mihon.icons.simpleicons.Reddit
+import mihon.icons.simpleicons.SimpleIcons
+import mihon.icons.simpleicons.X
+import tachiyomi.core.common.Constants
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.i18n.MR
@@ -48,17 +59,10 @@ import tachiyomi.presentation.core.components.LinkIcon
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.icons.CustomIcons
-import tachiyomi.presentation.core.icons.Discord
-import tachiyomi.presentation.core.icons.Facebook
-import tachiyomi.presentation.core.icons.Github
-import tachiyomi.presentation.core.icons.Reddit
-import tachiyomi.presentation.core.icons.X
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
+import java.util.Locale
+import kotlin.time.Instant
 
 object AboutScreen : Screen() {
 
@@ -70,6 +74,8 @@ object AboutScreen : Screen() {
         val handleBack = LocalBackPress.current
         val navigator = LocalNavigator.currentOrThrow
         var isCheckingUpdates by remember { mutableStateOf(false) }
+        val crashLogUtil = remember { context.appGraph.crashLogUtil }
+        val is24HourSystem = rememberIs24HourSystem()
 
         // SY -->
         var showWhatsNewDialog by remember { mutableStateOf(false) }
@@ -88,21 +94,25 @@ object AboutScreen : Screen() {
                 contentPadding = contentPadding,
             ) {
                 item {
-                    LogoHeader()
+                    LogoHeader(
+                        iconPadding = PaddingValues(vertical = 56.dp),
+                    )
                 }
 
                 item {
                     TextPreferenceWidget(
                         title = stringResource(MR.strings.version),
-                        subtitle = getVersionName(withBuildDate = true),
+                        // Keyed on the system 12/24h setting, which can change while the app is backgrounded.
+                        // Date/time prefs only change in Appearance, which recreates this screen on return.
+                        subtitle = remember(is24HourSystem) { getVersionName(withBuildDate = true) },
                         onPreferenceClick = {
-                            val deviceInfo = CrashLogUtil(context).getDebugInfo()
+                            val deviceInfo = crashLogUtil.getDebugInfo()
                             context.copyToClipboard("Debug information", deviceInfo)
                         },
                     )
                 }
 
-                if (BuildConfig.INCLUDE_UPDATER) {
+                if (/* SY --> */ BuildConfig.INCLUDE_UPDATER /* SY <-- */) {
                     item {
                         TextPreferenceWidget(
                             title = stringResource(MR.strings.check_for_updates),
@@ -126,7 +136,7 @@ object AboutScreen : Screen() {
                                                     versionName = result.release.version,
                                                     changelogInfo = result.release.info,
                                                     releaseLink = result.release.releaseLink,
-                                                    downloadLink = result.release.getDownloadLink(),
+                                                    downloadLink = /* SY --> */ result.release.getDownloadLink() /* SY <-- */,
                                                 )
                                                 navigator.push(updateScreen)
                                             },
@@ -152,12 +162,14 @@ object AboutScreen : Screen() {
                     }
                 }
 
+                // SY -->
                 // item {
                 //     TextPreferenceWidget(
                 //         title = stringResource(MR.strings.help_translate),
                 //         onPreferenceClick = { uriHandler.openUri("https://mihon.app/docs/contribute#translation") },
                 //     )
                 // }
+                // SY <--
 
                 item {
                     TextPreferenceWidget(
@@ -182,32 +194,32 @@ object AboutScreen : Screen() {
                     ) {
                         LinkIcon(
                             label = stringResource(MR.strings.website),
-                            icon = Icons.Outlined.Public,
+                            icon = MaterialSymbols.Rounded.Public,
                             url = "https://mihon.app",
                         )
                         LinkIcon(
                             label = "Discord",
-                            icon = CustomIcons.Discord,
-                            url = "https://discord.gg/mihon",
+                            icon = SimpleIcons.Discord,
+                            url = Constants.URL_DISCORD,
                         )
                         LinkIcon(
                             label = "X",
-                            icon = CustomIcons.X,
+                            icon = SimpleIcons.X,
                             url = "https://x.com/mihonapp",
                         )
                         LinkIcon(
                             label = "Facebook",
-                            icon = CustomIcons.Facebook,
+                            icon = SimpleIcons.Facebook,
                             url = "https://facebook.com/mihonapp",
                         )
                         LinkIcon(
                             label = "Reddit",
-                            icon = CustomIcons.Reddit,
+                            icon = SimpleIcons.Reddit,
                             url = "https://www.reddit.com/r/mihonapp",
                         )
                         LinkIcon(
                             label = "GitHub",
-                            icon = CustomIcons.Github,
+                            icon = SimpleIcons.Github,
                             // SY -->
                             url = "https://github.com/jobobby04/tachiyomisy",
                             // SY <--
@@ -232,10 +244,10 @@ object AboutScreen : Screen() {
         onAvailableUpdate: (GetApplicationRelease.Result.NewUpdate) -> Unit,
         onFinish: () -> Unit,
     ) {
-        val updateChecker = AppUpdateChecker()
-        withUIContext {
+        val updateChecker = context.appGraph.updateChecker
+        withContext(Dispatchers.Main) {
             try {
-                when (val result = withIOContext { updateChecker.checkForUpdate(context, forceCheck = true) }) {
+                when (val result = updateChecker.checkForUpdate(forceCheck = true)) {
                     is GetApplicationRelease.Result.NewUpdate -> {
                         onAvailableUpdate(result)
                     }
@@ -278,7 +290,7 @@ object AboutScreen : Screen() {
             }
             // SY <--
             else -> {
-                "Stable ${BuildConfig.VERSION_NAME}".let {
+                /* SY --> */ "Stable ${BuildConfig.VERSION_NAME}" /* SY <-- */.let {
                     if (withBuildDate) {
                         "$it (${getFormattedBuildTime()})"
                     } else {
@@ -291,16 +303,19 @@ object AboutScreen : Screen() {
 
     internal fun getFormattedBuildTime(): String {
         return try {
-            LocalDateTime.ofInstant(
-                Instant.parse(BuildConfig.BUILD_TIME),
-                ZoneId.systemDefault(),
-            )
+            val context = Injekt.get<Context>()
+            val uiPreferences = context.appGraph.uiPreferences
+            Instant.parse(BuildConfig.BUILD_TIME)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
                 .toDateTimestampString(
-                    UiPreferences.dateFormat(
-                        Injekt.get<UiPreferences>().dateFormat.get(),
+                    UiPreferences.dateTimeFormat(
+                        uiPreferences.dateFormat.get(),
+                        uiPreferences.timeFormat.get(),
+                        Locale.getDefault(),
+                        DateFormat.is24HourFormat(context),
                     ),
                 )
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             BuildConfig.BUILD_TIME
         }
     }

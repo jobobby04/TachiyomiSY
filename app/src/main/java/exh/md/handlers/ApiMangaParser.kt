@@ -2,6 +2,7 @@ package exh.md.handlers
 
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.online.MetadataSource
 import exh.log.xLogE
 import exh.md.dto.ChapterDataDto
 import exh.md.dto.ChapterDto
@@ -15,18 +16,17 @@ import exh.metadata.metadata.base.RaisedTag
 import exh.util.capitalize
 import exh.util.floor
 import exh.util.nullIfEmpty
-import tachiyomi.domain.manga.interactor.GetFlatMetadataById
-import tachiyomi.domain.manga.interactor.GetManga
-import tachiyomi.domain.manga.interactor.InsertFlatMetadata
-import uy.kohesive.injekt.injectLazy
 import java.util.Locale
 
+/**
+ * SY-specific file
+ */
 class ApiMangaParser(
     private val lang: String,
+    private val getManga: MetadataSource.GetMangaId,
+    private val insertFlatMetadata: MetadataSource.InsertFlatMetadata,
+    private val getFlatMetadataById: MetadataSource.GetFlatMetadataById,
 ) {
-    private val getManga: GetManga by injectLazy()
-    private val insertFlatMetadata: InsertFlatMetadata by injectLazy()
-    private val getFlatMetadataById: GetFlatMetadataById by injectLazy()
 
     val metaClass = MangaDexSearchMetadata::class
 
@@ -47,7 +47,7 @@ class ApiMangaParser(
         finalChapterInDesc: Boolean,
         preferExtensionLangTitle: Boolean,
     ): SManga {
-        val mangaId = getManga.await(manga.url, sourceId)?.id
+        val mangaId = getManga.awaitId(manga.url, sourceId)
         val metadata = if (mangaId != null) {
             val flatMetadata = getFlatMetadataById.await(mangaId)
             flatMetadata?.raise(metaClass) ?: newMetaInstance()

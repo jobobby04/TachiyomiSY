@@ -1,0 +1,73 @@
+-- SY-specific file
+
+-- The user's edited details move out of edits.json and into the manga row itself
+ALTER TABLE manga ADD COLUMN user_title TEXT;
+ALTER TABLE manga ADD COLUMN user_author TEXT;
+ALTER TABLE manga ADD COLUMN user_artist TEXT;
+ALTER TABLE manga ADD COLUMN user_thumbnail_url TEXT;
+ALTER TABLE manga ADD COLUMN user_description TEXT;
+ALTER TABLE manga ADD COLUMN user_genre TEXT;
+ALTER TABLE manga ADD COLUMN user_status INTEGER;
+
+-- The views that name their columns explicitly don't pick up the new ones, so they are dropped and
+-- recreated against the updated manga table. libraryView selects M.* and needs no change.
+DROP VIEW updatesView;
+DROP VIEW historyView;
+
+CREATE VIEW updatesView AS
+SELECT
+    manga.id AS mangaId,
+    manga.remote_title AS mangaTitle,
+    chapter.id AS chapterId,
+    chapter.remote_name AS chapterName,
+    chapter.remote_scanlator AS scanlator,
+    chapter.remote_url AS chapterUrl,
+    chapter.user_read AS read,
+    chapter.user_bookmark AS bookmark,
+    chapter.user_last_page_read AS lastPageRead,
+    manga.source_id AS sourceId,
+    manga.user_favorite_at IS NOT NULL AS favorite,
+    manga.remote_cover AS thumbnailUrl,
+    manga.state_cover_last_modified AS coverLastModified,
+    chapter.remote_date_upload AS dateUpload,
+    chapter.state_date_fetch AS dateFetch,
+    excluded_scanlator.scanlator AS excludedScanlator,
+    manga.user_title AS userTitle,
+    manga.user_thumbnail_url AS userThumbnailUrl
+FROM manga JOIN chapter
+ON manga.id = chapter.manga_id
+LEFT JOIN excluded_scanlator
+ON manga.id = excluded_scanlator.manga_id
+AND chapter.remote_scanlator = excluded_scanlator.scanlator
+WHERE user_favorite_at IS NOT NULL
+AND state_date_fetch > user_favorite_at
+ORDER BY state_date_fetch DESC;
+
+CREATE VIEW historyView AS
+SELECT
+    history.id AS id,
+    manga.id AS mangaId,
+    chapter.id AS chapterId,
+    manga.remote_title AS title,
+    manga.remote_cover AS thumbnailUrl,
+    manga.source_id AS sourceId,
+    manga.user_favorite_at IS NOT NULL AS favorite,
+    manga.state_cover_last_modified AS coverLastModified,
+    chapter.remote_chapter_number AS chapterNumber,
+    history.read_at AS readAt,
+    history.read_duration AS readDuration,
+    max_read.read_at AS maxReadAt,
+    max_read.chapter_id AS maxReadAtChapterId,
+    manga.user_title AS userTitle,
+    manga.user_thumbnail_url AS userThumbnailUrl
+FROM manga
+JOIN chapter
+ON manga.id = chapter.manga_id
+JOIN history
+ON chapter.id = history.chapter_id
+JOIN (
+    SELECT manga_id, chapter_id, MAX(read_at) AS read_at
+    FROM history
+    GROUP BY manga_id
+) AS max_read
+ON chapter.manga_id = max_read.manga_id;

@@ -16,6 +16,9 @@ import exh.eh.tags.Other
 import exh.eh.tags.Parody
 import exh.eh.tags.Reclass
 
+/**
+ * SY-specific file
+ */
 object EHTags {
     fun getAllTags(): List<String> = listOf(
         Female.getTags(),

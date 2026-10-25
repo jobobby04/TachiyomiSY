@@ -3,6 +3,7 @@ package exh.md.similar
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.network.HttpException
+import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.MetadataMangasPage
 import eu.kanade.tachiyomi.source.online.all.MangaDex
@@ -11,16 +12,20 @@ import exh.source.getMainSource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import tachiyomi.data.source.NoResultsException
+import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
 /**
+ * SY-specific file
+ *
  * MangaDexSimilarPagingSource inherited from the general Pager.
  */
 class MangaDexSimilarPagingSource(
     manga: Manga,
     private val mangaDex: MangaDex,
-) : RecommendationPagingSource(manga, mangaDex) {
+    networkToLocalManga: NetworkToLocalManga,
+) : RecommendationPagingSource(manga, { mangaDex }, networkToLocalManga) {
 
     override val name: String
         get() = "MangaDex"
@@ -31,7 +36,7 @@ class MangaDexSimilarPagingSource(
     override val associatedSourceId: Long
         get() = mangaDex.getMainSource().id
 
-    override suspend fun requestNextPage(currentPage: Int): MangasPage {
+    override suspend fun requestNextPage(source: Source?, currentPage: Int): MangasPage {
         val mangasPage = coroutineScope {
             try {
                 val similarPageDef = async { mangaDex.getMangaSimilar(manga.toSManga()) }

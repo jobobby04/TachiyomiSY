@@ -1,9 +1,14 @@
 package tachiyomi.domain.source.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.source.model.SavedSearch
 import tachiyomi.domain.source.repository.SavedSearchRepository
 
+/**
+ * SY-specific file
+ */
+@Inject
 class GetSavedSearchBySourceId(
     private val savedSearchRepository: SavedSearchRepository,
 ) {

@@ -2,6 +2,9 @@ package tachiyomi.domain.manga.model
 
 import exh.metadata.metadata.EHentaiSearchMetadata
 
+/**
+ * SY-specific file
+ */
 data class FavoriteEntry(
 
     val title: String,

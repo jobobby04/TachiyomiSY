@@ -3,6 +3,9 @@ package tachiyomi.domain.manga.repository
 import tachiyomi.domain.manga.model.FavoriteEntry
 import tachiyomi.domain.manga.model.FavoriteEntryAlternative
 
+/**
+ * SY-specific file
+ */
 interface FavoritesEntryRepository {
     suspend fun deleteAll()
 

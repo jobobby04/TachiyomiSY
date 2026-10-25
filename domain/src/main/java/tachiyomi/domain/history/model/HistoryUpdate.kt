@@ -1,18 +1,22 @@
 package tachiyomi.domain.history.model
 
-import java.util.Date
+import kotlin.time.Instant
 
 data class HistoryUpdate(
     val chapterId: Long,
-    val readAt: Date,
+    val readAt: Instant,
     val sessionReadDuration: Long,
 )
 
 // SY -->
-fun History.toHistoryUpdate(): HistoryUpdate {
+
+/**
+ * History the user removed has no read time and is left out.
+ */
+fun History.toHistoryUpdate(): HistoryUpdate? {
     return HistoryUpdate(
         chapterId,
-        readAt ?: Date(0),
+        readAt ?: return null,
         readDuration,
     )
 }

@@ -4,11 +4,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Label
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.ArrowDropUp
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,8 +12,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.Label
+import mihon.icons.materialsymbols.rounded.Delete
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.rounded.ArrowDropDown
+import mihon.icons.sy.materialsymbols.rounded.ArrowDropUp
 import tachiyomi.presentation.core.components.material.padding
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun SortTagListItem(
     modifier: Modifier,
@@ -42,7 +46,7 @@ fun SortTagListItem(
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(imageVector = Icons.AutoMirrored.Outlined.Label, contentDescription = "")
+            Icon(imageVector = MaterialSymbols.AutoMirroredRounded.Label, contentDescription = "")
             Text(text = tag, modifier = Modifier.padding(start = MaterialTheme.padding.medium))
         }
         Row {
@@ -50,17 +54,17 @@ fun SortTagListItem(
                 onClick = onMoveUp,
                 enabled = canMoveUp,
             ) {
-                Icon(imageVector = Icons.Outlined.ArrowDropUp, contentDescription = "")
+                Icon(imageVector = SYMaterialSymbols.Rounded.ArrowDropUp, contentDescription = "")
             }
             IconButton(
                 onClick = onMoveDown,
                 enabled = canMoveDown,
             ) {
-                Icon(imageVector = Icons.Outlined.ArrowDropDown, contentDescription = "")
+                Icon(imageVector = SYMaterialSymbols.Rounded.ArrowDropDown, contentDescription = "")
             }
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = onDelete) {
-                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "")
+                Icon(imageVector = MaterialSymbols.Rounded.Delete, contentDescription = "")
             }
         }
     }

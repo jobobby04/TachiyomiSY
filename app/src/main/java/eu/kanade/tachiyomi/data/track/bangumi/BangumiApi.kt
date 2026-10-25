@@ -16,6 +16,8 @@ import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
@@ -28,12 +30,11 @@ import okhttp3.Headers.Companion.headersOf
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import tachiyomi.core.common.util.lang.withIOContext
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class BangumiApi(
-    private val trackId: Long,
+    private val trackerId: Long,
     private val client: OkHttpClient,
     interceptor: BangumiInterceptor,
 ) {
@@ -43,7 +44,7 @@ class BangumiApi(
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 
     suspend fun addLibManga(track: Track): Track {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val url = "$API_URL/v0/users/-/collections/${track.remote_id}"
             val body = buildJsonObject {
                 put("type", track.toApiStatus())
@@ -55,13 +56,13 @@ class BangumiApi(
                 .toRequestBody()
             // Returns with 202 Accepted on success with no body
             authClient.newCall(POST(url, body = body, headers = headersOf("Content-Type", APP_JSON)))
-                .awaitSuccess()
+                .awaitSuccess().close()
             track
         }
     }
 
     suspend fun updateLibManga(track: Track): Track {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val url = "$API_URL/v0/users/-/collections/${track.remote_id}"
             val body = buildJsonObject {
                 put("type", track.toApiStatus())
@@ -79,7 +80,7 @@ class BangumiApi(
                 .build()
             // Returns with 204 No Content
             authClient.newCall(request)
-                .awaitSuccess()
+                .awaitSuccess().close()
 
             track
         }
@@ -90,7 +91,7 @@ class BangumiApi(
         // but that has been the case since 2022 with few significant
         // changes to the schema for this endpoint since
         // "实验性 API， 本 schema 和实际的 API 行为都可能随时发生改动"
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val url = "$API_URL/v0/search/subjects?limit=20"
             val body = buildJsonObject {
                 put("keyword", search)
@@ -109,13 +110,27 @@ class BangumiApi(
                     .parseAs<BGMSearchResult>()
                     .data
                     .filter { it.platform == null || it.platform == "漫画" }
-                    .map { it.toTrackSearch(trackId) }
+                    .map { it.toTrackSearch(trackerId) }
+            }
+        }
+    }
+
+    suspend fun getMangaDetails(id: Int): TrackSearch? {
+        return withContext(Dispatchers.IO) {
+            val url = "$API_URL/v0/subjects/$id"
+
+            with(json) {
+                authClient.newCall(GET(url, headers = headersOf("Content-Type", APP_JSON)))
+                    .awaitSuccess()
+                    .parseAs<BGMSubject>()
+                    .takeIf { it.platform == null || it.platform == "漫画" }
+                    ?.toTrackSearch(trackerId)
             }
         }
     }
 
     suspend fun statusLibManga(track: Track, username: String): Track? {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val url = "$API_URL/v0/users/$username/collections/${track.remote_id}"
             with(json) {
                 try {
@@ -140,8 +155,9 @@ class BangumiApi(
         }
     }
 
+    // SY -->
     suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             with(json) {
                 authClient.newCall(GET("${API_URL}/v0/subjects/${track.remoteId}"))
                     .awaitSuccess()
@@ -167,9 +183,10 @@ class BangumiApi(
             }
         }
     }
+    // SY <--
 
     suspend fun accessToken(code: String): BGMOAuth {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val body = FormBody.Builder()
                 .add("grant_type", "authorization_code")
                 .add("client_id", CLIENT_ID)
@@ -186,7 +203,7 @@ class BangumiApi(
     }
 
     suspend fun getCurrentUser(): BGMUser {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             with(json) {
                 authClient.newCall(GET("$API_URL/v0/me"))
                     .awaitSuccess()

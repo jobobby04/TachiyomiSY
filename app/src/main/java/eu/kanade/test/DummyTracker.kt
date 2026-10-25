@@ -2,9 +2,15 @@ package eu.kanade.test
 
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.track.RefreshResult
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import okhttp3.OkHttpClient
 import tachiyomi.domain.track.model.Track
@@ -17,6 +23,8 @@ data class DummyTracker(
     override val supportsPrivateTracking: Boolean = false,
     override val isLoggedIn: Boolean = false,
     override val isLoggedInFlow: Flow<Boolean> = flowOf(false),
+    override val isRefreshingFlow: StateFlow<Boolean> = MutableStateFlow(false),
+    override val refreshResultFlow: SharedFlow<RefreshResult> = MutableSharedFlow<RefreshResult>().asSharedFlow(),
     val valLogo: Int = R.drawable.brand_anilist,
     val valStatuses: List<Long> = (1L..6L).toList(),
     val valReadingStatus: Long = 1L,
@@ -75,6 +83,8 @@ data class DummyTracker(
         track: eu.kanade.tachiyomi.data.database.models.Track,
     ): eu.kanade.tachiyomi.data.database.models.Track = track
 
+    override suspend fun refreshUser() = Unit
+
     override suspend fun login(username: String, password: String) = Unit
 
     override fun logout() = Unit
@@ -124,6 +134,7 @@ data class DummyTracker(
         private: Boolean,
     ) = Unit
 
+    // SY -->
     override suspend fun getMangaMetadata(
         track: tachiyomi.domain.track.model.Track,
     ): eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata = eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata(
@@ -131,4 +142,5 @@ data class DummyTracker(
     )
 
     override suspend fun searchById(id: String) = null
+    // SY <--
 }

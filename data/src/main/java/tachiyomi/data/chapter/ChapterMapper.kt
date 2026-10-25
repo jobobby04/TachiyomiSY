@@ -2,41 +2,49 @@ package tachiyomi.data.chapter
 
 import kotlinx.serialization.json.JsonObject
 import tachiyomi.domain.chapter.model.Chapter
+import kotlin.time.Instant
 
+/**
+ * SY-specific file
+ */
 object ChapterMapper {
     fun mapChapter(
         id: Long,
         mangaId: Long,
-        url: String,
-        name: String,
-        scanlator: String?,
-        read: Boolean,
-        bookmark: Boolean,
-        lastPageRead: Long,
-        chapterNumber: Double,
-        sourceOrder: Long,
-        dateFetch: Long,
-        dateUpload: Long,
-        lastModifiedAt: Long,
-        version: Long,
+        remoteUrl: String,
+        remoteName: String,
+        remoteScanlator: String?,
+        remoteChapterNumber: Double,
+        remoteDateUpload: Instant?,
+        remoteOrder: Long,
+        remoteMemo: JsonObject,
+        userRead: Boolean,
+        userBookmark: Boolean,
+        userLastPageRead: Int,
+        stateDateFetch: Instant,
+        // SY -->
+        stateLastModifiedAt: Long,
+        stateVersion: Long,
         @Suppress("UNUSED_PARAMETER")
-        isSyncing: Long,
-        memo: JsonObject,
+        stateIsSyncing: Long,
+        // SY <--
     ): Chapter = Chapter(
         id = id,
         mangaId = mangaId,
-        read = read,
-        bookmark = bookmark,
-        lastPageRead = lastPageRead,
-        dateFetch = dateFetch,
-        sourceOrder = sourceOrder,
-        url = url,
-        name = name,
-        dateUpload = dateUpload,
-        chapterNumber = chapterNumber,
-        scanlator = scanlator,
-        lastModifiedAt = lastModifiedAt,
-        version = version,
-        memo = memo,
+        read = userRead,
+        bookmark = userBookmark,
+        lastPageRead = userLastPageRead,
+        dateFetch = stateDateFetch,
+        sourceOrder = remoteOrder,
+        url = remoteUrl,
+        name = remoteName,
+        dateUpload = remoteDateUpload,
+        chapterNumber = remoteChapterNumber,
+        scanlator = remoteScanlator,
+        // SY -->
+        lastModifiedAt = stateLastModifiedAt,
+        version = stateVersion,
+        // SY <--
+        memo = remoteMemo,
     )
 }

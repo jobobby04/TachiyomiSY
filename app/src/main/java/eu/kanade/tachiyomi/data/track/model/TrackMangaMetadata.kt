@@ -1,5 +1,8 @@
 package eu.kanade.tachiyomi.data.track.model
 
+/**
+ * SY-specific file
+ */
 data class TrackMangaMetadata(
     val remoteId: Long? = null,
     val title: String? = null,

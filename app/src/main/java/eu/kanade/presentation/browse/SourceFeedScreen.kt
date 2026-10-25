@@ -15,7 +15,6 @@ import eu.kanade.presentation.browse.components.GlobalSearchLoadingResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchResultItem
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.SearchToolbar
-import eu.kanade.presentation.util.animateItemFastScroll
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.FeedSavedSearch
 import tachiyomi.domain.source.model.SavedSearch
@@ -27,6 +26,9 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.util.plus
 
+/**
+ * SY-specific file
+ */
 sealed class SourceFeedUI {
     abstract val id: Long
 
@@ -92,6 +94,7 @@ fun SourceFeedScreen(
     onClickSavedSearch: (SavedSearch) -> Unit,
     onClickDelete: (FeedSavedSearch) -> Unit,
     onClickManga: (Manga) -> Unit,
+    onClickBack: () -> Unit,
     onClickSearch: (String) -> Unit,
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
@@ -104,6 +107,7 @@ fun SourceFeedScreen(
                 searchQuery = searchQuery,
                 onSearchQueryChange = onSearchQueryChange,
                 scrollBehavior = scrollBehavior,
+                onClickBack = onClickBack,
                 onClickSearch = onClickSearch,
             )
         },
@@ -153,7 +157,7 @@ fun SourceFeedList(
             key = { it.id },
         ) { item ->
             GlobalSearchResultItem(
-                modifier = Modifier.animateItemFastScroll(),
+                modifier = Modifier.animateItem(),
                 title = item.title,
                 subtitle = null,
                 onLongClick = if (item is SourceFeedUI.SourceSavedSearch) {
@@ -212,9 +216,11 @@ fun SourceFeedToolbar(
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
+    onClickBack: () -> Unit,
     onClickSearch: (String) -> Unit,
 ) {
     SearchToolbar(
+        navigateUp = onClickBack,
         titleContent = { AppBarTitle(title) },
         searchQuery = searchQuery,
         onChangeSearchQuery = onSearchQueryChange,

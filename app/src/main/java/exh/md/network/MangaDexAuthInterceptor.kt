@@ -11,6 +11,9 @@ import okhttp3.Response
 import tachiyomi.core.common.util.system.logcat
 import java.io.IOException
 
+/**
+ * SY-specific file
+ */
 class MangaDexAuthInterceptor(
     private val trackPreferences: TrackPreferences,
     private val mdList: MdList,

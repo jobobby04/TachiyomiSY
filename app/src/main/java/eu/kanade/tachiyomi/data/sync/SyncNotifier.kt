@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.data.sync
 import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
@@ -10,17 +11,25 @@ import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
-import uy.kohesive.injekt.injectLazy
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
+import mihon.icons.materialsymbols.R as MaterialSymbolsR
 
-class SyncNotifier(private val context: Context) {
-
-    private val preferences: SecurityPreferences by injectLazy()
+/**
+ * SY-specific file
+ */
+@Inject
+class SyncNotifier(
+    private val context: Context,
+    private val preferences: SecurityPreferences,
+) {
 
     private val progressNotificationBuilder = context.notificationBuilder(
         Notifications.CHANNEL_BACKUP_RESTORE_PROGRESS,
     ) {
         setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-        setSmallIcon(R.drawable.ic_tachi)
+        setSmallIcon(R.drawable.ic_mihon)
         setAutoCancel(false)
         setOngoing(true)
         setOnlyAlertOnce(true)
@@ -30,7 +39,7 @@ class SyncNotifier(private val context: Context) {
         Notifications.CHANNEL_BACKUP_RESTORE_COMPLETE,
     ) {
         setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-        setSmallIcon(R.drawable.ic_tachi)
+        setSmallIcon(R.drawable.ic_mihon)
         setAutoCancel(false)
     }
 
@@ -40,7 +49,7 @@ class SyncNotifier(private val context: Context) {
 
     fun showSyncProgress(content: String = "", progress: Int = 0, maxAmount: Int = 100): NotificationCompat.Builder {
         val builder = with(progressNotificationBuilder) {
-            setContentTitle(context.getString(R.string.syncing_library))
+            setContentTitle(context.stringResource(MR.strings.syncing_library))
 
             if (!preferences.hideNotificationContent.get()) {
                 setContentText(content)
@@ -51,8 +60,8 @@ class SyncNotifier(private val context: Context) {
 
             clearActions()
             addAction(
-                R.drawable.ic_close_24dp,
-                context.getString(R.string.action_cancel),
+                MaterialSymbolsR.drawable.rounded_close,
+                context.stringResource(MR.strings.action_cancel),
                 NotificationReceiver.cancelSyncPendingBroadcast(context, Notifications.ID_RESTORE_PROGRESS),
             )
         }
@@ -66,7 +75,7 @@ class SyncNotifier(private val context: Context) {
         context.cancelNotification(Notifications.ID_RESTORE_PROGRESS)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.sync_error))
+            setContentTitle(context.stringResource(SYMR.strings.sync_error))
             setContentText(error)
 
             show(Notifications.ID_RESTORE_COMPLETE)
@@ -77,7 +86,7 @@ class SyncNotifier(private val context: Context) {
         context.cancelNotification(Notifications.ID_RESTORE_PROGRESS)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.sync_complete))
+            setContentTitle(context.stringResource(SYMR.strings.sync_complete))
             setContentText(message)
 
             show(Notifications.ID_RESTORE_COMPLETE)

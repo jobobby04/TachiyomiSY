@@ -9,15 +9,14 @@ import exh.GalleryAdder
 import rx.Observable
 import tachiyomi.core.common.util.lang.runAsObservable
 
-private val galleryAdder by lazy {
-    GalleryAdder()
-}
-
 /**
+ * SY-specific file
+ *
  * A version of fetchSearchManga that supports URL importing
  */
 fun UrlImportableSource.urlImportFetchSearchManga(
     context: Context,
+    galleryAdder: GalleryAdder,
     query: String,
     fail: () -> Observable<MangasPage>,
 ): Observable<MangasPage> =
@@ -45,6 +44,7 @@ fun UrlImportableSource.urlImportFetchSearchManga(
  */
 suspend fun UrlImportableSource.urlImportFetchSearchMangaSuspend(
     context: Context,
+    galleryAdder: GalleryAdder,
     query: String,
     fail: suspend () -> MangasPage,
 ): MangasPage =

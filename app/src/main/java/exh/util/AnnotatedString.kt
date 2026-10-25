@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 
 /**
+ * SY-specific file
+ *
  * Converts a [Spanned] into an [AnnotatedString] trying to keep as much formatting as possible.
  *
  * Currently supports `bold`, `italic`, `underline` and `color`.

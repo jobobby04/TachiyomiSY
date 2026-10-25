@@ -18,6 +18,9 @@ import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.i18n.stringResource
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun SavedSearchItem(
     savedSearches: List<EXHSavedSearch>,

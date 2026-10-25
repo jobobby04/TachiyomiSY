@@ -18,6 +18,9 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import uy.kohesive.injekt.injectLazy
 import java.util.UUID
 
+/**
+ * SY-specific file
+ */
 class MangaPlusHandler(currentClient: OkHttpClient) {
     val json: Json by injectLazy()
 

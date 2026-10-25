@@ -1,0 +1,21 @@
+query ShikimoriGetMangaMetadata(
+  $ids: String!,
+) {
+  mangas(
+    ids: $ids,
+    limit: 1,
+  ) {
+    id
+    name
+    description
+    poster {
+      originalUrl
+    }
+    personRoles {
+      person {
+        name
+      }
+      rolesEn
+    }
+  }
+}

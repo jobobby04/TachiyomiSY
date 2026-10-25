@@ -5,6 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.net.toUri
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.network.await
@@ -27,7 +30,9 @@ import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.NamespaceSource
 import eu.kanade.tachiyomi.source.online.UrlImportableSource
 import eu.kanade.tachiyomi.util.asJsoup
+import exh.GalleryAdder
 import exh.debug.DebugToggles
+import exh.debug.isEnabled
 import exh.eh.EHTags
 import exh.eh.EHentaiUpdateHelper
 import exh.eh.EHentaiUpdateWorkerConstants
@@ -57,8 +62,10 @@ import exh.util.trimAll
 import exh.util.trimOrNull
 import exh.util.urlImportFetchSearchManga
 import exh.util.urlImportFetchSearchMangaSuspend
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
@@ -86,25 +93,40 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import rx.Observable
+import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.util.lang.runAsObservable
-import tachiyomi.core.common.util.lang.withIOContext
-import uy.kohesive.injekt.injectLazy
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.URLEncoder
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
+/**
+ * SY-specific file
+ */
 // TODO Consider gallery updating when doing tabbed browsing
+@AssistedInject
 class EHentai(
-    override val id: Long,
-    val exh: Boolean,
+    @Assisted override val id: Long,
+    @Assisted val exh: Boolean,
     val context: Context,
+    override val getMangaId: MetadataSource.GetMangaId,
+    override val insertFlatMetadata: MetadataSource.InsertFlatMetadata,
+    override val getFlatMetadataById: MetadataSource.GetFlatMetadataById,
+    private val galleryAdder: GalleryAdder,
+    private val exhPreferences: ExhPreferences,
+    private val updateHelper: EHentaiUpdateHelper,
+    private val preferenceStore: PreferenceStore,
 ) : HttpSource(),
     MetadataSource<EHentaiSearchMetadata, Document>,
     UrlImportableSource,
     NamespaceSource,
     PagePreviewSource {
+    @AssistedFactory
+    fun interface Factory {
+        fun create(id: Long, exh: Boolean): EHentai
+    }
+
     override val metaClass = EHentaiSearchMetadata::class
 
     private val domain: String
@@ -119,9 +141,6 @@ class EHentai(
 
     override val lang = "all"
     override val supportsLatest = true
-
-    private val exhPreferences: ExhPreferences by injectLazy()
-    private val updateHelper: EHentaiUpdateHelper by injectLazy()
 
     /**
      * Gallery list entry
@@ -411,7 +430,7 @@ class EHentai(
             scanlator = EHentaiSearchMetadata.galleryId(location),
         )
         // Build and append the rest of the galleries
-        return if (DebugToggles.INCLUDE_ONLY_ROOT_WHEN_LOADING_EXH_VERSIONS.enabled) {
+        return if (DebugToggles.INCLUDE_ONLY_ROOT_WHEN_LOADING_EXH_VERSIONS.isEnabled(preferenceStore)) {
             listOf(self)
         } else {
             newDisplay.mapIndexed { index, newGallery ->
@@ -530,13 +549,13 @@ class EHentai(
     // Support direct URL importing
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getSearchManga"))
     override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> =
-        urlImportFetchSearchManga(context, query) {
+        urlImportFetchSearchManga(context, galleryAdder, query) {
             @Suppress("DEPRECATION")
             super<HttpSource>.fetchSearchManga(page, query, filters).checkValid()
         }
 
     override suspend fun getSearchManga(page: Int, query: String, filters: FilterList): MangasPage {
-        return urlImportFetchSearchMangaSuspend(context, query) {
+        return urlImportFetchSearchMangaSuspend(context, galleryAdder, query) {
             super<HttpSource>.getSearchManga(page, query, filters).checkValid()
         }
     }
@@ -643,7 +662,7 @@ class EHentai(
                     val doc = response.asJsoup()
                     val newerGallery = doc.select("#gnd a").lastOrNull()
                     val pre = if (
-                        newerGallery != null && DebugToggles.PULL_TO_ROOT_WHEN_LOADING_EXH_MANGA_DETAILS.enabled
+                        newerGallery != null && DebugToggles.PULL_TO_ROOT_WHEN_LOADING_EXH_MANGA_DETAILS.isEnabled(preferenceStore)
                     ) {
                         manga.url = EHentaiSearchMetadata.normalizeUrl(newerGallery.attr("href"))
                         client.newCall(mangaDetailsRequest(manga))
@@ -682,7 +701,7 @@ class EHentai(
             val doc = response.asJsoup()
             val newerGallery = doc.select("#gnd a").lastOrNull()
             val pre = if (
-                newerGallery != null && DebugToggles.PULL_TO_ROOT_WHEN_LOADING_EXH_MANGA_DETAILS.enabled
+                newerGallery != null && DebugToggles.PULL_TO_ROOT_WHEN_LOADING_EXH_MANGA_DETAILS.isEnabled(preferenceStore)
             ) {
                 val sManga = manga.copy(
                     url = EHentaiSearchMetadata.normalizeUrl(newerGallery.attr("href")),
@@ -723,6 +742,8 @@ class EHentai(
                 title = select("#gn").text().trimOrNull()
 
                 altTitle = select("#gj").text().trimOrNull()
+
+                useJapaneseTitle = exhPreferences.useJapaneseTitle.get()
 
                 thumbnailUrl = select("#gd1 div").attr("style").nullIfBlank()?.let {
                     it.substring(it.indexOf('(') + 1 until it.lastIndexOf(')'))
@@ -871,7 +892,7 @@ class EHentai(
         var favNames: List<String>? = null
 
         do {
-            val response2 = withIOContext {
+            val response2 = withContext(Dispatchers.IO) {
                 client.newCall(
                     exGet(
                         favoriteUrl,
@@ -949,20 +970,22 @@ class EHentai(
         .appendQueryParameter(param, value)
         .toString()
 
-    override val client = network.client.newBuilder()
-        .cookieJar(CookieJar.NO_COOKIES)
-        .addInterceptor { chain ->
-            val newReq = chain
-                .request()
-                .newBuilder()
-                .removeHeader("Cookie")
-                .addHeader("Cookie", cookiesHeader())
-                .build()
+    override val client by lazy {
+        network.client.newBuilder()
+            .cookieJar(CookieJar.NO_COOKIES)
+            .addInterceptor { chain ->
+                val newReq = chain
+                    .request()
+                    .newBuilder()
+                    .removeHeader("Cookie")
+                    .addHeader("Cookie", cookiesHeader())
+                    .build()
 
-            chain.proceed(newReq)
-        }
-        .addInterceptor(ThumbnailPreviewInterceptor())
-        .build()
+                chain.proceed(newReq)
+            }
+            .addInterceptor(ThumbnailPreviewInterceptor())
+            .build()
+    }
 
     // Filters
     override fun getFilterList(): FilterList {

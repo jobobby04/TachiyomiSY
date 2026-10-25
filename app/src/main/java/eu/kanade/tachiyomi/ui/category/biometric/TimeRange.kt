@@ -8,6 +8,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
+/**
+ * SY-specific file
+ */
 data class TimeRange(private val startTime: Duration, private val endTime: Duration) {
     override fun toString(): String {
         val startHour = startTime.inWholeHours

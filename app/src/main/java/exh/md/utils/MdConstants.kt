@@ -5,6 +5,9 @@ import androidx.core.net.toUri
 import java.security.MessageDigest
 import kotlin.time.Duration.Companion.minutes
 
+/**
+ * SY-specific file
+ */
 object MdConstants {
     const val baseUrl = "https://mangadex.org"
     const val cdnUrl = "https://uploads.mangadex.org"

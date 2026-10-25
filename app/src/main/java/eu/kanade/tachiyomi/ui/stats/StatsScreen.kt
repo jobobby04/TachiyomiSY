@@ -3,9 +3,9 @@ package eu.kanade.tachiyomi.ui.stats
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.more.stats.StatsScreenContent
@@ -23,8 +23,8 @@ class StatsScreen : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { StatsScreenModel() }
-        val state by screenModel.state.collectAsState()
+        val viewModel = metroViewModel<StatsViewModel>()
+        val state by viewModel.state.collectAsState()
 
         Scaffold(
             topBar = { scrollBehavior ->
@@ -34,7 +34,7 @@ class StatsScreen : Screen() {
                     scrollBehavior = scrollBehavior,
                     // SY -->
                     actions = {
-                        val allRead by screenModel.allRead.collectAsState()
+                        val allRead by viewModel.allRead.collectAsState()
                         AppBarActions(
                             listOf(
                                 AppBar.OverflowAction(
@@ -43,7 +43,7 @@ class StatsScreen : Screen() {
                                     } else {
                                         stringResource(SYMR.strings.include_all_read_entries)
                                     },
-                                    onClick = screenModel::toggleReadManga,
+                                    onClick = viewModel::toggleReadManga,
                                 ),
                             ),
                         )
@@ -58,7 +58,7 @@ class StatsScreen : Screen() {
             }
 
             StatsScreenContent(
-                state = state as? StatsScreenState.Success ?: return@Scaffold,
+                state = /* SY --> */state as? StatsScreenState.Success ?: return@Scaffold, /* SY <-- */
                 paddingValues = paddingValues,
             )
         }

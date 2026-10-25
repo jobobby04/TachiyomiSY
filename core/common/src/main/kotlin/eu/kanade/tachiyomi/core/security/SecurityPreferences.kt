@@ -1,12 +1,17 @@
 package eu.kanade.tachiyomi.core.security
 
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 
+@Inject
+@SingleIn(AppScope::class)
 class SecurityPreferences(
     preferenceStore: PreferenceStore,
 ) {

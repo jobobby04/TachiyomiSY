@@ -1,28 +1,42 @@
-deleteBySyncId:
-DELETE FROM manga_sync WHERE sync_id = :syncId;
+ -- SY-specific file
+
+deleteByTrackerId:
+DELETE FROM manga_track
+WHERE tracker_id = :trackerId;
 
 migrateSource:
-UPDATE mangas
-SET source = :newId
-WHERE source = :oldId;
+UPDATE manga
+SET source_id = :newSourceId
+WHERE source_id = :oldSourceId;
 
 getChaptersByMangaIds:
-SELECT * FROM chapters WHERE manga_id IN :mangaIds;
+SELECT
+    id, manga_id, remote_url, remote_name, remote_scanlator, remote_chapter_number,
+    remote_date_upload, remote_order, remote_memo, user_read, user_bookmark,
+    user_last_page_read, state_date_fetch,
+    state_last_modified_at, state_version, state_is_syncing
+FROM chapter
+WHERE manga_id IN :mangaIds
+-- The unique index's order, which getChaptersByMangaId returns too, so backups keep their chapter order
+ORDER BY manga_id, remote_url;
 
 migrateAllNhentaiToOtherLang:
-UPDATE mangas
-SET source = :nh
-WHERE favorite = 1 AND source IN :sources;
+UPDATE manga
+SET source_id = :newSourceId
+WHERE user_favorite_at IS NOT NULL
+AND source_id IN :sourceIds;
 
 resetReaderViewerForAllManga:
-UPDATE mangas
-SET viewer = 0;
+UPDATE manga
+SET user_reader_flags = 0
+WHERE user_reader_flags != 0;
 
 fixReaderViewerBackupBug:
-UPDATE mangas
-SET viewer = 0
-WHERE viewer = -1;
+UPDATE manga
+SET user_reader_flags = 0
+WHERE user_reader_flags = -1;
 
 addAllMangaInDatabaseToLibrary:
-UPDATE mangas
-SET favorite = 1;
+UPDATE manga
+SET user_favorite_at = CAST(strftime('%s', 'now') AS INTEGER) * 1000
+WHERE user_favorite_at IS NULL;

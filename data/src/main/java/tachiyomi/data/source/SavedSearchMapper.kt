@@ -2,6 +2,9 @@ package tachiyomi.data.source
 
 import tachiyomi.domain.source.model.SavedSearch
 
+/**
+ * SY-specific file
+ */
 object SavedSearchMapper {
     fun map(
         id: Long,

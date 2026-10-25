@@ -15,6 +15,9 @@ import okhttp3.Headers
 import okhttp3.OkHttpClient
 import tachiyomi.core.common.util.system.logcat
 
+/**
+ * SY-specific file
+ */
 class MangaDexLoginHelper(
     private val client: OkHttpClient,
     private val preferences: TrackPreferences,

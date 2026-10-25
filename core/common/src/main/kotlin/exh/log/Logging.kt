@@ -5,6 +5,9 @@ import com.elvishew.xlog.Logger
 import com.elvishew.xlog.XLog
 import com.elvishew.xlog.LogLevel as XLogLevel
 
+/**
+ * SY-specific file
+ */
 fun Any.xLog(): Logger = XLog.tag(this::class.java.simpleName).build()
 
 fun Any.xLogStack(): Logger = XLog.tag(this::class.java.simpleName).enableStackTrace(0).build()
@@ -14,8 +17,6 @@ fun Any.xLogW(log: String) = xLog().w(log)
 fun Any.xLogD(log: String) = xLog().d(log)
 fun Any.xLogI(log: String) = xLog().i(log)
 fun Any.xLog(logLevel: LogLevel, log: String) = xLog().log(logLevel.int, log)
-fun Any.xLogJson(log: String) = xLog().json(log)
-fun Any.xLogXML(log: String) = xLog().xml(log)
 
 fun Any.xLogE(log: String, e: Throwable) = xLogStack().e(log, e)
 fun Any.xLogW(log: String, e: Throwable) = xLogStack().w(log, e)

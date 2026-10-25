@@ -1,5 +1,8 @@
 package exh.util
 
+/**
+ * SY-specific file
+ */
 inline fun <T> ignore(expr: () -> T): T? {
     return try {
         expr()

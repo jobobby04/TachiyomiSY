@@ -10,6 +10,9 @@ import eu.kanade.presentation.components.TabContent
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun BrowseTabWrapper(tab: TabContent, onBackPressed: (() -> Unit)? = null) {
     val snackbarHostState = remember { SnackbarHostState() }

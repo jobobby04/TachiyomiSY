@@ -18,6 +18,9 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.util.plus
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun SortTagScreen(
     state: SortTagScreenState.Success,

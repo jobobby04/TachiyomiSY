@@ -4,16 +4,19 @@ import eu.kanade.tachiyomi.source.model.UpdateStrategy
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import mihon.core.common.extensions.JsonObjectEmptyBytes
-import tachiyomi.data.MemoColumnAdapter
+import mihon.core.common.extensions.toInstantOrNull
+import mihon.core.common.extensions.toJsonObject
 import tachiyomi.domain.manga.model.Manga
 
 @Suppress("DEPRECATION")
 @Serializable
 class BackupManga(
     // in 1.x some of these values have different names
-    @ProtoNumber(1) var source: Long,
+    // SY -->
+    @ProtoNumber(1) var source: Long = 0,
     // url is called key in 1.x
-    @ProtoNumber(2) var url: String,
+    @ProtoNumber(2) var url: String = "",
+    // SY <--
     @ProtoNumber(3) var title: String = "",
     @ProtoNumber(4) var artist: String? = null,
     @ProtoNumber(5) var author: String? = null,
@@ -38,15 +41,21 @@ class BackupManga(
     @ProtoNumber(103) var viewer_flags: Int? = null,
     @ProtoNumber(104) var history: List<BackupHistory> = emptyList(),
     @ProtoNumber(105) var updateStrategy: UpdateStrategy = UpdateStrategy.ALWAYS_UPDATE,
+    // SY -->
     @ProtoNumber(106) var lastModifiedAt: Long = 0,
+    // SY <--
     @ProtoNumber(107) var favoriteModifiedAt: Long? = null,
     // Mihon values start here
     @ProtoNumber(108) var excludedScanlators: List<String> = emptyList(),
+    // SY -->
     @ProtoNumber(109) var version: Long = 0,
+    // SY <--
     @ProtoNumber(110) var notes: String = "",
     @ProtoNumber(111) var initialized: Boolean = false,
     @ProtoNumber(112) var memo: ByteArray = JsonObjectEmptyBytes,
+    @ProtoNumber(113) var nextUpdate: Long = 0,
 
+    // SY -->
     // SY specific values
     @ProtoNumber(600) var mergedMangaReferences: List<BackupMergedMangaReference> = emptyList(),
     @ProtoNumber(601) var flatMetadata: BackupFlatMetadata? = null,
@@ -60,6 +69,7 @@ class BackupManga(
     // skipping 803 due to using duplicate value in previous builds
     @ProtoNumber(804) var customDescription: String? = null,
     @ProtoNumber(805) var customGenre: List<String>? = null,
+    // SY <--
 
 ) {
     fun getMangaImpl(): Manga {
@@ -74,18 +84,33 @@ class BackupManga(
             ogGenre = this@BackupManga.genre,
             ogStatus = this@BackupManga.status.toLong(),
             // SY <--
-            favorite = this@BackupManga.favorite,
             source = this@BackupManga.source,
-            dateAdded = this@BackupManga.dateAdded,
+            // For libraries older than dateAdded, the favorite timestamp is the only record of when
+            // an entry was added. It was written by a trigger in seconds, unlike dateAdded.
+            favoriteAt = if (this@BackupManga.favorite) {
+                this@BackupManga.dateAdded.toInstantOrNull()
+                    ?: Manga.UNKNOWN_FAVORITE_AT
+            } else {
+                null
+            },
             viewerFlags = (this@BackupManga.viewer_flags ?: this@BackupManga.viewer).toLong(),
             chapterFlags = this@BackupManga.chapterFlags.toLong(),
             updateStrategy = this@BackupManga.updateStrategy,
-            lastModifiedAt = this@BackupManga.lastModifiedAt,
-            favoriteModifiedAt = this@BackupManga.favoriteModifiedAt,
-            version = this@BackupManga.version,
             notes = this@BackupManga.notes,
             initialized = this@BackupManga.initialized,
-            memo = MemoColumnAdapter.decode(this@BackupManga.memo),
+            memo = this@BackupManga.memo.toJsonObject(),
+            nextUpdate = this@BackupManga.nextUpdate.toInstantOrNull(),
+            // SY -->
+            lastModifiedAt = this@BackupManga.lastModifiedAt,
+            version = this@BackupManga.version,
+            userTitle = this@BackupManga.customTitle,
+            userAuthor = this@BackupManga.customAuthor,
+            userArtist = this@BackupManga.customArtist,
+            userThumbnailUrl = this@BackupManga.customThumbnailUrl,
+            userDescription = this@BackupManga.customDescription,
+            userGenre = this@BackupManga.customGenre,
+            userStatus = this@BackupManga.customStatus.takeUnless { it == 0 }?.toLong(),
+            // SY <--
         )
     }
 }

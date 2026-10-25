@@ -6,6 +6,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 
+/**
+ * SY-specific file
+ */
 suspend fun <T> mdListCall(request: suspend (offset: Int) -> ListCallDto<T>): List<T> {
     val results = mutableListOf<T>()
     var offset = 0

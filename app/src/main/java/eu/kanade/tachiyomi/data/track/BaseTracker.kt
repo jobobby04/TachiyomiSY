@@ -1,6 +1,6 @@
 package eu.kanade.tachiyomi.data.track
 
-import android.app.Application
+import android.content.Context
 import androidx.annotation.CallSuper
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.model.toDomainTrack
@@ -10,28 +10,36 @@ import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.util.system.toast
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.withContext
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import okhttp3.OkHttpClient
-import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.track.interactor.InsertTrack
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
+import tachiyomi.domain.track.interactor.UpsertTrack
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 abstract class BaseTracker(
+    // SY -->
+    private val context: Context,
+    // SY <--
     override val id: Long,
     override val name: String,
 ) : Tracker {
 
-    val trackPreferences: TrackPreferences by injectLazy()
-    val networkService: NetworkHelper by injectLazy()
-    private val addTracks: AddTracks by injectLazy()
-    private val insertTrack: InsertTrack by injectLazy()
+    protected val appGraph get() = /* SY --> */ context.appGraph /* SY <-- */
+
+    val trackPreferences: TrackPreferences by lazy { appGraph.trackPreferences }
+    val networkService: NetworkHelper by lazy { appGraph.networkHelper }
+    private val addTracks: AddTracks by lazy { appGraph.addTracks }
+    private val upsertTrack: UpsertTrack by lazy { appGraph.upsertTrack }
 
     override val client: OkHttpClient
         get() = networkService.client
@@ -68,6 +76,29 @@ abstract class BaseTracker(
         }
     }
 
+    final override val isRefreshingFlow: StateFlow<Boolean>
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    final override val refreshResultFlow: SharedFlow<RefreshResult>
+        field: MutableSharedFlow<RefreshResult> = MutableSharedFlow(extraBufferCapacity = 1)
+
+    final override suspend fun refreshUser() {
+        isRefreshingFlow.value = true
+        try {
+            updateUserConfig()
+            refreshResultFlow.emit(RefreshResult.Success)
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            logcat(LogPriority.ERROR, e) { "Failed to update user config id=$id" }
+            refreshResultFlow.emit(RefreshResult.Error(e.message ?: "Failed with unknown error"))
+        } finally {
+            isRefreshingFlow.value = false
+        }
+    }
+
+    // does the actual remote calls shielded from outside access to guarantee proper refresh flow setting
+    protected abstract suspend fun updateUserConfig()
+
     override fun getUsername() = trackPreferences.trackUsername(this).get()
 
     override fun getDisplayUsername(): String = trackPreferences.trackDisplayUsername(this).get()
@@ -85,7 +116,9 @@ abstract class BaseTracker(
         try {
             addTracks.bind(this, item, mangaId)
         } catch (e: Throwable) {
-            withUIContext { Injekt.get<Application>().toast(e.message) }
+            withContext(Dispatchers.Main) {
+                context.toast(e.message)
+            }
         }
     }
 
@@ -143,15 +176,22 @@ abstract class BaseTracker(
     }
     // SY <--
 
-    private suspend fun updateRemote(track: Track): Unit = withIOContext {
+    private suspend fun updateRemote(track: Track): Unit = withContext(Dispatchers.IO) {
         try {
             update(track)
             track.toDomainTrack(idRequired = false)?.let {
-                insertTrack.await(it)
+                upsertTrack.await(it)
             }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e) { "Failed to update remote track data id=$id" }
-            withUIContext { Injekt.get<Application>().toast(e.message) }
+            withContext(Dispatchers.Main) {
+                context.toast(e.message)
+            }
         }
     }
+}
+
+sealed interface RefreshResult {
+    data object Success : RefreshResult
+    data class Error(val msg: String) : RefreshResult
 }

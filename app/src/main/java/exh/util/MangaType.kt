@@ -1,31 +1,14 @@
 package exh.util
 
-import android.content.Context
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
-import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.source.service.SourceManager
-import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import java.util.Locale
-
-fun Manga.mangaType(context: Context): String {
-    return context.stringResource(
-        when (mangaType()) {
-            MangaType.TYPE_WEBTOON -> SYMR.strings.entry_type_webtoon
-            MangaType.TYPE_MANHWA -> SYMR.strings.entry_type_manhwa
-            MangaType.TYPE_MANHUA -> SYMR.strings.entry_type_manhua
-            MangaType.TYPE_COMIC -> SYMR.strings.entry_type_comic
-            else -> SYMR.strings.entry_type_manga
-        },
-    ).lowercase(Locale.getDefault())
-}
 
 /**
+ * SY-specific file
+ *
  * The type of comic the manga is (ie. manga, manhwa, manhua)
  */
-fun Manga.mangaType(sourceName: String? = Injekt.get<SourceManager>().get(source)?.name): MangaType {
+fun Manga.mangaType(sourceName: String?): MangaType {
     val currentTags = genre.orEmpty()
     return when {
         currentTags.any { tag -> isMangaTag(tag) } -> {
@@ -53,7 +36,7 @@ fun Manga.mangaType(sourceName: String? = Injekt.get<SourceManager>().get(source
  * The type the reader should use. Different from manga type as certain manga has different
  * read types
  */
-fun Manga.defaultReaderType(type: MangaType = mangaType()): Int? {
+fun Manga.defaultReaderType(type: MangaType): Int? {
     return if (type == MangaType.TYPE_MANHWA || type == MangaType.TYPE_WEBTOON) {
         ReadingMode.WEBTOON.flagValue
     } else {

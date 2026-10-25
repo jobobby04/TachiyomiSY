@@ -1,24 +1,32 @@
 package mihon.core.migration.migrations
 
-import android.app.Application
+import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import app.cash.sqldelight.async.coroutines.awaitAsList
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
-import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.data.Database
-import tachiyomi.data.category.CategoryMapper
+import tachiyomi.domain.category.repository.CategoryRepository
 import tachiyomi.domain.library.service.LibraryPreferences
 
-class MoveSortingModeSettingsMigration : Migration {
+/**
+ * SY-specific file
+ */
+@Inject
+@ContributesIntoSet(AppScope::class)
+class MoveSortingModeSettingsMigration(
+    private val context: Context,
+    private val libraryPreferences: LibraryPreferences,
+    private val categoryRepository: CategoryRepository,
+) : Migration {
     override val version: Float = 38f
 
-    override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
-        val context = migrationContext.get<Application>() ?: return@withIOContext false
+    override suspend fun invoke(migrationContext: MigrationContext): Boolean = withContext(Dispatchers.IO) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false
-        val database = migrationContext.get<Database>() ?: return@withIOContext false
         // Handle renamed enum values
         val newSortingMode = when (
             val oldSortingMode = prefs.getString(libraryPreferences.sortingMode.key(), "ALPHABETICAL")
@@ -32,23 +40,15 @@ class MoveSortingModeSettingsMigration : Migration {
         prefs.edit {
             putString(libraryPreferences.sortingMode.key(), newSortingMode)
         }
-        database.transaction {
-            database.categoriesQueries.getCategories(CategoryMapper::mapCategory).awaitAsList()
-                .filter { (it.flags and 0b00111100L) == 0b00100000L }
-                .forEach {
-                    database.categoriesQueries.update(
-                        categoryId = it.id,
-                        flags = it.flags and 0b00111100L.inv(),
-                        name = null,
-                        version = it.version,
-                        uid = it.uid,
-                        last_modified_at = null,
-                        isSyncing = null,
-                        order = null,
-                    )
-                }
-        }
+        categoryRepository.getAll()
+            .filter { (it.flags and 0b00111100L) == 0b00100000L }
+            .forEach {
+                categoryRepository.updateFlags(
+                    categoryId = it.id,
+                    flags = it.flags and 0b00111100L.inv(),
+                )
+            }
 
-        return@withIOContext true
+        return@withContext true
     }
 }

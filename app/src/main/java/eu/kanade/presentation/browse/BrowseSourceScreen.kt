@@ -3,10 +3,6 @@ package eu.kanade.presentation.browse
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -26,6 +22,12 @@ import eu.kanade.tachiyomi.source.Source
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.source.isEhBasedSource
 import kotlinx.coroutines.flow.StateFlow
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.Help
+import mihon.icons.materialsymbols.rounded.Public
+import mihon.icons.materialsymbols.rounded.Refresh
+import mihon.icons.sy.materialsymbols.SYMaterialSymbols
+import mihon.icons.sy.materialsymbols.automirroredroundedfilled.Help
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.manga.model.Manga
@@ -96,22 +98,22 @@ fun BrowseSourceContent(
                 listOf(
                     EmptyScreenAction(
                         stringRes = MR.strings.local_source_help_guide,
-                        icon = Icons.AutoMirrored.Outlined.HelpOutline,
+                        icon = MaterialSymbols.AutoMirroredRounded.Help,
                         onClick = onLocalSourceHelpClick,
                     ),
                 )
             } else {
-                listOfNotNull(
+                /* SY --> */ listOfNotNull /* SY <-- */(
                     EmptyScreenAction(
                         stringRes = MR.strings.action_retry,
-                        icon = Icons.Outlined.Refresh,
+                        icon = MaterialSymbols.Rounded.Refresh,
                         onClick = mangaList::refresh,
                     ),
                     // SY -->
                     if (onWebViewClick != null) {
                         EmptyScreenAction(
                             stringRes = MR.strings.action_open_in_web_view,
-                            icon = Icons.Outlined.Public,
+                            icon = MaterialSymbols.Rounded.Public,
                             onClick = onWebViewClick,
                         )
                     } else {
@@ -120,7 +122,7 @@ fun BrowseSourceContent(
                     if (onHelpClick != null) {
                         EmptyScreenAction(
                             stringRes = MR.strings.label_help,
-                            icon = Icons.AutoMirrored.Outlined.HelpOutline,
+                            icon = SYMaterialSymbols.AutoMirroredRoundedFilled.Help,
                             onClick = onHelpClick,
                         )
                     } else {

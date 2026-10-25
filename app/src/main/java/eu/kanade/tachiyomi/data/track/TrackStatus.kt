@@ -3,15 +3,23 @@ package eu.kanade.tachiyomi.data.track
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.bangumi.Bangumi
+import eu.kanade.tachiyomi.data.track.comick.Comick
+import eu.kanade.tachiyomi.data.track.hikka.Hikka
+import eu.kanade.tachiyomi.data.track.kavita.Kavita
 import eu.kanade.tachiyomi.data.track.kitsu.Kitsu
 import eu.kanade.tachiyomi.data.track.komga.Komga
+import eu.kanade.tachiyomi.data.track.mangabaka.MangaBaka
 import eu.kanade.tachiyomi.data.track.mangaupdates.MangaUpdates
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
 import eu.kanade.tachiyomi.data.track.shikimori.Shikimori
+import eu.kanade.tachiyomi.data.track.suwayomi.Suwayomi
 import exh.md.utils.FollowStatus
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 
+/**
+ * SY-specific file
+ */
 enum class TrackStatus(val int: Int, val res: StringResource) {
     READING(1, MR.strings.reading),
     REPEATING(2, MR.strings.repeating),
@@ -104,6 +112,55 @@ enum class TrackStatus(val int: Int, val res: StringResource) {
                         MangaUpdates.ON_HOLD_LIST -> PAUSED
                         MangaUpdates.WISH_LIST -> PLAN_TO_READ
                         MangaUpdates.UNFINISHED_LIST -> DROPPED
+                        else -> null
+                    }
+                }
+                trackerManager.mangaBaka.id -> {
+                    when (status) {
+                        MangaBaka.READING -> READING
+                        MangaBaka.COMPLETED -> COMPLETED
+                        MangaBaka.PAUSED -> PAUSED
+                        MangaBaka.DROPPED -> DROPPED
+                        MangaBaka.PLAN_TO_READ -> PLAN_TO_READ
+                        MangaBaka.REREADING -> REPEATING
+                        MangaBaka.CONSIDERING -> PLAN_TO_READ
+                        else -> null
+                    }
+                }
+                trackerManager.kavita.id -> {
+                    when (status) {
+                        Kavita.READING -> READING
+                        Kavita.COMPLETED -> COMPLETED
+                        Kavita.UNREAD -> null
+                        else -> null
+                    }
+                }
+                trackerManager.suwayomi.id -> {
+                    when (status) {
+                        Suwayomi.READING -> READING
+                        Suwayomi.COMPLETED -> COMPLETED
+                        Suwayomi.UNREAD -> null
+                        else -> null
+                    }
+                }
+                trackerManager.hikka.id -> {
+                    when (status) {
+                        Hikka.READING -> READING
+                        Hikka.COMPLETED -> COMPLETED
+                        Hikka.ON_HOLD -> PAUSED
+                        Hikka.DROPPED -> DROPPED
+                        Hikka.PLAN_TO_READ -> PLAN_TO_READ
+                        Hikka.REREADING -> REPEATING
+                        else -> null
+                    }
+                }
+                trackerManager.comick.id -> {
+                    when (status) {
+                        Comick.READING -> READING
+                        Comick.COMPLETED -> COMPLETED
+                        Comick.ON_HOLD -> PAUSED
+                        Comick.DROPPED -> DROPPED
+                        Comick.PLAN_TO_READ -> PLAN_TO_READ
                         else -> null
                     }
                 }

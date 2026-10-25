@@ -1,5 +1,8 @@
 package tachiyomi.domain.source.model
 
+/**
+ * SY-specific file
+ */
 data class SavedSearch(
     // Tag identifier, unique
     val id: Long,

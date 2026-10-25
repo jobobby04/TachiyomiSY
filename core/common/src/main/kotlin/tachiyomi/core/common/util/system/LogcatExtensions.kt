@@ -7,9 +7,12 @@ import logcat.logcat
 inline fun Any.logcat(
     priority: LogPriority = LogPriority.DEBUG,
     throwable: Throwable? = null,
+    // SY -->
     tag: String? = null,
+    // SY <--
     message: () -> String = { "" },
 ) = logcat(priority = priority) {
+    // SY -->
     val logMessage = StringBuilder()
 
     if (!tag.isNullOrEmpty()) {
@@ -25,4 +28,5 @@ inline fun Any.logcat(
     }
 
     logMessage.toString()
+    // SY <--
 }

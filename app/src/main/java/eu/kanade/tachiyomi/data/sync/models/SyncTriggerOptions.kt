@@ -3,6 +3,9 @@ package eu.kanade.tachiyomi.data.sync.models
 import dev.icerock.moko.resources.StringResource
 import tachiyomi.i18n.sy.SYMR
 
+/**
+ * SY-specific file
+ */
 data class SyncTriggerOptions(
     val syncOnChapterRead: Boolean = false,
     val syncOnChapterOpen: Boolean = false,
@@ -15,11 +18,6 @@ data class SyncTriggerOptions(
         syncOnAppStart,
         syncOnAppResume,
     )
-
-    fun anyEnabled() = syncOnChapterRead ||
-        syncOnChapterOpen ||
-        syncOnAppStart ||
-        syncOnAppResume
 
     companion object {
         val mainOptions = listOf(

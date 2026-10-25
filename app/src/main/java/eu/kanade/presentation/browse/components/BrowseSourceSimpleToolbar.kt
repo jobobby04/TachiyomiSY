@@ -1,8 +1,5 @@
 package eu.kanade.presentation.browse.components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.ViewModule
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -15,10 +12,16 @@ import androidx.compose.runtime.setValue
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Check
+import mihon.icons.materialsymbols.roundedfilled.ViewModule
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
+/**
+ * SY-specific file
+ */
 @Composable
 fun BrowseSourceSimpleToolbar(
     navigateUp: () -> Unit,
@@ -37,10 +40,11 @@ fun BrowseSourceSimpleToolbar(
                 actions = listOf(
                     AppBar.Action(
                         title = stringResource(MR.strings.action_display_mode),
-                        icon = Icons.Outlined.ViewModule,
+                        icon = MaterialSymbols.RoundedFilled.ViewModule,
                         onClick = { selectingDisplayMode = true },
                     ),
                 ),
+                // SY <--
             )
             DropdownMenu(
                 expanded = selectingDisplayMode,
@@ -52,7 +56,7 @@ fun BrowseSourceSimpleToolbar(
                     trailingIcon = {
                         if (displayMode == LibraryDisplayMode.ComfortableGrid) {
                             Icon(
-                                imageVector = Icons.Outlined.Check,
+                                imageVector = MaterialSymbols.Rounded.Check,
                                 contentDescription = "",
                             )
                         }
@@ -64,7 +68,7 @@ fun BrowseSourceSimpleToolbar(
                     trailingIcon = {
                         if (displayMode == LibraryDisplayMode.CompactGrid) {
                             Icon(
-                                imageVector = Icons.Outlined.Check,
+                                imageVector = MaterialSymbols.Rounded.Check,
                                 contentDescription = "",
                             )
                         }
@@ -76,7 +80,7 @@ fun BrowseSourceSimpleToolbar(
                     trailingIcon = {
                         if (displayMode == LibraryDisplayMode.List) {
                             Icon(
-                                imageVector = Icons.Outlined.Check,
+                                imageVector = MaterialSymbols.Rounded.Check,
                                 contentDescription = "",
                             )
                         }

@@ -32,6 +32,9 @@ import exh.source.EXH_SOURCE_ID
 import exh.util.SourceTagsUtil
 import androidx.compose.material3.SuggestionChipDefaults as SuggestionChipDefaultsM3
 
+/**
+ * SY-specific file
+ */
 @Immutable
 data class DisplayTag(
     val namespace: String?,

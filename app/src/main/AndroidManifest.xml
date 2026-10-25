@@ -216,6 +216,17 @@
                 <data android:host="shikimori-auth" />
                 <data android:host="hikka-auth" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Comick requires native reverse-domain schemes  -->
+                <data android:scheme="app.mihon" />
+                <data android:host="comick-auth" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ui.setting.track.GoogleDriveLoginActivity"
@@ -350,7 +361,7 @@
 
                 <data android:pathPattern="/g/..*" />
             </intent-filter>
-            <!-- Tsumino -->
+            <!-- Hitomi.la -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -360,11 +371,11 @@
                 <data android:scheme="https" />
                 <data android:scheme="http" />
 
-                <data android:host="tsumino.com" />
-                <data android:host="www.tsumino.com" />
+                <data android:host="hitomi.la" />
+                <data android:host="www.hitomi.la" />
 
-                <data android:pathPattern="/Read/View/..*" />
-                <data android:pathPattern="/Book/Info/..*" />
+                <data android:pathPattern="/reader/..*" />
+                <data android:pathPattern="/galleries/..*" />
             </intent-filter>
             <!-- Pururin -->
             <intent-filter>
@@ -379,21 +390,6 @@
                 <data android:host="pururin.me" />
 
                 <data android:pathPattern="/gallery/..*" />
-            </intent-filter>
-            <!-- HBrowse -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="https" />
-                <data android:scheme="http" />
-
-                <data android:host="hbrowse.com" />
-                <data android:host="www.hbrowse.com" />
-
-                <!--<data android:pathPattern="/gallery/..*" />-->
             </intent-filter>
             <!-- Mangadex -->
             <intent-filter android:autoVerify="true">

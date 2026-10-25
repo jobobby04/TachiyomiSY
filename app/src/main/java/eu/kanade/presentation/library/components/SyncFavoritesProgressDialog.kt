@@ -19,6 +19,9 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * SY-specific file
+ */
 data class SyncFavoritesProgressProperties(
     val title: String,
     val text: String,

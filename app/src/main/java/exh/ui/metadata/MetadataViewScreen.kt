@@ -18,9 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.util.system.copyToClipboard
@@ -33,18 +33,23 @@ import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.util.clickableNoIndication
 import tachiyomi.presentation.core.util.plus
 
+/**
+ * SY-specific file
+ */
 class MetadataViewScreen(private val mangaId: Long, private val sourceId: Long) : Screen() {
 
     @Composable
     override fun Content() {
-        val screenModel = rememberScreenModel { MetadataViewScreenModel(mangaId, sourceId) }
+        val viewModel = assistedMetroViewModel<MetadataViewViewModel, MetadataViewViewModel.Factory> {
+            create(mangaId = mangaId, sourceId = sourceId)
+        }
         val navigator = LocalNavigator.currentOrThrow
 
-        val state by screenModel.state.collectAsState()
+        val state by viewModel.state.collectAsState()
         Scaffold(
             topBar = { scrollBehavior ->
                 AppBar(
-                    title = screenModel.manga.collectAsState().value?.title,
+                    title = viewModel.manga.collectAsState().value?.title,
                     navigateUp = navigator::pop,
                     scrollBehavior = scrollBehavior,
                 )

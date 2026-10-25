@@ -1,63 +1,24 @@
 package tachiyomi.domain.manga.model
 
-import eu.kanade.tachiyomi.source.model.UpdateStrategy
-import kotlinx.serialization.json.JsonObject
+import mihon.domain.common.PartialUpdate
+import kotlin.time.Instant
 
-data class MangaUpdate(
-    val id: Long,
-    val source: Long? = null,
-    val favorite: Boolean? = null,
-    val lastUpdate: Long? = null,
-    val nextUpdate: Long? = null,
-    val fetchInterval: Int? = null,
-    val dateAdded: Long? = null,
-    val viewerFlags: Long? = null,
-    val chapterFlags: Long? = null,
-    val coverLastModified: Long? = null,
-    val url: String? = null,
-    val title: String? = null,
-    val artist: String? = null,
-    val author: String? = null,
-    val description: String? = null,
-    val genre: List<String>? = null,
-    val status: Long? = null,
-    val thumbnailUrl: String? = null,
-    val updateStrategy: UpdateStrategy? = null,
-    val initialized: Boolean? = null,
-    val version: Long? = null,
-    val notes: String? = null,
-    val memo: JsonObject? = null,
+class MangaUpdate(val id: Long, block: MangaUpdate.() -> Unit) : PartialUpdate() {
+    var favoriteAt: Instant? by field(null)
+    var lastUpdate: Instant? by field(null)
+    var nextUpdate: Instant? by field(null)
+    var fetchInterval: Int? by field(null)
+    var viewerFlags: Long? by field(null)
+    var chapterFlags: Long? by field(null)
+    var coverLastModified: Instant? by field(null)
+    var notes: String? by field(null)
+
     // SY -->
-    val filteredScanlators: List<String>? = null,
+    var url: String? by field(null)
+    var filteredScanlators: List<String>? by field(null)
     // SY <--
-)
 
-fun Manga.toMangaUpdate(): MangaUpdate {
-    return MangaUpdate(
-        id = id,
-        source = source,
-        favorite = favorite,
-        lastUpdate = lastUpdate,
-        nextUpdate = nextUpdate,
-        fetchInterval = fetchInterval,
-        dateAdded = dateAdded,
-        viewerFlags = viewerFlags,
-        chapterFlags = chapterFlags,
-        coverLastModified = coverLastModified,
-        url = url,
-        // SY -->
-        title = ogTitle,
-        artist = ogArtist,
-        author = ogAuthor,
-        thumbnailUrl = ogThumbnailUrl,
-        description = ogDescription,
-        genre = ogGenre,
-        status = ogStatus,
-        // SY <--
-        updateStrategy = updateStrategy,
-        initialized = initialized,
-        version = version,
-        notes = notes,
-        memo = memo,
-    )
+    init {
+        block()
+    }
 }

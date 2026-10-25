@@ -40,6 +40,9 @@ import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 
+/**
+ * SY-specific file
+ */
 @Composable
 private fun PagePreviewLoading(
     setMaxWidth: (Dp) -> Unit,

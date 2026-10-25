@@ -5,10 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.google.android.material.timepicker.MaterialTimePicker
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.category.BiometricTimesScreen
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
 import eu.kanade.presentation.util.Screen
@@ -22,14 +22,17 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
+/**
+ * SY-specific file
+ */
 class BiometricTimesScreen : Screen() {
     @Composable
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { BiometricTimesScreenModel() }
+        val viewModel = metroViewModel<BiometricTimesViewModel>()
 
-        val state by screenModel.state.collectAsState()
+        val state by viewModel.state.collectAsState()
 
         if (state is BiometricTimesScreenState.Loading) {
             LoadingScreen()
@@ -40,8 +43,8 @@ class BiometricTimesScreen : Screen() {
 
         BiometricTimesScreen(
             state = successState,
-            onClickCreate = { screenModel.showDialog(BiometricTimesDialog.Create) },
-            onClickDelete = { screenModel.showDialog(BiometricTimesDialog.Delete(it)) },
+            onClickCreate = { viewModel.showDialog(BiometricTimesDialog.Create) },
+            onClickDelete = { viewModel.showDialog(BiometricTimesDialog.Delete(it)) },
             navigateUp = navigator::pop,
         )
 
@@ -62,14 +65,14 @@ class BiometricTimesScreen : Screen() {
             picker.addOnPositiveButtonClickListener {
                 val timeRange = picker.hour.hours + picker.minute.minutes
                 if (startTime != null) {
-                    screenModel.dismissDialog()
-                    screenModel.createTimeRange(TimeRange(startTime, timeRange))
+                    viewModel.dismissDialog()
+                    viewModel.createTimeRange(TimeRange(startTime, timeRange))
                 } else {
                     showTimePicker(timeRange)
                 }
             }
             picker.addOnDismissListener {
-                screenModel.dismissDialog()
+                viewModel.dismissDialog()
             }
             picker.show(activity.supportFragmentManager, null)
         }
@@ -83,8 +86,8 @@ class BiometricTimesScreen : Screen() {
             }
             is BiometricTimesDialog.Delete -> {
                 CategoryDeleteDialog(
-                    onDismissRequest = screenModel::dismissDialog,
-                    onDelete = { screenModel.deleteTimeRanges(dialog.timeRange) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    onDelete = { viewModel.deleteTimeRanges(dialog.timeRange) },
                     title = stringResource(SYMR.strings.delete_time_range),
                     text = stringResource(SYMR.strings.delete_time_range_confirmation, dialog.timeRange.formattedString),
                 )
@@ -92,7 +95,7 @@ class BiometricTimesScreen : Screen() {
         }
 
         LaunchedEffect(Unit) {
-            screenModel.events.collectLatest { event ->
+            viewModel.events.collectLatest { event ->
                 if (event is BiometricTimesEvent.LocalizedMessage) {
                     context.toast(event.stringRes)
                 }

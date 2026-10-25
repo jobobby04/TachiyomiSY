@@ -11,6 +11,9 @@ import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
+/**
+ * SY-specific file
+ */
 class MangaHotHandler(currentClient: OkHttpClient, userAgent: String) {
     val baseUrl = "https://mangahot.jp"
     private val apiUrl = "https://api.mangahot.jp"

@@ -1,5 +1,8 @@
 package eu.kanade.tachiyomi.source.online.all
 
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.manga.model.toSManga
@@ -14,15 +17,16 @@ import eu.kanade.tachiyomi.source.model.copy
 import eu.kanade.tachiyomi.source.online.HttpSource
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import mihon.domain.chapter.interactor.FilterChaptersForDownload
 import mihon.domain.source.interactor.UpdateMangaFromRemote
 import okhttp3.Response
-import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.download.service.DownloadPreferences
@@ -32,20 +36,30 @@ import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.injectLazy
 
-class MergedSource : HttpSource() {
-    private val getManga: GetManga by injectLazy()
-    private val getMergedReferencesById: GetMergedReferencesById by injectLazy()
-    private val syncChaptersWithSource: SyncChaptersWithSource by injectLazy()
-    private val networkToLocalManga: NetworkToLocalManga by injectLazy()
-    private val updateManga: UpdateManga by injectLazy()
-    private val updateMangaFromRemote: UpdateMangaFromRemote by injectLazy()
-    private val getCategories: GetCategories by injectLazy()
-    private val sourceManager: SourceManager by injectLazy()
-    private val downloadManager: DownloadManager by injectLazy()
-    private val downloadPreferences: DownloadPreferences by injectLazy()
-    private val filterChaptersForDownload: FilterChaptersForDownload by injectLazy()
+/**
+ * SY-specific file
+ */
+@AssistedInject
+class MergedSource(
+    @Assisted
+    private val sourceManager: SourceManager,
+    private val getManga: GetManga,
+    private val getMergedReferencesById: GetMergedReferencesById,
+    private val syncChaptersWithSource: SyncChaptersWithSource,
+    private val networkToLocalManga: NetworkToLocalManga,
+    private val updateManga: UpdateManga,
+    private val updateMangaFromRemote: UpdateMangaFromRemote,
+    private val getCategories: GetCategories,
+    private val downloadManager: DownloadManager,
+    private val downloadPreferences: DownloadPreferences,
+    private val filterChaptersForDownload: FilterChaptersForDownload,
+) : HttpSource() {
+
+    @AssistedFactory
+    fun interface Factory {
+        fun create(sourceManager: SourceManager): MergedSource
+    }
 
     override val id: Long = MERGED_SOURCE_ID
 
@@ -99,7 +113,7 @@ class MergedSource : HttpSource() {
     }
 
     suspend fun getMangaDetails(manga: SManga): SManga {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val mergedManga = requireNotNull(getManga.await(manga.url, id)) { "merged manga not in db" }
             val mangaReferences = getMergedReferencesById.await(mergedManga.id)
                 .apply {
@@ -118,13 +132,6 @@ class MergedSource : HttpSource() {
                 url = manga.url,
             )
         }
-    }
-
-    suspend fun fetchChaptersForMergedManga(
-        manga: Manga,
-        downloadChapters: Boolean = true,
-    ) {
-        fetchChaptersAndSync(manga, downloadChapters)
     }
 
     suspend fun fetchChaptersAndSync(manga: Manga, downloadChapters: Boolean = true): List<Chapter> {

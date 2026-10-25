@@ -1,11 +1,13 @@
 package eu.kanade.tachiyomi.data.track.hikka
 
+import android.content.Context
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.DeletableTracker
 import eu.kanade.tachiyomi.data.track.hikka.dto.HKOAuth
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -14,7 +16,7 @@ import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Hikka(id: Long) : BaseTracker(id, "Hikka"), DeletableTracker {
+class Hikka(/* SY --> */ context: Context, /* SY <-- */ id: Long) : BaseTracker(/* SY --> */ context, /* SY <-- */ id, "Hikka"), DeletableTracker {
 
     companion object {
         const val READING = 0L
@@ -27,6 +29,8 @@ class Hikka(id: Long) : BaseTracker(id, "Hikka"), DeletableTracker {
         private val SCORE_LIST = IntRange(0, 10)
             .map(Int::toString)
             .toImmutableList()
+
+        private const val SEARCH_ID_PREFIX = "id:"
     }
 
     private val json: Json by injectLazy()
@@ -118,7 +122,15 @@ class Hikka(id: Long) : BaseTracker(id, "Hikka"), DeletableTracker {
         }
     }
 
-    override suspend fun search(query: String): List<TrackSearch> = api.searchManga(query)
+    override suspend fun search(query: String): List<TrackSearch> {
+        if (query.startsWith(SEARCH_ID_PREFIX)) {
+            query.substringAfter(SEARCH_ID_PREFIX).trim().let { slug ->
+                return api.getMangaDetails(slug)?.let { listOf(it) } ?: emptyList()
+            }
+        }
+
+        return api.searchManga(query)
+    }
 
     override suspend fun refresh(track: Track): Track {
         val remoteTrack = api.getManga(track)
@@ -134,6 +146,17 @@ class Hikka(id: Long) : BaseTracker(id, "Hikka"), DeletableTracker {
         track.finished_reading_date = (readContent.endDate ?: 0L) * 1000
 
         return track
+    }
+
+    // SY ->
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
+        return api.getMangaMetadata(track)
+    }
+    // <- SY
+
+    override suspend fun updateUserConfig() {
+        val currentUser = api.getCurrentUser()
+        saveDisplayUsername(currentUser.username)
     }
 
     override suspend fun login(username: String, password: String) = login(password)

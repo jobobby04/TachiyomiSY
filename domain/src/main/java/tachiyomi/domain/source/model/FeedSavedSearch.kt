@@ -1,5 +1,8 @@
 package tachiyomi.domain.source.model
 
+/**
+ * SY-specific file
+ */
 data class FeedSavedSearch(
     // Tag identifier, unique
     val id: Long,

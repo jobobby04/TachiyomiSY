@@ -12,12 +12,16 @@ import exh.md.dto.AtHomeDto
 import exh.md.service.MangaDexService
 import exh.md.utils.MdApi
 import exh.md.utils.MdUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import rx.Observable
-import tachiyomi.core.common.util.lang.withIOContext
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.isAccessible
 
+/**
+ * SY-specific file
+ */
 class PageHandler(
     private val service: MangaDexService,
     private val mangaPlusHandler: MangaPlusHandler,
@@ -31,7 +35,7 @@ class PageHandler(
 ) {
 
     suspend fun fetchPageList(chapter: SChapter, usePort443Only: Boolean, dataSaver: Boolean, mangadex: Source): List<Page> {
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val chapterResponse = service.viewChapter(MdUtil.getChapterId(chapter.url))
 
             if (chapterResponse.data.attributes.externalUrl != null && chapterResponse.data.attributes.pages == 0) {

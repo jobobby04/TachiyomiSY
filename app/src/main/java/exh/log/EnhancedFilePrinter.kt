@@ -13,6 +13,8 @@ import kotlin.time.Duration.Companion.days
 import com.elvishew.xlog.flattener.Flattener2 as Flattener
 
 /**
+ * SY-specific file
+ *
  * Log [Printer] using file system. When print a log, it will print it to the specified file.
  *
  * Use the [Builder] to construct a [EnhancedFilePrinter] object.

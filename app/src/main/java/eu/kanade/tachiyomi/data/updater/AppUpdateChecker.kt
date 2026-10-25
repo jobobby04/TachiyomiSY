@@ -1,25 +1,25 @@
 package eu.kanade.tachiyomi.data.updater
 
-import android.content.Context
-import android.os.Build
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import exh.syDebugVersion
-import tachiyomi.core.common.util.lang.withIOContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tachiyomi.domain.release.interactor.GetApplicationRelease
-import uy.kohesive.injekt.injectLazy
 
-class AppUpdateChecker {
+@Inject
+class AppUpdateChecker(
+    private val getApplicationRelease: GetApplicationRelease,
+) {
 
-    private val getApplicationRelease: GetApplicationRelease by injectLazy()
-
-    suspend fun checkForUpdate(context: Context, forceCheck: Boolean = false): GetApplicationRelease.Result {
+    suspend fun checkForUpdate(forceCheck: Boolean = false): GetApplicationRelease.Result {
         // Disable app update checks for older Android versions that we're going to drop support for
         // if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
         //     return GetApplicationRelease.Result.OsTooOld
         // }
 
-        return withIOContext {
+        return withContext(Dispatchers.IO) {
             val result = getApplicationRelease.await(
                 GetApplicationRelease.Arguments(
                     // SY -->
@@ -34,11 +34,6 @@ class AppUpdateChecker {
                     forceCheck,
                 ),
             )
-
-            when (result) {
-                is GetApplicationRelease.Result.NewUpdate -> AppUpdateNotifier(context).promptUpdate(result.release)
-                else -> {}
-            }
 
             result
         }

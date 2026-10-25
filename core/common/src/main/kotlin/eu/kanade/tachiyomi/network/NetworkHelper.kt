@@ -1,33 +1,43 @@
 package eu.kanade.tachiyomi.network
 
 import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UncaughtExceptionInterceptor
 import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
+import exh.pref.DelegateSourcePreferences
+import kotlinx.coroutines.CoroutineScope
+import mihon.core.metro.AppCoroutineScope
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
+@Inject
+@SingleIn(AppScope::class)
 /* SY --> */
 open /* SY <-- */ class NetworkHelper(
-    private val context: Context,
-    private val preferences: NetworkPreferences,
+    @AppCoroutineScope /* SY --> */ val /* SY <-- */ scope: CoroutineScope,
     // SY -->
-    val isDebugBuild: Boolean,
+    val context: Context,
+    val preferences: NetworkPreferences,
+    val delegateSourcePreferences: DelegateSourcePreferences,
     // SY <--
 ) {
 
     /* SY --> */
     open /* SY <-- */val cookieJar = AndroidCookieJar()
 
-    private val clientBuilder: OkHttpClient.Builder = run {
+    private fun clientBuilder(): OkHttpClient.Builder = run {
         val builder = OkHttpClient.Builder()
             .cookieJar(cookieJar)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .callTimeout(2, TimeUnit.MINUTES)
+            .connectTimeout(30.seconds)
+            .readTimeout(30.seconds)
+            .callTimeout(2.minutes)
             .cache(
                 Cache(
                     directory = File(context.cacheDir, "network_cache"),
@@ -37,9 +47,13 @@ open /* SY <-- */ class NetworkHelper(
             .addInterceptor(UncaughtExceptionInterceptor())
             .addInterceptor(UserAgentInterceptor(::defaultUserAgentProvider))
 
-        if (isDebugBuild) {
+        if (preferences.verboseLogging.get()) {
             val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.HEADERS
+                if (preferences.redactSensitiveHeaders.get()) {
+                    redactHeader("Authorization")
+                    redactHeader("Auth")
+                }
             }
             builder.addNetworkInterceptor(httpLoggingInterceptor)
         }
@@ -62,11 +76,13 @@ open /* SY <-- */ class NetworkHelper(
     }
 
     /* SY --> */
-    open /* SY <-- */ val client = clientBuilder
-        .addInterceptor(
-            CloudflareInterceptor(context, cookieJar, ::defaultUserAgentProvider),
-        )
-        .build()
+    open /* SY <-- */ val client: OkHttpClient by lazy {
+        clientBuilder()
+            .addInterceptor(
+                CloudflareInterceptor(context, cookieJar, scope, ::defaultUserAgentProvider),
+            )
+            .build()
+    }
 
     /**
      * @deprecated Since extension-lib 1.5
@@ -74,7 +90,7 @@ open /* SY <-- */ class NetworkHelper(
     @Deprecated("The regular client handles Cloudflare by default")
     @Suppress("UNUSED")
     /* SY --> */
-    open /* SY <-- */val cloudflareClient: OkHttpClient = client
+    open /* SY <-- */val cloudflareClient: OkHttpClient get() = client
 
     fun defaultUserAgentProvider() = preferences.defaultUserAgent.get().trim()
 }

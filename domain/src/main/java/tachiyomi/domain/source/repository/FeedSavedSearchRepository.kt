@@ -4,6 +4,9 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.source.model.FeedSavedSearch
 import tachiyomi.domain.source.model.SavedSearch
 
+/**
+ * SY-specific file
+ */
 interface FeedSavedSearchRepository {
 
     suspend fun getGlobal(): List<FeedSavedSearch>

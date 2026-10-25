@@ -1,0 +1,29 @@
+query KitsuGetMangaMetadata(
+  $libraryId: ID!,
+  $staffCount: Int,
+) {
+  findLibraryEntryById(
+    id: $libraryId,
+  ) {
+    media {
+      id
+      titles {
+        preferred
+      }
+      posterImage {
+        original {
+          url
+        }
+      }
+      description(locales: "en")
+      staff(first: $staffCount) {
+        nodes {
+          role
+          person {
+            name
+          }
+        }
+      }
+    }
+  }
+}

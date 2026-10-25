@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 
 import android.graphics.PointF
-import android.os.Build
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -14,24 +13,20 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.WebtoonLayoutManager
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
-import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import mihon.app.di.appGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
@@ -46,12 +41,14 @@ import kotlin.time.Duration.Companion.milliseconds
 class WebtoonViewer(
     val activity: ReaderActivity,
     val isContinuous: Boolean = true,
+    // SY -->
     private val tapByPage: Boolean = false,
+    // SY <--
 ) : Viewer {
 
-    val downloadManager: DownloadManager by injectLazy()
-
-    private val readerPreferences: ReaderPreferences = Injekt.get()
+    val graph by lazy { activity.appGraph }
+    val downloadManager by lazy { graph.downloadManager }
+    val readerPreferences by lazy { graph.readerPreferences }
 
     private val scope = MainScope()
 
@@ -78,7 +75,7 @@ class WebtoonViewer(
     /**
      * Configuration used by this viewer, like allow taps, or crop image borders.
      */
-    val config = WebtoonConfig(scope)
+    val config = WebtoonConfig(scope, readerPreferences)
 
     /**
      * Adapter of the recycler view.
@@ -88,7 +85,6 @@ class WebtoonViewer(
     /**
      * Currently active item. It can be a chapter page or a chapter transition.
      */
-    /* [EXH] private */
     var currentPage: Any? = null
     private var autoScrollEnabled = false
     private var autoScrollPaused = false
@@ -100,13 +96,10 @@ class WebtoonViewer(
     private var autoScrollGesturesEnabled = true
     private var autoScrollGestureToastsEnabled = true
 
-    private val threshold: Int =
-        Injekt.get<ReaderPreferences>()
-            .readerHideThreshold
-            .get()
-            .threshold
+    private val threshold: Int by lazy { readerPreferences.readerHideThreshold.get().threshold }
 
     init {
+        recycler.sidePaddingPercent = config.sidePadding
         recycler.setItemViewCacheSize(RECYCLER_VIEW_CACHE_SIZE)
         recycler.isVisible = false // Don't let the recycler layout yet
         recycler.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
@@ -177,6 +170,7 @@ class WebtoonViewer(
         }
 
         config.imagePropertyChangedListener = {
+            recycler.sidePaddingPercent = config.sidePadding
             refreshAdapter()
         }
 
@@ -333,7 +327,7 @@ class WebtoonViewer(
             val nextItem = adapter.items.getOrNull(adapter.items.size - 1)
             val transitionChapter = (nextItem as? ChapterTransition.Next)?.to ?: (nextItem as?ReaderPage)?.chapter
             if (transitionChapter != null) {
-                logcat { "Requesting to preload chapter ${transitionChapter.chapter.chapter_number}" }
+                logcat { "Requesting to preload chapter ${transitionChapter.chapter.chapterNumber}" }
                 activity.requestPreloadChapter(transitionChapter)
             }
         }
@@ -406,6 +400,8 @@ class WebtoonViewer(
         }
     }
 
+    // SY -->
+
     /**
      * Scrolls one screen over a period of time
      */
@@ -417,11 +413,11 @@ class WebtoonViewer(
             duration.inWholeMilliseconds.toInt(),
         )
     }
+    // SY <--
 
     /**
      * Scrolls down by [scrollDistance].
      */
-    /* [EXH] private */
     fun scrollDown() {
         // SY -->
         if (!isContinuous && tapByPage) {
@@ -602,7 +598,7 @@ class WebtoonViewer(
 }
 
 // Double the cache size to reduce rebinds/recycles incurred by the extra layout space on scroll direction changes
-private val RECYCLER_VIEW_CACHE_SIZE = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 4 else 2
+private const val RECYCLER_VIEW_CACHE_SIZE = 4
 private const val AUTO_SCROLL_POLL_DELAY_MILLIS = 100L
 private const val DEFAULT_AUTO_SCROLL_INTERVAL_MILLIS = 3_000L
 private const val MIN_AUTO_SCROLL_INTERVAL_MILLIS = 250L

@@ -1,6 +1,12 @@
 package tachiyomi.data.updates
 
+import app.cash.sqldelight.Query
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.db.SqlDriver
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import tachiyomi.core.common.util.lang.toLong
@@ -11,33 +17,35 @@ import tachiyomi.domain.manga.model.MangaCover
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.domain.updates.repository.UpdatesRepository
 import tachiyomi.view.UpdatesView
+import kotlin.time.Instant
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class UpdatesRepositoryImpl(
     private val database: Database,
+    // SY -->
+    private val driver: SqlDriver,
+    // SY <--
 ) : UpdatesRepository {
 
     override suspend fun awaitWithRead(
         read: Boolean,
-        after: Long,
+        after: Instant,
         limit: Long,
     ): List<UpdatesWithRelations> {
-        return database.updatesViewQueries
-            .getUpdatesByReadStatus(
-                read = read,
-                after = after,
-                limit = limit,
-                mapper = ::mapUpdatesWithRelations,
-            )
-            .awaitAsList()
+        return getUpdatesByReadStatus(read = read, after = after, limit = limit).awaitAsList()
     }
 
     override fun subscribeAll(
-        after: Long,
+        after: Instant,
         limit: Long,
         unread: Boolean?,
         started: Boolean?,
         bookmarked: Boolean?,
         hideExcludedScanlators: Boolean,
+        includedCategories: List<Long>,
+        excludedCategories: List<Long>,
     ): Flow<List<UpdatesWithRelations>> {
         return database.updatesViewQueries
             .getRecentUpdatesWithFilters(
@@ -47,10 +55,16 @@ class UpdatesRepositoryImpl(
                 started = started?.toLong(),
                 bookmarked = bookmarked,
                 hideExcludedScanlators = hideExcludedScanlators.toLong(),
+                includedEmpty = includedCategories.isEmpty(),
+                excludedEmpty = excludedCategories.isEmpty(),
+                includedCategories = includedCategories,
+                excludedCategories = excludedCategories,
                 mapper = ::mapUpdatesWithRelations,
             )
+            // SY -->
             .subscribeToList().map {
                 getUpdatesQuery(
+                    driver = driver,
                     after = after,
                     limit = limit,
                     // invert because unread in Kotlin -> read column in SQL
@@ -58,25 +72,39 @@ class UpdatesRepositoryImpl(
                     started = started?.toLong(),
                     bookmarked = bookmarked,
                     hideExcludedScanlators = hideExcludedScanlators.toLong(),
+                    includedEmpty = includedCategories.isEmpty(),
+                    excludedEmpty = excludedCategories.isEmpty(),
+                    includedCategories = includedCategories,
+                    excludedCategories = excludedCategories,
                 )
                     .awaitAsList()
                     .map(::mapUpdatesView)
             }
+        // SY <--
     }
 
     override fun subscribeWithRead(
         read: Boolean,
-        after: Long,
+        after: Instant,
         limit: Long,
     ): Flow<List<UpdatesWithRelations>> {
-        return database.updatesViewQueries
-            .getUpdatesByReadStatus(
-                read = read,
+        return getUpdatesByReadStatus(read = read, after = after, limit = limit).subscribeToList()
+    }
+
+    private fun getUpdatesByReadStatus(read: Boolean, after: Instant, limit: Long): Query<UpdatesWithRelations> {
+        return if (read) {
+            database.updatesViewQueries.getReadUpdates(
                 after = after,
                 limit = limit,
                 mapper = ::mapUpdatesWithRelations,
             )
-            .subscribeToList()
+        } else {
+            database.updatesViewQueries.getUnreadUpdates(
+                after = after,
+                limit = limit,
+                mapper = ::mapUpdatesWithRelations,
+            )
+        }
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -89,57 +117,71 @@ class UpdatesRepositoryImpl(
         chapterUrl: String,
         read: Boolean,
         bookmark: Boolean,
-        lastPageRead: Long,
+        lastPageRead: Int,
         sourceId: Long,
         favorite: Boolean,
         thumbnailUrl: String?,
-        coverLastModified: Long,
-        dateUpload: Long,
-        dateFetch: Long,
+        coverLastModified: Instant?,
+        dateUpload: Instant?,
+        dateFetch: Instant,
         excludedScanlator: String?,
-    ): UpdatesWithRelations = UpdatesWithRelations(
-        mangaId = mangaId,
         // SY -->
-        ogMangaTitle = mangaTitle,
+        userTitle: String?,
+        userThumbnailUrl: String?,
         // SY <--
-        chapterId = chapterId,
-        chapterName = chapterName,
-        scanlator = scanlator,
-        chapterUrl = chapterUrl,
-        read = read,
-        bookmark = bookmark,
-        lastPageRead = lastPageRead,
-        sourceId = sourceId,
-        dateFetch = dateFetch,
-        coverData = MangaCover(
+    ): UpdatesWithRelations {
+        return UpdatesWithRelations(
             mangaId = mangaId,
+            // SY -->
+            ogMangaTitle = mangaTitle,
+            userTitle = userTitle,
+            // SY <--
+            chapterId = chapterId,
+            chapterName = chapterName,
+            scanlator = scanlator,
+            chapterUrl = chapterUrl,
+            read = read,
+            bookmark = bookmark,
+            lastPageRead = lastPageRead,
             sourceId = sourceId,
-            isMangaFavorite = favorite,
-            ogUrl = thumbnailUrl,
-            lastModified = coverLastModified,
-        ),
-    )
+            dateFetch = dateFetch,
+            coverData = MangaCover(
+                mangaId = mangaId,
+                sourceId = sourceId,
+                isMangaFavorite = favorite,
+                // SY -->
+                ogUrl = thumbnailUrl,
+                userThumbnailUrl = userThumbnailUrl,
+                // SY <--
+                lastModified = coverLastModified,
+            ),
+        )
+    }
 
+    // SY -->
     fun mapUpdatesView(updatesView: UpdatesView): UpdatesWithRelations {
         return UpdatesWithRelations(
             mangaId = updatesView.mangaId,
             ogMangaTitle = updatesView.mangaTitle,
+            userTitle = updatesView.userTitle,
             chapterId = updatesView.chapterId,
             chapterName = updatesView.chapterName,
             scanlator = updatesView.scanlator,
             chapterUrl = updatesView.chapterUrl,
             read = updatesView.read,
             bookmark = updatesView.bookmark,
-            lastPageRead = updatesView.last_page_read,
-            sourceId = updatesView.source,
-            dateFetch = updatesView.datefetch,
+            lastPageRead = updatesView.lastPageRead,
+            sourceId = updatesView.sourceId,
+            dateFetch = updatesView.dateFetch,
             coverData = MangaCover(
                 mangaId = updatesView.mangaId,
-                sourceId = updatesView.source,
+                sourceId = updatesView.sourceId,
                 isMangaFavorite = updatesView.favorite,
                 ogUrl = updatesView.thumbnailUrl,
+                userThumbnailUrl = updatesView.userThumbnailUrl,
                 lastModified = updatesView.coverLastModified,
             ),
         )
     }
+    // SY <--
 }
