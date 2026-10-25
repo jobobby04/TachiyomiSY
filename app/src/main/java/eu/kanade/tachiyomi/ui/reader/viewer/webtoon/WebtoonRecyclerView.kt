@@ -327,18 +327,15 @@ class WebtoonRecyclerView @JvmOverloads constructor(
         private var downX = 0
         private var downY = 0
         private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+        private var isZoomDragging = false
+        var isDoubleTapping = false
+        var isQuickScaling = false
 
         // SY -->
         private val tapTimeout = ViewConfiguration.getLongPressTimeout().toLong()
         private val autoScrollSpeedStep = resources.displayMetrics.density * 24f
         private val autoScrollStopThreshold = touchSlop * 4
 
-        // SY <--
-        private var isZoomDragging = false
-        var isDoubleTapping = false
-        var isQuickScaling = false
-
-        // SY -->
         private var autoScrollPointerActive = false
         private var autoScrollStartX = 0f
         private var autoScrollStartY = 0f
