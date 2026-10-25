@@ -169,76 +169,77 @@ fun ExhUtils(
                         }
                     }
                 }
-                Row(
-                    Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(horizontal = 5.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(
+                if (autoScrollGesturesSupported) {
+                    Row(
                         Modifier
-                            .weight(1f)
-                            .padding(vertical = 4.dp),
+                            .fillMaxWidth(0.9f)
+                            .padding(horizontal = 5.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = stringResource(SYMR.strings.eh_autoscroll_gestures),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 13.sp,
-                            fontFamily = FontFamily.SansSerif,
-                            style = MaterialTheme.typography.labelLarge,
+                        Column(
+                            Modifier
+                                .weight(1f)
+                                .padding(vertical = 4.dp),
+                        ) {
+                            Text(
+                                text = stringResource(SYMR.strings.eh_autoscroll_gestures),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 13.sp,
+                                fontFamily = FontFamily.SansSerif,
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
+                        Switch(
+                            checked = autoScrollGesturesEnabled,
+                            onCheckedChange = onSetAutoScrollGesturesEnabled,
                         )
+                        TextButton(
+                            onClick = onClickAutoScrollGesturesHelp,
+                        ) {
+                            Text(
+                                text = "?",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
-                    Switch(
-                        checked = autoScrollGesturesEnabled,
-                        onCheckedChange = onSetAutoScrollGesturesEnabled,
-                        enabled = autoScrollGesturesSupported,
-                    )
-                    TextButton(
-                        onClick = onClickAutoScrollGesturesHelp,
-                    ) {
-                        Text(
-                            text = "?",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                }
-                Row(
-                    Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(horizontal = 5.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(
+                    Row(
                         Modifier
-                            .weight(1f)
-                            .padding(vertical = 4.dp),
+                            .fillMaxWidth(0.9f)
+                            .padding(horizontal = 5.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = stringResource(SYMR.strings.eh_autoscroll_gesture_toasts),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 13.sp,
-                            fontFamily = FontFamily.SansSerif,
-                            style = MaterialTheme.typography.labelLarge,
+                        Column(
+                            Modifier
+                                .weight(1f)
+                                .padding(vertical = 4.dp),
+                        ) {
+                            Text(
+                                text = stringResource(SYMR.strings.eh_autoscroll_gesture_toasts),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 13.sp,
+                                fontFamily = FontFamily.SansSerif,
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
+                        Switch(
+                            checked = autoScrollGestureToastsEnabled,
+                            onCheckedChange = onSetAutoScrollGestureToastsEnabled,
+                            enabled = autoScrollGesturesEnabled,
                         )
-                    }
-                    Switch(
-                        checked = autoScrollGestureToastsEnabled,
-                        onCheckedChange = onSetAutoScrollGestureToastsEnabled,
-                        enabled = autoScrollGesturesSupported && autoScrollGesturesEnabled,
-                    )
-                    TextButton(
-                        onClick = onClickAutoScrollGestureToastsHelp,
-                    ) {
-                        Text(
-                            text = "?",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        TextButton(
+                            onClick = onClickAutoScrollGestureToastsHelp,
+                        ) {
+                            Text(
+                                text = "?",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
                 Row(
