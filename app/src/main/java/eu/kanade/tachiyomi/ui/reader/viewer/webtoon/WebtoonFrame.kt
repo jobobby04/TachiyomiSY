@@ -49,12 +49,14 @@ class WebtoonFrame(context: Context) : FrameLayout(context) {
      * Dispatches a touch event to the detectors.
      */
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        /* SY --> */ if (recycler?.isAutoScrollGestureModeEnabled() != true) {
-            /* SY <-- */
+        // SY -->
+        if (recycler?.isAutoScrollGestureModeEnabled() != true) {
+            // SY <--
             scaleDetector.onTouchEvent(ev)
             flingDetector.onTouchEvent(ev)
-            /* SY --> */
-        } /* SY <-- */
+            // SY -->
+        }
+        // SY <--
 
         // Get the bounding box of the recyclerview and translate any motion events to be within it.
         // Used to allow scrolling outside the recyclerview.
