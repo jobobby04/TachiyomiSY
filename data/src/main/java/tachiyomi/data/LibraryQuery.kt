@@ -81,16 +81,15 @@ class LibraryQuery(
                     chapter.user_bookmark,
                     ME.merge_id,
                     ME.chapter_priority,
-                    coalesce(SELF.chapter_sort_mode, 0) AS sort_mode
+                    MG.chapter_sort_mode AS sort_mode
                 FROM chapter
                 LEFT JOIN excluded_scanlator
                 ON chapter.manga_id = excluded_scanlator.manga_id
                 AND chapter.remote_scanlator = excluded_scanlator.scanlator
-                JOIN merged AS ME
+                JOIN merged_entry AS ME
                 ON ME.manga_id = chapter.manga_id
-                LEFT JOIN merged AS SELF
-                ON SELF.merge_id = ME.merge_id
-                AND SELF.manga_source = $MERGED_SOURCE_ID
+                JOIN merge AS MG
+                ON MG.manga_id = ME.merge_id
                 WHERE excluded_scanlator.scanlator IS NULL
             )
             SELECT
@@ -155,7 +154,7 @@ class LibraryQuery(
                     FROM history
                     JOIN chapter
                     ON chapter.id = history.chapter_id
-                    WHERE history.manga_id IN (SELECT merged.manga_id FROM merged WHERE merged.merge_id = M.id)
+                    WHERE history.manga_id IN (SELECT merged_entry.manga_id FROM merged_entry WHERE merged_entry.merge_id = M.id)
                     AND NOT EXISTS (
                         SELECT 0 FROM excluded_scanlator
                         WHERE excluded_scanlator.manga_id = chapter.manga_id

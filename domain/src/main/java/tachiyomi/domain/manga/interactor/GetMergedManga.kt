@@ -30,9 +30,9 @@ class GetMergedManga(
     suspend fun awaitByMergeId(): Map<Long, List<Manga>> {
         return try {
             val mangaById = mangaMergeRepository.getMergedManga().associateBy { it.id }
-            mangaMergeRepository.getAllReferences()
-                .groupBy({ it.mergeId }, { it.mangaId?.let(mangaById::get) })
-                .mapNotNull { (mergeId, manga) -> mergeId?.let { it to manga.filterNotNull() } }
+            mangaMergeRepository.getAllEntries()
+                .groupBy({ it.mergeId }, { mangaById[it.mangaId] })
+                .mapValues { it.value.filterNotNull() }
                 .toMap()
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)

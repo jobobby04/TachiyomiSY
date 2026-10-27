@@ -372,6 +372,7 @@ When this option is disabled, the gestures still work the same way, but those in
 
     <!-- Entry Info Edit -->
     <string name="reset_tags">Reset tags</string>
+    <string name="collate_tags">Collate tags</string>
     <string name="add_tags">Add Tags</string>
     <string name="reset_info">Reset info</string>
     <string name="multi_tags_comma_separated">Enter tag(s), seperated by commas.</string>
@@ -634,7 +635,7 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="merge_dedupe_priority">Priority</string>
     <string name="merge_dedupe_most">Most</string>
     <string name="merge_dedupe_highest">Highest</string>
-    <string name="merge_dedupe_keep_all_summary">Show every chapter from every entry.</string>
+    <string name="merge_dedupe_keep_all_summary">Show every chapter from every entry, ordered by entry priority.</string>
     <string name="merge_dedupe_priority_summary">Show each chapter once, from the highest entry below that has it.</string>
     <string name="merge_dedupe_most_summary">Show only the chapters of the entry with the most chapters.</string>
     <string name="merge_dedupe_highest_summary">Show only the chapters of the entry with the highest chapter number.</string>

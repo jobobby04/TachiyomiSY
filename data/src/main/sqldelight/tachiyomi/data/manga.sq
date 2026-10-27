@@ -239,7 +239,7 @@ AND (
 )
 -- SY -->
 AND id NOT IN (
-    SELECT manga_id FROM merged WHERE manga_id != merge_id
+    SELECT manga_id FROM merged_entry
 )
 -- SY <--
 ;

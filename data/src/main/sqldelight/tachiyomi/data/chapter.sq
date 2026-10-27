@@ -183,11 +183,11 @@ SELECT
 FROM chapter
 WHERE remote_url = :remoteUrl;
 
--- Returns the chapters a merged entry shows, deduped per its sort mode (MergedMangaReference.CHAPTER_SORT_*).
+-- Returns the chapters a merged entry shows, deduped per its sort mode (MergeSettings.CHAPTER_SORT_*).
 getDedupedMergedChapters:
 WITH refs AS (
     SELECT manga_id, chapter_priority
-    FROM merged
+    FROM merged_entry
     WHERE merge_id = :mergeId
 ),
 base AS (
@@ -248,7 +248,7 @@ getScanlatorsByMergeId:
 SELECT DISTINCT remote_scanlator
 FROM chapter
 WHERE manga_id IN (
-    SELECT manga_id FROM merged WHERE merge_id = :mergeId
+    SELECT manga_id FROM merged_entry WHERE merge_id = :mergeId
 );
 
 resetIsSyncing:

@@ -1,7 +1,7 @@
 package tachiyomi.domain.manga.interactor
 
 import dev.zacsweers.metro.Inject
-import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
+import tachiyomi.domain.manga.model.MergedEntry
 import tachiyomi.domain.manga.repository.MangaMergeRepository
 
 /**
@@ -11,12 +11,11 @@ import tachiyomi.domain.manga.repository.MangaMergeRepository
 class UpdateMergedSettings(
     private val mangaMergeRepository: MangaMergeRepository,
 ) {
-
-    suspend fun await(mergeUpdate: MergeMangaSettingsUpdate): Boolean {
-        return mangaMergeRepository.updateSettings(mergeUpdate)
+    suspend fun awaitMerge(mergeId: Long, chapterSortMode: Int, infoMangaId: Long?): Boolean {
+        return mangaMergeRepository.updateMergeSettings(mergeId, chapterSortMode, infoMangaId)
     }
 
-    suspend fun awaitAll(values: List<MergeMangaSettingsUpdate>): Boolean {
-        return mangaMergeRepository.updateAllSettings(values)
+    suspend fun awaitAll(entries: List<MergedEntry>): Boolean {
+        return mangaMergeRepository.updateAllEntries(entries)
     }
 }

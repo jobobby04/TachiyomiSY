@@ -13,11 +13,14 @@ import kotlinx.serialization.json.JsonObject
 import tachiyomi.data.Database
 import tachiyomi.domain.backup.model.RestoredHistory
 import tachiyomi.domain.backup.model.RestoredManga
+import tachiyomi.domain.backup.model.RestoredMergeSettings
+import tachiyomi.domain.backup.model.RestoredMergedEntry
 import tachiyomi.domain.backup.repository.RestoreRepository
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.repository.ChapterRepository
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaUpdate
+import tachiyomi.domain.manga.model.MergedEntry
 import tachiyomi.domain.manga.repository.MangaMergeRepository
 import tachiyomi.domain.manga.repository.MangaMetadataRepository
 import tachiyomi.domain.manga.repository.MangaRepository
@@ -57,7 +60,7 @@ class RestoreRepositoryImpl(
                 val manga = restore(entry, /* SY --> */ syncingFlag /* SY <-- */)
                 mangaRepository.update(update(manga))
                 // SY -->
-                restoreMergedMangaReferences(manga.id, entry.mergedMangaReferences)
+                restoreMergedManga(manga.id, entry.mergedEntries, entry.mergeSettings)
                 entry.flatMetadata?.let { restoreFlatMetadata(manga.id, it) }
                 // SY <--
             }
@@ -376,28 +379,36 @@ class RestoreRepositoryImpl(
     }
 
     // SY -->
-    private suspend fun restoreMergedMangaReferences(
+    private suspend fun restoreMergedManga(
         mergeMangaId: Long,
-        backupMergedMangaReferences: List<tachiyomi.domain.manga.model.MergedMangaReference>,
+        backupMergedEntries: List<RestoredMergedEntry>,
+        mergeSettings: RestoredMergeSettings?,
     ) {
-        if (backupMergedMangaReferences.isEmpty()) return
-        val dbMergedMangaReferences = mangaMergeRepository.getAllReferences()
-        backupMergedMangaReferences.forEach { reference ->
-            if (dbMergedMangaReferences.none {
-                    reference.mergeUrl == it.mergeUrl &&
-                        reference.mangaUrl == it.mangaUrl
-                }
-            ) {
-                val mergedManga = mangaRepository.getMangaByUrlAndSourceId(
-                    reference.mangaUrl,
-                    reference.mangaSourceId,
-                ) ?: return@forEach
-                mangaMergeRepository.insert(
-                    reference.copy(
-                        mergeId = mergeMangaId,
-                        mangaId = mergedManga.id,
-                    ),
-                )
+        if (backupMergedEntries.isEmpty()) return
+        val entries = backupMergedEntries.mapNotNull { ref ->
+            val entryManga = mangaRepository.getMangaByUrlAndSourceId(ref.mangaUrl, ref.mangaSourceId)
+                ?: return@mapNotNull null
+            MergedEntry(
+                id = -1,
+                mergeId = mergeMangaId,
+                mangaId = entryManga.id,
+                fetchChapterUpdates = ref.fetchChapterUpdates,
+                downloadChapters = ref.downloadChapters,
+                chapterPriority = ref.chapterPriority,
+            )
+        }
+        mergeSettings?.let { settings ->
+            val infoMangaId = if (settings.infoMangaSourceId != 0L) {
+                mangaRepository.getMangaByUrlAndSourceId(settings.infoMangaUrl, settings.infoMangaSourceId)?.id
+            } else {
+                null
+            }
+            mangaMergeRepository.insertMerge(mergeMangaId, settings.chapterSortMode, infoMangaId)
+        }
+        val dbMergedEntries = mangaMergeRepository.getAllEntries()
+        entries.forEach { entry ->
+            if (dbMergedEntries.none { it.mergeId == mergeMangaId && it.mangaId == entry.mangaId }) {
+                mangaMergeRepository.insert(entry)
             }
         }
     }

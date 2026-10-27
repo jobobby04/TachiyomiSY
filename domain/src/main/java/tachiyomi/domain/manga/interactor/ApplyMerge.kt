@@ -2,7 +2,7 @@ package tachiyomi.domain.manga.interactor
 
 import dev.zacsweers.metro.Inject
 import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MergedMangaReference
+import tachiyomi.domain.manga.model.MergedEntry
 import tachiyomi.domain.manga.repository.MangaMergeRepository
 
 /**
@@ -17,8 +17,17 @@ class ApplyMerge(
         staleMangaId: Long?,
         mergedManga: Manga,
         categoryIds: List<Long>,
-        references: List<MergedMangaReference>,
+        chapterSortMode: Int,
+        infoMangaId: Long?,
+        entries: List<MergedEntry>,
     ): Manga {
-        return mangaMergeRepository.applyMerge(staleMangaId, mergedManga, categoryIds, references)
+        return mangaMergeRepository.applyMerge(
+            staleMangaId,
+            mergedManga,
+            categoryIds,
+            chapterSortMode,
+            infoMangaId,
+            entries,
+        )
     }
 }

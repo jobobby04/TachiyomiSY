@@ -106,13 +106,12 @@ class UpdatesQuery(
                         chapter.user_last_page_read,
                         ME.merge_id,
                         ME.chapter_priority,
-                        coalesce(SELF.chapter_sort_mode, 0) AS sort_mode
+                        MG.chapter_sort_mode AS sort_mode
                     FROM chapter
-                    JOIN merged AS ME
+                    JOIN merged_entry AS ME
                         ON ME.manga_id = chapter.manga_id
-                    LEFT JOIN merged AS SELF
-                        ON SELF.merge_id = ME.merge_id
-                        AND SELF.manga_source = $MERGED_SOURCE_ID
+                    JOIN merge AS MG
+                        ON MG.manga_id = ME.merge_id
                 )
                 SELECT *
                 FROM (
