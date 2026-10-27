@@ -48,7 +48,7 @@ class RestoreRepositoryImpl(
         update: suspend (Manga) -> MangaUpdate,
     ) {
         // SY -->
-        val syncingFlag = if (isSync) 1L else 0L
+        val syncingFlag = if (isSync) SYNCING else NOT_SYNCING
         // SY <--
         database.transaction {
             entries.forEach { entry ->
@@ -66,13 +66,19 @@ class RestoreRepositoryImpl(
 
     private suspend fun restore(entry: RestoredManga, /* SY --> */ syncingFlag: Long /* SY <-- */): Manga {
         val dbManga = mangaRepository.getMangaByUrlAndSourceId(entry.manga.url, entry.manga.source)
-        val manga = if (dbManga == null) {
-            entry.manga.copy(id = insertManga(entry.manga, /* SY --> */ syncingFlag /* SY <-- */))
-        } else {
-            updateManga(mergeManga(entry.manga, dbManga), /* SY --> */ syncingFlag /* SY <-- */)
+        // SY -->
+        val isSync = syncingFlag == SYNCING
+        val keepsLocalManga = isSync && dbManga != null && dbManga.version > entry.manga.version
+        // SY <--
+        val manga = when {
+            dbManga == null -> entry.manga.copy(id = insertManga(entry.manga, /* SY --> */ syncingFlag /* SY <-- */))
+            // SY -->
+            keepsLocalManga -> dbManga
+            // SY <--
+            else -> updateManga(mergeManga(entry.manga, dbManga, /* SY --> */ isSync /* SY <-- */), /* SY --> */ syncingFlag /* SY <-- */)
         }
 
-        if (entry.categoryIds.isNotEmpty()) {
+        if (entry.categoryIds.isNotEmpty() /* SY --> */ && !keepsLocalManga /* SY <-- */) {
             mangaRepository.setMangaCategories(manga.id, entry.categoryIds)
         }
         restoreChapters(manga, entry.chapters, /* SY --> */ syncingFlag /* SY <-- */)
@@ -82,10 +88,10 @@ class RestoreRepositoryImpl(
         return manga
     }
 
-    private fun mergeManga(manga: Manga, dbManga: Manga): Manga {
+    private fun mergeManga(manga: Manga, dbManga: Manga, /* SY --> */ isSync: Boolean /* SY <-- */): Manga {
         val details = if (dbManga.initialized || !manga.initialized) dbManga else manga
         return dbManga.copy(
-            favoriteAt = if (dbManga.favorite || manga.favorite) {
+            favoriteAt = if (/* SY --> */ (!isSync && dbManga.favorite) /* SY <-- */ || manga.favorite) {
                 listOfNotNull(dbManga.favoriteAt, manga.favoriteAt)
                     .filter { it > Manga.UNKNOWN_FAVORITE_AT }
                     .minOrNull()
@@ -115,6 +121,8 @@ class RestoreRepositoryImpl(
             userDescription = manga.userDescription,
             userGenre = manga.userGenre,
             userStatus = manga.userStatus,
+            version = if (isSync) manga.version else dbManga.version,
+            lastModifiedAt = if (isSync) manga.lastModifiedAt else dbManga.lastModifiedAt,
             // SY <--
         )
     }
@@ -197,6 +205,9 @@ class RestoreRepositoryImpl(
     }
 
     private suspend fun restoreChapters(manga: Manga, restoredChapters: List<Chapter>, /* SY --> */ syncingFlag: Long /* SY <-- */) {
+        // SY -->
+        val isSync = syncingFlag == SYNCING
+        // SY <--
         val dbChaptersByUrl = chapterRepository.getChapterByMangaId(manga.id)
             .associateBy { it.url }
 
@@ -222,14 +233,19 @@ class RestoreRepositoryImpl(
                     // Same state; skip
                     return@mapNotNull null
                 }
+                // SY -->
+                if (isSync && dbChapter.version > chapter.version) return@mapNotNull null
+                // SY <--
 
                 chapter
                     .copyFrom(dbChapter)
                     .copy(
                         id = dbChapter.id,
-                        read = chapter.read || dbChapter.read,
-                        bookmark = chapter.bookmark || dbChapter.bookmark,
-                        lastPageRead = max(chapter.lastPageRead, dbChapter.lastPageRead),
+                        // SY -->
+                        read = chapter.read || (!isSync && dbChapter.read),
+                        bookmark = chapter.bookmark || (!isSync && dbChapter.bookmark),
+                        lastPageRead = if (isSync) chapter.lastPageRead else max(chapter.lastPageRead, dbChapter.lastPageRead),
+                        // SY <--
                         dateFetch = dbChapter.dateFetch,
                         sourceOrder = dbChapter.sourceOrder,
                         // Merge both backup and local data with local winning
@@ -399,3 +415,8 @@ class RestoreRepositoryImpl(
     }
     // SY <--
 }
+
+// SY -->
+private const val SYNCING = 1L
+private const val NOT_SYNCING = 0L
+// SY <--
