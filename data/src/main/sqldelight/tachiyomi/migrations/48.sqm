@@ -1,0 +1,34 @@
+-- SY-specific file
+
+CREATE TABLE library_removal (
+    manga_id INTEGER NOT NULL PRIMARY KEY,
+    removed_at INTEGER NOT NULL,
+    FOREIGN KEY(manga_id) REFERENCES manga (id)
+    ON DELETE CASCADE
+);
+
+CREATE TRIGGER record_library_removal
+AFTER UPDATE OF user_favorite_at ON manga
+WHEN new.state_is_syncing = 0 AND old.user_favorite_at IS NOT NULL AND new.user_favorite_at IS NULL
+BEGIN
+    INSERT OR REPLACE INTO library_removal (manga_id, removed_at) VALUES (new.id, strftime('%s', 'now'));
+END;
+
+CREATE TRIGGER clear_library_removal
+AFTER UPDATE OF user_favorite_at ON manga
+WHEN new.user_favorite_at IS NOT NULL
+BEGIN
+    DELETE FROM library_removal WHERE manga_id = new.id;
+END;
+
+-- != is never true against NULL, so adding to or removing from the library never bumped the version
+DROP TRIGGER IF EXISTS update_manga_version;
+CREATE TRIGGER update_manga_version AFTER UPDATE ON manga
+BEGIN
+    UPDATE manga SET state_version = state_version + 1
+    WHERE id = new.id AND new.state_is_syncing = 0 AND (
+        new.remote_url IS NOT old.remote_url OR
+        new.remote_description IS NOT old.remote_description OR
+        new.user_favorite_at IS NOT old.user_favorite_at
+    );
+END;

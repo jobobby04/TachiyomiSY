@@ -67,7 +67,7 @@ interface MangaRepository {
 
     suspend fun getReadMangaNotInLibraryView(): List<LibraryManga>
 
-    suspend fun getMangasWithFavoriteTimestamp(): List<Manga>
+    suspend fun getMangasToSync(removedSince: Long): List<Manga>
 
     suspend fun getMangasModifiedSince(since: Long): List<Manga>
 

@@ -413,13 +413,13 @@ CREATE TRIGGER update_manga_version AFTER UPDATE ON manga
 BEGIN
     UPDATE manga SET state_version = state_version + 1
     WHERE id = new.id AND new.state_is_syncing = 0 AND (
-        new.remote_url != old.remote_url OR
-        new.remote_description != old.remote_description OR
-        new.user_favorite_at != old.user_favorite_at
+        new.remote_url IS NOT old.remote_url OR
+        new.remote_description IS NOT old.remote_description OR
+        new.user_favorite_at IS NOT old.user_favorite_at
     );
 END;
 
-getMangasWithFavoriteTimestamp:
+getMangasToSync:
 SELECT
     id, source_id, remote_url, remote_title, remote_author, remote_artist, remote_description,
     remote_genre, remote_status, remote_cover, remote_update_strategy, remote_memo,
@@ -429,7 +429,8 @@ SELECT
     state_last_modified_at, state_version, state_is_syncing,
     user_title, user_author, user_artist, user_thumbnail_url, user_description, user_genre, user_status
 FROM manga
-WHERE user_favorite_at IS NOT NULL;
+WHERE user_favorite_at IS NOT NULL
+OR id IN (SELECT manga_id FROM library_removal WHERE removed_at >= :removedSince);
 
 getMangasModifiedSince:
 SELECT
@@ -442,11 +443,14 @@ SELECT
     M.state_last_modified_at, M.state_version, M.state_is_syncing,
     M.user_title, M.user_author, M.user_artist, M.user_thumbnail_url, M.user_description, M.user_genre, M.user_status
 FROM manga M
-WHERE M.user_favorite_at IS NOT NULL
-AND (
-    M.state_last_modified_at >= :since
-    OR EXISTS (SELECT 1 FROM chapter C WHERE C.manga_id = M.id AND C.state_last_modified_at >= :since)
-);
+WHERE (
+    M.user_favorite_at IS NOT NULL
+    AND (
+        M.state_last_modified_at >= :since
+        OR EXISTS (SELECT 1 FROM chapter C WHERE C.manga_id = M.id AND C.state_last_modified_at >= :since)
+    )
+)
+OR M.id IN (SELECT manga_id FROM library_removal WHERE removed_at >= :since);
 
 getBySource:
 SELECT

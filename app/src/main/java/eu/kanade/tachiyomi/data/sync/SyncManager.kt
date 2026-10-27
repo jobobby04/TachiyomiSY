@@ -335,7 +335,7 @@ class SyncManager(
     }
 
     private suspend fun getAllMangaThatNeedsSync(): List<Manga> {
-        return mangaRepository.getMangasWithFavoriteTimestamp()
+        return mangaRepository.getMangasToSync(syncPreferences.lastPushedAt.get())
     }
 
     private suspend fun getMangasModifiedSince(since: Long): List<Manga> {
