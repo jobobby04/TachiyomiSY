@@ -135,6 +135,11 @@ UPDATE category SET
     state_is_syncing = 1
 WHERE id = :id;
 
+updateOrderWhileSyncing:
+UPDATE category
+SET `order` = :order, state_is_syncing = 1
+WHERE id = :id;
+
 resetIsSyncing:
 UPDATE category
 SET state_is_syncing = 0
