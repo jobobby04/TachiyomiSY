@@ -1,8 +1,11 @@
 package eu.kanade.tachiyomi.data.sync
 
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
+import eu.kanade.tachiyomi.data.backup.models.BackupChapter
 import eu.kanade.tachiyomi.data.backup.models.BackupExtensionStore
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
+import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.manga.model.Manga
 
 /**
  * SY-specific file
@@ -36,3 +39,23 @@ private fun BackupExtensionStore.syncIdentity() =
 /** Must match the SyncYomi server's chapter key byte for byte, or the server tombstones nothing. */
 internal fun chapterTombstoneKey(sourceId: Long, mangaUrl: String, chapterUrl: String): String =
     "$sourceId|$mangaUrl\u001f$chapterUrl"
+
+internal class LocalMangaState(
+    val manga: Manga,
+    val chapters: List<Chapter>,
+    val categoryOrders: Set<Long>,
+    val lastReadByChapterUrl: Map<String, Long>,
+)
+
+internal fun needsRestore(local: LocalMangaState, remote: BackupManga): Boolean =
+    local.manga.favorite != remote.favorite ||
+        local.manga.version != remote.version ||
+        chaptersDiffer(local.chapters, remote.chapters) ||
+        local.categoryOrders != remote.categories.toSet() ||
+        remote.history.any { it.lastRead > (local.lastReadByChapterUrl[it.url] ?: 0L) }
+
+private fun chaptersDiffer(local: List<Chapter>, remote: List<BackupChapter>): Boolean {
+    val remoteVersionByUrl = remote.associate { it.url to it.version }
+    return local.size != remoteVersionByUrl.size ||
+        local.any { remoteVersionByUrl[it.url] != it.version }
+}

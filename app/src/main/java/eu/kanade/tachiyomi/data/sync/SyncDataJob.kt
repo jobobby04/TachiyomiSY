@@ -34,6 +34,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.repository.CategoryRepository
 import tachiyomi.domain.chapter.repository.ChapterRepository
+import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.domain.manga.repository.MangaRepository
 import tachiyomi.domain.sync.repository.SyncRepository
 import java.util.concurrent.TimeUnit
@@ -49,6 +50,8 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
     @Inject private lateinit var mangaRepository: MangaRepository
 
     @Inject private lateinit var chapterRepository: ChapterRepository
+
+    @Inject private lateinit var historyRepository: HistoryRepository
 
     @Inject private lateinit var categoryRepository: CategoryRepository
 
@@ -84,7 +87,7 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
         setForegroundSafely()
 
         return try {
-            SyncManager(context, mangaRepository, chapterRepository, categoryRepository, syncRepository, syncPreferences, json, protoBuf, getCategories, backupCreatorFactory, notifier, mangaRestorerFactory).syncData()
+            SyncManager(context, mangaRepository, chapterRepository, historyRepository, categoryRepository, syncRepository, syncPreferences, json, protoBuf, getCategories, backupCreatorFactory, notifier, mangaRestorerFactory).syncData()
             Result.success()
         } catch (e: OutOfMemoryError) {
             logcat(LogPriority.ERROR, e)
