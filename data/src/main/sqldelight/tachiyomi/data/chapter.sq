@@ -126,7 +126,7 @@ INSERT INTO chapter(
     remote_date_upload, remote_order, remote_memo, user_read, user_bookmark,
     user_last_page_read, state_date_fetch,
     -- SY -->
-    state_last_modified_at, state_version
+    state_last_modified_at, state_version, state_is_syncing
     -- SY <--
 )
 VALUES (
@@ -134,7 +134,8 @@ VALUES (
     :remoteDateUpload, :remoteOrder, :remoteMemo, :userRead, :userBookmark,
     :userLastPageRead, :stateDateFetch,
     -- SY -->
-    CASE WHEN :stateLastModifiedAt = 0 THEN strftime('%s', 'now') ELSE :stateLastModifiedAt END, :stateVersion
+    CASE WHEN :stateLastModifiedAt = 0 AND :stateIsSyncing = 0 THEN strftime('%s', 'now') ELSE :stateLastModifiedAt END,
+    :stateVersion, :stateIsSyncing
     -- SY <--
 )
 -- Two syncs of the same entry can race; the chapter the other one already stored is skipped rather
