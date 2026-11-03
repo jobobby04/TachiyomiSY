@@ -104,6 +104,8 @@ fun ReaderAppBars(
     onClickChapterList: () -> Unit,
     onClickPageLayout: () -> Unit,
     onClickShiftPage: () -> Unit,
+    rearDisplayCoverActive: Boolean,
+    onClickRearDisplayCover: (() -> Unit)?,
     // SY <--
 ) {
     val backgroundColor = MaterialTheme.colorScheme
@@ -251,6 +253,8 @@ fun ReaderAppBars(
                     onClickShare = onShare,
                     onClickPageLayout = onClickPageLayout,
                     onClickShiftPage = onClickShiftPage,
+                    rearDisplayCoverActive = rearDisplayCoverActive,
+                    onClickRearDisplayCover = onClickRearDisplayCover,
                     // SY <--
                 )
             }

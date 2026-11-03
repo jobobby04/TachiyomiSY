@@ -222,6 +222,7 @@ dependencies {
     implementation(libs.androidx.recyclerView)
     implementation(libs.androidx.viewPager)
     implementation(libs.androidx.profileInstaller)
+    implementation(libs.androidx.window)
 
     implementation(libs.bundles.androidx.lifecycle)
 

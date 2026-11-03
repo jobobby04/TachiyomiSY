@@ -173,6 +173,8 @@ class ReaderActivity : BaseActivity() {
 
     // SY -->
     private val displayRefreshHost by lazy { DisplayRefreshHost(readerPreferences) }
+
+    private val rearDisplayCoverHost by lazy { RearDisplayCoverHost(this) }
     // SY <--
 
     private val windowInsetsController by lazy { WindowInsetsControllerCompat(window, window.decorView) }
@@ -226,6 +228,7 @@ class ReaderActivity : BaseActivity() {
         setMenuVisibility(viewModel.state.value.menuVisible)
         // SY -->
         enableExhAutoScroll()
+        rearDisplayCoverHost.start(showByDefault = readerPreferences.rearDisplayCover.get())
         // SY <--
 
         // Finish when incognito mode is disabled
@@ -251,7 +254,12 @@ class ReaderActivity : BaseActivity() {
             .map { it.manga }
             .distinctUntilChanged()
             .filterNotNull()
-            .onEach { updateViewer() }
+            .onEach {
+                updateViewer()
+                // SY -->
+                rearDisplayCoverHost.setManga(it)
+                // SY <--
+            }
             .launchIn(lifecycleScope)
 
         viewModel.state
@@ -610,6 +618,8 @@ class ReaderActivity : BaseActivity() {
         val autoScrollGesturesSupported = state.viewer is WebtoonViewer
         val autoScrollGesturesEnabled by readerPreferences.autoscrollGesturesEnabled.collectAsState()
         val autoScrollGestureToastsEnabled by readerPreferences.autoscrollGestureToastsEnabled.collectAsState()
+        val rearDisplayAvailable by rearDisplayCoverHost.isAvailable.collectAsState()
+        val rearDisplayCoverActive by rearDisplayCoverHost.isActive.collectAsState()
         // SY <--
 
         val verticalNavigatorModes by readerPreferences.verticalNavigator.collectAsState()
@@ -716,6 +726,13 @@ class ReaderActivity : BaseActivity() {
                 }
             },
             onClickShiftPage = ::shiftDoublePages,
+            rearDisplayCoverActive = rearDisplayCoverActive,
+            onClickRearDisplayCover = {
+                if (!rearDisplayCoverHost.toggle()) {
+                    menuToggleToast?.cancel()
+                    menuToggleToast = toast(SYMR.strings.rear_display_cover_unavailable)
+                }
+            }.takeIf { rearDisplayAvailable || rearDisplayCoverActive },
             // SY <--
         )
     }
