@@ -7,6 +7,7 @@ import com.elvishew.xlog.printer.file.naming.FileNameGenerator
 import com.hippo.unifile.UniFile
 import java.io.BufferedWriter
 import java.io.IOException
+import java.io.OutputStream
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.time.Duration.Companion.days
@@ -75,13 +76,23 @@ class EnhancedFilePrinter internal constructor(
                 }
                 cleanLogFilesIfNecessary()
                 val file = folder.createFile(newFileName)
-                if (file == null || writer.open(file).not()) {
+                if (file == null || (!writer.open(file, append = true) && !writer.open(file, append = false))) {
+                    return
+                }
+            } else if (!writer.isOpened) {
+                // The stream is closed after every write, reopen the same file when needed.
+                val file = writer.file ?: return
+                if (writer.open(file, append = true).not()) {
                     return
                 }
             }
         }
         val flattenedLog = flattener.flatten(timeMillis, logLevel, tag, msg).toString()
-        writer.appendLog(flattenedLog)
+        try {
+            writer.appendLog(flattenedLog)
+        } finally {
+            writer.closeStream()
+        }
     }
 
     private val maxTimeMillis = 7.days.inWholeMilliseconds
@@ -218,6 +229,7 @@ class EnhancedFilePrinter internal constructor(
          */
         fun start() {
             synchronized(this) {
+                if (started) return
                 Thread(this).start()
                 started = true
             }
@@ -227,7 +239,12 @@ class EnhancedFilePrinter internal constructor(
             try {
                 var log: LogItem
                 while (logs.take().also { log = it } != null) {
-                    doPrintln(log.timeMillis, log.level, log.tag, log.msg)
+                    try {
+                        doPrintln(log.timeMillis, log.level, log.tag, log.msg)
+                    } catch (e: Exception) {
+                        // A single bad entry must not kill the only log consumer.
+                        e.printStackTrace()
+                    }
                 }
             } catch (e: InterruptedException) {
                 e.printStackTrace()
@@ -256,6 +273,7 @@ class EnhancedFilePrinter internal constructor(
             private set
 
         private var bufferedWriter: BufferedWriter? = null
+        private var outputStream: OutputStream? = null
 
         /**
          * Whether the log file is opened.
@@ -268,12 +286,15 @@ class EnhancedFilePrinter internal constructor(
         /**
          * Open the file of specific name to be written into.
          *
-         * @param newFileName the specific file name
+         * @param file the log file to open
+         * @param append whether to append to the file instead of truncating it
          * @return true if opened successfully, false otherwise
          */
-        fun open(file: UniFile): Boolean {
+        fun open(file: UniFile, append: Boolean): Boolean {
             return try {
-                bufferedWriter = file.openOutputStream().bufferedWriter()
+                val stream = file.openOutputStream(append)
+                bufferedWriter = stream.bufferedWriter()
+                outputStream = stream
                 lastFileName = file.name
                 this.file = file
                 true
@@ -284,24 +305,47 @@ class EnhancedFilePrinter internal constructor(
         }
 
         /**
-         * Close the current log file if it is opened.
+         * Close the current log file and forget it, so the next entry creates a new file.
          *
          * @return true if closed successfully, false otherwise
          */
         fun close(): Boolean {
-            if (bufferedWriter != null) {
+            val closed = closeStream()
+            lastFileName = null
+            file = null
+            return closed
+        }
+
+        /**
+         * Close the current log file stream, keeping the file handle around.
+         *
+         * Needed because [UniFile.openOutputStream] on a document URI holds a stable content
+         * provider connection until the stream is closed; a provider process that dies kills
+         * its still connected clients, so the stream must not stay open between log entries.
+         * The raw stream is closed as well, because the buffered writer skips closing it when
+         * flushing during close fails.
+         *
+         * @return true if closed successfully, false otherwise
+         */
+        fun closeStream(): Boolean {
+            val currentWriter = bufferedWriter
+            val currentStream = outputStream
+            bufferedWriter = null
+            outputStream = null
+            if (currentWriter == null && currentStream == null) return true
+            return try {
+                currentWriter?.close()
+                true
+            } catch (e: IOException) {
+                e.printStackTrace()
+                false
+            } finally {
                 try {
-                    bufferedWriter?.close()
+                    currentStream?.close()
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    return false
-                } finally {
-                    bufferedWriter = null
-                    lastFileName = null
-                    file = null
                 }
             }
-            return true
         }
 
         /**
