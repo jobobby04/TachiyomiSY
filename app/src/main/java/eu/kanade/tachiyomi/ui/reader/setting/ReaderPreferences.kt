@@ -28,6 +28,8 @@ class ReaderPreferences(
     val pageTransitionsPager: Preference<Boolean> = preferenceStore.getBoolean("pref_enable_transitions_pager_key", true)
 
     val pageTransitionsWebtoon: Preference<Boolean> = preferenceStore.getBoolean("pref_enable_transitions_webtoon_key", true)
+
+    val rearDisplayCover: Preference<Boolean> = preferenceStore.getBoolean("pref_reader_rear_display_cover", false)
     // SY <--
 
     val loadAheadOnlyOverWifi: Preference<Boolean> = preferenceStore.getBoolean(

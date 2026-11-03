@@ -336,6 +336,9 @@ When this option is disabled, the gestures still work the same way, but those in
     <!-- Double page spread -->
     <string name="page_layout">Page layout</string>
     <string name="shift_double_pages">Shift one page over</string>
+    <string name="pref_rear_display_cover">Show cover on rear display</string>
+    <string name="pref_rear_display_cover_summary">On foldables, show the manga cover on the outer screen while reading unfolded</string>
+    <string name="rear_display_cover_unavailable">Rear display is not available right now</string>
     <string name="double_pages">Double pages</string>
     <string name="single_page">Single page</string>
     <string name="automatic_orientation">Automatic (based on orientation)</string>

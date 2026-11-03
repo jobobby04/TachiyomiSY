@@ -524,6 +524,11 @@ object SettingsReaderScreen : SearchableSettings {
                     title = stringResource(SYMR.strings.auto_webtoon_mode),
                     subtitle = stringResource(SYMR.strings.auto_webtoon_mode_summary),
                 ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = readerPreferences.rearDisplayCover,
+                    title = stringResource(SYMR.strings.pref_rear_display_cover),
+                    subtitle = stringResource(SYMR.strings.pref_rear_display_cover_summary),
+                ),
                 Preference.PreferenceItem.MultiSelectListPreference(
                     preference = readerPreferences.readerBottomButtons,
                     title = stringResource(SYMR.strings.reader_bottom_buttons),
