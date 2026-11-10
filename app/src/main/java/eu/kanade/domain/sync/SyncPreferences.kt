@@ -51,6 +51,14 @@ class SyncPreferences(
         Preference.appStateKey("sync_pending_deleted_chapter_keys"),
         emptySet(),
     )
+    val pendingDeletedMangaKeys: Preference<Set<String>> = preferenceStore.getStringSet(
+        Preference.appStateKey("sync_pending_deleted_manga_keys"),
+        emptySet(),
+    )
+    val pendingDeletedHistoryKeys: Preference<Set<String>> = preferenceStore.getStringSet(
+        Preference.appStateKey("sync_pending_deleted_history_keys"),
+        emptySet(),
+    )
     private val tombstoneMutex = Mutex()
 
     val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
@@ -110,6 +118,34 @@ class SyncPreferences(
         val pending = pendingDeletedChapterKeys.get()
         val remaining = pending - keys.toSet()
         if (remaining.size != pending.size) pendingDeletedChapterKeys.set(remaining)
+    }
+
+    /** A library entry was deleted locally, so the next request can tombstone it. */
+    suspend fun rememberDeletedManga(keys: Collection<String>) {
+        if (keys.isEmpty() || !isSyncYomiEnabled() || !getSyncSettings().libraryEntries) return
+        tombstoneMutex.withLock {
+            pendingDeletedMangaKeys.set(pendingDeletedMangaKeys.get() + keys)
+        }
+    }
+
+    suspend fun forgetDeletedManga(keys: Collection<String>) = tombstoneMutex.withLock {
+        val pending = pendingDeletedMangaKeys.get()
+        val remaining = pending - keys.toSet()
+        if (remaining.size != pending.size) pendingDeletedMangaKeys.set(remaining)
+    }
+
+    /** History rows were cleared locally, so the next request can tombstone them. */
+    suspend fun rememberDeletedHistory(keys: Collection<String>) {
+        if (keys.isEmpty() || !isSyncYomiEnabled() || !getSyncSettings().history) return
+        tombstoneMutex.withLock {
+            pendingDeletedHistoryKeys.set(pendingDeletedHistoryKeys.get() + keys)
+        }
+    }
+
+    suspend fun forgetDeletedHistory(keys: Collection<String>) = tombstoneMutex.withLock {
+        val pending = pendingDeletedHistoryKeys.get()
+        val remaining = pending - keys.toSet()
+        if (remaining.size != pending.size) pendingDeletedHistoryKeys.set(remaining)
     }
 
     fun getSyncSettings(): SyncSettings {

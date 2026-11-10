@@ -184,6 +184,19 @@ class SyncManager(
             return
         }
 
+        // SY -->
+        // The server applied tombstones elsewhere: a full snapshot is the whole remote library and every
+        // manga it sends carries its complete remaining history, so anything missing is gone everywhere.
+        applyServerTombstones(
+            remote = remoteBackup,
+            uploaded = backupManga,
+            full = full,
+            protocolV2 = result.protocolV2,
+            librarySyncEnabled = syncOptions.libraryEntries,
+            historySyncEnabled = syncOptions.history,
+        )
+        // SY <--
+
         if (!result.protocolV2) {
             // Stop the sync early if the remote backup is null or empty
             if (remoteBackup.backupManga.isEmpty() &&
@@ -295,6 +308,52 @@ class SyncManager(
         } else {
             logcat(LogPriority.ERROR) { "Failed to write sync data to file" }
         }
+    }
+
+    /**
+     * Drops local data the server no longer holds: library manga a full snapshot leaves out, and history
+     * rows a manga payload leaves out. Both are read from the response to the request that uploaded the
+     * local state, so what is missing was removed on another device and never because a local edit is
+     * still waiting to be uploaded.
+     */
+    private suspend fun applyServerTombstones(
+        remote: Backup,
+        uploaded: List<BackupManga>,
+        full: Boolean,
+        protocolV2: Boolean,
+        librarySyncEnabled: Boolean,
+        historySyncEnabled: Boolean,
+    ) {
+        mangaKeysToDelete(uploaded, remote.backupManga, full, protocolV2, librarySyncEnabled)
+            .forEach { (sourceId, mangaUrl) ->
+                val manga = mangaRepository.getMangaByUrlAndSourceId(mangaUrl, sourceId) ?: return@forEach
+                logcat(LogPriority.DEBUG) { "Deleting ${manga.url}: a full snapshot no longer has it" }
+                mangaRepository.deleteManga(manga.id)
+            }
+
+        if (!protocolV2 || !historySyncEnabled) return
+        remote.backupManga
+            .filter { it.history.isNotEmpty() }
+            .forEach { payload ->
+                val manga = mangaRepository.getMangaByUrlAndSourceId(payload.url, payload.source)
+                    ?: return@forEach
+                val chapterUrlById = chapterRepository.getChapterByMangaId(manga.id)
+                    .associate { it.id to it.url }
+                val historyChapterIds = historyRepository.getHistoryByMangaId(manga.id)
+                    .map { it.chapterId }
+                val toDelete = historyChapterIdsToDelete(
+                    payload = payload,
+                    historySyncEnabled = historySyncEnabled,
+                    localHistoryChapterIds = historyChapterIds,
+                    chapterUrlById = chapterUrlById,
+                )
+                if (toDelete.isNotEmpty()) {
+                    logcat(LogPriority.DEBUG) {
+                        "Deleting ${toDelete.size} history entries of ${manga.url} the payload no longer has"
+                    }
+                    historyRepository.deleteHistory(toDelete)
+                }
+            }
     }
 
     private fun finishWithSuccess(syncStart: Long, message: String) {

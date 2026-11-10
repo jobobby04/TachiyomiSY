@@ -244,6 +244,29 @@ AND id NOT IN (
 -- SY <--
 ;
 
+-- SY -->
+-- The rows deleteNonLibraryManga removes, read first so their tombstones can be queued. The WHERE clause
+-- has to stay identical to deleteNonLibraryManga, or a row is tombstoned without being deleted.
+getNonLibraryMangaToDelete:
+SELECT source_id, remote_url
+FROM manga
+WHERE user_favorite_at IS NULL
+AND source_id IN :sourceIds
+AND (
+    :keepReadManga = 0
+    OR NOT EXISTS (
+        SELECT 1
+        FROM chapter
+        WHERE chapter.manga_id = manga.id
+        AND (user_read = 1 OR user_last_page_read != 0)
+    )
+)
+AND id NOT IN (
+    SELECT manga_id FROM merged_entry
+)
+;
+-- SY <--
+
 insertReturningId:
 INSERT INTO manga(
     source_id, remote_url, remote_title, remote_author, remote_artist, remote_description,
