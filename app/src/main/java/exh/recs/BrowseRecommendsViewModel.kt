@@ -121,8 +121,7 @@ class BrowseRecommendsViewModel(
         field = MutableStateFlow(null)
 
     override fun createSourcePagingSource(query: String, filters: FilterList): RecommendationPagingSource {
-        val value = runBlocking { recommendationState.first { it != null }!! }
-        return value
+        return recommendationState.value!!
     }
 
     override fun Flow<Manga>.combineMetadata(metadata: RaisedSearchMetadata?): Flow<Pair<Manga, RaisedSearchMetadata?>> {
