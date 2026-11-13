@@ -1262,12 +1262,17 @@ class EHentai(
         ).awaitSuccess().asJsoup()
 
         val body = doc.body()
+        val galleryId = EHentaiSearchMetadata.galleryId(chapters.lastOrNull()?.url ?: manga.url)
         val previews = body
             .select("#gdt > div > div")
             .plus(body.select("#gdt > a"))
             .map {
                 val preview = parseNormalPreview(it)
-                PagePreviewInfo(preview.index, imageUrl = preview.toUrl())
+                PagePreviewInfo(
+                    preview.index,
+                    imageUrl = preview.toUrl(),
+                    cacheKey = preview.toCacheKey(galleryId),
+                )
             }
             .ifEmpty {
                 body.select("#gdt div a img")
@@ -1347,6 +1352,17 @@ class EHentai(
                 .addQueryParameter("width", width.toString())
                 .addQueryParameter("height", height.toString())
                 .addQueryParameter("widthOffset", widthOffset.toString())
+                .build()
+                .toString()
+        }
+
+        fun toCacheKey(galleryId: String): String {
+            return BLANK_PREVIEW_THUMB.toHttpUrl().newBuilder()
+                .addQueryParameter("gid", galleryId)
+                .addQueryParameter("width", width.toString())
+                .addQueryParameter("height", height.toString())
+                .addQueryParameter("widthOffset", widthOffset.toString())
+                .addQueryParameter("index", index.toString())
                 .build()
                 .toString()
         }

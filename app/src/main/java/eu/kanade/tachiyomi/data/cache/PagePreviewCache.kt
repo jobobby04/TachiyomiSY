@@ -134,26 +134,26 @@ class PagePreviewCache(
     /**
      * Returns true if page is in cache.
      *
-     * @param imageUrl url of page.
+     * @param cacheKey key of page.
      * @return true if in cache otherwise false.
      */
-    fun isImageInCache(imageUrl: String): Boolean {
+    fun isImageInCache(cacheKey: String): Boolean {
         return try {
-            diskCache.get(DiskUtil.hashKeyForDisk(imageUrl)) != null
+            diskCache.get(DiskUtil.hashKeyForDisk(cacheKey)) != null
         } catch (e: IOException) {
             false
         }
     }
 
     /**
-     * Get page file from url.
+     * Get page file from cache key.
      *
-     * @param imageUrl url of page.
+     * @param cacheKey key of page.
      * @return path of page.
      */
-    fun getImageFile(imageUrl: String): File {
+    fun getImageFile(cacheKey: String): File {
         // Get file from md5 key.
-        val imageName = DiskUtil.hashKeyForDisk(imageUrl) + ".0"
+        val imageName = DiskUtil.hashKeyForDisk(cacheKey) + ".0"
         return File(diskCache.directory, imageName)
     }
 
