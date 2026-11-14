@@ -55,6 +55,7 @@ import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.SelectAll
 import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.domain.manga.repository.MangaRepository
+import tachiyomi.domain.manga.service.MangaTombstones
 import tachiyomi.domain.source.interactor.GetSourcesWithNonLibraryManga
 import tachiyomi.domain.source.model.Source
 import tachiyomi.domain.source.model.SourceWithCount
@@ -233,6 +234,9 @@ class ClearDatabaseViewModel(
     private val mangaRepository: MangaRepository,
     private val historyRepository: HistoryRepository,
     private val getSourcesWithNonLibraryManga: GetSourcesWithNonLibraryManga,
+    // SY -->
+    private val mangaTombstones: MangaTombstones,
+    // SY <--
     @AppCoroutineScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
@@ -258,6 +262,10 @@ class ClearDatabaseViewModel(
         val state = state.value as? State.Ready ?: return
         // Finishes even if the screen is left while it runs
         appScope.launch {
+            // SY -->
+            // The rows are about to be gone, so their tombstones have to be queued first
+            mangaTombstones.remember(mangaRepository.getNonLibraryMangaToDelete(state.selection, keepReadManga))
+            // SY <--
             mangaRepository.deleteNonLibraryManga(state.selection, keepReadManga)
             historyRepository.deleteResetHistory()
         }.join()

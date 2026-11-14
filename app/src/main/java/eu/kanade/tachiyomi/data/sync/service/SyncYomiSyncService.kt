@@ -70,7 +70,13 @@ class SyncYomiSyncService(
     }
 
     @Serializable
-    private data class DeletedChapters(val deletedChapters: List<String> = emptyList())
+    private data class DeletionItem(
+        val kind: String,
+        val key: String,
+    )
+
+    @Serializable
+    private data class Deletions(val items: List<DeletionItem> = emptyList())
 
     override suspend fun doSync(syncData: SyncData, full: Boolean): SyncResult {
         reportSyncEvent(SyncEventStatus.SYNC_STARTED)
@@ -140,7 +146,7 @@ class SyncYomiSyncService(
         val host = syncPreferences.clientHost.get()
         val apiKey = syncPreferences.clientAPIKey.get()
 
-        submitDeletedChapters(host, apiKey)
+        submitDeletions(host, apiKey)
 
         val pendingDeleted = syncPreferences.pendingDeletedCategoryUids.get()
         val headersBuilder = baseHeaders(apiKey)
@@ -374,15 +380,26 @@ class SyncYomiSyncService(
         }
     }
 
-    private suspend fun submitDeletedChapters(host: String, apiKey: String) {
-        val sent = syncPreferences.pendingDeletedChapterKeys.get()
-        if (sent.isEmpty()) return
+    /**
+     * Sends every pending tombstone in one request, chapters, manga and history together, and clears a queue
+     * only once the server acknowledged it. The whole pending set goes out at once: the server has no item
+     * cap, only a 64 MB body limit.
+     */
+    private suspend fun submitDeletions(host: String, apiKey: String) {
+        val chapters = syncPreferences.pendingDeletedChapterKeys.get()
+        val manga = syncPreferences.pendingDeletedMangaKeys.get()
+        val history = syncPreferences.pendingDeletedHistoryKeys.get()
+        if (chapters.isEmpty() && manga.isEmpty() && history.isEmpty()) return
+
+        val items = chapters.map { DeletionItem("chapter", it) } +
+            manga.map { DeletionItem("manga", it) } +
+            history.map { DeletionItem("history", it) }
 
         val request = POST(
             url = "$host/api/sync/v2/deletions",
             headers = baseHeaders(apiKey).build(),
             body = json
-                .encodeToString(DeletedChapters.serializer(), DeletedChapters(sent.toList()))
+                .encodeToString(Deletions.serializer(), Deletions(items))
                 .toRequestBody("application/json; charset=utf-8".toMediaType()),
         )
 
@@ -400,7 +417,10 @@ class SyncYomiSyncService(
                 return
             }
         }
-        syncPreferences.forgetDeletedChapters(sent)
-        logcat(LogPriority.DEBUG) { "SyncYomi v2 deletions applied: ${sent.size} keys" }
+        // Only drop the keys that were sent; anything queued during the request stays pending.
+        syncPreferences.forgetDeletedChapters(chapters)
+        syncPreferences.forgetDeletedManga(manga)
+        syncPreferences.forgetDeletedHistory(history)
+        logcat(LogPriority.DEBUG) { "SyncYomi v2 deletions applied: ${items.size} items" }
     }
 }
