@@ -118,6 +118,13 @@ internal fun ColumnScope.GeneralPage(viewModel: ReaderSettingsViewModel) {
         pref = viewModel.preferences.keepScreenOn,
     )
 
+    // SY -->
+    CheckboxItem(
+        label = stringResource(SYMR.strings.pref_rear_display_cover),
+        pref = viewModel.preferences.rearDisplayCover,
+    )
+    // SY <--
+
     CheckboxItem(
         label = stringResource(MR.strings.pref_read_with_long_tap),
         pref = viewModel.preferences.readWithLongTap,

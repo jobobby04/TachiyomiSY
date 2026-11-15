@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,6 +16,7 @@ import mihon.icons.custommaterialsymbols.CustomMaterialSymbols
 import mihon.icons.custommaterialsymbols.rounded.CropOff
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Crop
+import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.FormatListNumbered
 import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.rounded.Settings
@@ -48,6 +50,8 @@ fun ReaderBottomBar(
     onClickShare: (() -> Unit)?,
     onClickPageLayout: () -> Unit,
     onClickShiftPage: () -> Unit,
+    rearDisplayCoverActive: Boolean,
+    onClickRearDisplayCover: (() -> Unit)?,
     // SY <--
     modifier: Modifier = Modifier,
 ) {
@@ -148,6 +152,15 @@ fun ReaderBottomBar(
                 Icon(
                     imageVector = SYMaterialSymbols.Rounded.Input,
                     contentDescription = stringResource(SYMR.strings.shift_double_pages),
+                )
+            }
+        }
+
+        if (ReaderBottomButton.RearDisplayCover.isIn(enabledButtons) && onClickRearDisplayCover != null) {
+            IconToggleButton(checked = rearDisplayCoverActive, onCheckedChange = { onClickRearDisplayCover() }) {
+                Icon(
+                    imageVector = MaterialSymbols.Rounded.FlipToBack,
+                    contentDescription = stringResource(SYMR.strings.pref_rear_display_cover),
                 )
             }
         }
