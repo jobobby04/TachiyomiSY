@@ -79,7 +79,15 @@ open /* SY <-- */ class NetworkHelper(
     open /* SY <-- */ val client: OkHttpClient by lazy {
         clientBuilder()
             .addInterceptor(
-                CloudflareInterceptor(context, cookieJar, scope, ::defaultUserAgentProvider),
+                CloudflareInterceptor(
+                    context,
+                    cookieJar,
+                    // SY -->
+                    preferences,
+                    // SY <--
+                    scope,
+                    ::defaultUserAgentProvider,
+                ),
             )
             .build()
     }

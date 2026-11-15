@@ -14,10 +14,12 @@ import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import eu.kanade.tachiyomi.network.AndroidCookieJar
+import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.util.system.isOutdated
 import eu.kanade.tachiyomi.util.system.toWebViewHeaders
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
@@ -26,6 +28,7 @@ import okhttp3.Response
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
@@ -36,6 +39,9 @@ import kotlin.concurrent.write
 class CloudflareInterceptor(
     private val context: Context,
     private val cookieManager: AndroidCookieJar,
+    // SY -->
+    private val preferences: NetworkPreferences,
+    // SY <--
     scope: CoroutineScope,
     defaultUserAgentProvider: () -> String,
 ) : WebViewInterceptor(context, scope, defaultUserAgentProvider) {
@@ -73,22 +79,26 @@ class CloudflareInterceptor(
 
         // write releases the read hold of a request made from within another to the same host, like an extension
         // refreshing a token, which would otherwise wait on itself
-        lock.write {
+        /* SY --> */ val retryRequest = /* SY <-- */ lock.write {
             // Another request may have solved the challenge while this one waited
             if (isCleared(request.url, clearance)) {
                 response.close()
+                // SY -->
+                withCurrentUserAgent(request)
+                // SY <--
             } else {
-                if (!prepareWebView()) return response
+                if (/* SY --> */ !canSolve() /* SY <-- */) return response
                 solve(request, response, clearance)
             }
         }
 
-        return chain.proceed(request)
+        return chain.proceed(/* SY --> */ retryRequest /* SY <-- */)
     }
 
     override fun intercept(chain: Interceptor.Chain, request: Request, response: Response): Response {
-        solve(request, response, clearance(request.url))
-        return chain.proceed(request)
+        // SY -->
+        return chain.proceed(solve(request, response, clearance(request.url)))
+        // SY <--
     }
 
     private fun clearance(url: HttpUrl): String? {
@@ -100,11 +110,23 @@ class CloudflareInterceptor(
         return !clearance.isNullOrBlank() && clearance != previousClearance
     }
 
-    private fun solve(request: Request, response: Response, clearance: String?) {
+    private fun solve(request: Request, response: Response, clearance: String?) /* SY --> */: Request /* SY <-- */ {
         try {
             response.close()
+            // SY -->
+            if (preferences.enableFlareSolverr.get()) {
+                return resolveWithFlareSolverr(request) ?: resolveWithStockUserAgent(request, clearance)
+            }
+            // SY <--
             cookieManager.remove(request.url, COOKIE_NAMES, 0)
-            resolveWithWebView(request, clearance)
+            // SY -->
+            CloudflareBypassStatus.track(request.url.host, CloudflareBypassStatus.Method.WEBVIEW) {
+                // SY <--
+                resolveWithWebView(request, clearance)
+                // SY -->
+            }
+            return request
+            // SY <--
         }
         // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
         // we don't crash the entire app
@@ -114,6 +136,50 @@ class CloudflareInterceptor(
             throw IOException(e)
         }
     }
+
+    // SY -->
+
+    private fun canSolve(): Boolean = preferences.enableFlareSolverr.get() || prepareWebView()
+
+    /** Waiters retry under the user agent the solve left, as Cloudflare binds the clearance to it. */
+    private fun withCurrentUserAgent(request: Request): Request {
+        if (!preferences.enableFlareSolverr.get()) return request
+        return request.newBuilder().header("User-Agent", preferences.defaultUserAgent.get().trim()).build()
+    }
+
+    /** Returns the request to retry with, or null to fall back to the WebView. */
+    private fun resolveWithFlareSolverr(request: Request): Request? {
+        val previousUserAgent = preferences.defaultUserAgent.get()
+        return try {
+            CloudflareBypassStatus.track(request.url.host, CloudflareBypassStatus.Method.FLARESOLVERR) {
+                runBlocking { FlareSolverr.resolve(request) }
+            }
+        } catch (e: Exception) {
+            logcat(LogPriority.WARN, e) { "FlareSolverr failed, falling back to WebView" }
+            null
+        }.also { solved ->
+            if (solved != null && preferences.defaultUserAgent.get() != previousUserAgent) {
+                executor.execute { context.toast(SYMR.strings.flare_solver_user_agent_updated, Toast.LENGTH_LONG) }
+            }
+        }
+    }
+
+    /** WebView fallback under the stock user agent, since the solver's desktop one makes the challenge fail. */
+    private fun resolveWithStockUserAgent(request: Request, clearance: String?): Request {
+        if (!prepareWebView()) throw CloudflareBypassException("FlareSolverr failed and no WebView is available")
+        val userAgent = preferences.defaultUserAgent.defaultValue()
+        if (preferences.defaultUserAgent.get() != userAgent) {
+            preferences.defaultUserAgent.delete()
+            executor.execute { context.toast(SYMR.strings.flare_solver_user_agent_reset, Toast.LENGTH_LONG) }
+        }
+        val fallbackRequest = request.newBuilder().header("User-Agent", userAgent).build()
+        cookieManager.remove(fallbackRequest.url, COOKIE_NAMES, 0)
+        CloudflareBypassStatus.track(fallbackRequest.url.host, CloudflareBypassStatus.Method.WEBVIEW) {
+            resolveWithWebView(fallbackRequest, clearance)
+        }
+        return fallbackRequest
+    }
+    // SY <--
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun resolveWithWebView(originalRequest: Request, originalClearance: String?) {
@@ -264,7 +330,7 @@ class CloudflareInterceptor(
                 context.toast(MR.strings.information_webview_outdated, Toast.LENGTH_LONG)
             }
 
-            throw CloudflareBypassException()
+            throw CloudflareBypassException(/* SY --> */"Error resolving with WebView"/* SY <-- */)
         }
     }
 }
@@ -275,6 +341,9 @@ private fun HttpUrl.origin(): String {
 }
 
 private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
-private val COOKIE_NAMES = listOf("cf_clearance")
 
-private class CloudflareBypassException : Exception()
+/* SY --> */ internal /* SY <-- */ val COOKIE_NAMES = listOf("cf_clearance")
+
+// SY -->
+class CloudflareBypassException(message: String, cause: Throwable? = null) : Exception(message, cause)
+// SY <--

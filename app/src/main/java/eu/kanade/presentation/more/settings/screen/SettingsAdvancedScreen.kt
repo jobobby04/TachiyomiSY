@@ -51,6 +51,7 @@ import eu.kanade.tachiyomi.network.PREF_DOH_NJALLA
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD101
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.network.PREF_DOH_SHECAN
+import eu.kanade.tachiyomi.network.interceptor.FlareSolverr
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.storage.DiskUtil
@@ -74,6 +75,7 @@ import kotlinx.coroutines.withContext
 import logcat.LogPriority
 import mihon.app.di.appGraph
 import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
@@ -84,6 +86,7 @@ import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import java.io.File
+import tachiyomi.core.common.preference.Preference as BasePreference
 
 object SettingsAdvancedScreen : SearchableSettings {
 
@@ -240,6 +243,11 @@ object SettingsAdvancedScreen : SearchableSettings {
 
         val userAgentPref = networkPreferences.defaultUserAgent
         val userAgent by userAgentPref.collectAsState()
+        // SY -->
+        val flareSolverrUrlPref = networkPreferences.flareSolverrUrl
+        val enableFlareSolverrPref = networkPreferences.enableFlareSolverr
+        val enableFlareSolverr by enableFlareSolverrPref.collectAsState()
+        // SY <--
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_network),
@@ -321,6 +329,30 @@ object SettingsAdvancedScreen : SearchableSettings {
                         context.toast(MR.strings.requires_app_restart)
                     },
                 ),
+                // SY -->
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = enableFlareSolverrPref,
+                    title = stringResource(SYMR.strings.pref_enable_flare_solverr),
+                    subtitle = stringResource(SYMR.strings.pref_enable_flare_solverr_summary),
+                ),
+                Preference.PreferenceItem.EditTextPreference(
+                    preference = flareSolverrUrlPref,
+                    title = stringResource(SYMR.strings.pref_flare_solverr_url),
+                    visible = enableFlareSolverr,
+                    subtitle = stringResource(SYMR.strings.pref_flare_solverr_url_summary),
+                    onValueChanged = { it.trim().toHttpUrlOrNull() != null },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(SYMR.strings.pref_test_flare_solverr_and_update_user_agent),
+                    visible = enableFlareSolverr,
+                    subtitle = stringResource(SYMR.strings.pref_test_flare_solverr_and_update_user_agent_summary),
+                    onClick = {
+                        scope.launch {
+                            testFlareSolverrAndUpdateUserAgent(userAgentPref, context)
+                        }
+                    },
+                ),
+                // SY <--
             ),
         )
     }
@@ -780,6 +812,30 @@ object SettingsAdvancedScreen : SearchableSettings {
                 ),
             ),
         )
+    }
+
+    // SY -->
+    private suspend fun testFlareSolverrAndUpdateUserAgent(
+        userAgentPref: BasePreference<String>,
+        context: android.content.Context,
+    ) {
+        try {
+            val response = withContext(Dispatchers.IO) {
+                FlareSolverr.request(url = "https://www.google.com/")
+            }
+
+            val solution = response.solution
+            if (response.status == "ok" && solution != null) {
+                userAgentPref.set(solution.userAgent)
+                context.toast(SYMR.strings.flare_solver_user_agent_update_success)
+            } else {
+                logcat(LogPriority.ERROR, tag = "FlareSolverr") { "FlareSolverr test failed: ${response.message}" }
+                context.toast(SYMR.strings.flare_solver_update_user_agent_failed)
+            }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e, tag = "FlareSolverr") { "Failed to contact FlareSolverr" }
+            context.toast(SYMR.strings.flare_solver_error)
+        }
     }
 
     private var job: Job? = null
