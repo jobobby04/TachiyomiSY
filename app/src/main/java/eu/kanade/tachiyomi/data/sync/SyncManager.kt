@@ -177,7 +177,14 @@ class SyncManager(
             return
         }
 
-        if (remoteBackup === syncData.backup || (result.protocolV2 && !result.changed)) {
+        if (
+            skipRemoteResponse(
+                ownBackup = remoteBackup === syncData.backup,
+                protocolV2 = result.protocolV2,
+                changed = result.changed,
+                deletions = remoteBackup.deletions,
+            )
+        ) {
             // nothing changed
             logcat(LogPriority.DEBUG) { "Skip restore, nothing new on the remote" }
             finishWithSuccess(syncStart, "Sync completed successfully")
@@ -185,16 +192,35 @@ class SyncManager(
         }
 
         // SY -->
-        // The server applied tombstones elsewhere: a full snapshot is the whole remote library and every
-        // manga it sends carries its complete remaining history, so anything missing is gone everywhere.
-        applyServerTombstones(
-            remote = remoteBackup,
-            uploaded = backupManga,
-            full = full,
-            protocolV2 = result.protocolV2,
-            librarySyncEnabled = syncOptions.libraryEntries,
-            historySyncEnabled = syncOptions.history,
-        )
+        // A delta lists its tombstones explicitly; a server that does not send the list conveys a library
+        // removal only by leaving the manga out of a full snapshot, so fall back to that heuristic there.
+        if (remoteBackup.deletions.isNotEmpty()) {
+            val skippedKinds = applyDeletions(
+                plan = deletionPlan(remoteBackup.deletions),
+                mangaRepository = mangaRepository,
+                chapterRepository = chapterRepository,
+                historyRepository = historyRepository,
+                categoryRepository = categoryRepository,
+                librarySyncEnabled = syncOptions.libraryEntries,
+                historySyncEnabled = syncOptions.history,
+            )
+            if (skippedKinds.isNotEmpty()) {
+                logcat(LogPriority.DEBUG) {
+                    "Not applying tombstones of kinds ${skippedKinds.joinToString()}"
+                }
+            }
+        } else {
+            // The server applied tombstones elsewhere: a full snapshot is the whole remote library and every
+            // manga it sends carries its complete remaining history, so anything missing is gone everywhere.
+            applyServerTombstones(
+                remote = remoteBackup,
+                uploaded = backupManga,
+                full = full,
+                protocolV2 = result.protocolV2,
+                librarySyncEnabled = syncOptions.libraryEntries,
+                historySyncEnabled = syncOptions.history,
+            )
+        }
         // SY <--
 
         if (!result.protocolV2) {
