@@ -83,6 +83,8 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
+import eu.kanade.tachiyomi.ui.reader.viewer.ContinuousAutoScroll
+import eu.kanade.tachiyomi.ui.reader.viewer.ContinuousAutoScrollViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewer
@@ -607,7 +609,7 @@ class ReaderActivity : BaseActivity() {
             readerPreferences.readerBottomButtons.changes()
         }.collectAsState(emptySet())
         val dualPageSplitPaged by readerPreferences.dualPageSplitPaged.collectAsState()
-        val autoScrollGesturesSupported = state.viewer is WebtoonViewer
+        val autoScrollGesturesSupported = state.viewer is ContinuousAutoScrollViewer
         val autoScrollGesturesEnabled by readerPreferences.autoscrollGesturesEnabled.collectAsState()
         val autoScrollGestureToastsEnabled by readerPreferences.autoscrollGestureToastsEnabled.collectAsState()
         // SY <--
@@ -725,14 +727,14 @@ class ReaderActivity : BaseActivity() {
         readerPreferences.autoscrollGesturesEnabled.changes()
             .distinctUntilChanged()
             .onEach { enabled ->
-                (viewModel.state.value.viewer as? WebtoonViewer)?.setAutoScrollGesturesEnabled(enabled)
+                (viewModel.state.value.viewer as? ContinuousAutoScrollViewer)?.autoScroll?.setAutoScrollGesturesEnabled(enabled)
             }
             .launchIn(lifecycleScope)
 
         readerPreferences.autoscrollGestureToastsEnabled.changes()
             .distinctUntilChanged()
             .onEach { enabled ->
-                (viewModel.state.value.viewer as? WebtoonViewer)?.setAutoScrollGestureToastsEnabled(enabled)
+                (viewModel.state.value.viewer as? ContinuousAutoScrollViewer)?.autoScroll?.setAutoScrollGestureToastsEnabled(enabled)
             }
             .launchIn(lifecycleScope)
 
@@ -742,7 +744,7 @@ class ReaderActivity : BaseActivity() {
             }
             .mapLatest { (intervalFloat, enabled) ->
                 val interval = intervalFloat.seconds
-                (viewModel.state.value.viewer as? WebtoonViewer)?.syncAutoScrollSettings(
+                (viewModel.state.value.viewer as? ContinuousAutoScrollViewer)?.autoScroll?.syncAutoScrollSettings(
                     enabled = enabled,
                     interval = interval,
                     forceInterval = true,
@@ -759,10 +761,15 @@ class ReaderActivity : BaseActivity() {
                                         v.moveToNext()
                                         delay(interval)
                                     }
-                                    is WebtoonViewer -> {
-                                        v.syncAutoScrollSettings(enabled = true, interval = interval)
-                                        v.performAutoScrollStep(readerPreferences.smoothAutoScroll.get())
-                                        delayAutoScroll(v.autoScrollDelayMillis(), v)
+                                    is ContinuousAutoScrollViewer -> {
+                                        val autoScroll = v.autoScroll
+                                        autoScroll.syncAutoScrollSettings(enabled = true, interval = interval)
+                                        autoScroll.performAutoScrollStep(readerPreferences.smoothAutoScroll.get())
+                                        delayAutoScroll(autoScroll)
+                                    }
+                                    is WebGpuViewer -> {
+                                        v.moveToNext()
+                                        delay(interval)
                                     }
                                     else -> delay(100)
                                 }
@@ -776,13 +783,13 @@ class ReaderActivity : BaseActivity() {
             .launchIn(lifecycleScope)
     }
 
-    private suspend fun delayAutoScroll(durationMillis: Long, viewer: WebtoonViewer) {
-        var remaining = durationMillis
+    private suspend fun delayAutoScroll(autoScroll: ContinuousAutoScroll) {
+        var remaining = autoScroll.autoScrollDelayMillis()
         while (remaining > 0) {
             val slice = remaining.coerceAtMost(100L)
             delay(slice)
             remaining -= slice
-            if (viewer.consumeAutoScrollDelayInterrupt()) {
+            if (autoScroll.consumeAutoScrollDelayInterrupt()) {
                 break
             }
         }
@@ -913,7 +920,7 @@ class ReaderActivity : BaseActivity() {
      */
     private fun setMenuVisibility(visible: Boolean) {
         viewModel.showMenus(visible)
-        (viewModel.state.value.viewer as? WebtoonViewer)?.setAutoScrollUiBlocked(visible)
+        (viewModel.state.value.viewer as? ContinuousAutoScrollViewer)?.autoScroll?.setAutoScrollUiBlocked(visible)
         if (visible) {
             windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
         } else if (readerPreferences.fullscreen.get()) {
@@ -943,9 +950,9 @@ class ReaderActivity : BaseActivity() {
             binding.viewerContainer.removeAllViews()
         }
         viewModel.onViewerLoaded(newViewer)
-        (newViewer as? WebtoonViewer)?.setAutoScrollUiBlocked(viewModel.state.value.menuVisible)
-        (newViewer as? WebtoonViewer)?.setAutoScrollGesturesEnabled(readerPreferences.autoscrollGesturesEnabled.get())
-        (newViewer as? WebtoonViewer)?.setAutoScrollGestureToastsEnabled(readerPreferences.autoscrollGestureToastsEnabled.get())
+        (newViewer as? ContinuousAutoScrollViewer)?.autoScroll?.setAutoScrollUiBlocked(viewModel.state.value.menuVisible)
+        (newViewer as? ContinuousAutoScrollViewer)?.autoScroll?.setAutoScrollGesturesEnabled(readerPreferences.autoscrollGesturesEnabled.get())
+        (newViewer as? ContinuousAutoScrollViewer)?.autoScroll?.setAutoScrollGestureToastsEnabled(readerPreferences.autoscrollGestureToastsEnabled.get())
         updateViewerInset(readerPreferences.fullscreen.get(), readerPreferences.drawUnderCutout.get())
         binding.viewerContainer.addView(newViewer.getView())
 
