@@ -1,14 +1,24 @@
 package eu.kanade.tachiyomi.ui.reader.viewer.webgpu
 
+import android.animation.ValueAnimator
+import android.view.MotionEvent
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.animation.LinearInterpolator
+import android.widget.FrameLayout
+import androidx.core.animation.doOnEnd
 import ca.mpreg.webgpuviewer.ImageViewContinuous
 import ca.mpreg.webgpuviewer.viewer.ImagePage
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
+import eu.kanade.tachiyomi.ui.reader.viewer.ContinuousAutoScroll
+import eu.kanade.tachiyomi.ui.reader.viewer.ContinuousAutoScrollViewer
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
 class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = false) :
-    WebGpuViewer(activity, isReversed = false, isVertical = true, pager = ImageViewContinuous(activity)) {
+    WebGpuViewer(activity, isReversed = false, isVertical = true, pager = ImageViewContinuous(activity))
+    /* SY --> */,
+    ContinuousAutoScrollViewer /* SY <-- */ {
 
     override val isContinuous: Boolean get() = true
 
@@ -20,6 +30,74 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
     override val cacheSize get() = 2 + 2 * max(4, state.pagesAbove + state.pagesBelow)
 
     private val state get() = (pager as ImageViewContinuous).state
+
+    // SY -->
+    private var autoScrollAnimator: ValueAnimator? = null
+
+    override val autoScroll = ContinuousAutoScroll(
+        activity = activity,
+        canActivate = { state.scale == 1f },
+        stopScroll = { autoScrollAnimator?.cancel() },
+        smoothScroll = { animateAutoScroll(state.height.toFloat(), it.inWholeMilliseconds) },
+        stepScroll = { animateAutoScroll(state.height * 0.75f, 200L) },
+        manualScroll = {
+            state.isPanning = true
+            scrollByPixels(it.toFloat())
+        },
+    )
+
+    private val touchContainer = object : FrameLayout(activity) {
+        private var trackingAutoScroll = false
+
+        override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+            val gestures = autoScroll.gestures
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                trackingAutoScroll = gestures.active
+            }
+            if (trackingAutoScroll) {
+                gestures.handleAutoScrollTouchEvent(event)
+                if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                    trackingAutoScroll = false
+                    state.isPanning = false
+                    state.invalidate()
+                }
+                return true
+            }
+
+            gestures.trackAutoScrollActivationTouchEvent(event)
+            return super.dispatchTouchEvent(event)
+        }
+    }.apply { addView(pager, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)) }
+
+    override fun getView() = touchContainer
+
+    private fun scrollByPixels(delta: Float) {
+        state.scrollBy(delta / state.scale)
+        state.invalidate()
+    }
+
+    private fun animateAutoScroll(distance: Float, durationMillis: Long) {
+        autoScrollAnimator?.cancel()
+        var applied = 0f
+        autoScrollAnimator = ValueAnimator.ofFloat(0f, distance).apply {
+            duration = durationMillis
+            interpolator = LinearInterpolator()
+            addUpdateListener { animation ->
+                val position = animation.animatedValue as Float
+                scrollByPixels(position - applied)
+                applied = position
+            }
+            doOnEnd {
+                autoScrollAnimator = null
+                state.isPanning = false
+                state.invalidate()
+            }
+        }
+        // Report viewport progress while generating high quality tiles during slow autoscroll.
+        state.isPanning = true
+        autoScrollAnimator?.start()
+    }
+    // SY <--
 
     init {
         state.backgroundColor = readerBackgroundColor()
@@ -74,6 +152,9 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
     }
 
     override fun destroy() {
+        // SY -->
+        autoScroll.destroy()
+        // SY <--
         state.onViewport = null
         lastReadThrough = null
         wasAtEdge = null

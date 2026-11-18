@@ -50,6 +50,7 @@ import sh.calvin.reorderable.ReorderableColumn
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.HeadingItem
 import tachiyomi.presentation.core.components.SettingsChipRow
@@ -129,6 +130,12 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
             label = stringResource(MR.strings.pref_webtoon_disable_zoom_out),
             pref = viewModel.preferences.webtoonDisableZoomOut,
         )
+        // SY -->
+        CheckboxItem(
+            label = stringResource(SYMR.strings.pref_smooth_scroll),
+            pref = viewModel.preferences.smoothAutoScroll,
+        )
+        // SY <--
     }
 
     val orientation = remember(manga) { ReaderOrientation.fromPreference(manga?.readerOrientation?.toInt()) }
