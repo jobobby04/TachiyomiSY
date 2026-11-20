@@ -93,12 +93,12 @@ class MangaDex(
         context.getSharedPreferences("source_$id", 0x0000)
     }
 
-    private val loginHelper = MangaDexLoginHelper(network.client, trackPreferences, mdList, mdList.interceptor)
-
     override val headers: Headers = delegate.headers.newBuilder()
         .removeAll("User-Agent")
         .add("User-Agent", "TachiyomiSY v${BuildConfig.VERSION_NAME} (${BuildConfig.APPLICATION_ID})")
         .build()
+
+    private val loginHelper = MangaDexLoginHelper(network.client, trackPreferences, mdList, mdList.interceptor, headers)
 
     override val baseHttpClient: OkHttpClient by lazy {
         delegate.client.newBuilder()

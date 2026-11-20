@@ -20,22 +20,28 @@ class GetPagePreviews(
     private val getChaptersByMangaId: GetChaptersByMangaId,
 ) {
 
-    suspend fun await(manga: Manga, source: Source, page: Int): Result {
+    suspend fun await(manga: Manga, source: Source, page: Int, refresh: Boolean = false): Result {
         @Suppress("NAME_SHADOWING")
         val source = source.getMainSource<PagePreviewSource>() ?: return Result.Unused
         val chapters = getChaptersByMangaId.await(manga.id).sortedByDescending { it.sourceOrder }
         val chapterIds = chapters.map { it.id }
         return try {
-            val pagePreviews = try {
-                pagePreviewCache.getPageListFromCache(manga, chapterIds, page)
-            } catch (_: Exception) {
+            val pagePreviews = if (refresh) {
                 source.getPagePreviewList(manga.toSManga(), chapters.map { it.toSChapter() }, page).also {
                     pagePreviewCache.putPageListToCache(manga, chapterIds, it)
+                }
+            } else {
+                try {
+                    pagePreviewCache.getPageListFromCache(manga, chapterIds, page)
+                } catch (_: Exception) {
+                    source.getPagePreviewList(manga.toSManga(), chapters.map { it.toSChapter() }, page).also {
+                        pagePreviewCache.putPageListToCache(manga, chapterIds, it)
+                    }
                 }
             }
             Result.Success(
                 pagePreviews.pagePreviews.map {
-                    PagePreview(it.index, it.imageUrl, source.id)
+                    PagePreview(it.index, it.imageUrl, source.id, it.cacheKey)
                 },
                 pagePreviews.hasNextPage,
                 pagePreviews.pagePreviewPages,

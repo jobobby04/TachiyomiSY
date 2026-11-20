@@ -14,6 +14,7 @@ data class PagePreview(
     val index: Int,
     val imageUrl: String,
     val source: Long,
+    val cacheKey: String = imageUrl,
 ) {
     @Transient
     private val _progress: MutableStateFlow<Int> = MutableStateFlow(-1)
@@ -21,5 +22,5 @@ data class PagePreview(
     @Transient
     val progress = _progress.asStateFlow()
 
-    fun getPagePreviewInfo() = PagePreviewInfo(index, imageUrl, _progress)
+    fun getPagePreviewInfo() = PagePreviewInfo(index, imageUrl, cacheKey, _progress)
 }
