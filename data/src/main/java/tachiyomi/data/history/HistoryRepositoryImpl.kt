@@ -13,6 +13,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.Database
 import tachiyomi.data.subscribeToList
 import tachiyomi.domain.history.model.History
+import tachiyomi.domain.history.model.HistoryTombstoneKey
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.history.model.HistoryWithRelations
 import tachiyomi.domain.history.repository.HistoryRepository
@@ -96,6 +97,26 @@ class HistoryRepositoryImpl(
     // SY -->
     override suspend fun upsertAllHistory(historyUpdate: List<HistoryUpdate>) {
         partialUpdate(*historyUpdate.toTypedArray())
+    }
+
+    override suspend fun getHistoryTombstoneKeys(): List<HistoryTombstoneKey> {
+        return database.historyQueries
+            .getHistoryTombstoneKeys { chapterId, mangaSourceId, mangaUrl, chapterUrl ->
+                HistoryTombstoneKey(chapterId, mangaSourceId, mangaUrl, chapterUrl)
+            }
+            .awaitAsList()
+    }
+
+    override suspend fun getHistoryTombstoneKeys(mangaId: Long): List<HistoryTombstoneKey> {
+        return database.historyQueries
+            .getHistoryTombstoneKeysByMangaId(mangaId) { chapterId, mangaSourceId, mangaUrl, chapterUrl ->
+                HistoryTombstoneKey(chapterId, mangaSourceId, mangaUrl, chapterUrl)
+            }
+            .awaitAsList()
+    }
+
+    override suspend fun deleteHistory(chapterIds: Collection<Long>) {
+        database.historyQueries.deleteHistoryByChapterIds(chapterIds)
     }
 
     private suspend fun partialUpdate(vararg historyUpdates: HistoryUpdate) {

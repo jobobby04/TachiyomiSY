@@ -167,4 +167,157 @@ class SyncDeltaTest {
     fun `older reading history needs no restore`() {
         assertFalse(needsRestore(local(), remote(history = listOf(BackupHistory(url = "/c1", lastRead = 50L)))))
     }
+
+    @Test
+    fun `manga and history tombstone keys match the server keys`() {
+        assertEquals("9999999999|/e2e/E2E Alpha/01", mangaTombstoneKey(9999999999, "/e2e/E2E Alpha/01"))
+        // A history row is keyed exactly like its chapter, separator included
+        assertEquals(
+            chapterTombstoneKey(sourceId = 7, mangaUrl = "/m", chapterUrl = "/c"),
+            historyTombstoneKey(sourceId = 7, mangaUrl = "/m", chapterUrl = "/c"),
+        )
+        assertEquals("7|/m\u001f/c", historyTombstoneKey(sourceId = 7, mangaUrl = "/m", chapterUrl = "/c"))
+    }
+
+    private fun uploaded(url: String, favorite: Boolean = true) = BackupManga(source = 1, url = url, favorite = favorite)
+
+    private fun snapshot(url: String, favorite: Boolean = true) =
+        BackupManga(source = 1, url = url, favorite = favorite)
+
+    @Test
+    fun `a full snapshot leaves out a manga this device uploaded`() {
+        val deleted = mangaKeysToDelete(
+            uploaded = listOf(uploaded("/gone"), uploaded("/kept")),
+            remote = listOf(snapshot("/kept")),
+            full = true,
+            protocolV2 = true,
+            librarySyncEnabled = true,
+        )
+
+        assertEquals(setOf(1L to "/gone"), deleted)
+    }
+
+    @Test
+    fun `a manga the snapshot holds as not favorite is not deleted`() {
+        // The server keeps the entry to record the library removal; that is not a deletion
+        val deleted = mangaKeysToDelete(
+            uploaded = listOf(uploaded("/removed-elsewhere")),
+            remote = listOf(snapshot("/removed-elsewhere", favorite = false)),
+            full = true,
+            protocolV2 = true,
+            librarySyncEnabled = true,
+        )
+
+        assertEquals(emptySet<Pair<Long, String>>(), deleted)
+    }
+
+    @Test
+    fun `a library removal uploaded as a not-favorite entry is not a deletion`() {
+        // The row exists locally only because it was removed from the library; the server records that as
+        // a not-favorite entry, and a row that never reached the server is no candidate at all
+        val deleted = mangaKeysToDelete(
+            uploaded = listOf(uploaded("/only"), uploaded("/not-favorite", favorite = false)),
+            remote = listOf(snapshot("/only")),
+            full = true,
+            protocolV2 = true,
+            librarySyncEnabled = true,
+        )
+
+        assertEquals(emptySet<Pair<Long, String>>(), deleted)
+    }
+
+    @Test
+    fun `a delta never deletes manga`() {
+        val deleted = mangaKeysToDelete(
+            uploaded = listOf(uploaded("/gone")),
+            remote = emptyList(),
+            full = false,
+            protocolV2 = true,
+            librarySyncEnabled = true,
+        )
+
+        assertEquals(emptySet<Pair<Long, String>>(), deleted)
+    }
+
+    @Test
+    fun `manga are not deleted without protocol v2 or library sync or a snapshot`() {
+        val candidates = listOf(uploaded("/gone"))
+
+        assertEquals(
+            emptySet<Pair<Long, String>>(),
+            mangaKeysToDelete(candidates, emptyList(), full = true, protocolV2 = true, librarySyncEnabled = true),
+        )
+        assertEquals(
+            emptySet<Pair<Long, String>>(),
+            mangaKeysToDelete(
+                candidates,
+                listOf(snapshot("/kept")),
+                full = true,
+                protocolV2 = false,
+                librarySyncEnabled = true,
+            ),
+        )
+        assertEquals(
+            emptySet<Pair<Long, String>>(),
+            mangaKeysToDelete(
+                candidates,
+                listOf(snapshot("/kept")),
+                full = true,
+                protocolV2 = true,
+                librarySyncEnabled = false,
+            ),
+        )
+    }
+
+    private fun payload(history: List<BackupHistory>) = BackupManga(source = 1, url = "/m", history = history)
+
+    @Test
+    fun `history rows a payload does not list are deleted`() {
+        val deleted = historyChapterIdsToDelete(
+            payload = payload(listOf(BackupHistory(url = "/c1"))),
+            historySyncEnabled = true,
+            localHistoryChapterIds = listOf(11L, 22L, 33L),
+            chapterUrlById = mapOf(11L to "/c1", 22L to "/c2", 33L to "/c3"),
+        )
+
+        assertEquals(setOf(22L, 33L), deleted)
+    }
+
+    @Test
+    fun `history is left alone when the payload carries none`() {
+        // An empty history field cannot be told apart from "nothing to say about history"
+        val deleted = historyChapterIdsToDelete(
+            payload = payload(emptyList()),
+            historySyncEnabled = true,
+            localHistoryChapterIds = listOf(11L),
+            chapterUrlById = mapOf(11L to "/c1"),
+        )
+
+        assertEquals(emptySet<Long>(), deleted)
+    }
+
+    @Test
+    fun `history is not deleted when history sync is off`() {
+        val deleted = historyChapterIdsToDelete(
+            payload = payload(listOf(BackupHistory(url = "/c1"))),
+            historySyncEnabled = false,
+            localHistoryChapterIds = listOf(11L, 22L),
+            chapterUrlById = mapOf(11L to "/c1", 22L to "/c2"),
+        )
+
+        assertEquals(emptySet<Long>(), deleted)
+    }
+
+    @Test
+    fun `history whose chapter url is unknown locally is kept`() {
+        val deleted = historyChapterIdsToDelete(
+            payload = payload(listOf(BackupHistory(url = "/c1"))),
+            historySyncEnabled = true,
+            localHistoryChapterIds = listOf(11L, 22L),
+            // 22 has no chapter row, so it cannot be matched against the payload
+            chapterUrlById = mapOf(11L to "/c1"),
+        )
+
+        assertEquals(emptySet<Long>(), deleted)
+    }
 }

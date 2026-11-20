@@ -55,3 +55,24 @@ ON CONFLICT(chapter_id) DO UPDATE SET
 getReadDuration:
 SELECT coalesce(sum(read_duration), 0)
 FROM history;
+
+-- SY -->
+-- The identity of every history row, read before the rows are cleared so their tombstones can be queued.
+getHistoryTombstoneKeys:
+SELECT H.chapter_id, M.source_id, M.remote_url, C.remote_url
+FROM history H
+JOIN manga M ON M.id = H.manga_id
+JOIN chapter C ON C.id = H.chapter_id;
+
+getHistoryTombstoneKeysByMangaId:
+SELECT H.chapter_id, M.source_id, M.remote_url, C.remote_url
+FROM history H
+JOIN manga M ON M.id = H.manga_id
+JOIN chapter C ON C.id = H.chapter_id
+WHERE H.manga_id = :mangaId;
+
+-- Drops the history rows a payload says the server no longer has
+deleteHistoryByChapterIds:
+DELETE FROM history
+WHERE chapter_id IN :chapterIds;
+-- SY <--
