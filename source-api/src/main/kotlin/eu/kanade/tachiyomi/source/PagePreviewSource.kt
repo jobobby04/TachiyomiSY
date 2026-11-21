@@ -36,6 +36,9 @@ data class PagePreviewInfo(
     @Transient
     private val _progress: MutableStateFlow<Int> = MutableStateFlow(-1),
 ) : ProgressListener {
+    // Stable signature for extensions; calls using the default arguments compile to a synthetic constructor
+    constructor(index: Int, imageUrl: String) : this(index, imageUrl, imageUrl)
+
     @Transient
     val progress = _progress.asStateFlow()
 
