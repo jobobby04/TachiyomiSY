@@ -71,6 +71,8 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
 
     @Inject private lateinit var mangaRestorerFactory: MangaRestorer.Factory
 
+    @Inject private lateinit var chapterActions: SyncChapterActions
+
     override suspend fun doWork(): Result {
         graph.inject(this)
 
@@ -87,7 +89,7 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
         setForegroundSafely()
 
         return try {
-            SyncManager(context, mangaRepository, chapterRepository, historyRepository, categoryRepository, syncRepository, syncPreferences, json, protoBuf, getCategories, backupCreatorFactory, notifier, mangaRestorerFactory).syncData()
+            SyncManager(context, mangaRepository, chapterRepository, historyRepository, categoryRepository, syncRepository, syncPreferences, json, protoBuf, getCategories, backupCreatorFactory, notifier, mangaRestorerFactory, chapterActions).syncData()
             Result.success()
         } catch (e: OutOfMemoryError) {
             logcat(LogPriority.ERROR, e)

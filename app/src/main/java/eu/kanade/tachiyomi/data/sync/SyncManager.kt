@@ -59,6 +59,7 @@ class SyncManager(
     private val backupCreatorFactory: BackupCreator.Factory,
     private val notifier: SyncNotifier,
     private val mangaRestorerFactory: MangaRestorer.Factory,
+    private val chapterActions: SyncChapterActions,
 ) {
     private val backupCreator: BackupCreator = backupCreatorFactory.create(false)
     private val mangaRestorer: MangaRestorer = mangaRestorerFactory.create(true)
@@ -261,6 +262,9 @@ class SyncManager(
             return
         }
 
+        // the restore overwrites local chapter state, so remember it to apply the download rules afterwards
+        val chaptersBeforeRestore = chapterActions.snapshot(changedManga)
+
         val backupUri = writeSyncDataToCache(context, newSyncData)
         logcat(LogPriority.DEBUG) { "Got Backup Uri: $backupUri" }
         if (backupUri != null) {
@@ -285,6 +289,7 @@ class SyncManager(
                 // update the sync timestamp
                 syncPreferences.lastSyncTimestamp.set(Date().time)
                 syncPreferences.lastPushedAt.set(syncStart)
+                chapterActions.apply(chaptersBeforeRestore)
             } else {
                 // The cursor already advanced past the data that failed to apply, so
                 // ask the server for everything on the next run to self-heal.
