@@ -740,7 +740,7 @@ class ReaderViewModel(
         val nextChapter = state.value.viewerChapters?.nextChapter?.chapter ?: return
 
         // SY -->
-        val mangas = state.value.mergedManga ?: mapOf(manga.id to manga)
+        val mangas = state.value.mergedManga?.takeIf { it.isNotEmpty() } ?: mapOf(manga.id to manga)
         val nextChapterManga = mangas[nextChapter.mangaId] ?: return
         // SY <--
 
