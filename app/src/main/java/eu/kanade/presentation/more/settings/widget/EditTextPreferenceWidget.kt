@@ -33,6 +33,7 @@ fun EditTextPreferenceWidget(
     value: String,
     // SY -->
     widget: @Composable (() -> Unit)? = null,
+    singleLine: Boolean = true,
     // SY <--
     onConfirm: suspend (String) -> Boolean,
 ) {
@@ -71,7 +72,9 @@ fun EditTextPreferenceWidget(
                         }
                     },
                     isError = textFieldValue.text.isBlank(),
-                    singleLine = true,
+                    // SY -->
+                    singleLine = singleLine,
+                    // SY <--
                     modifier = Modifier.fillMaxWidth(),
                 )
             },

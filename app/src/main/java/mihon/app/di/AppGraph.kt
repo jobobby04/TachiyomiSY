@@ -41,6 +41,7 @@ import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegateImpl
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
+import eu.kanade.tachiyomi.ui.setting.SyncAccessLoginActivity
 import eu.kanade.tachiyomi.ui.setting.track.BaseOAuthLoginActivity
 import eu.kanade.tachiyomi.ui.setting.track.GoogleDriveLoginActivity
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
@@ -109,6 +110,7 @@ interface AppGraph : ViewModelGraph {
     fun inject(eHentaiUpdateWorker: EHentaiUpdateWorker)
     fun inject(ehLoginActivity: EhLoginActivity)
     fun inject(interceptActivity: InterceptActivity)
+    fun inject(syncAccessLoginActivity: SyncAccessLoginActivity)
     fun inject(googleDriveLoginActivity: GoogleDriveLoginActivity)
     fun inject(mangaDexLoginActivity: MangaDexLoginActivity)
     // SY <--

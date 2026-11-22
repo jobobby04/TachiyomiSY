@@ -248,6 +248,10 @@
             android:label="EHentaiLogin"
             android:exported="false"/>
 
+        <activity
+            android:name=".ui.setting.SyncAccessLoginActivity"
+            android:exported="false"/>
+
         <receiver
             android:name=".data.notification.NotificationReceiver"
             android:exported="false" />
