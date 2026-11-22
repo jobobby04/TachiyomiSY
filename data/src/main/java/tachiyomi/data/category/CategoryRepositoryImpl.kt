@@ -13,7 +13,9 @@ import tachiyomi.data.category.CategoryMapper.mapCategory
 import tachiyomi.data.subscribeToList
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.category.model.NewCategory
+import tachiyomi.domain.category.model.SyncedCategory
 import tachiyomi.domain.category.repository.CategoryRepository
+import kotlin.math.max
 
 @Inject
 @SingleIn(AppScope::class)
@@ -68,42 +70,47 @@ class CategoryRepositoryImpl(
     }
 
     // SY -->
-    override suspend fun insertWithSync(
-        name: String,
-        order: Long,
-        flags: Long,
-        version: Long,
-        uid: Long,
-        lastModifiedAt: Long,
-    ): Long {
-        return database.categoryQueries.insertWithOrder(
-            name = name,
-            order = order,
-            flags = flags,
-            stateVersion = version,
-            stateUid = uid,
-            stateLastModifiedAt = lastModifiedAt,
-        ).awaitAsOne()
-    }
-
-    override suspend fun updateSync(
-        name: String,
-        order: Long,
-        flags: Long,
-        version: Long,
-        uid: Long,
-        lastModifiedAt: Long,
-        categoryId: Long,
-    ) {
-        database.categoryQueries.updateSync(
-            name = name,
-            order = order,
-            flags = flags,
-            stateVersion = version,
-            stateUid = uid,
-            stateLastModifiedAt = lastModifiedAt,
-            id = categoryId,
-        )
+    override suspend fun applySynced(categories: List<SyncedCategory>) {
+        database.transaction {
+            val local = database.categoryQueries.getCategories(::mapCategory).awaitAsList()
+                .filterNot { it.isSystemCategory }
+            local.forEachIndexed { index, category ->
+                database.categoryQueries.updateOrderWhileSyncing(order = PARKED_ORDER_START - index, id = category.id)
+            }
+            val localByUid = local.associateBy { it.uid }
+            val localByName = local.associateBy { it.name }
+            val syncedIds = mutableSetOf<Long>()
+            var nextOrder = 0L
+            categories.sortedBy { it.order }.forEach { category ->
+                val order = max(category.order, nextOrder)
+                nextOrder = order + 1
+                val match = localByUid[category.uid].takeIf { category.uid != 0L } ?: localByName[category.name]
+                if (match != null) {
+                    syncedIds += match.id
+                    database.categoryQueries.updateSync(
+                        name = category.name,
+                        order = order,
+                        flags = category.flags,
+                        stateVersion = category.version,
+                        stateUid = category.uid.takeIf { it != 0L } ?: match.uid,
+                        stateLastModifiedAt = category.lastModifiedAt,
+                        id = match.id,
+                    )
+                } else {
+                    database.categoryQueries.insertWithOrder(
+                        name = category.name,
+                        order = order,
+                        flags = category.flags,
+                        stateVersion = category.version,
+                        stateUid = category.uid,
+                        stateLastModifiedAt = category.lastModifiedAt,
+                    ).awaitAsOne()
+                }
+            }
+            local.filterNot { it.id in syncedIds }.forEach { category ->
+                database.categoryQueries.updateOrderWhileSyncing(order = nextOrder++, id = category.id)
+            }
+        }
     }
 
     override suspend fun resetIsSyncing() {
@@ -152,3 +159,7 @@ class CategoryRepositoryImpl(
         database.categoryQueries.delete(id = categoryId)
     }
 }
+
+// SY -->
+private const val PARKED_ORDER_START = -2L
+// SY <--

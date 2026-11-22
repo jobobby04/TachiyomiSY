@@ -6,7 +6,6 @@ import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.create.BackupCreator
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.data.backup.models.Backup
-import eu.kanade.tachiyomi.data.backup.models.BackupChapter
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.restore.BackupRestoreWorker
 import eu.kanade.tachiyomi.data.backup.restore.RestoreOptions
@@ -27,10 +26,9 @@ import okio.sink
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.repository.CategoryRepository
-import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.repository.ChapterRepository
+import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.repository.MangaRepository
 import tachiyomi.domain.sync.repository.SyncRepository
 import java.io.File
@@ -51,6 +49,7 @@ class SyncManager(
     private val context: Context,
     private val mangaRepository: MangaRepository,
     private val chapterRepository: ChapterRepository,
+    private val historyRepository: HistoryRepository,
     private val categoryRepository: CategoryRepository,
     private val syncRepository: SyncRepository,
     private val syncPreferences: SyncPreferences,
@@ -203,13 +202,12 @@ class SyncManager(
             }
         }
 
-        val (filteredFavorites, nonFavorites) = filterFavoritesAndNonFavorites(remoteBackup)
-        updateNonFavorites(nonFavorites)
+        val changedManga = mangaToRestore(remoteBackup)
         // the restore below may not run, so its reset of the sync flag cannot be relied on
         syncRepository.resetMangaSyncing()
 
         val newSyncData = backup.copy(
-            backupManga = filteredFavorites,
+            backupManga = changedManga,
             backupCategories = remoteBackup.backupCategories,
             // a v2 delta only carries changed sources
             backupSources = remoteBackup.backupSources.ifEmpty { backup.backupSources },
@@ -222,7 +220,7 @@ class SyncManager(
             // SY <--
         )
 
-        val hasMangaChanges = filteredFavorites.isNotEmpty()
+        val hasMangaChanges = changedManga.isNotEmpty()
         val hasCategoryChanges = categoriesDiffer(backup.backupCategories, remoteBackup.backupCategories)
         // a v2 delta leaves out the sections nothing changed in; an absent section is not a change
         val hasSourceChanges = newSyncData.backupSources != backup.backupSources
@@ -335,124 +333,47 @@ class SyncManager(
     }
 
     private suspend fun getAllMangaThatNeedsSync(): List<Manga> {
-        return mangaRepository.getMangasWithFavoriteTimestamp()
+        return mangaRepository.getMangasToSync(syncPreferences.lastPushedAt.get())
     }
 
     private suspend fun getMangasModifiedSince(since: Long): List<Manga> {
         return mangaRepository.getMangasModifiedSince(since)
     }
 
-    private suspend fun isMangaDifferent(localManga: Manga, remoteManga: BackupManga): Boolean {
-        val localChapters = chapterRepository.getChapterByMangaId(localManga.id)
-        val localCategories = getCategories.await(localManga.id).map { it.order }
-
-        if (areChaptersDifferent(localChapters, remoteManga.chapters)) {
-            return true
-        }
-
-        if (localManga.version != remoteManga.version) {
-            return true
-        }
-
-        if (localCategories.toSet() != remoteManga.categories.toSet()) {
-            return true
-        }
-
-        return false
+    private suspend fun localStateOf(manga: Manga): LocalMangaState {
+        val chapters = chapterRepository.getChapterByMangaId(manga.id)
+        val chapterUrlById = chapters.associate { it.id to it.url }
+        return LocalMangaState(
+            manga = manga,
+            chapters = chapters,
+            categoryOrders = getCategories.await(manga.id).mapTo(mutableSetOf()) { it.order },
+            lastReadByChapterUrl = historyRepository.getHistoryByMangaId(manga.id)
+                .mapNotNull { history ->
+                    val url = chapterUrlById[history.chapterId] ?: return@mapNotNull null
+                    history.readAt?.let { url to it.toEpochMilliseconds() }
+                }
+                .toMap(),
+        )
     }
 
-    private fun areChaptersDifferent(localChapters: List<Chapter>, remoteChapters: List<BackupChapter>): Boolean {
-        val localChapterMap = localChapters.associateBy { it.url }
-        val remoteChapterMap = remoteChapters.associateBy { it.url }
-
-        if (localChapterMap.size != remoteChapterMap.size) {
-            return true
-        }
-
-        for ((url, localChapter) in localChapterMap) {
-            val remoteChapter = remoteChapterMap[url]
-
-            // If a matching remote chapter doesn't exist, or the version numbers are different, consider them different
-            if (remoteChapter == null || localChapter.version != remoteChapter.version) {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    /**
-     * Filters the favorite and non-favorite manga from the backup and checks
-     * if the favorite manga is different from the local database.
-     * @param backup the Backup object containing the backup data.
-     * @return a Pair of lists, where the first list contains different favorite manga
-     * and the second list contains non-favorite manga.
-     */
-    private suspend fun filterFavoritesAndNonFavorites(backup: Backup): Pair<List<BackupManga>, List<BackupManga>> {
-        val favorites = mutableListOf<BackupManga>()
-        val nonFavorites = mutableListOf<BackupManga>()
-        val logTag = "filterFavoritesAndNonFavorites"
+    private suspend fun mangaToRestore(backup: Backup): List<BackupManga> {
+        val localMangaByKey = getAllMangaFromDB().associateBy { Pair(it.source, it.url) }
+        val toRestore = mutableListOf<BackupManga>()
 
         val elapsedTimeMillis = measureTimeMillis {
-            val databaseManga = getAllMangaFromDB()
-            val localMangaMap = databaseManga.associateBy {
-                Pair(it.source, it.url)
-            }
-
-            logcat(LogPriority.DEBUG, logTag) { "Starting to filter favorites and non-favorites from backup data." }
-
             backup.backupManga.forEach { remoteManga ->
-                val compositeKey = Pair(remoteManga.source, remoteManga.url)
-                val localManga = localMangaMap[compositeKey]
-                when {
-                    // Checks if the manga is in favorites and needs updating or adding
-                    remoteManga.favorite -> {
-                        if (localManga == null || isMangaDifferent(localManga, remoteManga)) {
-                            logcat(LogPriority.DEBUG, logTag) { "Adding to favorites: ${remoteManga.title}" }
-                            favorites.add(remoteManga)
-                        } else {
-                            logcat(LogPriority.DEBUG, logTag) { "Already up-to-date favorite: ${remoteManga.title}" }
-                        }
-                    }
-                    // Handle non-favorites
-                    !remoteManga.favorite -> {
-                        logcat(LogPriority.DEBUG, logTag) { "Adding to non-favorites: ${remoteManga.title}" }
-                        nonFavorites.add(remoteManga)
-                    }
+                val localManga = localMangaByKey[Pair(remoteManga.source, remoteManga.url)]
+                val restore = when (localManga) {
+                    null -> remoteManga.favorite
+                    else -> needsRestore(localStateOf(localManga), remoteManga)
                 }
+                if (restore) toRestore.add(remoteManga)
             }
         }
 
-        val minutes = elapsedTimeMillis / 60000
-        val seconds = (elapsedTimeMillis % 60000) / 1000
-        logcat(LogPriority.DEBUG, logTag) {
-            "Filtering completed in ${minutes}m ${seconds}s. Favorites found: ${favorites.size}, " +
-                "Non-favorites found: ${nonFavorites.size}"
+        logcat(LogPriority.DEBUG, "mangaToRestore") {
+            "Found ${toRestore.size} of ${backup.backupManga.size} manga to restore in ${elapsedTimeMillis}ms"
         }
-
-        return Pair(favorites, nonFavorites)
-    }
-
-    /**
-     * Updates the non-favorite manga in the local database with their favorite status from the backup.
-     * @param nonFavorites the list of non-favorite BackupManga objects from the backup.
-     */
-    private suspend fun updateNonFavorites(nonFavorites: List<BackupManga>) {
-        val localMangaList = getAllMangaFromDB()
-
-        val localMangaMap = localMangaList.associateBy { Pair(it.source, it.url) }
-
-        nonFavorites.forEach { nonFavorite ->
-            val key = Pair(nonFavorite.source, nonFavorite.url)
-            localMangaMap[key]?.let { localManga ->
-                if (localManga.favorite != nonFavorite.favorite) {
-                    mangaRepository.update(
-                        MangaUpdate(localManga.id) {
-                            favoriteAt = if (nonFavorite.favorite) Clock.System.now() else null
-                        },
-                    )
-                }
-            }
-        }
+        return toRestore
     }
 }

@@ -247,9 +247,9 @@ class PagePreviewFetcher(
             return PagePreviewFetcher(
                 page = data,
                 options = options,
-                pagePreviewFile = { pagePreviewCache.getImageFile(data.imageUrl) },
-                isInCache = { pagePreviewCache.isImageInCache(data.imageUrl) },
-                writeToCache = { pagePreviewCache.putImageToCache(data.imageUrl, it) },
+                pagePreviewFile = { pagePreviewCache.getImageFile(data.cacheKey) },
+                isInCache = { pagePreviewCache.isImageInCache(data.cacheKey) },
+                writeToCache = { pagePreviewCache.putImageToCache(data.cacheKey, it) },
                 diskCacheKeyLazy = lazy { imageLoader.components.key(data, options)!! },
                 getSource = { sourceManager.get(data.source)?.getMainSource<PagePreviewSource>() },
                 callFactoryLazy = callFactoryLazy,

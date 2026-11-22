@@ -42,7 +42,7 @@ class BackupProto3DecodeTest {
         ProtoBuf.decodeFromByteArray(BackupSource.serializer(), empty)
         ProtoBuf.decodeFromByteArray(BackupSavedSearch.serializer(), empty)
         ProtoBuf.decodeFromByteArray(BackupExtensionStore.serializer(), empty)
-        ProtoBuf.decodeFromByteArray(BackupMergedMangaReference.serializer(), empty)
+        ProtoBuf.decodeFromByteArray(BackupMergedEntry.serializer(), empty)
         ProtoBuf.decodeFromByteArray(BackupSourcePreferences.serializer(), empty)
         assertEquals(0L, ProtoBuf.decodeFromByteArray(BackupManga.serializer(), empty).source)
     }

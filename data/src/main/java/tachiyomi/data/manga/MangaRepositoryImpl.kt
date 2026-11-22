@@ -317,9 +317,9 @@ class MangaRepositoryImpl(
             .map(MangaMapper::mapLibraryView)
     }
 
-    override suspend fun getMangasWithFavoriteTimestamp(): List<Manga> {
+    override suspend fun getMangasToSync(removedSince: Long): List<Manga> {
         return database.mangaQueries
-            .getMangasWithFavoriteTimestamp(MangaMapper::mapManga)
+            .getMangasToSync(removedSince, MangaMapper::mapManga)
             .awaitAsList()
     }
 

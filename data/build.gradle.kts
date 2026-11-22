@@ -47,5 +47,10 @@ dependencies {
     implementation(libs.bundles.sqldelight)
     // SY -->
     implementation(sylibs.sqlcipher)
+
+    testImplementation(libs.bundles.test)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(sylibs.sqldelight.sqliteDriver)
+    testRuntimeOnly(libs.junit.platform.launcher)
     // SY <--
 }

@@ -7,7 +7,8 @@ import eu.kanade.tachiyomi.data.backup.models.BackupExtensionStore
 import eu.kanade.tachiyomi.data.backup.models.BackupFlatMetadata
 import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
-import eu.kanade.tachiyomi.data.backup.models.BackupMergedMangaReference
+import eu.kanade.tachiyomi.data.backup.models.BackupMergeSettings
+import eu.kanade.tachiyomi.data.backup.models.BackupMergedEntry
 import eu.kanade.tachiyomi.data.backup.models.BackupPreference
 import eu.kanade.tachiyomi.data.backup.models.BackupSavedSearch
 import eu.kanade.tachiyomi.data.backup.models.BackupSource
@@ -119,9 +120,10 @@ class BackupStreamTest {
                         version = index + 2L
                         customTitle = "Custom $index"
                         customStatus = index
-                        mergedMangaReferences = listOf(
-                            BackupMergedMangaReference(isInfoManga = true, mergeUrl = "/merge", mangaUrl = url, mangaSourceId = source),
+                        mergedEntries = listOf(
+                            BackupMergedEntry(isInfoManga = true, mangaUrl = url, mangaSourceId = source),
                         )
+                        mergeSettings = BackupMergeSettings(chapterSortMode = 2, infoMangaUrl = url, infoMangaSourceId = source)
                         flatMetadata = BackupFlatMetadata(
                             searchMetadata = BackupSearchMetadata(uploader = "uploader", extra = "{}", extraVersion = 3),
                             searchTags = listOf(BackupSearchTag(namespace = "artist", name = "name", type = 1)),
@@ -138,7 +140,8 @@ class BackupStreamTest {
         val (entries, metadata) = read(encode(backup))
         entries.map(::encode) shouldBe backup.backupManga.map(::encode)
         entries.map { it.flatMetadata } shouldBe backup.backupManga.map { it.flatMetadata }
-        entries.map { it.mergedMangaReferences } shouldBe backup.backupManga.map { it.mergedMangaReferences }
+        entries.map { it.mergedEntries } shouldBe backup.backupManga.map { it.mergedEntries }
+        entries.map { it.mergeSettings } shouldBe backup.backupManga.map { it.mergeSettings }
         entries.map { it.customTitle } shouldBe backup.backupManga.map { it.customTitle }
         metadata.backupSavedSearches shouldBe backup.backupSavedSearches
     }

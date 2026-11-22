@@ -20,7 +20,6 @@ import mihon.core.archive.epubReader
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
@@ -42,7 +41,6 @@ class ChapterLoader(
     // SY -->
     private val sourceManager: SourceManager,
     private val readerPrefs: ReaderPreferences,
-    private val mergedReferences: List<MergedMangaReference>,
     private val mergedManga: Map<Long, Manga>,
     private val sourcePreferences: SourcePreferences,
     private val cbzCrypto: CbzCrypto,
@@ -113,12 +111,9 @@ class ChapterLoader(
         return when {
             // SY -->
             source is MergedSource -> {
-                val mangaReference = mergedReferences.firstOrNull {
-                    it.mangaId == chapter.chapter.mangaId
-                } ?: error("Merge reference null")
-                val source = sourceManager.get(mangaReference.mangaSourceId)
-                    ?: error("Source ${mangaReference.mangaSourceId} was null")
                 val manga = mergedManga[chapter.chapter.mangaId] ?: error("Manga for merged chapter was null")
+                val source = sourceManager.get(manga.source)
+                    ?: error("Source ${manga.source} was null")
                 val isMergedMangaDownloaded = downloadManager.isChapterDownloaded(
                     chapterName = chapter.chapter.name,
                     chapterScanlator = chapter.chapter.scanlator,

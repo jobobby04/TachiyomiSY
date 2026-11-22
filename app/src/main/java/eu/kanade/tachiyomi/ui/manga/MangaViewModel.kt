@@ -87,7 +87,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -120,28 +119,24 @@ import tachiyomi.domain.chapter.service.calculateChapterGap
 import tachiyomi.domain.chapter.service.getChapterSort
 import tachiyomi.domain.chapter.service.missingChaptersCount
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.manga.interactor.DeleteMergeById
 import tachiyomi.domain.manga.interactor.GetDuplicateLibraryManga
 import tachiyomi.domain.manga.interactor.GetFlatMetadataById
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMangaWithChapters
+import tachiyomi.domain.manga.interactor.GetMergedEntriesById
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
-import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
 import tachiyomi.domain.manga.interactor.SetMangaUserInfo
-import tachiyomi.domain.manga.interactor.UpdateMergedSettings
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaRemoteUpdate
 import tachiyomi.domain.manga.model.MangaWithChapterCount
-import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
-import tachiyomi.domain.manga.model.MergedMangaReference
+import tachiyomi.domain.manga.model.MergedEntry
 import tachiyomi.domain.manga.model.applyFilter
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.UpsertTrack
 import tachiyomi.domain.track.model.Track
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.sy.SYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import kotlin.math.floor
@@ -172,10 +167,8 @@ class MangaViewModel(
     private val getManga: GetManga,
     private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId,
     private val getMergedMangaById: GetMergedMangaById,
-    private val getMergedReferencesById: GetMergedReferencesById,
-    private val updateMergedSettings: UpdateMergedSettings,
+    private val getMergedEntriesById: GetMergedEntriesById,
     private val smartSearchMerge: SmartSearchMerge,
-    private val deleteMergeById: DeleteMergeById,
     private val getFlatMetadata: GetFlatMetadataById,
     private val getPagePreviews: GetPagePreviews,
     private val upsertTrack: UpsertTrack,
@@ -297,13 +290,13 @@ class MangaViewModel(
 
     private val mergedData = combine(
         flow { emitAll(getMergedMangaById.subscribe(mangaId)) }.distinctUntilChanged(),
-        flow { emitAll(getMergedReferencesById.subscribe(mangaId)) }.distinctUntilChanged(),
-    ) { manga, references ->
+        flow { emitAll(getMergedEntriesById.subscribe(mangaId)) }.distinctUntilChanged(),
+    ) { manga, entries ->
         if (manga.isNotEmpty()) {
             MergedMangaData(
-                references,
+                entries,
                 manga.associateBy { it.id },
-                references.map { it.mangaSourceId }.distinct()
+                manga.map { it.source }.distinct()
                     .map { sourceManager.getOrStub(it) },
             )
         } else {
@@ -509,7 +502,9 @@ class MangaViewModel(
             val manga = loadedState.manga
             // SY -->
             if (loadedState.source.getMainSource() is PagePreviewSource) {
-                getPagePreviews(manga, loadedState.source)
+                if (loadedState.chapters.isNotEmpty()) {
+                    getPagePreviews(manga, loadedState.source)
+                }
             } else {
                 pagePreviewsState.value = PagePreviewState.Unused
             }
@@ -586,6 +581,11 @@ class MangaViewModel(
             if (manualFetch) {
                 downloadNewChapters(update.newChapters)
             }
+            // SY -->
+            if (fetchChapters) {
+                getPagePreviews(manga, sourceManager.getOrStub(manga.source), refresh = true)
+            }
+            // SY <--
         } catch (_: CancellationException) {
             // ignore
         } catch (e: Exception) {
@@ -685,31 +685,6 @@ class MangaViewModel(
 
     suspend fun smartSearchMerge(manga: Manga, originalMangaId: Long): Manga {
         return smartSearchMerge.smartSearchMerge(manga, originalMangaId, strict = true)
-    }
-
-    fun updateMergeSettings(mergedMangaReferences: List<MergedMangaReference>) {
-        appScope.launch {
-            if (mergedMangaReferences.isNotEmpty()) {
-                updateMergedSettings.awaitAll(
-                    mergedMangaReferences.map {
-                        MergeMangaSettingsUpdate(
-                            id = it.id,
-                            isInfoManga = it.isInfoManga,
-                            getChapterUpdates = it.getChapterUpdates,
-                            chapterPriority = it.chapterPriority,
-                            downloadChapters = it.downloadChapters,
-                            chapterSortMode = it.chapterSortMode,
-                        )
-                    },
-                )
-            }
-        }
-    }
-
-    fun deleteMerge(reference: MergedMangaReference) {
-        appScope.launch {
-            deleteMergeById.await(reference.id)
-        }
     }
     // SY <--
 
@@ -979,9 +954,9 @@ class MangaViewModel(
     }
 
     // SY -->
-    private fun getPagePreviews(manga: Manga, source: Source) {
+    private fun getPagePreviews(manga: Manga, source: Source, refresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
-            when (val result = getPagePreviews.await(manga, source, 1)) {
+            when (val result = getPagePreviews.await(manga, source, 1, refresh)) {
                 is GetPagePreviews.Result.Error -> pagePreviewsState.value = PagePreviewState.Error(result.error)
                 is GetPagePreviews.Result.Success ->
                     pagePreviewsState.value = PagePreviewState.Success(result.pagePreviews)
@@ -1477,7 +1452,7 @@ class MangaViewModel(
 
         // SY -->
         data class EditMangaInfo(val manga: Manga) : Dialog
-        data class EditMergedSettings(val mergedData: MergedMangaData) : Dialog
+        data object EditMergedSettings : Dialog
         // SY <--
 
         data object SettingsSheet : Dialog
@@ -1523,8 +1498,7 @@ class MangaViewModel(
     }
 
     fun showEditMergedSettingsDialog() {
-        val mergedData = successState?.mergedData ?: return
-        dialog.value = Dialog.EditMergedSettings(mergedData)
+        dialog.value = Dialog.EditMergedSettings
     }
     // SY <--
 
@@ -1649,7 +1623,7 @@ class MangaViewModel(
 }
 
 data class MergedMangaData(
-    val references: List<MergedMangaReference>,
+    val entries: List<MergedEntry>,
     val manga: Map<Long, Manga>,
     val sources: List<Source>,
 )

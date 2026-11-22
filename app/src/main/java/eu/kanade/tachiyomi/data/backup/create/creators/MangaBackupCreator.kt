@@ -5,8 +5,9 @@ import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.data.backup.models.BackupFlatMetadata
 import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
+import eu.kanade.tachiyomi.data.backup.models.BackupMergeSettings
+import eu.kanade.tachiyomi.data.backup.models.BackupMergedEntry
 import eu.kanade.tachiyomi.data.backup.models.toBackupChapter
-import eu.kanade.tachiyomi.data.backup.models.toBackupMergedMangaReference
 import eu.kanade.tachiyomi.data.backup.models.toBackupTracking
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
@@ -79,8 +80,24 @@ class MangaBackupCreator(
 
             // SY -->
             if (manga.source == MERGED_SOURCE_ID) {
-                mangaObject.mergedMangaReferences = mangaMergeRepository.getReferencesById(manga.id)
-                    .map { it.toBackupMergedMangaReference() }
+                mangaObject.mergedEntries = mangaMergeRepository.getEntriesById(manga.id).map { ref ->
+                    val entryManga = mangaRepository.getMangaById(ref.mangaId)
+                    BackupMergedEntry(
+                        fetchChapterUpdates = ref.fetchChapterUpdates,
+                        chapterPriority = ref.chapterPriority,
+                        downloadChapters = ref.downloadChapters,
+                        mangaUrl = entryManga.url,
+                        mangaSourceId = entryManga.source,
+                    )
+                }
+                mangaMergeRepository.getMergeSettings(manga.id)?.let { settings ->
+                    val infoManga = settings.infoMangaId?.let { mangaRepository.getMangaById(it) }
+                    mangaObject.mergeSettings = BackupMergeSettings(
+                        chapterSortMode = settings.chapterSortMode,
+                        infoMangaUrl = infoManga?.url.orEmpty(),
+                        infoMangaSourceId = infoManga?.source ?: 0L,
+                    )
+                }
             }
 
             val source = sourceManager.get(manga.source)?.getMainSource<MetadataSource<*, *>>()

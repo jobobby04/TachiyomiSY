@@ -1,35 +1,93 @@
- -- SY-specific file
+-- SY-specific file
 import kotlin.Boolean;
 
-CREATE TABLE merged(
-    _id INTEGER NOT NULL PRIMARY KEY,
-    info_manga INTEGER AS Boolean NOT NULL,
-    get_chapter_updates INTEGER AS Boolean NOT NULL,
-    chapter_sort_mode INTEGER NOT NULL,
-    chapter_priority INTEGER NOT NULL,
-    download_chapters INTEGER AS Boolean NOT NULL,
-    merge_id INTEGER NOT NULL,
-    merge_url TEXT NOT NULL,
-    manga_id INTEGER,
-    manga_url TEXT NOT NULL,
-    manga_source INTEGER NOT NULL,
+-- One row per merged entry. Merge-level settings live here.
+CREATE TABLE merge(
+    manga_id INTEGER NOT NULL PRIMARY KEY,
+    chapter_sort_mode INTEGER NOT NULL DEFAULT 0,
+    info_manga_id INTEGER,
     FOREIGN KEY(manga_id) REFERENCES manga (id)
-    ON DELETE SET NULL,
-    FOREIGN KEY(merge_id) REFERENCES manga (id)
+    ON DELETE CASCADE,
+    FOREIGN KEY(info_manga_id) REFERENCES manga (id)
+    ON DELETE SET NULL
+);
+
+-- One row per underlying entry in a merge. Per-entry settings live here.
+CREATE TABLE merged_entry(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    merge_id INTEGER NOT NULL,
+    manga_id INTEGER NOT NULL,
+    fetch_chapter_updates INTEGER AS Boolean NOT NULL DEFAULT 1,
+    download_chapters INTEGER AS Boolean NOT NULL DEFAULT 1,
+    chapter_priority INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(merge_id, manga_id),
+    FOREIGN KEY(merge_id) REFERENCES merge (manga_id)
+    ON DELETE CASCADE,
+    FOREIGN KEY(manga_id) REFERENCES manga (id)
     ON DELETE CASCADE
 );
 
-CREATE INDEX merged_merge_id_index ON merged(merge_id);
+CREATE INDEX merged_entry_merge_id_index ON merged_entry(merge_id);
 
-selectByMergeId:
+selectMerge:
+SELECT manga_id, chapter_sort_mode, info_manga_id
+FROM merge
+WHERE manga_id = :mangaId;
+
+insertMerge:
+INSERT INTO merge(manga_id, chapter_sort_mode, info_manga_id)
+VALUES (:mangaId, :chapterSortMode, :infoMangaId)
+ON CONFLICT(manga_id) DO UPDATE SET
+    chapter_sort_mode = excluded.chapter_sort_mode,
+    info_manga_id = excluded.info_manga_id;
+
+updateMerge:
+UPDATE merge SET
+    chapter_sort_mode = :chapterSortMode,
+    info_manga_id = :infoMangaId
+WHERE manga_id = :mangaId;
+
+selectEntriesByMergeId:
 SELECT
-    _id, info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
-    merge_id, merge_url, manga_id, manga_url, manga_source
-FROM merged
+    _id, merge_id, manga_id, fetch_chapter_updates, download_chapters, chapter_priority
+FROM merged_entry
 WHERE merge_id = :mergeId;
 
-deleteByMergeId:
-DELETE FROM merged
+selectAllEntries:
+SELECT
+    _id, merge_id, manga_id, fetch_chapter_updates, download_chapters, chapter_priority
+FROM merged_entry;
+
+insertEntry:
+INSERT INTO merged_entry(
+    merge_id, manga_id, fetch_chapter_updates, download_chapters, chapter_priority
+)
+VALUES (
+    :mergeId, :mangaId, :fetchChapterUpdates, :downloadChapters, :chapterPriority
+);
+
+insertEntryReturningId:
+INSERT INTO merged_entry(
+    merge_id, manga_id, fetch_chapter_updates, download_chapters, chapter_priority
+)
+VALUES (
+    :mergeId, :mangaId, :fetchChapterUpdates, :downloadChapters, :chapterPriority
+)
+RETURNING _id;
+
+updateEntry:
+UPDATE merged_entry SET
+    fetch_chapter_updates = :fetchChapterUpdates,
+    download_chapters = :downloadChapters,
+    chapter_priority = :chapterPriority
+WHERE _id = :id;
+
+deleteEntryById:
+DELETE FROM merged_entry
+WHERE _id = :id;
+
+deleteEntriesByMergeId:
+DELETE FROM merged_entry
 WHERE merge_id = :mergeId;
 
 selectMergedMangasById:
@@ -44,7 +102,7 @@ SELECT
     manga.user_title, manga.user_author, manga.user_artist, manga.user_thumbnail_url,
     manga.user_description, manga.user_genre, manga.user_status
 FROM (
-    SELECT manga_id FROM merged WHERE merge_id = :mergeId
+    SELECT manga_id FROM merged_entry WHERE merge_id = :mergeId
 ) AS M
 JOIN manga
 ON manga.id = M.manga_id;
@@ -61,7 +119,7 @@ SELECT
     manga.user_title, manga.user_author, manga.user_artist, manga.user_thumbnail_url,
     manga.user_description, manga.user_genre, manga.user_status
 FROM (
-    SELECT manga_id FROM merged WHERE merge_id = :mergeId AND download_chapters = 1
+    SELECT manga_id FROM merged_entry WHERE merge_id = :mergeId AND download_chapters = 1
 ) AS M
 JOIN manga
 ON manga.id = M.manga_id;
@@ -78,50 +136,7 @@ SELECT
     manga.user_title, manga.user_author, manga.user_artist, manga.user_thumbnail_url,
     manga.user_description, manga.user_genre, manga.user_status
 FROM (
-    SELECT manga_id FROM merged
+    SELECT manga_id FROM merged_entry
 ) AS M
 JOIN manga
 ON manga.id = M.manga_id;
-
-selectAll:
-SELECT
-    _id, info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
-    merge_id, merge_url, manga_id, manga_url, manga_source
-FROM merged;
-
-insertReturningId:
-INSERT INTO merged(
-    info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
-    merge_id, merge_url, manga_id, manga_url, manga_source
-)
-VALUES (
-    :infoManga, :getChapterUpdates, :chapterSortMode, :chapterPriority, :downloadChapters,
-    :mergeId, :mergeUrl, :mangaId, :mangaUrl, :mangaSource
-)
-RETURNING _id;
-
-insert:
-INSERT INTO merged(
-    info_manga, get_chapter_updates, chapter_sort_mode, chapter_priority, download_chapters,
-    merge_id, merge_url, manga_id, manga_url, manga_source
-)
-VALUES (
-    :infoManga, :getChapterUpdates, :chapterSortMode, :chapterPriority, :downloadChapters,
-    :mergeId, :mergeUrl, :mangaId, :mangaUrl, :mangaSource
-);
-
-updateSettingsById:
-UPDATE merged SET
-    get_chapter_updates = coalesce(:getChapterUpdates, get_chapter_updates),
-    download_chapters = coalesce(:downloadChapters, download_chapters),
-    info_manga = coalesce(:infoManga, info_manga),
-    chapter_priority = coalesce(:chapterPriority, chapter_priority),
-    chapter_sort_mode = coalesce(:chapterSortMode, chapter_sort_mode)
-WHERE _id = :id;
-
-deleteById:
-DELETE FROM merged
-WHERE _id = :id;
-
-deleteAll:
-DELETE FROM merged;

@@ -6,6 +6,7 @@ import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.NewCategory
+import tachiyomi.domain.category.model.SyncedCategory
 import tachiyomi.domain.category.repository.CategoryRepository
 import tachiyomi.domain.library.service.LibraryPreferences
 
@@ -32,41 +33,18 @@ class CategoriesRestorer(
 
         // SY -->
         if (isSync) {
-            val dbCategoriesByName = dbCategories.associateBy { it.name }
-            val dbCategoriesByUid = dbCategories.associateBy { it.uid }
-
-            backupCategories.sortedBy { it.order }.forEach { backupCategory ->
-                var dbCategory = if (backupCategory.uid != 0L) {
-                    dbCategoriesByUid[backupCategory.uid]
-                } else {
-                    null
-                }
-
-                if (dbCategory == null) {
-                    dbCategory = dbCategoriesByName[backupCategory.name]
-                }
-
-                if (dbCategory != null) {
-                    categoryRepository.updateSync(
-                        name = backupCategory.name,
-                        order = backupCategory.order,
-                        flags = backupCategory.flags,
-                        version = backupCategory.version,
-                        uid = if (backupCategory.uid != 0L) backupCategory.uid else dbCategory.uid,
-                        lastModifiedAt = backupCategory.lastModifiedAt,
-                        categoryId = dbCategory.id,
+            categoryRepository.applySynced(
+                backupCategories.map {
+                    SyncedCategory(
+                        name = it.name,
+                        order = it.order,
+                        flags = it.flags,
+                        version = it.version,
+                        uid = it.uid,
+                        lastModifiedAt = it.lastModifiedAt,
                     )
-                } else {
-                    categoryRepository.insertWithSync(
-                        name = backupCategory.name,
-                        order = backupCategory.order,
-                        flags = backupCategory.flags,
-                        version = backupCategory.version,
-                        uid = backupCategory.uid,
-                        lastModifiedAt = backupCategory.lastModifiedAt,
-                    )
-                }
-            }
+                },
+            )
             categoryRepository.resetIsSyncing()
             return
         }

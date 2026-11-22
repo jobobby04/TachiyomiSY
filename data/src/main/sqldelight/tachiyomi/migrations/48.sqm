@@ -1,0 +1,88 @@
+import kotlin.Boolean;
+
+
+-- Split the merged table into merge (merge-level settings) + merged_entry (per-entry settings).
+-- The self-reference (manga_source 6969 = MERGED_SOURCE_ID) carried chapter_sort_mode and the
+-- info flag; those move to the merge row. Dangling references (null manga_id) are dropped.
+CREATE TABLE merge(
+    manga_id INTEGER NOT NULL PRIMARY KEY,
+    chapter_sort_mode INTEGER NOT NULL DEFAULT 0,
+    info_manga_id INTEGER,
+    FOREIGN KEY(manga_id) REFERENCES manga (id)
+    ON DELETE CASCADE,
+    FOREIGN KEY(info_manga_id) REFERENCES manga (id)
+    ON DELETE SET NULL
+);
+
+CREATE TABLE merged_entry(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    merge_id INTEGER NOT NULL,
+    manga_id INTEGER NOT NULL,
+    fetch_chapter_updates INTEGER AS Boolean NOT NULL DEFAULT 1,
+    download_chapters INTEGER AS Boolean NOT NULL DEFAULT 1,
+    chapter_priority INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(merge_id, manga_id),
+    FOREIGN KEY(merge_id) REFERENCES merge (manga_id)
+    ON DELETE CASCADE,
+    FOREIGN KEY(manga_id) REFERENCES manga (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX merged_entry_merge_id_index ON merged_entry(merge_id);
+
+INSERT INTO merge(manga_id, chapter_sort_mode, info_manga_id)
+SELECT
+    m.merge_id,
+    coalesce((SELECT s.chapter_sort_mode FROM merged s
+              WHERE s.merge_id = m.merge_id AND s.manga_source = 6969
+              LIMIT 1), 0),
+    (SELECT i.manga_id FROM merged i
+     WHERE i.merge_id = m.merge_id AND i.info_manga = 1 AND i.manga_id IS NOT NULL
+     LIMIT 1)
+FROM (SELECT DISTINCT merge_id FROM merged) m;
+
+INSERT INTO merged_entry(merge_id, manga_id, fetch_chapter_updates, download_chapters, chapter_priority)
+SELECT m.merge_id, m.manga_id, m.get_chapter_updates, m.download_chapters, m.chapter_priority
+FROM merged AS m
+WHERE m.manga_source <> 6969 AND m.manga_id IS NOT NULL
+  AND m._id = (
+      SELECT MIN(m2._id) FROM merged AS m2
+      WHERE m2.merge_id = m.merge_id AND m2.manga_id = m.manga_id
+        AND m2.manga_source <> 6969 AND m2.manga_id IS NOT NULL
+  );
+
+DROP TABLE merged;
+
+
+CREATE TABLE library_removal (
+    manga_id INTEGER NOT NULL PRIMARY KEY,
+    removed_at INTEGER NOT NULL,
+    FOREIGN KEY(manga_id) REFERENCES manga (id)
+    ON DELETE CASCADE
+);
+
+CREATE TRIGGER record_library_removal
+AFTER UPDATE OF user_favorite_at ON manga
+WHEN new.state_is_syncing = 0 AND old.user_favorite_at IS NOT NULL AND new.user_favorite_at IS NULL
+BEGIN
+    INSERT OR REPLACE INTO library_removal (manga_id, removed_at) VALUES (new.id, strftime('%s', 'now'));
+END;
+
+CREATE TRIGGER clear_library_removal
+AFTER UPDATE OF user_favorite_at ON manga
+WHEN new.user_favorite_at IS NOT NULL
+BEGIN
+    DELETE FROM library_removal WHERE manga_id = new.id;
+END;
+
+-- != is never true against NULL, so adding to or removing from the library never bumped the version
+DROP TRIGGER IF EXISTS update_manga_version;
+CREATE TRIGGER update_manga_version AFTER UPDATE ON manga
+BEGIN
+    UPDATE manga SET state_version = state_version + 1
+    WHERE id = new.id AND new.state_is_syncing = 0 AND (
+        new.remote_url IS NOT old.remote_url OR
+        new.remote_description IS NOT old.remote_description OR
+        new.user_favorite_at IS NOT old.user_favorite_at
+    );
+END;

@@ -1,36 +1,39 @@
 package tachiyomi.data.manga
 
-import tachiyomi.domain.manga.model.MergedMangaReference
+import tachiyomi.domain.manga.model.MergeSettings
+import tachiyomi.domain.manga.model.MergedEntry
 
 /**
  * SY-specific file
  */
 object MergedMangaMapper {
-    fun map(
-        id: Long,
-        isInfoManga: Boolean,
-        getChapterUpdates: Boolean,
+    fun mapMergeSettings(
+        mangaId: Long,
         chapterSortMode: Long,
-        chapterPriority: Long,
-        downloadChapters: Boolean,
-        mergeId: Long,
-        mergeUrl: String,
-        mangaId: Long?,
-        mangaUrl: String,
-        mangaSourceId: Long,
-    ): MergedMangaReference {
-        return MergedMangaReference(
-            id = id,
-            isInfoManga = isInfoManga,
-            getChapterUpdates = getChapterUpdates,
-            chapterSortMode = chapterSortMode.toInt(),
-            chapterPriority = chapterPriority.toInt(),
-            downloadChapters = downloadChapters,
-            mergeId = mergeId,
-            mergeUrl = mergeUrl,
+        infoMangaId: Long?,
+    ): MergeSettings {
+        return MergeSettings(
             mangaId = mangaId,
-            mangaUrl = mangaUrl,
-            mangaSourceId = mangaSourceId,
+            chapterSortMode = chapterSortMode.toInt(),
+            infoMangaId = infoMangaId,
+        )
+    }
+
+    fun mapEntry(
+        id: Long,
+        mergeId: Long,
+        mangaId: Long,
+        fetchChapterUpdates: Boolean,
+        downloadChapters: Boolean,
+        chapterPriority: Long,
+    ): MergedEntry {
+        return MergedEntry(
+            id = id,
+            mergeId = mergeId,
+            mangaId = mangaId,
+            fetchChapterUpdates = fetchChapterUpdates,
+            downloadChapters = downloadChapters,
+            chapterPriority = chapterPriority.toInt(),
         )
     }
 }

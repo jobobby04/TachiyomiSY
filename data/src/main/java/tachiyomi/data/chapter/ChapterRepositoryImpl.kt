@@ -49,6 +49,7 @@ class ChapterRepositoryImpl(
                         remoteMemo = chapter.memo,
                         stateLastModifiedAt = chapter.lastModifiedAt,
                         stateVersion = chapter.version,
+                        stateIsSyncing = 0L,
                     )
                         // A chapter already stored for the entry is skipped
                         .awaitAsOneOrNull()
@@ -114,7 +115,8 @@ class ChapterRepositoryImpl(
                     // SY -->
                     stateLastModifiedAt = chapter.lastModifiedAt,
                     stateVersion = chapter.version,
-                    // SY <--
+                    stateIsSyncing = 0L,
+// SY <--
                 )
                     .awaitAsOne()
                 chapter.copy(id = chapterId)

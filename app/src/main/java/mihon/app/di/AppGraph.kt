@@ -43,11 +43,13 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.setting.SyncAccessLoginActivity
 import eu.kanade.tachiyomi.ui.setting.track.BaseOAuthLoginActivity
+import eu.kanade.tachiyomi.ui.setting.track.GoogleDriveLoginActivity
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import exh.debug.DebugFunctions
 import exh.eh.EHentaiUpdateWorker
+import exh.md.MangaDexLoginActivity
 import exh.pref.DelegateSourcePreferences
 import exh.source.ExhPreferences
 import exh.uconfig.EHConfigurator
@@ -109,6 +111,8 @@ interface AppGraph : ViewModelGraph {
     fun inject(ehLoginActivity: EhLoginActivity)
     fun inject(interceptActivity: InterceptActivity)
     fun inject(syncAccessLoginActivity: SyncAccessLoginActivity)
+    fun inject(googleDriveLoginActivity: GoogleDriveLoginActivity)
+    fun inject(mangaDexLoginActivity: MangaDexLoginActivity)
     // SY <--
 
     val context: Context

@@ -5,6 +5,7 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.category.repository.CategoryRepository
+import tachiyomi.domain.category.service.CategoryTombstones
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
 
@@ -14,8 +15,7 @@ class DeleteCategory(
     private val libraryPreferences: LibraryPreferences,
     private val downloadPreferences: DownloadPreferences,
     // SY -->
-    /** Called with the deleted category's sync uid, so sync can send a tombstone. */
-    private val onCategoryDeleted: (uid: Long) -> Unit = {},
+    private val categoryTombstones: CategoryTombstones,
     // SY <--
 ) {
 
@@ -26,7 +26,7 @@ class DeleteCategory(
             // SY <--
             categoryRepository.delete(categoryId)
             // SY -->
-            if (uid != null) onCategoryDeleted(uid)
+            if (uid != null) categoryTombstones.remember(uid)
             // SY <--
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)

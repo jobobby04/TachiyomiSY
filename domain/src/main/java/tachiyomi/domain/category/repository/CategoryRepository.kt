@@ -3,6 +3,7 @@ package tachiyomi.domain.category.repository
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.category.model.NewCategory
+import tachiyomi.domain.category.model.SyncedCategory
 
 interface CategoryRepository {
 
@@ -21,24 +22,7 @@ interface CategoryRepository {
     suspend fun insert(category: NewCategory)
 
     // SY -->
-    suspend fun insertWithSync(
-        name: String,
-        order: Long,
-        flags: Long,
-        version: Long,
-        uid: Long,
-        lastModifiedAt: Long,
-    ): Long
-
-    suspend fun updateSync(
-        name: String,
-        order: Long,
-        flags: Long,
-        version: Long,
-        uid: Long,
-        lastModifiedAt: Long,
-        categoryId: Long,
-    )
+    suspend fun applySynced(categories: List<SyncedCategory>)
 
     suspend fun resetIsSyncing()
 
