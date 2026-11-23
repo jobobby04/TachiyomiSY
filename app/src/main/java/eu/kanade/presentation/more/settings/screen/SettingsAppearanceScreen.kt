@@ -172,6 +172,13 @@ object SettingsAppearanceScreen : SearchableSettings {
                     preference = uiPreferences.imagesInDescription,
                     title = stringResource(MR.strings.pref_display_images_description),
                 ),
+                // SY -->
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = uiPreferences.volumeKeysScrollLists,
+                    title = stringResource(SYMR.strings.pref_volume_keys_scroll_lists),
+                    subtitle = stringResource(SYMR.strings.pref_volume_keys_scroll_lists_summary),
+                ),
+                // SY <--
             ),
         )
     }

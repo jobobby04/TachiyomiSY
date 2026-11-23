@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import tachiyomi.presentation.core.util.drawVerticalScrollbar
+import tachiyomi.presentation.core.util.volumeKeyScrollable
 
 /**
  * LazyColumn with scrollbar.
@@ -42,7 +43,8 @@ fun ScrollbarLazyColumn(
                 state = state,
                 reverseScrolling = reverseLayout,
                 positionOffsetPx = positionOffset,
-            ),
+            )
+            .volumeKeyScrollable(state),
         state = state,
         contentPadding = contentPadding,
         reverseLayout = reverseLayout,
@@ -75,6 +77,7 @@ fun FastScrollLazyColumn(
         endContentPadding = contentPadding.calculateEndPadding(LocalLayoutDirection.current),
     ) {
         LazyColumn(
+            modifier = Modifier.volumeKeyScrollable(state),
             state = state,
             contentPadding = contentPadding,
             reverseLayout = reverseLayout,

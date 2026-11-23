@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import tachiyomi.presentation.core.util.volumeKeyScrollable
 
 @Composable
 fun FastScrollLazyVerticalGrid(
@@ -46,6 +47,7 @@ fun FastScrollLazyVerticalGrid(
     ) {
         LazyVerticalGrid(
             columns = columns,
+            modifier = Modifier.volumeKeyScrollable(state),
             state = state,
             contentPadding = contentPadding,
             reverseLayout = reverseLayout,
