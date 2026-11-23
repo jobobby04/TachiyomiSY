@@ -1,15 +1,15 @@
 package eu.kanade.tachiyomi.data.sync.service
 
-import eu.kanade.tachiyomi.data.sync.QueuedHistoryTombstone
-import eu.kanade.tachiyomi.data.sync.queuedHistoryTombstone
-import eu.kanade.tachiyomi.data.sync.queuedHistoryTombstoneOf
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import tachiyomi.domain.history.model.PendingHistoryDeletion
 
 /**
  * SY-specific file
@@ -22,28 +22,39 @@ class DeletionRequestTest {
         explicitNulls = false
     }
 
+    private fun queued(
+        id: Long,
+        chapterUrl: String = "/m/ch1",
+        removedAtMs: Long = 1_700_000_000_000,
+    ) = PendingHistoryDeletion(
+        id = id,
+        sourceId = 1,
+        mangaUrl = "/m",
+        chapterUrl = chapterUrl,
+        removedAtMs = removedAtMs,
+    )
+
     private fun bodyOf(
         chapters: List<String> = emptyList(),
         mangas: List<String> = emptyList(),
-        histories: List<String> = emptyList(),
+        histories: List<PendingHistoryDeletion> = emptyList(),
     ): String = json.encodeToString(
         SyncYomiSyncService.Deletions.serializer(),
         SyncYomiSyncService.Deletions(deletionItems(chapters, mangas, histories)),
     )
 
     @Test
-    fun `a history item carries the queued time in seconds and nothing else does`() {
-        val historyKey = "1|/m\u001f/m/ch2"
+    fun `a history item carries the removal time in seconds and a two-segment key`() {
         val body = bodyOf(
             chapters = listOf("1|/m\u001f/m/ch1"),
             mangas = listOf("1|/m"),
-            histories = listOf(queuedHistoryTombstone(historyKey, 1_700_000_000L)),
+            histories = listOf(queued(id = 7, chapterUrl = "/m/ch2", removedAtMs = 1_700_000_000_123)),
         )
 
         val items = Json.parseToJsonElement(body).jsonObject.getValue("items").jsonArray
-        // the queued entry's time segment must not leak into the key: the server merges on the two-segment key
-        assertEquals(historyKey, items[2].jsonObject.getValue("key").jsonPrimitive.content)
-        // and the moment of the removal travels as whole seconds, not as the queue's raw milliseconds
+        // the queue row is not part of the key: the server merges on the key its chapter makes
+        assertEquals("1|/m\u001f/m/ch2", items[2].jsonObject.getValue("key").jsonPrimitive.content)
+        // and the moment of the removal travels as whole seconds, not as the queue's milliseconds
         assertEquals(1_700_000_000L, items[2].jsonObject.getValue("at").jsonPrimitive.long)
         // chapter and manga tombstones keep the two-field body the server already accepts
         assertEquals(setOf("kind", "key"), items[0].jsonObject.keys)
@@ -51,31 +62,34 @@ class DeletionRequestTest {
     }
 
     @Test
-    fun `a queued entry without a time sends its key unchanged and no at`() {
-        // queued by a build that did not record the removal: it must read as no action time at all, not as
+    fun `a queued entry with no recorded moment sends no at`() {
+        // 0 is the column's "the removal happened before any time was recorded", so it must not read as
         // a removal at the epoch, which would lose to every read there is
         assertEquals(
             """{"items":[{"kind":"history","key":"1|/m\u001f/m/ch1"}]}""",
-            bodyOf(histories = listOf("1|/m\u001f/m/ch1")),
+            bodyOf(histories = listOf(queued(id = 7, removedAtMs = 0))),
         )
     }
 
     @Test
-    fun `a request with no history entry is unchanged`() {
-        assertEquals(
-            """{"items":[{"kind":"chapter","key":"1|/m\u001f/m/ch1"},{"kind":"manga","key":"1|/m"}]}""",
-            bodyOf(chapters = listOf("1|/m\u001f/m/ch1"), mangas = listOf("1|/m")),
-        )
+    fun `a response that accounts for every sent entry confirms the request`() {
+        assertTrue(deletionCoversEveryItem("""{"applied":3,"acknowledged":3}""", 3))
+        // a retry against entries the server already tombstoned changes nothing and still read them all
+        assertTrue(deletionCoversEveryItem("""{"applied":0,"acknowledged":3}""", 3))
     }
 
     @Test
-    fun `a legacy key whose chapter url is a number is not read as a time`() {
-        // the separator only separates our segments, but a chapter url can be a bare number; an untimed
-        // entry keeps all of it or the request tombstones a key the server never held
-        assertEquals(QueuedHistoryTombstone("1|/m\u001f12345"), queuedHistoryTombstoneOf("1|/m\u001f12345"))
-        assertEquals(
-            QueuedHistoryTombstone(key = "1|/m\u001f/m/ch1", at = 1_700_000_000L),
-            queuedHistoryTombstoneOf(queuedHistoryTombstone("1|/m\u001f/m/ch1", 1_700_000_000L)),
-        )
+    fun `a legacy or partial response keeps the tombstones queued`() {
+        // a server that only reads the legacy chapter list answers without `applied` at all
+        assertFalse(deletionCoversEveryItem("""{"acknowledged":3}""", 3))
+        // and one that applied a part of the request accounts for fewer entries than were sent
+        assertFalse(deletionCoversEveryItem("""{"applied":1,"acknowledged":1}""", 3))
+    }
+
+    @Test
+    fun `an unreadable response confirms nothing`() {
+        assertFalse(deletionCoversEveryItem(null, 3))
+        assertFalse(deletionCoversEveryItem("", 3))
+        assertFalse(deletionCoversEveryItem("<html>bad gateway</html>", 3))
     }
 }

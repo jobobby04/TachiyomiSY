@@ -1,0 +1,13 @@
+-- SY -->
+-- The SyncYomi `history` tombstones this device still owes the server. The queue is its own table,
+-- keyed by the parts of the server's key and holding no foreign key, so a removal outlives the
+-- history row it came from and the chapter and manga it names.
+CREATE TABLE pending_history_deletion(
+    id INTEGER NOT NULL PRIMARY KEY,
+    source_id INTEGER NOT NULL,
+    manga_url TEXT NOT NULL,
+    chapter_url TEXT NOT NULL,
+    removed_at_ms INTEGER NOT NULL,
+    UNIQUE(source_id, manga_url, chapter_url)
+);
+-- SY <--

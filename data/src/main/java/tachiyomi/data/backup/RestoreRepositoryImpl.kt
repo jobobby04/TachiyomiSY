@@ -328,6 +328,15 @@ class RestoreRepositoryImpl(
             }
 
         toUpdate.forEach { (chapterId, readAt, readDuration) ->
+            // SY -->
+            // A removal still owed to the server is queued even with no history row in front of it
+            // (a removal resets the row, "clear all history" deletes it, and a source can drop and
+            // re-add a chapter), so the payload's read must not be written over it: only a local
+            // read cancels a queued removal.
+            if (database.historyQueries.countPendingHistoryDeletionsByChapterId(chapterId).awaitAsOne() > 0) {
+                return@forEach
+            }
+            // SY <--
             database.historyQueries.upsert(chapterId = chapterId, readAt = readAt, readDuration = readDuration)
         }
     }

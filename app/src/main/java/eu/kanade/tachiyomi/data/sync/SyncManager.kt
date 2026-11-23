@@ -116,6 +116,9 @@ class SyncManager(
                     syncPreferences,
                     notifier,
                     protoBuf,
+                    // SY -->
+                    historyRepository,
+                    // SY <--
                 )
             }
 

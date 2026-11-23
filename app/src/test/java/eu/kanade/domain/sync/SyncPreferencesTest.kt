@@ -1,13 +1,11 @@
 package eu.kanade.domain.sync
 
-import eu.kanade.tachiyomi.data.sync.queuedHistoryTombstoneOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import tachiyomi.core.common.preference.InMemoryPreferenceStore
 import tachiyomi.core.common.preference.InMemoryPreferenceStore.InMemoryPreference
-import tachiyomi.domain.history.model.HistoryTombstoneKey
 import kotlin.time.Clock
 
 class SyncPreferencesTest {
@@ -64,39 +62,16 @@ class SyncPreferencesTest {
     }
 
     @Test
-    fun `deleted history rows stay pending until the server acknowledges them`() = runTest {
+    fun `a deliverable history removal is stamped with the moment it happened`() = runTest {
         val prefs = syncPreferences(syncService = 1)
 
-        prefs.rememberDeletedHistory(listOf("1|/m\u001f/c1", "1|/m\u001f/c2"))
-        prefs.forgetDeletedHistory(listOf("1|/m\u001f/c1"))
+        val before = Clock.System.now().toEpochMilliseconds()
+        val at = SyncHistoryTombstones(prefs).removalTimeMs()
+        val after = Clock.System.now().toEpochMilliseconds()
 
-        assertEquals(setOf("1|/m\u001f/c2"), prefs.pendingDeletedHistoryKeys.get())
-    }
-
-    @Test
-    fun `a queued history removal records when it happened`() = runTest {
-        val prefs = syncPreferences(syncService = 1)
-        val tombstones = SyncHistoryTombstones(prefs)
-
-        val before = Clock.System.now().toEpochMilliseconds() / 1000
-        tombstones.remember(
-            listOf(
-                HistoryTombstoneKey(chapterId = 11, mangaSourceId = 1, mangaUrl = "/m", chapterUrl = "/m/ch1"),
-                HistoryTombstoneKey(chapterId = 12, mangaSourceId = 1, mangaUrl = "/m", chapterUrl = "/m/ch2"),
-            ),
-        )
-        val after = Clock.System.now().toEpochMilliseconds() / 1000
-
-        val queued = prefs.pendingDeletedHistoryKeys.get().map { queuedHistoryTombstoneOf(it) }
-        // the entry stays the server's merge key, with the moment of the removal appended as one more segment
-        assertEquals(setOf("1|/m\u001f/m/ch1", "1|/m\u001f/m/ch2"), queued.map { it.key }.toSet())
-        queued.forEach {
-            // Unix seconds, the unit the server compares: a millisecond stamp sits three orders of magnitude
-            // above this window, and no stamp at all reads as 0
-            assertTrue(it.at in before..after, "${it.at} is not in $before..$after")
-        }
-        // one removal stamps all of its keys with the same moment
-        assertEquals(1, queued.map { it.at }.toSet().size)
+        // epoch milliseconds, the unit the queue column keeps: a whole-second stamp sits three orders of
+        // magnitude below this window, and 0 would mean the removal is not queued at all
+        assertTrue(at in before..after, "$at is not in $before..$after")
     }
 
     @Test
@@ -116,7 +91,7 @@ class SyncPreferencesTest {
     }
 
     @Test
-    fun `deleted history rows are not tracked when history sync is off`() = runTest {
+    fun `a history removal is not queued when history sync is off`() = runTest {
         val prefs = SyncPreferences(
             InMemoryPreferenceStore(
                 sequenceOf(
@@ -126,19 +101,18 @@ class SyncPreferencesTest {
             ),
         )
 
-        prefs.rememberDeletedHistory(listOf("1|/m\u001f/c1"))
-
-        assertEquals(emptySet<String>(), prefs.pendingDeletedHistoryKeys.get())
+        // no moment means the removal queues nothing: a tombstone nothing would send is lost work
+        assertEquals(0L, SyncHistoryTombstones(prefs).removalTimeMs())
     }
 
     @Test
-    fun `deleted manga and history are not tracked for google drive`() = runTest {
+    fun `a history removal is not queued for google drive`() = runTest {
         val prefs = syncPreferences(syncService = 2)
 
         prefs.rememberDeletedManga(listOf("1|/gone"))
-        prefs.rememberDeletedHistory(listOf("1|/m\u001f/c1"))
 
         assertEquals(emptySet<String>(), prefs.pendingDeletedMangaKeys.get())
-        assertEquals(emptySet<String>(), prefs.pendingDeletedHistoryKeys.get())
+        // only SyncYomi speaks the v2 history tombstone protocol
+        assertEquals(0L, SyncHistoryTombstones(prefs).removalTimeMs())
     }
 }

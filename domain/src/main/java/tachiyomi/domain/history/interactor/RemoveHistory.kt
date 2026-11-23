@@ -13,30 +13,32 @@ class RemoveHistory(
 
     suspend fun awaitAll(): Boolean {
         // SY -->
-        // Every row is about to go, so its identity has to be read first
-        val keys = repository.getHistoryTombstoneKeys()
+        // Every row is about to go, so its identity has to be read first — but only a removal a
+        // server can be told about needs it.
+        val at = historyTombstones.removalTimeMs()
+        val keys = if (at == 0L) emptyList() else repository.getHistoryTombstoneKeys()
+        return repository.deleteAllHistory(keys, at)
         // SY <--
-        val deleted = repository.deleteAllHistory()
-        // SY -->
-        if (deleted) historyTombstones.remember(keys)
-        // SY <--
-        return deleted
     }
 
     suspend fun await(history: HistoryWithRelations) {
         // SY -->
-        historyTombstones.remember(
-            repository.getHistoryTombstoneKeys(history.mangaId).filter { it.chapterId == history.chapterId },
-        )
+        val at = historyTombstones.removalTimeMs()
+        val keys = if (at == 0L) {
+            emptyList()
+        } else {
+            repository.getHistoryTombstoneKeys(history.mangaId).filter { it.chapterId == history.chapterId }
+        }
+        repository.resetHistory(history.id, keys, at)
         // SY <--
-        repository.resetHistory(history.id)
     }
 
     suspend fun await(mangaId: Long) {
         // SY -->
-        historyTombstones.remember(repository.getHistoryTombstoneKeys(mangaId))
+        val at = historyTombstones.removalTimeMs()
+        val keys = if (at == 0L) emptyList() else repository.getHistoryTombstoneKeys(mangaId)
+        repository.resetHistoryByMangaId(mangaId, keys, at)
         // SY <--
-        repository.resetHistoryByMangaId(mangaId)
     }
 
     // SY -->

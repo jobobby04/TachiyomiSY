@@ -55,10 +55,6 @@ class SyncPreferences(
         Preference.appStateKey("sync_pending_deleted_manga_keys"),
         emptySet(),
     )
-    val pendingDeletedHistoryKeys: Preference<Set<String>> = preferenceStore.getStringSet(
-        Preference.appStateKey("sync_pending_deleted_history_keys"),
-        emptySet(),
-    )
     private val tombstoneMutex = Mutex()
 
     val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
@@ -134,19 +130,11 @@ class SyncPreferences(
         if (remaining.size != pending.size) pendingDeletedMangaKeys.set(remaining)
     }
 
-    /** History rows were cleared locally, so the next request can tombstone them. */
-    suspend fun rememberDeletedHistory(keys: Collection<String>) {
-        if (keys.isEmpty() || !isSyncYomiEnabled() || !getSyncSettings().history) return
-        tombstoneMutex.withLock {
-            pendingDeletedHistoryKeys.set(pendingDeletedHistoryKeys.get() + keys)
-        }
-    }
-
-    suspend fun forgetDeletedHistory(keys: Collection<String>) = tombstoneMutex.withLock {
-        val pending = pendingDeletedHistoryKeys.get()
-        val remaining = pending - keys.toSet()
-        if (remaining.size != pending.size) pendingDeletedHistoryKeys.set(remaining)
-    }
+    /**
+     * Whether a history removal made here can reach the server: only SyncYomi carries the v2 `history`
+     * tombstone, and only while history sync is on. A removal nothing can deliver queues nothing.
+     */
+    fun deliversHistoryTombstones(): Boolean = isSyncYomiEnabled() && getSyncSettings().history
 
     fun getSyncSettings(): SyncSettings {
         return SyncSettings(
