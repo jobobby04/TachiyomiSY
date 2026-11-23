@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
+import tachiyomi.domain.history.service.HistoryTombstoneDeliverability
 import java.util.UUID
 
 /**
@@ -49,6 +50,10 @@ class SyncPreferences(
     )
     val pendingDeletedChapterKeys: Preference<Set<String>> = preferenceStore.getStringSet(
         Preference.appStateKey("sync_pending_deleted_chapter_keys"),
+        emptySet(),
+    )
+    val pendingDeletedMangaKeys: Preference<Set<String>> = preferenceStore.getStringSet(
+        Preference.appStateKey("sync_pending_deleted_manga_keys"),
         emptySet(),
     )
     private val tombstoneMutex = Mutex()
@@ -110,6 +115,37 @@ class SyncPreferences(
         val pending = pendingDeletedChapterKeys.get()
         val remaining = pending - keys.toSet()
         if (remaining.size != pending.size) pendingDeletedChapterKeys.set(remaining)
+    }
+
+    /** A library entry was deleted locally, so the next request can tombstone it. */
+    suspend fun rememberDeletedManga(keys: Collection<String>) {
+        if (keys.isEmpty() || !isSyncYomiEnabled() || !getSyncSettings().libraryEntries) return
+        tombstoneMutex.withLock {
+            pendingDeletedMangaKeys.set(pendingDeletedMangaKeys.get() + keys)
+        }
+    }
+
+    suspend fun forgetDeletedManga(keys: Collection<String>) = tombstoneMutex.withLock {
+        val pending = pendingDeletedMangaKeys.get()
+        val remaining = pending - keys.toSet()
+        if (remaining.size != pending.size) pendingDeletedMangaKeys.set(remaining)
+    }
+
+    /**
+     * Whether a history removal made here can reach a server: only SyncYomi carries the v2 `history`
+     * tombstone, and only while history sync is on. The cached v2 probe is keyed by host, so a host
+     * this device has not probed yet is [HistoryTombstoneDeliverability.UNKNOWN] rather than a verdict
+     * — another host's answer says nothing about this one.
+     */
+    fun historyTombstoneDeliverability(): HistoryTombstoneDeliverability {
+        if (!isSyncYomiEnabled()) return HistoryTombstoneDeliverability.UNDELIVERABLE
+        if (!getSyncSettings().history) return HistoryTombstoneDeliverability.UNDELIVERABLE
+        if (v2ProbedHost.get() != clientHost.get()) return HistoryTombstoneDeliverability.UNKNOWN
+        return if (serverSupportsV2.get()) {
+            HistoryTombstoneDeliverability.DELIVERABLE
+        } else {
+            HistoryTombstoneDeliverability.UNDELIVERABLE
+        }
     }
 
     fun getSyncSettings(): SyncSettings {

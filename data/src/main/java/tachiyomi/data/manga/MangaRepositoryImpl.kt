@@ -24,6 +24,7 @@ import tachiyomi.data.subscribeToOneOrNull
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaRemoteUpdate
+import tachiyomi.domain.manga.model.MangaTombstoneKey
 import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.model.MangaUserInfoUpdate
 import tachiyomi.domain.manga.model.MangaWithChapterCount
@@ -141,6 +142,19 @@ class MangaRepositoryImpl(
     override suspend fun deleteNonLibraryManga(sourceIds: List<Long>, keepReadManga: Boolean) {
         database.mangaQueries.deleteNonLibraryManga(sourceIds, keepReadManga.toLong())
     }
+
+    // SY -->
+    override suspend fun getNonLibraryMangaToDelete(
+        sourceIds: List<Long>,
+        keepReadManga: Boolean,
+    ): List<MangaTombstoneKey> {
+        return database.mangaQueries
+            .getNonLibraryMangaToDelete(sourceIds, keepReadManga.toLong()) { sourceId, url ->
+                MangaTombstoneKey(sourceId, url)
+            }
+            .awaitAsList()
+    }
+    // SY <--
 
     override suspend fun setMangaCategories(mangaId: Long, categoryIds: List<Long>) {
         database.transaction {

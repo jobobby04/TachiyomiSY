@@ -116,6 +116,9 @@ class SyncManager(
                     syncPreferences,
                     notifier,
                     protoBuf,
+                    // SY -->
+                    historyRepository,
+                    // SY <--
                 )
             }
 
@@ -137,6 +140,18 @@ class SyncManager(
             notifier.showSyncError(e.message)
             return
         }
+
+        // SY -->
+        // A row queued for a tombstone this configuration can no longer deliver would block its entry
+        // for the rest of its life: a restore payload skips it and "clear database" keeps it. Only a
+        // verdict may drop the queue, so this runs after the capability probe above — a host that has
+        // not answered yet is UNKNOWN, and clearing there would discard tombstones this run's probe
+        // may still deliver.
+        if (dropsStrandedHistoryTombstones(syncPreferences.historyTombstoneDeliverability())) {
+            logcat(LogPriority.DEBUG) { "Dropping history tombstones no configured sync can deliver" }
+            historyRepository.clearAllPendingHistoryDeletions()
+        }
+        // SY <--
 
         val databaseManga = if (full) {
             getAllMangaThatNeedsSync()
@@ -177,12 +192,51 @@ class SyncManager(
             return
         }
 
-        if (remoteBackup === syncData.backup || (result.protocolV2 && !result.changed)) {
+        if (
+            skipRemoteResponse(
+                ownBackup = remoteBackup === syncData.backup,
+                protocolV2 = result.protocolV2,
+                changed = result.changed,
+                deletions = remoteBackup.deletions,
+            )
+        ) {
             // nothing changed
             logcat(LogPriority.DEBUG) { "Skip restore, nothing new on the remote" }
             finishWithSuccess(syncStart, "Sync completed successfully")
             return
         }
+
+        // SY -->
+        // A delta lists its tombstones explicitly; a server that does not send the list conveys a library
+        // removal only by leaving the manga out of a full snapshot, so fall back to that heuristic there.
+        if (remoteBackup.deletions.isNotEmpty()) {
+            val skippedKinds = applyDeletions(
+                plan = deletionPlan(remoteBackup.deletions),
+                mangaRepository = mangaRepository,
+                chapterRepository = chapterRepository,
+                historyRepository = historyRepository,
+                categoryRepository = categoryRepository,
+                librarySyncEnabled = syncOptions.libraryEntries,
+                historySyncEnabled = syncOptions.history,
+            )
+            if (skippedKinds.isNotEmpty()) {
+                logcat(LogPriority.DEBUG) {
+                    "Not applying tombstones of kinds ${skippedKinds.joinToString()}"
+                }
+            }
+        } else {
+            // The server applied tombstones elsewhere: a full snapshot is the whole remote library and every
+            // manga it sends carries its complete remaining history, so anything missing is gone everywhere.
+            applyServerTombstones(
+                remote = remoteBackup,
+                uploaded = backupManga,
+                full = full,
+                protocolV2 = result.protocolV2,
+                librarySyncEnabled = syncOptions.libraryEntries,
+                historySyncEnabled = syncOptions.history,
+            )
+        }
+        // SY <--
 
         if (!result.protocolV2) {
             // Stop the sync early if the remote backup is null or empty
@@ -295,6 +349,52 @@ class SyncManager(
         } else {
             logcat(LogPriority.ERROR) { "Failed to write sync data to file" }
         }
+    }
+
+    /**
+     * Drops local data the server no longer holds: library manga a full snapshot leaves out, and history
+     * rows a manga payload leaves out. Both are read from the response to the request that uploaded the
+     * local state, so what is missing was removed on another device and never because a local edit is
+     * still waiting to be uploaded.
+     */
+    private suspend fun applyServerTombstones(
+        remote: Backup,
+        uploaded: List<BackupManga>,
+        full: Boolean,
+        protocolV2: Boolean,
+        librarySyncEnabled: Boolean,
+        historySyncEnabled: Boolean,
+    ) {
+        mangaKeysToDelete(uploaded, remote.backupManga, full, protocolV2, librarySyncEnabled)
+            .forEach { (sourceId, mangaUrl) ->
+                val manga = mangaRepository.getMangaByUrlAndSourceId(mangaUrl, sourceId) ?: return@forEach
+                logcat(LogPriority.DEBUG) { "Deleting ${manga.url}: a full snapshot no longer has it" }
+                mangaRepository.deleteManga(manga.id)
+            }
+
+        if (!protocolV2 || !historySyncEnabled) return
+        remote.backupManga
+            .filter { it.history.isNotEmpty() }
+            .forEach { payload ->
+                val manga = mangaRepository.getMangaByUrlAndSourceId(payload.url, payload.source)
+                    ?: return@forEach
+                val chapterUrlById = chapterRepository.getChapterByMangaId(manga.id)
+                    .associate { it.id to it.url }
+                val historyChapterIds = historyRepository.getHistoryByMangaId(manga.id)
+                    .map { it.chapterId }
+                val toDelete = historyChapterIdsToDelete(
+                    payload = payload,
+                    historySyncEnabled = historySyncEnabled,
+                    localHistoryChapterIds = historyChapterIds,
+                    chapterUrlById = chapterUrlById,
+                )
+                if (toDelete.isNotEmpty()) {
+                    logcat(LogPriority.DEBUG) {
+                        "Deleting ${toDelete.size} history entries of ${manga.url} the payload no longer has"
+                    }
+                    historyRepository.deleteHistory(toDelete)
+                }
+            }
     }
 
     private fun finishWithSuccess(syncStart: Long, message: String) {

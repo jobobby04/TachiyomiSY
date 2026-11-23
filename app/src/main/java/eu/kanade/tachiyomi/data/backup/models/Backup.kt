@@ -21,4 +21,7 @@ data class Backup(
     @ProtoNumber(600) var backupSavedSearches: List<BackupSavedSearch> = emptyList(),
     @ProtoNumber(601) var backupFeeds: List<BackupFeed> = emptyList(),
     // SY <--
+    // SyncYomi v2 delta tombstones; 11000 is in the root-envelope band SyncYomi reserves for itself.
+    // A full snapshot and an old server never set it, so it stays empty there.
+    @ProtoNumber(11000) var deletions: List<BackupDeletedItem> = emptyList(),
 )

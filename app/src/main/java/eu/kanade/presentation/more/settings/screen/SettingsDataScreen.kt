@@ -518,6 +518,7 @@ object SettingsDataScreen : SearchableSettings {
     // SY -->
     @Composable
     private fun getSyncPreferences(syncPreferences: SyncPreferences, syncService: Int): List<Preference> {
+        val context = LocalContext.current
         return listOf(
             Preference.PreferenceGroup(
                 title = stringResource(SYMR.strings.pref_sync_service_category),
@@ -530,7 +531,21 @@ object SettingsDataScreen : SearchableSettings {
                             SyncManager.SyncService.SYNCYOMI.value to stringResource(SYMR.strings.syncyomi),
                             SyncManager.SyncService.GOOGLE_DRIVE.value to stringResource(SYMR.strings.google_drive),
                         ),
-                        onValueChanged = { true },
+                        onValueChanged = {
+                            // SY -->
+                            // The last repair when no run will ever happen: the interval is off and
+                            // nothing else triggers a sync. Any run sweeps these rows at its start.
+                            //
+                            // Keyed on the selected value, not on the cached probe: the swap is a
+                            // service change, which is a verdict on its own. Staying on SyncYomi (a host
+                            // change included) clears nothing — the next sync probes the new host
+                            // before it decides.
+                            if (it != SyncManager.SyncService.SYNCYOMI.value) {
+                                context.appGraph.historyRepository.clearAllPendingHistoryDeletions()
+                            }
+                            // SY <--
+                            true
+                        },
                     ),
                 ),
             ),

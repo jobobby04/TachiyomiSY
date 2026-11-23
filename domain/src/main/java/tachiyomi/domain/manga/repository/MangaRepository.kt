@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaRemoteUpdate
+import tachiyomi.domain.manga.model.MangaTombstoneKey
 import tachiyomi.domain.manga.model.MangaUpdate
 import tachiyomi.domain.manga.model.MangaUserInfoUpdate
 import tachiyomi.domain.manga.model.MangaWithChapterCount
@@ -39,6 +40,12 @@ interface MangaRepository {
     suspend fun resetViewerFlags(): Boolean
 
     suspend fun deleteNonLibraryManga(sourceIds: List<Long>, keepReadManga: Boolean)
+
+    // SY -->
+
+    /** The manga [deleteNonLibraryManga] would delete for [sourceIds], read before the rows are gone. */
+    suspend fun getNonLibraryMangaToDelete(sourceIds: List<Long>, keepReadManga: Boolean): List<MangaTombstoneKey>
+    // SY <--
 
     suspend fun setMangaCategories(mangaId: Long, categoryIds: List<Long>)
 

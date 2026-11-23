@@ -5,6 +5,7 @@ import android.os.Build
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.models.Backup
 import eu.kanade.tachiyomi.data.sync.SyncNotifier
+import eu.kanade.tachiyomi.data.sync.historyTombstoneKey
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.PUT
@@ -12,6 +13,7 @@ import eu.kanade.tachiyomi.network.await
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -25,6 +27,8 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.apache.http.HttpStatus
 import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.domain.history.model.PendingHistoryDeletion
+import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.i18n.MR
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
@@ -41,6 +45,9 @@ class SyncYomiSyncService(
     private val notifier: SyncNotifier,
 
     private val protoBuf: ProtoBuf,
+    // SY -->
+    private val historyRepository: HistoryRepository,
+    // SY <--
 ) : SyncService(context, json, syncPreferences) {
 
     private class SyncYomiException(message: String?) : Exception(message)
@@ -70,7 +77,15 @@ class SyncYomiSyncService(
     }
 
     @Serializable
-    private data class DeletedChapters(val deletedChapters: List<String> = emptyList())
+    internal data class DeletionItem(
+        val kind: String,
+        val key: String,
+        @EncodeDefault(EncodeDefault.Mode.NEVER)
+        val at: Long = 0,
+    )
+
+    @Serializable
+    internal data class Deletions(val items: List<DeletionItem> = emptyList())
 
     override suspend fun doSync(syncData: SyncData, full: Boolean): SyncResult {
         reportSyncEvent(SyncEventStatus.SYNC_STARTED)
@@ -140,7 +155,7 @@ class SyncYomiSyncService(
         val host = syncPreferences.clientHost.get()
         val apiKey = syncPreferences.clientAPIKey.get()
 
-        submitDeletedChapters(host, apiKey)
+        submitDeletions(host, apiKey)
 
         val pendingDeleted = syncPreferences.pendingDeletedCategoryUids.get()
         val headersBuilder = baseHeaders(apiKey)
@@ -374,15 +389,26 @@ class SyncYomiSyncService(
         }
     }
 
-    private suspend fun submitDeletedChapters(host: String, apiKey: String) {
-        val sent = syncPreferences.pendingDeletedChapterKeys.get()
-        if (sent.isEmpty()) return
+    /**
+     * Sends every pending tombstone in one request, chapters, manga and history together, and clears a queue
+     * only once the server acknowledged it. The whole pending set goes out at once: the server has no item
+     * cap, only a 64 MB body limit.
+     */
+    private suspend fun submitDeletions(host: String, apiKey: String) {
+        val chapters = syncPreferences.pendingDeletedChapterKeys.get()
+        val manga = syncPreferences.pendingDeletedMangaKeys.get()
+        // SY -->
+        val history = historyRepository.getPendingHistoryDeletions()
+        // SY <--
+        if (chapters.isEmpty() && manga.isEmpty() && history.isEmpty()) return
+
+        val items = deletionItems(chapters, manga, history)
 
         val request = POST(
             url = "$host/api/sync/v2/deletions",
             headers = baseHeaders(apiKey).build(),
             body = json
-                .encodeToString(DeletedChapters.serializer(), DeletedChapters(sent.toList()))
+                .encodeToString(Deletions.serializer(), Deletions(items))
                 .toRequestBody("application/json; charset=utf-8".toMediaType()),
         )
 
@@ -394,13 +420,85 @@ class SyncYomiSyncService(
             logcat(LogPriority.WARN) { "SyncYomi v2 deletions not sent: ${e.message}" }
             return
         }
-        response.use { resp ->
+        // SY -->
+        // The body is read, not just the status: a server that predates the `items` shape answers 2xx
+        // and processes none of them.
+        val body = response.use { resp ->
             if (!resp.isSuccessful) {
                 logcat(LogPriority.WARN) { "SyncYomi v2 deletions not applied: ${resp.code}" }
                 return
             }
+            resp.body.string()
         }
-        syncPreferences.forgetDeletedChapters(sent)
-        logcat(LogPriority.DEBUG) { "SyncYomi v2 deletions applied: ${sent.size} keys" }
+        // SY <--
+        // Only drop the keys that were sent; anything queued during the request stays pending.
+        syncPreferences.forgetDeletedChapters(chapters)
+        syncPreferences.forgetDeletedManga(manga)
+        // SY -->
+        if (history.isNotEmpty()) {
+            if (deletionCoversEveryItem(body, items.size)) {
+                // Only the rows of this request: one queued while it was in flight stays for the next run.
+                historyRepository.clearPendingHistoryDeletion(history.map { it.id })
+            } else {
+                logcat(LogPriority.DEBUG) {
+                    "SyncYomi v2 deletions: ${history.size} history tombstones stay pending, " +
+                        "the server did not report them applied"
+                }
+            }
+        }
+        // SY <--
+        logcat(LogPriority.DEBUG) { "SyncYomi v2 deletions applied: ${items.size} items" }
     }
+}
+
+/**
+ * The `/v2/deletions` items for the three pending queues. A history entry carries the removal time it was queued
+ * with as `at` in Unix seconds; a chapter or manga tombstone carries none.
+ */
+internal fun deletionItems(
+    chapters: Collection<String>,
+    mangas: Collection<String>,
+    histories: List<PendingHistoryDeletion>,
+): List<SyncYomiSyncService.DeletionItem> =
+    chapters.map { SyncYomiSyncService.DeletionItem("chapter", it) } +
+        mangas.map { SyncYomiSyncService.DeletionItem("manga", it) } +
+        histories.map {
+            SyncYomiSyncService.DeletionItem(
+                kind = "history",
+                // the server merges a history entry on its chapter's key, never on the queue row
+                key = historyTombstoneKey(it.sourceId, it.mangaUrl, it.chapterUrl),
+                // the column is epoch milliseconds, the wire field Unix seconds
+                at = it.removedAtMs / 1000,
+            )
+        }
+
+/**
+ * The body of a 2xx `/v2/deletions` response, which carries counts rather than keys: [applied] only
+ * exists on a server that reads the `items` shape, and [acknowledged] counts the entries it read.
+ */
+@Serializable
+internal data class DeletionResponse(
+    val acknowledged: Long = 0,
+    val applied: Long? = null,
+)
+
+private val deletionResponseJson = Json { ignoreUnknownKeys = true }
+
+/**
+ * Whether a 2xx body confirms that the server processed **every** entry of a request that carried
+ * [itemCount] items. A history tombstone has no legacy request shape, so a server that ignores
+ * `items` still answers 2xx; without `applied`, or with fewer entries accounted for than were sent,
+ * the queue rows stay for the next run instead of the tombstones being lost.
+ */
+internal fun deletionCoversEveryItem(body: String?, itemCount: Int): Boolean {
+    if (body.isNullOrBlank() || itemCount <= 0) return false
+    val response = try {
+        deletionResponseJson.decodeFromString(DeletionResponse.serializer(), body)
+    } catch (_: IllegalArgumentException) {
+        // not this shape, so an older server: no confirmation
+        return false
+    }
+    // no `applied` at all: a server that only read the legacy chapter list
+    val applied = response.applied ?: return false
+    return maxOf(response.acknowledged, applied) >= itemCount
 }
