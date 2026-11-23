@@ -2,8 +2,12 @@
 
 package eu.kanade.tachiyomi.source.model
 
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import mihon.core.common.extensions.EMPTY
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 
 class SMangaImpl : SManga {
 
@@ -29,9 +33,24 @@ class SMangaImpl : SManga {
 
     override var initialized: Boolean = false
 
+    // SY -->
+    // JsonObject is not java.io.Serializable; writeObject/readObject below carry it as a string
+    // so screens holding SManga in their saved state can be restored
+    @Transient
+    // SY <--
     override var memo: JsonObject = JsonObject.EMPTY
 
     // SY -->
+    private fun writeObject(out: ObjectOutputStream) {
+        out.defaultWriteObject()
+        out.writeObject(memo.toString())
+    }
+
+    private fun readObject(input: ObjectInputStream) {
+        input.defaultReadObject()
+        memo = Json.parseToJsonElement(input.readObject() as String).jsonObject
+    }
+
     override val originalTitle: String
         get() = title
     override val originalAuthor: String?
