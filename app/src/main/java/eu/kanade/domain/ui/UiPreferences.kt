@@ -71,6 +71,8 @@ class UiPreferences(
 
     val showNavHistory: Preference<Boolean> = preferenceStore.getBoolean("pref_show_history_button", true)
 
+    val volumeKeysScrollLists: Preference<Boolean> = preferenceStore.getBoolean("pref_volume_keys_scroll_lists", false)
+
     // SY <--
 
     companion object {
