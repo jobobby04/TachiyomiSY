@@ -49,4 +49,11 @@ class UpdatesPreferences(
         "pref_filter_updates_excluded_categories",
         emptyList(),
     )
+
+    // SY -->
+    val groupBySeries: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_group_updates_by_series",
+        false,
+    )
+    // SY <--
 }

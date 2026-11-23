@@ -63,6 +63,10 @@ fun UpdateScreen(
     onMultiMarkAsReadClicked: (List<UpdatesItem>, read: Boolean) -> Unit,
     onMultiDeleteClicked: (List<UpdatesItem>) -> Unit,
     onUpdateSelected: (UpdatesItem, Boolean, Boolean) -> Unit,
+    // SY -->
+    onToggleGroupExpanded: (String) -> Unit,
+    onToggleGroupSelection: (List<UpdatesItem>, Boolean) -> Unit,
+    // SY <--
     onOpenChapter: (UpdatesItem) -> Unit,
     onFilterClicked: () -> Unit,
     hasActiveFilters: Boolean,
@@ -146,6 +150,10 @@ fun UpdateScreen(
                                 preserveReadingPosition = preserveReadingPosition,
                                 // SY <--
                                 onUpdateSelected = onUpdateSelected,
+                                // SY -->
+                                onToggleGroupExpanded = onToggleGroupExpanded,
+                                onToggleGroupSelection = onToggleGroupSelection,
+                                // SY <--
                                 onClickCover = onClickCover,
                                 onClickUpdate = onOpenChapter,
                                 onDownloadChapter = onDownloadChapter,
@@ -256,4 +264,8 @@ private fun UpdatesBottomBar(
 sealed interface UpdatesUiModel {
     data class Header(val date: LocalDate) : UpdatesUiModel
     data class Item(val item: UpdatesItem) : UpdatesUiModel
+
+    // SY -->
+    data class Group(val key: String, val items: List<UpdatesItem>, val expanded: Boolean) : UpdatesUiModel
+    // SY <--
 }

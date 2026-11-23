@@ -30,6 +30,7 @@ import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.domain.updates.service.UpdatesPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.components.TriStateItem
 import tachiyomi.presentation.core.components.material.padding
@@ -119,6 +120,32 @@ private fun ColumnScope.FilterSheet(
             onCheckedChange = { toggleScanlatorFilter() },
         )
     }
+
+    // SY -->
+    val groupBySeries by viewModel.updatesPreferences.groupBySeries.collectAsState()
+
+    fun toggleGroupBySeries() = viewModel.updatesPreferences.groupBySeries.getAndSet { !it }
+
+    Row(
+        modifier = Modifier
+            .clickable { toggleGroupBySeries() }
+            .fillMaxWidth()
+            .padding(horizontal = SettingsItemsPaddings.Horizontal),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = stringResource(SYMR.strings.action_group_updates_by_series),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+
+        Switch(
+            checked = groupBySeries,
+            onCheckedChange = { toggleGroupBySeries() },
+        )
+    }
+    // SY <--
 }
 
 @Composable

@@ -108,6 +108,11 @@ class UpdatesViewModel(
 
     private val dialog = MutableStateFlow<Dialog?>(null)
 
+    // SY -->
+    // Keys of the series groups that are expanded, see [State.getUiModel]
+    private val expandedGroups = MutableStateFlow(emptySet<String>())
+    // SY <--
+
     private val downloadStates = MutableStateFlow(emptyMap<Long, Download.State>())
 
     // Progress ticks often, so only the download indicators that read it recompose instead of every tick rebuilding
@@ -203,9 +208,11 @@ class UpdatesViewModel(
         updateItems,
         selectedChapterIds,
         queuedDownloadStates.pausedWhileUnsubscribed(),
-        dialog,
-        hasActiveFilters,
-    ) { items, selectedIds, downloads, dialog, hasActiveFilters ->
+        combine(dialog, hasActiveFilters, ::Pair),
+        // SY -->
+        combine(updatesPreferences.groupBySeries.changes(), expandedGroups, ::Pair),
+        // SY <--
+    ) { items, selectedIds, downloads, (dialog, hasActiveFilters), (groupBySeries, expandedGroups) ->
         State(
             isLoading = items == null,
             hasActiveFilters = hasActiveFilters,
@@ -221,6 +228,10 @@ class UpdatesViewModel(
                 )
             },
             dialog = dialog,
+            // SY -->
+            groupBySeries = groupBySeries,
+            expandedGroups = expandedGroups,
+            // SY <--
         )
     }
         .flowOn(Dispatchers.Default)
@@ -449,6 +460,27 @@ class UpdatesViewModel(
         selectedPositions[1] = -1
     }
 
+    // SY -->
+    fun toggleGroupExpanded(key: String) {
+        expandedGroups.update { if (key in it) it - key else it + key }
+    }
+
+    fun toggleGroupSelection(groupItems: List<UpdatesItem>, selected: Boolean) {
+        val groupIds = groupItems.map { it.update.chapterId }
+        val newSelection = if (selected) {
+            selectedChapterIds.value + groupIds
+        } else {
+            selectedChapterIds.value - groupIds.toSet()
+        }
+        selectedChapterIds.update { newSelection }
+
+        // Keep the range selection anchored on what is selected now
+        val items = state.value.items
+        selectedPositions[0] = items.indexOfFirst { it.update.chapterId in newSelection }
+        selectedPositions[1] = items.indexOfLast { it.update.chapterId in newSelection }
+    }
+    // SY <--
+
     fun invertSelection() {
         val current = selectedChapterIds.value
         val ids = state.value.items
@@ -513,11 +545,18 @@ class UpdatesViewModel(
         val hasActiveFilters: Boolean = false,
         val items: List<UpdatesItem> = listOf(),
         val dialog: Dialog? = null,
+        // SY -->
+        val groupBySeries: Boolean = false,
+        val expandedGroups: Set<String> = emptySet(),
+        // SY <--
     ) {
         val selected = items.filter { it.selected }
         val selectionMode = selected.isNotEmpty()
 
         fun getUiModel(): List<UpdatesUiModel> {
+            // SY -->
+            if (groupBySeries) return getGroupedUiModel()
+            // SY <--
             return items
                 .map { UpdatesUiModel.Item(it) }
                 .insertSeparators { before, after ->
@@ -530,6 +569,35 @@ class UpdatesViewModel(
                     }
                 }
         }
+
+        // SY -->
+        /**
+         * Groups the chapters of a series fetched on the same day into a single expandable row. A series with
+         * a single chapter that day is kept as a plain row.
+         */
+        private fun getGroupedUiModel(): List<UpdatesUiModel> {
+            return buildList {
+                items
+                    .groupBy { it.update.dateFetch.toLocalDate() }
+                    .forEach { (date, dayItems) ->
+                        add(UpdatesUiModel.Header(date))
+                        dayItems.groupBy { it.update.mangaId }.values.forEach { seriesItems ->
+                            if (seriesItems.size == 1) {
+                                add(UpdatesUiModel.Item(seriesItems.single()))
+                                return@forEach
+                            }
+
+                            val key = "$date-${seriesItems.first().update.mangaId}"
+                            val expanded = key in expandedGroups
+                            add(UpdatesUiModel.Group(key, seriesItems, expanded))
+                            if (expanded) {
+                                seriesItems.forEach { add(UpdatesUiModel.Item(it)) }
+                            }
+                        }
+                    }
+            }
+        }
+        // SY <--
     }
 
     sealed interface Dialog {

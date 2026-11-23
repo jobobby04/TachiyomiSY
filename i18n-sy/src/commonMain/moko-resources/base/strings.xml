@@ -447,6 +447,9 @@ When this option is disabled, the gestures still work the same way, but those in
     <string name="rec_collecting">Collecting recommendations</string>
     <string name="rec_initializing">Initializing</string>
 
+    <!-- Updates -->
+    <string name="action_group_updates_by_series">Group by series</string>
+
     <!-- Library -->
     <!-- Library Actions -->
     <string name="no_valid_entry">No valid entry selected</string>

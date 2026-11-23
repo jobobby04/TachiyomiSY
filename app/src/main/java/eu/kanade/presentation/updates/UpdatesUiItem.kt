@@ -29,6 +29,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAll
+import androidx.compose.ui.util.fastAny
 import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.manga.components.ChapterDownloadIndicator
@@ -38,6 +40,8 @@ import eu.kanade.presentation.util.relativeTimeSpanString
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.KeyboardArrowDown
+import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import mihon.icons.materialsymbols.roundedfilled.Bookmark
 import mihon.icons.materialsymbols.roundedfilled.Circle
 import tachiyomi.domain.updates.model.UpdatesWithRelations
@@ -45,6 +49,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.ListGroupHeader
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.selectedBackground
 
@@ -82,6 +87,10 @@ internal fun LazyListScope.updatesUiItems(
     preserveReadingPosition: Boolean,
     // SY <--
     onUpdateSelected: (UpdatesItem, Boolean, Boolean) -> Unit,
+    // SY -->
+    onToggleGroupExpanded: (String) -> Unit,
+    onToggleGroupSelection: (List<UpdatesItem>, Boolean) -> Unit,
+    // SY <--
     onClickCover: (UpdatesItem) -> Unit,
     onClickUpdate: (UpdatesItem) -> Unit,
     onDownloadChapter: (List<UpdatesItem>, ChapterDownloadAction) -> Unit,
@@ -92,16 +101,44 @@ internal fun LazyListScope.updatesUiItems(
             when (it) {
                 is UpdatesUiModel.Header -> "header"
                 is UpdatesUiModel.Item -> "item"
+                // SY -->
+                is UpdatesUiModel.Group -> "group"
+                // SY <--
             }
         },
         key = {
             when (it) {
                 is UpdatesUiModel.Header -> "updatesHeader-${it.hashCode()}"
                 is UpdatesUiModel.Item -> "updates-${it.item.update.mangaId}-${it.item.update.chapterId}"
+                // SY -->
+                is UpdatesUiModel.Group -> "updatesGroup-${it.key}"
+                // SY <--
             }
         },
     ) { item ->
         when (item) {
+            // SY -->
+            is UpdatesUiModel.Group -> {
+                val allSelected = item.items.fastAll { it.selected }
+                UpdatesGroupUiItem(
+                    modifier = Modifier.animateItem(),
+                    update = item.items.first().update,
+                    chapterCount = item.items.size,
+                    hasUnread = item.items.fastAny { !it.update.read },
+                    expanded = item.expanded,
+                    selected = allSelected,
+                    onClick = {
+                        if (selectionMode) {
+                            onToggleGroupSelection(item.items, !allSelected)
+                        } else {
+                            onToggleGroupExpanded(item.key)
+                        }
+                    },
+                    onLongClick = { onToggleGroupSelection(item.items, !allSelected) },
+                    onClickCover = { onClickCover(item.items.first()) }.takeIf { !selectionMode },
+                )
+            }
+            // SY <--
             is UpdatesUiModel.Header -> {
                 ListGroupHeader(
                     modifier = Modifier.animateItem(),
@@ -254,3 +291,91 @@ private fun UpdatesUiItem(
         )
     }
 }
+
+// SY -->
+/**
+ * A row standing for all the chapters of a series fetched on the same day.
+ */
+@Composable
+private fun UpdatesGroupUiItem(
+    update: UpdatesWithRelations,
+    chapterCount: Int,
+    hasUnread: Boolean,
+    expanded: Boolean,
+    selected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onClickCover: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val haptic = LocalHapticFeedback.current
+    val textAlpha = if (hasUnread) 1f else DISABLED_ALPHA
+
+    Row(
+        modifier = modifier
+            .selectedBackground(selected)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = {
+                    onLongClick()
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
+            )
+            .height(56.dp)
+            .padding(horizontal = MaterialTheme.padding.medium),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MangaCover.Square(
+            modifier = Modifier
+                .padding(vertical = 6.dp)
+                .fillMaxHeight(),
+            data = update.coverData,
+            onClick = onClickCover,
+        )
+
+        Column(
+            modifier = Modifier
+                .padding(horizontal = MaterialTheme.padding.medium)
+                .weight(1f),
+        ) {
+            Text(
+                text = update.mangaTitle,
+                maxLines = 1,
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalContentColor.current.copy(alpha = textAlpha),
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (hasUnread) {
+                    Icon(
+                        imageVector = MaterialSymbols.RoundedFilled.Circle,
+                        contentDescription = stringResource(MR.strings.unread),
+                        modifier = Modifier
+                            .height(8.dp)
+                            .padding(end = 4.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Text(
+                    text = pluralStringResource(MR.plurals.manga_num_chapters, chapterCount, chapterCount),
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalContentColor.current.copy(alpha = textAlpha),
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
+        Icon(
+            imageVector = if (expanded) {
+                MaterialSymbols.Rounded.KeyboardArrowUp
+            } else {
+                MaterialSymbols.Rounded.KeyboardArrowDown
+            },
+            contentDescription = null,
+            tint = LocalContentColor.current.copy(alpha = textAlpha),
+        )
+    }
+}
+// SY <--
