@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.os.SystemClock
+import android.view.KeyEvent
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -61,6 +62,7 @@ import eu.kanade.core.preference.asState
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.domain.source.service.SourcePreferences
+import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.AppStateBanners
 import eu.kanade.presentation.components.DownloadedOnlyBannerBackgroundColor
 import eu.kanade.presentation.components.IncognitoModeBannerBackgroundColor
@@ -124,6 +126,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.util.VolumeKeyScroll
 import tachiyomi.presentation.core.util.collectAsState
 import java.util.LinkedList
 import kotlin.time.Duration.Companion.hours
@@ -162,6 +165,8 @@ class MainActivity : BaseActivity() {
     @Inject private lateinit var sourcePreferences: SourcePreferences
 
     @Inject private lateinit var preferenceStore: PreferenceStore
+
+    @Inject private lateinit var uiPreferences: UiPreferences
     // SY <--
 
     // To be checked by splash screen. If true then splash screen will be removed.
@@ -440,6 +445,31 @@ class MainActivity : BaseActivity() {
             logcat(LogPriority.WARN, e)
         }
     }
+
+    // SY -->
+    private var volumeKeyScrolled = false
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val keyCode = event.keyCode
+        if (
+            (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) &&
+            uiPreferences.volumeKeysScrollLists.get()
+        ) {
+            when (event.action) {
+                KeyEvent.ACTION_DOWN -> {
+                    volumeKeyScrolled = VolumeKeyScroll.scroll(forward = keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+                    if (volumeKeyScrolled) return true
+                }
+                // Swallow the release of a key that scrolled, so the volume isn't changed by it
+                KeyEvent.ACTION_UP -> if (volumeKeyScrolled) {
+                    volumeKeyScrolled = false
+                    return true
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+    // SY <--
 
     @Composable
     private fun HandleOnNewIntent(context: Context, navigator: Navigator) {
