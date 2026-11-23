@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.data.backup.models.BackupChapter
 import eu.kanade.tachiyomi.data.backup.models.BackupExtensionStore
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.history.service.HistoryTombstoneDeliverability
 import tachiyomi.domain.manga.model.Manga
 
 /**
@@ -47,6 +48,15 @@ internal fun mangaTombstoneKey(sourceId: Long, mangaUrl: String): String =
 /** A history row is keyed exactly like its chapter. */
 internal fun historyTombstoneKey(sourceId: Long, mangaUrl: String, chapterUrl: String): String =
     chapterTombstoneKey(sourceId, mangaUrl, chapterUrl)
+
+/**
+ * Whether the queued history tombstones must be dropped along with the removal they belong to: only a
+ * configuration that can never send one strands them, and a stranded row makes the restore skip its
+ * entry for the rest of its life. An [HistoryTombstoneDeliverability.UNKNOWN] host is not a verdict —
+ * this run is about to probe it, and dropping first would discard tombstones that probe may deliver.
+ */
+internal fun dropsStrandedHistoryTombstones(deliverability: HistoryTombstoneDeliverability): Boolean =
+    deliverability == HistoryTombstoneDeliverability.UNDELIVERABLE
 
 /**
  * The `(sourceId, url)` of library manga this device uploaded that a full snapshot no longer holds: the

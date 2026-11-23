@@ -76,6 +76,12 @@ interface HistoryRepository {
     suspend fun clearPendingHistoryDeletion(ids: Collection<Long>)
 
     /**
+     * Drops every queued tombstone a configuration change stranded (another service selected, history
+     * sync turned off, a host that is not v2). Their removals stand.
+     */
+    suspend fun clearAllPendingHistoryDeletions()
+
+    /**
      * Drops the history rows of [chapterIds] the server no longer has, keeping a row read after [at] (Unix seconds;
      * 0 for a tombstone that carries no action time).
      */

@@ -145,6 +145,32 @@ class HistoryPendingDeletionTest {
         repository.getPendingHistoryDeletions().map { it.id }.shouldContainExactly(queued.last().id)
     }
 
+    @Test
+    fun `clearing every queued row leaves the removals without their tombstones`() = runTest {
+        create()
+        insertHistory(chapterId = 11, mangaId = 1, readAt = 500_000L)
+        insertHistory(chapterId = 21, mangaId = 2, readAt = 500_000L)
+        repository.resetHistoryByMangaId(
+            mangaId = 1,
+            tombstones = listOf(key(11, 1, "/m")),
+            removedAtMs = 1_000L,
+        )
+        repository.resetHistoryByMangaId(
+            mangaId = 2,
+            tombstones = listOf(key(21, 2, "/m2")),
+            removedAtMs = 2_000L,
+        )
+
+        // a configuration change made both undeliverable, so no request will ever send them
+        repository.clearAllPendingHistoryDeletions()
+
+        repository.getPendingHistoryDeletions().shouldBeEmpty()
+        // the removals stand: the rows stay reset, they just owe nothing to a server any more
+        remainingChapterIds(1).shouldContainExactly(listOf(11L))
+        remainingChapterIds(2).shouldContainExactly(listOf(21L))
+        readAtOf(21) shouldBe null
+    }
+
     private fun key(chapterId: Long, mangaId: Long, mangaUrl: String = "/m") = HistoryTombstoneKey(
         chapterId = chapterId,
         mangaSourceId = if (mangaId == 1L) 1L else 2L,

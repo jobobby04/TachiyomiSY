@@ -114,6 +114,11 @@ clearPendingHistoryDeletion:
 DELETE FROM pending_history_deletion
 WHERE id IN :ids;
 
+-- Drops every marker a configuration change stranded (another sync service selected, history sync
+-- turned off, a host that is not v2): no request will ever send them.
+clearAllPendingHistoryDeletions:
+DELETE FROM pending_history_deletion;
+
 -- A real read supersedes a removal the server has not been told about yet: the queue row is dropped
 -- instead of the tombstone being sent over the read that replaced it.
 deletePendingHistoryDeletionByChapterId:

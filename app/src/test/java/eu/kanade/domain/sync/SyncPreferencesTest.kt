@@ -6,13 +6,34 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import tachiyomi.core.common.preference.InMemoryPreferenceStore
 import tachiyomi.core.common.preference.InMemoryPreferenceStore.InMemoryPreference
+import tachiyomi.domain.history.service.HistoryTombstoneDeliverability
 import kotlin.time.Clock
 
 class SyncPreferencesTest {
 
-    private fun syncPreferences(syncService: Int) = SyncPreferences(
-        InMemoryPreferenceStore(sequenceOf(InMemoryPreference("sync_service", syncService, 0))),
+    private fun syncPreferences(
+        syncService: Int = 1,
+        history: Boolean = true,
+        probedHost: String = HOST,
+        supportsV2: Boolean = true,
+    ) = SyncPreferences(
+        InMemoryPreferenceStore(
+            sequenceOf(
+                InMemoryPreference("sync_service", syncService, 0),
+                InMemoryPreference("history", history, true),
+                InMemoryPreference("sync_client_host", HOST, HOST),
+                InMemoryPreference("__APP_STATE_sync_v2_probed_host", probedHost, ""),
+                InMemoryPreference("__APP_STATE_sync_server_supports_v2", supportsV2, false),
+            ),
+        ),
     )
+
+    /** The enqueue gate the removal paths read, through the binding the app installs. */
+    private fun tombstones(prefs: SyncPreferences) = SyncHistoryTombstones(SyncYomiHistoryTombstoneDelivery(prefs))
+
+    private companion object {
+        const val HOST = "https://sync.example"
+    }
 
     @Test
     fun `deleted chapters stay pending until a re-add forgets them`() = runTest {
@@ -66,7 +87,7 @@ class SyncPreferencesTest {
         val prefs = syncPreferences(syncService = 1)
 
         val before = Clock.System.now().toEpochMilliseconds()
-        val at = SyncHistoryTombstones(prefs).removalTimeMs()
+        val at = tombstones(prefs).removalTimeMs()
         val after = Clock.System.now().toEpochMilliseconds()
 
         // epoch milliseconds, the unit the queue column keeps: a whole-second stamp sits three orders of
@@ -92,17 +113,11 @@ class SyncPreferencesTest {
 
     @Test
     fun `a history removal is not queued when history sync is off`() = runTest {
-        val prefs = SyncPreferences(
-            InMemoryPreferenceStore(
-                sequenceOf(
-                    InMemoryPreference("sync_service", 1, 0),
-                    InMemoryPreference("history", false, true),
-                ),
-            ),
-        )
+        val prefs = syncPreferences(history = false)
 
-        // no moment means the removal queues nothing: a tombstone nothing would send is lost work
-        assertEquals(0L, SyncHistoryTombstones(prefs).removalTimeMs())
+        // history off is a verdict: no moment means the removal queues nothing
+        assertEquals(HistoryTombstoneDeliverability.UNDELIVERABLE, prefs.historyTombstoneDeliverability())
+        assertEquals(0L, tombstones(prefs).removalTimeMs())
     }
 
     @Test
@@ -113,6 +128,42 @@ class SyncPreferencesTest {
 
         assertEquals(emptySet<String>(), prefs.pendingDeletedMangaKeys.get())
         // only SyncYomi speaks the v2 history tombstone protocol
-        assertEquals(0L, SyncHistoryTombstones(prefs).removalTimeMs())
+        assertEquals(HistoryTombstoneDeliverability.UNDELIVERABLE, prefs.historyTombstoneDeliverability())
+        assertEquals(0L, tombstones(prefs).removalTimeMs())
+    }
+
+    @Test
+    fun `a host the probe has not seen is unknown, not undeliverable`() = runTest {
+        // the probe is cached per host: another host's answer says nothing about the one selected now,
+        // so this is not a verdict and the queue is neither written nor swept
+        val prefs = syncPreferences(probedHost = "")
+
+        assertEquals(HistoryTombstoneDeliverability.UNKNOWN, prefs.historyTombstoneDeliverability())
+        assertEquals(0L, tombstones(prefs).removalTimeMs())
+    }
+
+    @Test
+    fun `a host that answered without v2 is undeliverable`() = runTest {
+        val prefs = syncPreferences(supportsV2 = false)
+
+        assertEquals(HistoryTombstoneDeliverability.UNDELIVERABLE, prefs.historyTombstoneDeliverability())
+        assertEquals(0L, tombstones(prefs).removalTimeMs())
+    }
+
+    @Test
+    fun `only a probed v2 host on SyncYomi with history sync on is deliverable`() = runTest {
+        assertEquals(
+            HistoryTombstoneDeliverability.DELIVERABLE,
+            syncPreferences().historyTombstoneDeliverability(),
+        )
+        assertEquals(
+            HistoryTombstoneDeliverability.UNDELIVERABLE,
+            syncPreferences(syncService = 0).historyTombstoneDeliverability(),
+        )
+        // a host swap is UNKNOWN until the new host is probed, even with a v2 verdict cached for the old one
+        assertEquals(
+            HistoryTombstoneDeliverability.UNKNOWN,
+            syncPreferences(probedHost = "$HOST-old").historyTombstoneDeliverability(),
+        )
     }
 }

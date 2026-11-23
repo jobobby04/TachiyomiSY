@@ -69,6 +69,7 @@ import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.DeleteFavoriteEntries
 import tachiyomi.domain.manga.interactor.GetAllManga
@@ -137,6 +138,7 @@ interface AppGraph : ViewModelGraph {
     // SY -->
     val debugFunctions: DebugFunctions
     val syncPreferences: SyncPreferences
+    val historyRepository: HistoryRepository
     val exhPreferences: ExhPreferences
     val delegateSourcePreferences: DelegateSourcePreferences
     val ehConfigurator: EHConfigurator

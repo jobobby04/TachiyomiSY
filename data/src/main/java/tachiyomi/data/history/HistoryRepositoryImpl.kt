@@ -7,7 +7,9 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.Database
@@ -162,6 +164,14 @@ class HistoryRepositoryImpl(
         // the transaction keeps the chunks all-or-nothing.
         database.transaction {
             ids.chunked(MAX_BOUND_IDS).forEach { database.historyQueries.clearPendingHistoryDeletion(it) }
+        }
+    }
+
+    override suspend fun clearAllPendingHistoryDeletions() {
+        // Dispatched here rather than at the call sites: one of them is a Compose settings callback on
+        // Main, and this statement touches every queued row.
+        withContext(Dispatchers.IO) {
+            database.historyQueries.clearAllPendingHistoryDeletions()
         }
     }
 

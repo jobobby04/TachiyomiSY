@@ -141,6 +141,18 @@ class SyncManager(
             return
         }
 
+        // SY -->
+        // A row queued for a tombstone this configuration can no longer deliver would block its entry
+        // for the rest of its life: a restore payload skips it and "clear database" keeps it. Only a
+        // verdict may drop the queue, so this runs after the capability probe above — a host that has
+        // not answered yet is UNKNOWN, and clearing there would discard tombstones this run's probe
+        // may still deliver.
+        if (dropsStrandedHistoryTombstones(syncPreferences.historyTombstoneDeliverability())) {
+            logcat(LogPriority.DEBUG) { "Dropping history tombstones no configured sync can deliver" }
+            historyRepository.clearAllPendingHistoryDeletions()
+        }
+        // SY <--
+
         val databaseManga = if (full) {
             getAllMangaThatNeedsSync()
         } else {

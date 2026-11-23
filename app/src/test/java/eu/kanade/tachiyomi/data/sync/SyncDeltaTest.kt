@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.history.service.HistoryTombstoneDeliverability
 import tachiyomi.domain.manga.model.Manga
 import kotlin.time.Instant
 
@@ -319,5 +320,14 @@ class SyncDeltaTest {
         )
 
         assertEquals(emptySet<Long>(), deleted)
+    }
+
+    @Test
+    fun `only a verdict that nothing can deliver drops the queued tombstones`() {
+        // another service or history sync off: no run will ever send them, and they block their entries
+        assertTrue(dropsStrandedHistoryTombstones(HistoryTombstoneDeliverability.UNDELIVERABLE))
+        // a host this device has not probed yet: this run is about to ask, so its queue must survive
+        assertFalse(dropsStrandedHistoryTombstones(HistoryTombstoneDeliverability.UNKNOWN))
+        assertFalse(dropsStrandedHistoryTombstones(HistoryTombstoneDeliverability.DELIVERABLE))
     }
 }

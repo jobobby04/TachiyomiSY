@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
+import tachiyomi.domain.history.service.HistoryTombstoneDeliverability
 import java.util.UUID
 
 /**
@@ -131,10 +132,21 @@ class SyncPreferences(
     }
 
     /**
-     * Whether a history removal made here can reach the server: only SyncYomi carries the v2 `history`
-     * tombstone, and only while history sync is on. A removal nothing can deliver queues nothing.
+     * Whether a history removal made here can reach a server: only SyncYomi carries the v2 `history`
+     * tombstone, and only while history sync is on. The cached v2 probe is keyed by host, so a host
+     * this device has not probed yet is [HistoryTombstoneDeliverability.UNKNOWN] rather than a verdict
+     * — another host's answer says nothing about this one.
      */
-    fun deliversHistoryTombstones(): Boolean = isSyncYomiEnabled() && getSyncSettings().history
+    fun historyTombstoneDeliverability(): HistoryTombstoneDeliverability {
+        if (!isSyncYomiEnabled()) return HistoryTombstoneDeliverability.UNDELIVERABLE
+        if (!getSyncSettings().history) return HistoryTombstoneDeliverability.UNDELIVERABLE
+        if (v2ProbedHost.get() != clientHost.get()) return HistoryTombstoneDeliverability.UNKNOWN
+        return if (serverSupportsV2.get()) {
+            HistoryTombstoneDeliverability.DELIVERABLE
+        } else {
+            HistoryTombstoneDeliverability.UNDELIVERABLE
+        }
+    }
 
     fun getSyncSettings(): SyncSettings {
         return SyncSettings(
