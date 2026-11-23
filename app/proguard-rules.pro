@@ -24,6 +24,10 @@
 -keepclassmembers class * implements java.io.Serializable {
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
+    # SY -->
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    # SY <--
 }
 
 # Provided by the OEM at runtime when supported
