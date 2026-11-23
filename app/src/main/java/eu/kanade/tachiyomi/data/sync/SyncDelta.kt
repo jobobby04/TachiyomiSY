@@ -48,6 +48,20 @@ internal fun mangaTombstoneKey(sourceId: Long, mangaUrl: String): String =
 internal fun historyTombstoneKey(sourceId: Long, mangaUrl: String, chapterUrl: String): String =
     chapterTombstoneKey(sourceId, mangaUrl, chapterUrl)
 
+/** A queued history tombstone: the server's merge key and the moment of the removal in Unix seconds. */
+internal data class QueuedHistoryTombstone(val key: String, val at: Long = 0)
+
+/** [key] as the deletion queue stores it, with the moment of the removal ([atSeconds], Unix seconds) appended. */
+internal fun queuedHistoryTombstone(key: String, atSeconds: Long): String = "$key\u001f$atSeconds"
+
+/** [queued] split at its last separator; an entry without a readable time keeps the whole key and no time. */
+internal fun queuedHistoryTombstoneOf(queued: String): QueuedHistoryTombstone {
+    val parts = queued.split('\u001f')
+    if (parts.size < 3) return QueuedHistoryTombstone(queued)
+    val at = parts.last().toLongOrNull()?.takeIf { it >= 0 } ?: return QueuedHistoryTombstone(queued)
+    return QueuedHistoryTombstone(parts.dropLast(1).joinToString("\u001f"), at)
+}
+
 /**
  * The `(sourceId, url)` of library manga this device uploaded that a full snapshot no longer holds: the
  * server can only have dropped them because it tombstones them.

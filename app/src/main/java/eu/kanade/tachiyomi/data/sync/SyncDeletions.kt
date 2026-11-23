@@ -55,11 +55,17 @@ internal data class CategoryTombstone(
     val name: String? = null,
 )
 
+/** A history tombstone: the chapter it names and the removal's action time in Unix seconds (0 when it has none). */
+internal data class HistoryTombstone(
+    val chapter: ChapterTombstone,
+    val at: Long = 0,
+)
+
 /** The local deletions [deletionPlan] derived from a delta, one entry per row the server tombstoned. */
 internal class DeletionPlan(
     val manga: List<Pair<Long, String>>,
     val chapters: List<ChapterTombstone>,
-    val history: List<ChapterTombstone>,
+    val history: List<HistoryTombstone>,
     val categories: List<CategoryTombstone>,
     val skippedKinds: Set<String>,
 )
@@ -98,7 +104,7 @@ internal fun categoryKeyOf(key: String): CategoryTombstone? = when {
 internal fun deletionPlan(deletions: List<BackupDeletedItem>): DeletionPlan {
     val manga = mutableListOf<Pair<Long, String>>()
     val chapters = mutableListOf<ChapterTombstone>()
-    val history = mutableListOf<ChapterTombstone>()
+    val history = mutableListOf<HistoryTombstone>()
     val categories = mutableListOf<CategoryTombstone>()
     val skipped = mutableSetOf<String>()
 
@@ -106,7 +112,8 @@ internal fun deletionPlan(deletions: List<BackupDeletedItem>): DeletionPlan {
         when (item.kind) {
             TOMBSTONE_MANGA -> mangaKeyOf(item.key)?.let { manga += it } ?: unreadableKey(item)
             TOMBSTONE_CHAPTER -> chapterKeyOf(item.key)?.let { chapters += it } ?: unreadableKey(item)
-            TOMBSTONE_HISTORY -> chapterKeyOf(item.key)?.let { history += it } ?: unreadableKey(item)
+            TOMBSTONE_HISTORY ->
+                chapterKeyOf(item.key)?.let { history += HistoryTombstone(it, item.at) } ?: unreadableKey(item)
             TOMBSTONE_CATEGORY -> categoryKeyOf(item.key)?.let { categories += it } ?: unreadableKey(item)
             else -> {
                 skipped += item.kind
@@ -126,8 +133,9 @@ private fun unreadableKey(item: BackupDeletedItem) {
 
 /**
  * Deletes the local rows [plan] names: a manga takes its chapters and history with it (the foreign keys
- * cascade), a chapter is a single row, a history entry is keyed by its chapter, and a category is matched by
- * uid or name. A key with no local row is a no-op, so a tombstone of something this device never had is free.
+ * cascade), a chapter is a single row, a history entry is keyed by its chapter and is only dropped when its read
+ * is not newer than the tombstone's action time, and a category is matched by uid or name. A key with no local row
+ * is a no-op, so a tombstone of something this device never had is free.
  *
  * [librarySyncEnabled] and [historySyncEnabled] honour the same user settings the snapshot fallback honours:
  * a section the user disabled is not deleted on the server's word. Returns the kinds that were not applied.
@@ -160,12 +168,12 @@ internal suspend fun applyDeletions(
     }
 
     if (historySyncEnabled) {
-        val chapterIds = plan.history.mapNotNull { key ->
-            localChapter(key, mangaRepository, chapterRepository)
+        val tombstones = plan.history.mapNotNull { tombstone ->
+            localChapter(tombstone.chapter, mangaRepository, chapterRepository)?.let { it to tombstone.at }
         }
-        if (chapterIds.isNotEmpty()) {
+        tombstones.groupBy({ it.second }, { it.first }).forEach { (at, chapterIds) ->
             logcat(LOG_TAG, LogPriority.DEBUG) { "Deleting ${chapterIds.size} history entries the delta tombstoned" }
-            historyRepository.deleteHistory(chapterIds)
+            historyRepository.deleteHistory(chapterIds, at)
         }
     } else if (plan.history.isNotEmpty()) {
         skipped += TOMBSTONE_HISTORY

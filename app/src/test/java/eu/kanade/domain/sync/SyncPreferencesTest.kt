@@ -1,10 +1,14 @@
 package eu.kanade.domain.sync
 
+import eu.kanade.tachiyomi.data.sync.queuedHistoryTombstoneOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import tachiyomi.core.common.preference.InMemoryPreferenceStore
 import tachiyomi.core.common.preference.InMemoryPreferenceStore.InMemoryPreference
+import tachiyomi.domain.history.model.HistoryTombstoneKey
+import kotlin.time.Clock
 
 class SyncPreferencesTest {
 
@@ -67,6 +71,32 @@ class SyncPreferencesTest {
         prefs.forgetDeletedHistory(listOf("1|/m\u001f/c1"))
 
         assertEquals(setOf("1|/m\u001f/c2"), prefs.pendingDeletedHistoryKeys.get())
+    }
+
+    @Test
+    fun `a queued history removal records when it happened`() = runTest {
+        val prefs = syncPreferences(syncService = 1)
+        val tombstones = SyncHistoryTombstones(prefs)
+
+        val before = Clock.System.now().toEpochMilliseconds() / 1000
+        tombstones.remember(
+            listOf(
+                HistoryTombstoneKey(chapterId = 11, mangaSourceId = 1, mangaUrl = "/m", chapterUrl = "/m/ch1"),
+                HistoryTombstoneKey(chapterId = 12, mangaSourceId = 1, mangaUrl = "/m", chapterUrl = "/m/ch2"),
+            ),
+        )
+        val after = Clock.System.now().toEpochMilliseconds() / 1000
+
+        val queued = prefs.pendingDeletedHistoryKeys.get().map { queuedHistoryTombstoneOf(it) }
+        // the entry stays the server's merge key, with the moment of the removal appended as one more segment
+        assertEquals(setOf("1|/m\u001f/m/ch1", "1|/m\u001f/m/ch2"), queued.map { it.key }.toSet())
+        queued.forEach {
+            // Unix seconds, the unit the server compares: a millisecond stamp sits three orders of magnitude
+            // above this window, and no stamp at all reads as 0
+            assertTrue(it.at in before..after, "${it.at} is not in $before..$after")
+        }
+        // one removal stamps all of its keys with the same moment
+        assertEquals(1, queued.map { it.at }.toSet().size)
     }
 
     @Test

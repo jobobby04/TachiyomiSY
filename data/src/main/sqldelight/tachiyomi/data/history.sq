@@ -71,8 +71,10 @@ JOIN manga M ON M.id = H.manga_id
 JOIN chapter C ON C.id = H.chapter_id
 WHERE H.manga_id = :mangaId;
 
--- Drops the history rows a payload says the server no longer has
+-- Drops the history rows a payload says the server no longer has. A read after the tombstone's action time
+-- (`at`, Unix seconds, whole seconds like the server compares) keeps its row; 0 carries no action time.
 deleteHistoryByChapterIds:
 DELETE FROM history
-WHERE chapter_id IN :chapterIds;
+WHERE chapter_id IN :chapterIds
+AND (:at = 0 OR coalesce(read_at, 0) / 1000 <= :at);
 -- SY <--

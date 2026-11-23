@@ -5,6 +5,7 @@ import android.os.Build
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.models.Backup
 import eu.kanade.tachiyomi.data.sync.SyncNotifier
+import eu.kanade.tachiyomi.data.sync.queuedHistoryTombstoneOf
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.PUT
@@ -12,6 +13,7 @@ import eu.kanade.tachiyomi.network.await
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -70,13 +72,15 @@ class SyncYomiSyncService(
     }
 
     @Serializable
-    private data class DeletionItem(
+    internal data class DeletionItem(
         val kind: String,
         val key: String,
+        @EncodeDefault(EncodeDefault.Mode.NEVER)
+        val at: Long = 0,
     )
 
     @Serializable
-    private data class Deletions(val items: List<DeletionItem> = emptyList())
+    internal data class Deletions(val items: List<DeletionItem> = emptyList())
 
     override suspend fun doSync(syncData: SyncData, full: Boolean): SyncResult {
         reportSyncEvent(SyncEventStatus.SYNC_STARTED)
@@ -391,9 +395,7 @@ class SyncYomiSyncService(
         val history = syncPreferences.pendingDeletedHistoryKeys.get()
         if (chapters.isEmpty() && manga.isEmpty() && history.isEmpty()) return
 
-        val items = chapters.map { DeletionItem("chapter", it) } +
-            manga.map { DeletionItem("manga", it) } +
-            history.map { DeletionItem("history", it) }
+        val items = deletionItems(chapters, manga, history)
 
         val request = POST(
             url = "$host/api/sync/v2/deletions",
@@ -424,3 +426,19 @@ class SyncYomiSyncService(
         logcat(LogPriority.DEBUG) { "SyncYomi v2 deletions applied: ${items.size} items" }
     }
 }
+
+/**
+ * The `/v2/deletions` items for the three pending queues. A history entry carries the removal time it was queued
+ * with as `at` in Unix seconds; a chapter or manga tombstone carries none.
+ */
+internal fun deletionItems(
+    chapters: Collection<String>,
+    mangas: Collection<String>,
+    histories: Collection<String>,
+): List<SyncYomiSyncService.DeletionItem> =
+    chapters.map { SyncYomiSyncService.DeletionItem("chapter", it) } +
+        mangas.map { SyncYomiSyncService.DeletionItem("manga", it) } +
+        histories.map { queued ->
+            val tombstone = queuedHistoryTombstoneOf(queued)
+            SyncYomiSyncService.DeletionItem("history", tombstone.key, tombstone.at)
+        }

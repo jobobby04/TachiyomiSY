@@ -33,7 +33,8 @@ class SyncDeletionsTest {
         val category: CategoryRepository = mockk(relaxed = true)
     }
 
-    private fun item(kind: String, key: String, seq: Long = 1) = BackupDeletedItem(kind = kind, key = key, seq = seq)
+    private fun item(kind: String, key: String, seq: Long = 1, at: Long = 0) =
+        BackupDeletedItem(kind = kind, key = key, seq = seq, at = at)
 
     private fun localManga() = Manga.create().copy(id = 7, source = 1, url = "/m")
 
@@ -49,7 +50,10 @@ class SyncDeletionsTest {
     fun `a deletion survives a protobuf round trip at tag 11000`() {
         val backup = Backup(
             backupManga = listOf(BackupManga(source = 1, url = "/m", title = "/m")),
-            deletions = listOf(item("manga", "1|/m", seq = 42)),
+            deletions = listOf(
+                item("manga", "1|/m", seq = 42),
+                item("history", "1|/m\u001f/m/ch1", seq = 43, at = 1_700_000_123),
+            ),
         )
 
         val bytes = ProtoBuf.encodeToByteArray(Backup.serializer(), backup)
@@ -57,7 +61,11 @@ class SyncDeletionsTest {
         // (11000 shl 3) or 2, the varint field header of `repeated BackupDeletedItem deletions = 11000`
         assertTrue(bytes.containsSequence(byteArrayOf(0xC2.toByte(), 0xAF.toByte(), 0x05)))
         val decoded = ProtoBuf.decodeFromByteArray(Backup.serializer(), bytes)
-        decoded.deletions shouldBe listOf(BackupDeletedItem(kind = "manga", key = "1|/m", seq = 42))
+        decoded.deletions shouldBe listOf(
+            BackupDeletedItem(kind = "manga", key = "1|/m", seq = 42),
+            // the server's action time rides the item (field 4, Unix seconds)
+            BackupDeletedItem(kind = "history", key = "1|/m\u001f/m/ch1", seq = 43, at = 1_700_000_123),
+        )
     }
 
     @Test
@@ -96,7 +104,7 @@ class SyncDeletionsTest {
                 // only the first separator splits: a url may hold one of its own
                 item("manga", "3|/a|b"),
                 item("chapter", "1|/m\u001f/m/ch1"),
-                item("history", "2|/other\u001f/other/ch"),
+                item("history", "2|/other\u001f/other/ch", at = 1_700_000_123),
                 item("category", "uid:12"),
                 item("category", "name:Reading"),
             ),
@@ -104,7 +112,12 @@ class SyncDeletionsTest {
 
         plan.manga shouldBe listOf(1L to "/m", 3L to "/a|b")
         plan.chapters shouldBe listOf(ChapterTombstone(sourceId = 1, mangaUrl = "/m", chapterUrl = "/m/ch1"))
-        plan.history shouldBe listOf(ChapterTombstone(sourceId = 2, mangaUrl = "/other", chapterUrl = "/other/ch"))
+        plan.history shouldBe listOf(
+            HistoryTombstone(
+                ChapterTombstone(sourceId = 2, mangaUrl = "/other", chapterUrl = "/other/ch"),
+                at = 1_700_000_123,
+            ),
+        )
         plan.categories shouldBe listOf(CategoryTombstone(uid = 12), CategoryTombstone(name = "Reading"))
         plan.skippedKinds shouldBe emptySet()
     }
@@ -210,11 +223,62 @@ class SyncDeletionsTest {
             categoryRepository = repositories.category,
         ) shouldBe emptySet()
 
-        coVerify(exactly = 1) { repositories.history.deleteHistory(listOf(42L)) }
+        // no action time: the row goes whatever its read, as it did before the field existed
+        coVerify(exactly = 1) { repositories.history.deleteHistory(listOf(42L), 0) }
         coVerify(exactly = 0) {
             repositories.manga.deleteManga(any())
             repositories.chapter.removeChaptersWithIds(any())
         }
+    }
+
+    @Test
+    fun `a history tombstone reaches the row with its own action time`() = runTest {
+        val repositories = Repositories()
+        coEvery { repositories.manga.getMangaByUrlAndSourceId("/m", 1) } returns localManga()
+        coEvery { repositories.chapter.getChapterByUrlAndMangaId("/m/ch1", 7) } returns localChapter(42)
+        coEvery { repositories.chapter.getChapterByUrlAndMangaId("/m/ch2", 7) } returns localChapter(43)
+
+        applyDeletions(
+            plan = deletionPlan(
+                listOf(
+                    item("history", "1|/m\u001f/m/ch1", at = 1_700_000_100),
+                    item("history", "1|/m\u001f/m/ch2", at = 1_700_000_200),
+                ),
+            ),
+            mangaRepository = repositories.manga,
+            chapterRepository = repositories.chapter,
+            historyRepository = repositories.history,
+            categoryRepository = repositories.category,
+        ) shouldBe emptySet()
+
+        // every tombstone is applied at its own moment, in whole seconds: a single delete would let one
+        // device's removal decide the fate of a read the other one made later
+        coVerify(exactly = 1) { repositories.history.deleteHistory(listOf(42L), 1_700_000_100) }
+        coVerify(exactly = 1) { repositories.history.deleteHistory(listOf(43L), 1_700_000_200) }
+        coVerify(exactly = 0) { repositories.history.deleteHistory(any(), 0) }
+    }
+
+    @Test
+    fun `history tombstones of one action time share a delete`() = runTest {
+        val repositories = Repositories()
+        coEvery { repositories.manga.getMangaByUrlAndSourceId("/m", 1) } returns localManga()
+        coEvery { repositories.chapter.getChapterByUrlAndMangaId("/m/ch1", 7) } returns localChapter(42)
+        coEvery { repositories.chapter.getChapterByUrlAndMangaId("/m/ch2", 7) } returns localChapter(43)
+
+        applyDeletions(
+            plan = deletionPlan(
+                listOf(
+                    item("history", "1|/m\u001f/m/ch1", at = 1_700_000_100),
+                    item("history", "1|/m\u001f/m/ch2", at = 1_700_000_100),
+                ),
+            ),
+            mangaRepository = repositories.manga,
+            chapterRepository = repositories.chapter,
+            historyRepository = repositories.history,
+            categoryRepository = repositories.category,
+        ) shouldBe emptySet()
+
+        coVerify(exactly = 1) { repositories.history.deleteHistory(listOf(42L, 43L), 1_700_000_100) }
     }
 
     @Test

@@ -37,7 +37,10 @@ interface HistoryRepository {
     /** The sync identity of the history rows of [mangaId], read before the rows are cleared. */
     suspend fun getHistoryTombstoneKeys(mangaId: Long): List<HistoryTombstoneKey>
 
-    /** Drops the history rows of [chapterIds] the server no longer has. */
-    suspend fun deleteHistory(chapterIds: Collection<Long>)
+    /**
+     * Drops the history rows of [chapterIds] the server no longer has, keeping a row read after [at] (Unix seconds;
+     * 0 for a tombstone that carries no action time).
+     */
+    suspend fun deleteHistory(chapterIds: Collection<Long>, at: Long = 0)
     // SY <--
 }

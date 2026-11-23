@@ -115,8 +115,8 @@ class HistoryRepositoryImpl(
             .awaitAsList()
     }
 
-    override suspend fun deleteHistory(chapterIds: Collection<Long>) {
-        database.historyQueries.deleteHistoryByChapterIds(chapterIds)
+    override suspend fun deleteHistory(chapterIds: Collection<Long>, at: Long) {
+        database.historyQueries.deleteHistoryByChapterIds(chapterIds = chapterIds, at = at)
     }
 
     private suspend fun partialUpdate(vararg historyUpdates: HistoryUpdate) {
