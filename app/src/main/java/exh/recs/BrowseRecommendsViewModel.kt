@@ -120,8 +120,12 @@ class BrowseRecommendsViewModel(
     val recommendationState: StateFlow<RecommendationPagingSource?>
         field = MutableStateFlow(null)
 
+    // Pager asks for a new PagingSource on every refresh and throws if it gets back one it has
+    // already used, so keep a factory rather than a single instance
+    private var pagingSourceFactory: (() -> RecommendationPagingSource)? = null
+
     override fun createSourcePagingSource(query: String, filters: FilterList): RecommendationPagingSource {
-        return recommendationState.value!!
+        return pagingSourceFactory!!()
     }
 
     override fun Flow<Manga>.combineMetadata(metadata: RaisedSearchMetadata?): Flow<Pair<Manga, RaisedSearchMetadata?>> {
@@ -133,21 +137,32 @@ class BrowseRecommendsViewModel(
         update { it.copy(filterable = false) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            recommendationState.value = when (args) {
-                is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results, networkToLocalManga)
-                is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
-                    getManga.await(args.mangaId)!!,
-                    sourceManager.getOrStub(args.sourceId),
-                    networkToLocalManga,
-                    getTracks,
-                    trackerManager,
-                    networkHelper.client,
-                    json,
-                    delegateSourcePreferences,
-                ).first {
-                    it::class.qualifiedName == args.recommendationSourceName
+            val factory: () -> RecommendationPagingSource = when (args) {
+                is BrowseRecommendsScreen.Args.MergedSourceMangas -> {
+                    { StaticResultPagingSource(args.results, networkToLocalManga) }
+                }
+                is BrowseRecommendsScreen.Args.SingleSourceManga -> {
+                    val manga = getManga.await(args.mangaId)!!
+                    val source = sourceManager.getOrStub(args.sourceId)
+                    val create = {
+                        RecommendationPagingSource.createSources(
+                            manga,
+                            source,
+                            networkToLocalManga,
+                            getTracks,
+                            trackerManager,
+                            networkHelper.client,
+                            json,
+                            delegateSourcePreferences,
+                        ).first {
+                            it::class.qualifiedName == args.recommendationSourceName
+                        }
+                    }
+                    create
                 }
             }
+            pagingSourceFactory = factory
+            recommendationState.value = factory()
         }
     }
 }
