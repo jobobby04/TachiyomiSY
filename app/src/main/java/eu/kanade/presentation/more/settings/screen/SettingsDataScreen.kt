@@ -533,11 +533,8 @@ object SettingsDataScreen : SearchableSettings {
                         ),
                         onValueChanged = {
                             // SY -->
-                            // Leaving SyncYomi is the one change no later sync can repair: the schedule
-                            // is cancelled or now belongs to another service, so no run would ever drop
-                            // the history tombstones queued for SyncYomi. They block their entries (no
-                            // restore over them), so drop them here while this screen still knows the
-                            // switch happened.
+                            // The last repair when no run will ever happen: the interval is off and
+                            // nothing else triggers a sync. Any run sweeps these rows at its start.
                             //
                             // Keyed on the selected value, not on the cached probe: the swap is a
                             // service change, which is a verdict on its own. Staying on SyncYomi (a host
