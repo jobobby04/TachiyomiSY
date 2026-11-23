@@ -258,6 +258,7 @@ class LibraryViewModel(
             favorites = filteredFavorites,
             tracksMap = tracksMap,
             loggedInTrackerIds = trackingFilters.keys,
+            isSearching = !searchQuery.isNullOrEmpty(),
             // SY -->
             groupType = groupType,
             sortingMode = sortingMode,
@@ -284,7 +285,8 @@ class LibraryViewModel(
                         // SY -->
                         data.sortingMode.takeIf { data.groupType != LibraryGroup.BY_DEFAULT },
                         // SY <--
-                    ),
+                    )
+                    .let { if (data.isSearching) it.withoutEmptyCategories() else it },
                 // SY <--
             )
         }
@@ -470,6 +472,15 @@ class LibraryViewModel(
             }
         }
         // SY <--
+    }
+
+    /**
+     * Hides the categories without any search result. When nothing matches at all, the categories are kept
+     * so the "no results" screen (with the global search shortcut) is still displayed.
+     */
+    private fun Map<Category, List</* LibraryItem */ Long>>.withoutEmptyCategories(): Map<Category, List<Long>> {
+        val nonEmpty = filterValues { it.isNotEmpty() }
+        return nonEmpty.ifEmpty { this }
     }
 
     private fun Map<Category, List</* LibraryItem */ Long>>.applySort(
@@ -1365,6 +1376,7 @@ class LibraryViewModel(
         val favorites: List<LibraryItem> = emptyList(),
         val tracksMap: Map</* Manga */ Long, List<Track>> = emptyMap(),
         val loggedInTrackerIds: Set<Long> = emptySet(),
+        val isSearching: Boolean = false,
         // SY -->
         val groupType: Int = LibraryGroup.BY_DEFAULT,
         val sortingMode: LibrarySort = LibrarySort.default,
