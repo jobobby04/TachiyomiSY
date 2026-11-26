@@ -98,4 +98,5 @@
     <string name="gallery_updater_stats_time">\nपछिल्लो समय जाँच गरिएका ग्यालरीहरू:\n- घण्टा: %1$d\n- 6 घण्टा: %2$d\n- 12 घण्टा: %3$d\n- दिन: %4$d\n- 2 दिन: %5$d\n- हप्ता: %6$d\n- महिना: %7$d\n- वर्ष: %8$d</string>
     <string name="settings_profile_note_message">एपले अब E-Hentai र ExHentai मा एप प्रदर्शन सुधार गर्न नयाँ सेटिंग्स प्रोफाइल थप्नेछ। कृपया दुबै साइटमा तीन भन्दा कम प्रोफाइलहरू भएको सुनिश्चित गर्नुहोस्।\n\nयदि तपाईंलाई सेटिङ प्रोफाइलहरू के हुन् भन्ने थाहा छैन भने, त्यसले सायद केही फरक पार्दैन, केवल \'ठीक छ\' मा थिच्नुहोस्।</string>
     <string name="eh_settings_configuration_failed_message">कन्फिगरेसन प्रक्रियाको क्रममा त्रुटि भयो: %1$s</string>
+    <string name="action_stop">रोक्नुहोस्</string>
 </resources>

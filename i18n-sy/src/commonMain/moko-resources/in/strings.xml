@@ -378,7 +378,7 @@
     <string name="id">Id</string>
     <string name="token">Token</string>
     <string name="is_exhentai_gallery">Galeri Exhentai</string>
-    <string name="thumbnail_url">Cuplikan url</string>
+    <string name="thumbnail_url">URL gambar mini</string>
     <string name="genre">Genre</string>
     <string name="date_posted">Tanggal diposting</string>
     <string name="page_count">Jumlah halaman</string>
@@ -567,7 +567,7 @@
     <string name="similar_titles">Judul serupa</string>
     <string name="pref_tracker_resolve_using_source_metadata">Pilih entri dengan sumber metadata</string>
     <string name="pref_tracker_resolve_using_source_metadata_summary">Secara otomatis memilih judul yang cocok bila sumber menyediakan tautan ke trackers. Saat ini didukung oleh MangaDex</string>
-    <string name="rec_hide_library_entries">Sembunyikan hasil yang terdapat di pustaka</string>
+    <string name="rec_hide_library_entries">Sembunyikan entri di perpustakaan</string>
     <string name="rec_common_recommendations">Rekomendasi umum</string>
     <string name="rec_search_short">Temukan rekomendasi</string>
     <string name="rec_no_results">Rekomendasi tidak ditemukan</string>
@@ -592,4 +592,19 @@
     <string name="eh_autoscroll_gesture_toasts_help_message">Saat opsi ini diaktifkan, pembaca akan menampilkan pesan pop-up setelah gerakan pengguliran otomatis melakukan tindakan seperti memulai, menjeda, melanjutkan, berhenti, mengubah kecepatan, atau berpindah antar bab. Saat opsi ini diaktifkan...</string>
     <string name="remove_merged_entries">Hapus entri dari perpustakaan</string>
     <string name="collate_tags">Kumpulkan tag</string>
+    <string name="entry_description">Deskripsi</string>
+    <string name="entry_tags">Tag</string>
+    <string name="source_value_hint">Sumber: %1$s</string>
+    <string name="action_sort_feed">Urutkan daftar konten</string>
+    <string name="rec_search_in">Cari di</string>
+    <string name="rec_sources_summary">Sumber masing-masing entri</string>
+    <string name="rec_trackers_summary">Layanan pelacakan Anda yang tersinkronisasi</string>
+    <string name="total_views">Total tayangan</string>
+    <string name="total_downloads">Total unduhan</string>
+    <string name="disowned">Dilepas</string>
+    <string name="merge_duplicate_chapters">Bab duplikat</string>
+    <string name="merge_dedupe_keep_all">Simpan semua</string>
+    <string name="merge_dedupe_priority">Prioritas</string>
+    <string name="merge_dedupe_most">Terbanyak</string>
+    <string name="merge_dedupe_highest">Tertinggi</string>
 </resources>
