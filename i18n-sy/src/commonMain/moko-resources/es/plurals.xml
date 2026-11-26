@@ -17,7 +17,7 @@
     </plurals>
     <plurals name="num_pages">
         <item quantity="one">%1$d página</item>
-        <item quantity="many">%1$d de páginas</item>
+        <item quantity="many">%1$d páginas</item>
         <item quantity="other">%1$d páginas</item>
     </plurals>
     <plurals name="browse_language_and_pages">

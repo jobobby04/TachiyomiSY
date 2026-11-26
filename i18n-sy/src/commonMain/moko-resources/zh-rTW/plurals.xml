@@ -45,4 +45,13 @@
     <plurals name="row_count">
         <item quantity="other">%d 行</item>
     </plurals>
+    <plurals name="num_favorites">
+        <item quantity="other">%1$s 人收藏</item>
+    </plurals>
+    <plurals name="num_views">
+        <item quantity="other">%1$s 次瀏覽</item>
+    </plurals>
+    <plurals name="rec_selected_entries">
+        <item quantity="other">針對已選取的 %d 部作品</item>
+    </plurals>
 </resources>

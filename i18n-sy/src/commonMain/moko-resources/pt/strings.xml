@@ -288,9 +288,9 @@
     <string name="merge_unknown_entry">ID de entrada desconhecida: %1$d</string>
     <string name="merged_already">Esta entrada já foi mesclada com a entrada atual!</string>
     <string name="merge_duplicate">Esta entrada mesclada é uma duplicata!</string>
-    <string name="reset_tags">Redefinir Tags</string>
+    <string name="reset_tags">Repor etiquetas</string>
     <string name="add_tags">Adicionar tags</string>
-    <string name="reset_info">Redefinir informações</string>
+    <string name="reset_info">Repor informações</string>
     <string name="select_tracker">Selecione um rastreador</string>
     <string name="find_in_another_source">Procurar em outra fonte</string>
     <string name="data_saver_exclude">Excluir da proteção de dados</string>
@@ -310,7 +310,7 @@
     <string name="feed_delete">Apagar elemento do feed?</string>
     <string name="feed_tab_empty">Não tem nenhuma fonte no seu feed, navegue até o canto superior direito para adicionar uma</string>
     <string name="feed_add">Adicionar %1$s ao feed?</string>
-    <string name="add_tag">Adicionar Tag</string>
+    <string name="add_tag">Adicionar tag</string>
     <string name="pref_tag_sorting">Tags de ordenação de tag</string>
     <string name="tag_sorting">Ordenação de tag</string>
     <string name="action_add_tags_message">Leia isto! Tags devem ser exatas, não há combinação parcial, não pode fazer netorare filtrar female:netorare ou similar!\nO estilo para tags é\n\"female: sole female\"\nsem aspas!\nAdicionar variantes da mesma tag é suportado, então pode-se fazer \"tag: netorare\" para NHentai e \"female: netorare\" para E-Hentai!</string>
